@@ -1,37 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-// 인증 미들웨어
-async function authenticate(request: NextRequest) {
-  const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value || cookieStore.get('accessToken')?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-}
+import { withAuth } from '@/lib/auth/middleware';
 
 // POST /api/payments/direct - 직접 결제 처리 (계좌이체)
 export async function POST(request: NextRequest) {
   try {
-    const user = await authenticate(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request);
+    if ('error' in authResult) {
+      return authResult.error;
     }
+    const { user } = authResult;
 
     const body = await request.json();
     const {
@@ -49,7 +27,7 @@ export async function POST(request: NextRequest) {
       data: {
         orderId,
         campaignId,
-        userId: user.userId || user.id,
+        userId: user.id,
         amount,
         type: 'CAMPAIGN_FEE',
         status: status || 'COMPLETED',
@@ -93,7 +71,8 @@ export async function POST(request: NextRequest) {
       payment
     });
   } catch (error) {
-    console.error('직접 결제 처리 오류:', error);
+    const { logError } = await import('@/lib/utils/logger');
+    logError(error, '직접 결제 처리 오류');
     return NextResponse.json(
       { error: '결제 처리에 실패했습니다.' },
       { status: 500 }

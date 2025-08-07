@@ -1,20 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireAuth, createAuthResponse, createErrorResponse } from '@/lib/auth-middleware';
-import { validateRequest, paginationSchema, formatValidationErrors } from '@/lib/validation';
+import { paginationSchema, campaignCreateSchema, ValidationHelper } from '@/lib/utils/validation';
 import { z } from 'zod';
+import { createSuccessResponse, handleApiError } from '@/lib/utils/api-error';
+import { ResponseCache, CacheKeyBuilder, CachePresets } from '@/lib/utils/cache';
+import { PerformanceTimer, QueryPerformance } from '@/lib/utils/performance';
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 // GET /api/campaigns - 캠페인 목록 조회
-// GET /api/campaigns - 캠페인 목록 조회
 export async function GET(request: NextRequest) {
+  const timer = new PerformanceTimer('api.campaigns.GET');
+  
   try {
     const { searchParams } = new URL(request.url);
     
-    // Validate pagination params
-    const paginationResult = await validateRequest(
+    // Validate pagination params using new validation utilities
+    const paginationResult = await ValidationHelper.validate(
       {
         page: searchParams.get('page'),
         limit: searchParams.get('limit')
@@ -23,7 +27,8 @@ export async function GET(request: NextRequest) {
     );
     
     if (!paginationResult.success) {
-      return createErrorResponse('Invalid pagination parameters', 400, formatValidationErrors(paginationResult.errors));
+      const errors = ValidationHelper.formatErrorMessages(paginationResult.errors!);
+      return createErrorResponse('Invalid pagination parameters', 400, errors);
     }
     
     const { page, limit } = paginationResult.data;
@@ -32,201 +37,208 @@ export async function GET(request: NextRequest) {
     const platform = searchParams.get('platform');
     const offset = (page - 1) * limit;
 
-    // 필터 조건 구성
-    const where: any = {};
-    
-    // 기본적으로 ACTIVE 상태인 캠페인만 표시 (관리자가 승인한 캠페인)
-    if (status) {
-      where.status = status.toUpperCase();
-    } else {
-      // status 파라미터가 없으면 ACTIVE 캠페인만 표시
-      where.status = 'ACTIVE';
-    }
-    
-    if (category && category !== 'all') {
-      where.business = {
-        businessProfile: {
-          businessCategory: category
-        }
-      };
-    }
-    
-    if (platform && platform !== 'all') {
-      where.platform = platform.toUpperCase();
-    }
+    // 캐시 키 생성
+    const cacheKey = CacheKeyBuilder.create()
+      .add('campaigns')
+      .page(page, limit)
+      .filter({ status, category, platform })
+      .build();
 
-    // DB에서 캠페인 데이터 조회
-    const campaigns = await prisma.campaign.findMany({
-      where,
-      select: {
-        id: true,
-        businessId: true,
-        title: true,
-        description: true,
-        platform: true,
-        budget: true,
-        targetFollowers: true,
-        startDate: true,
-        endDate: true,
-        requirements: true,
-        hashtags: true,
-        imageUrl: true,
-        imageId: true,
-        status: true,
-        isPaid: true,
-        maxApplicants: true,
-        rewardAmount: true,
-        createdAt: true,
-        updatedAt: true,
-        business: {
-          select: {
-            id: true,
-            name: true,
+    // 캐시된 응답 확인 또는 데이터 조회
+    const cachedData = await ResponseCache.getOrSet(
+      cacheKey,
+      async () => {
+        // 필터 조건 구성
+        const where: any = {};
+        
+        // 기본적으로 ACTIVE 상태인 캠페인만 표시 (관리자가 승인한 캠페인)
+        if (status) {
+          where.status = status.toUpperCase();
+        } else {
+          // status 파라미터가 없으면 ACTIVE 캠페인만 표시
+          where.status = 'ACTIVE';
+        }
+        
+        if (category && category !== 'all') {
+          where.business = {
             businessProfile: {
+              businessCategory: category
+            }
+          };
+        }
+        
+        if (platform && platform !== 'all') {
+          where.platform = platform.toUpperCase();
+        }
+
+        // DB에서 캠페인 데이터 조회 (성능 측정 포함)
+        const [campaigns, total] = await Promise.all([
+          QueryPerformance.measure(
+            'campaign.findMany',
+            () => prisma.campaign.findMany({
+              where,
               select: {
-                companyName: true,
-                businessCategory: true
+                id: true,
+                businessId: true,
+                title: true,
+                description: true,
+                platform: true,
+                budget: true,
+                targetFollowers: true,
+                startDate: true,
+                endDate: true,
+                requirements: true,
+                hashtags: true,
+                imageUrl: true,
+                imageId: true,
+                status: true,
+                isPaid: true,
+                maxApplicants: true,
+                rewardAmount: true,
+                createdAt: true,
+                updatedAt: true,
+                business: {
+                  select: {
+                    id: true,
+                    name: true,
+                    businessProfile: {
+                      select: {
+                        companyName: true,
+                        businessCategory: true
+                      }
+                    }
+                  }
+                },
+                _count: {
+                  select: {
+                    applications: true
+                  }
+                }
+              },
+              orderBy: [
+                { status: 'desc' }, // ACTIVE 캠페인을 먼저
+                { createdAt: 'desc' }
+              ],
+              skip: offset,
+              take: limit
+            }),
+            { filters: { status, category, platform }, pagination: { page, limit } }
+          ),
+          QueryPerformance.measure(
+            'campaign.count',
+            () => prisma.campaign.count({ where }),
+            { filters: { status, category, platform } }
+          )
+        ]);
+
+        // 응답 데이터 포맷팅
+        const formattedCampaigns = campaigns.map((campaign, index) => ({
+          id: campaign.id,
+          title: campaign.title,
+          brand_name: campaign.business.businessProfile?.companyName || campaign.business.name,
+          description: campaign.description || '',
+          budget: campaign.budget,
+          deadline: campaign.endDate,
+          category: campaign.business.businessProfile?.businessCategory || 'other',
+          platforms: [campaign.platform.toLowerCase()],
+          required_followers: campaign.targetFollowers,
+          location: '전국',
+          view_count: 0,
+          applicant_count: campaign._count.applications,
+          maxApplicants: campaign.maxApplicants,
+          rewardAmount: campaign.rewardAmount,
+          image_url: campaign.imageUrl || '/images/campaigns/default.jpg',
+          tags: (() => {
+            if (!campaign.hashtags) return [];
+            try {
+              if (campaign.hashtags.startsWith('[')) {
+                return JSON.parse(campaign.hashtags);
+              } else {
+                return campaign.hashtags.split(' ').filter(tag => tag.startsWith('#'));
+              }
+            } catch (e) {
+              console.warn('Failed to parse hashtags:', campaign.hashtags);
+              return campaign.hashtags.split(' ').filter(tag => tag.startsWith('#'));
+            }
+          })(),
+          status: campaign.status.toLowerCase(),
+          created_at: campaign.createdAt.toISOString(),
+          start_date: campaign.startDate,
+          end_date: campaign.endDate,
+          requirements: campaign.requirements || '',
+          application_deadline: campaign.endDate // 실제 지원 마감일이 있다면 해당 필드 사용
+        }));
+        
+        // 카테고리별 통계를 위한 별도 쿼리 (성능 측정 포함)
+        const campaignsByCategory = await QueryPerformance.measure(
+          'businessProfile.groupBy',
+          () => prisma.businessProfile.groupBy({
+            by: ['businessCategory'],
+            _count: {
+              userId: true
+            },
+            where: {
+              user: {
+                campaigns: {
+                  some: {
+                    status: 'ACTIVE'
+                  }
+                }
               }
             }
-          }
-        },
-        applications: {
-          select: {
-            id: true,
-            status: true
-          }
-        },
-        _count: {
-          select: {
-            applications: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      skip: offset,
-      take: limit
-    });
+          }),
+          { purpose: 'category_stats' }
+        );
+        
+        const categoryStats: Record<string, number> = {};
+        campaignsByCategory.forEach(stat => {
+          const category = stat.businessCategory || 'other';
+          categoryStats[category] = stat._count.userId;
+        });
 
-    // 총 개수 조회
-    const total = await prisma.campaign.count({ where });
-
-    // 응답 데이터 포맷팅
-    const formattedCampaigns = campaigns.map((campaign, index) => ({
-      id: campaign.id,
-      title: campaign.title,
-      brand_name: campaign.business.businessProfile?.companyName || campaign.business.name,
-      description: campaign.description || '',
-      budget: campaign.budget,
-      deadline: campaign.endDate,
-      category: campaign.business.businessProfile?.businessCategory || 'other',
-      platforms: [campaign.platform.toLowerCase()],
-      required_followers: campaign.targetFollowers,
-      location: '전국',
-      view_count: 0,
-      applicant_count: campaign._count.applications,
-      maxApplicants: campaign.maxApplicants,
-      rewardAmount: campaign.rewardAmount,
-      image_url: campaign.imageUrl || '/images/campaigns/default.jpg',
-      tags: (() => {
-        if (!campaign.hashtags) return [];
-        try {
-          if (campaign.hashtags.startsWith('[')) {
-            return JSON.parse(campaign.hashtags);
-          } else {
-            return campaign.hashtags.split(' ').filter(tag => tag.startsWith('#'));
-          }
-        } catch (e) {
-          console.warn('Failed to parse hashtags:', campaign.hashtags);
-          return campaign.hashtags.split(' ').filter(tag => tag.startsWith('#'));
-        }
-      })(),
-      status: campaign.status.toLowerCase(),
-      created_at: campaign.createdAt.toISOString(),
-      start_date: campaign.startDate,
-      end_date: campaign.endDate,
-      requirements: campaign.requirements || '',
-      application_deadline: campaign.endDate // 실제 지원 마감일이 있다면 해당 필드 사용
-    }));
-    
-    // 카테고리별 카운트 조회 (최적화된 쿼리)
-    const categoryStats = await prisma.campaign.groupBy({
-      by: ['status'],
-      where: { status: 'ACTIVE' },
-      _count: true
-    });
-    
-    // 카테고리별 통계를 위한 별도 쿼리
-    const campaignsByCategory = await prisma.businessProfile.groupBy({
-      by: ['businessCategory'],
-      _count: {
-        userId: true
+        return {
+          campaigns: formattedCampaigns,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit)
+          },
+          categoryStats
+        };
       },
-      where: {
-        user: {
-          campaigns: {
-            some: {
-              status: 'ACTIVE'
-            }
-          }
-        }
-      }
-    });
-    
-    const categoryStats2: Record<string, number> = {};
-    campaignsByCategory.forEach(stat => {
-      const category = stat.businessCategory || 'other';
-      categoryStats2[category] = stat._count.userId;
-    });
-
-    const response = {
-      campaigns: formattedCampaigns,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      },
-      categoryStats: categoryStats2
-    };
-
-    return createAuthResponse(response);
-  } catch (error) {
-    console.error('캠페인 목록 조회 오류:', error);
-    return createErrorResponse(
-      '캠페인 목록을 불러오는데 실패했습니다.',
-      500,
-      error instanceof Error ? error.message : undefined
+      CachePresets.CAMPAIGN_LIST.ttl // 5분 캐시
     );
+
+    const response = NextResponse.json({
+      success: true,
+      data: cachedData
+    });
+    
+    // 성능 최적화를 위한 캐시 헤더 추가
+    ResponseCache.addCacheHeaders(response, CachePresets.CAMPAIGN_LIST.ttl, CachePresets.CAMPAIGN_LIST.swr);
+    
+    // 성능 측정 종료
+    timer.end();
+    
+    return response;
+  } catch (error) {
+    return handleApiError(error, { endpoint: 'campaigns', method: 'GET' });
   }
 }
 
-// Campaign creation schema
-const campaignCreateSchema = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().min(1).max(5000),
-  platform: z.enum(['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'NAVERBLOG']),
-  budget: z.number().positive(),
-  targetFollowers: z.number().int().positive(),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
-  requirements: z.string().optional(),
-  hashtags: z.array(z.string()).optional(),
-  maxApplicants: z.number().int().positive().default(100),
-  rewardAmount: z.number().positive().default(0),
-  location: z.string().default('전국'),
-});
-
 // POST /api/campaigns - 새 캠페인 생성
 export async function POST(request: NextRequest) {
+  const timer = new PerformanceTimer('api.campaigns.POST');
+  let user: any = null;
+  
   try {
     // Authenticate user
     const authResult = await requireAuth(request, ['BUSINESS']);
     if (authResult instanceof NextResponse) {
       return authResult;
     }
-    const user = authResult;
+    user = authResult;
 
     const body = await request.json();
     
@@ -246,53 +258,53 @@ export async function POST(request: NextRequest) {
       location: body.location || '전국'
     };
     
-    // Validate the data
-    const validationResult = await validateRequest(campaignData, campaignCreateSchema);
+    // Validate the data using new validation utilities
+    const validationResult = await ValidationHelper.validate(campaignData, campaignCreateSchema);
     
     if (!validationResult.success) {
-      return createErrorResponse(
-        'Invalid campaign data',
-        400,
-        formatValidationErrors(validationResult.errors)
-      );
+      const errors = ValidationHelper.formatErrorMessages(validationResult.errors!);
+      return createErrorResponse('Invalid campaign data', 400, errors);
     }
     
     const validatedData = validationResult.data;
 
-    // Create campaign with validated data
-    const campaign = await prisma.campaign.create({
-      data: {
-        businessId: user.id,
-        title: validatedData.title,
-        description: validatedData.description,
-        platform: validatedData.platform,
-        budget: validatedData.budget,
-        targetFollowers: validatedData.targetFollowers,
-        startDate: new Date(validatedData.startDate),
-        endDate: new Date(validatedData.endDate),
-        requirements: validatedData.requirements,
-        hashtags: validatedData.hashtags ? JSON.stringify(validatedData.hashtags) : null,
-        maxApplicants: validatedData.maxApplicants,
-        rewardAmount: validatedData.rewardAmount,
-        location: validatedData.location,
-        status: 'DRAFT',
-        isPaid: false
-      }
-    });
+    // Create campaign with validated data (성능 측정 포함)
+    const campaign = await QueryPerformance.measure(
+      'campaign.create',
+      () => prisma.campaign.create({
+        data: {
+          businessId: user.id,
+          title: validatedData.title,
+          description: validatedData.description,
+          platform: validatedData.platform,
+          budget: validatedData.budget,
+          targetFollowers: validatedData.targetFollowers,
+          startDate: new Date(validatedData.startDate),
+          endDate: new Date(validatedData.endDate),
+          requirements: validatedData.requirements,
+          hashtags: validatedData.hashtags ? JSON.stringify(validatedData.hashtags) : null,
+          maxApplicants: validatedData.maxApplicants,
+          rewardAmount: validatedData.rewardAmount,
+          location: validatedData.location,
+          status: 'DRAFT',
+          isPaid: false
+        }
+      }),
+      { userId: user.id, platform: validatedData.platform }
+    );
 
-    return createAuthResponse(
-      {
-        message: '캠페인이 성공적으로 생성되었습니다.',
-        campaign
-      },
+    // 캠페인 관련 캐시 무효화
+    ResponseCache.invalidateCampaigns();
+    ResponseCache.invalidateUser(user.id);
+
+    timer.end();
+
+    return createSuccessResponse(
+      campaign,
+      '캠페인이 성공적으로 생성되었습니다.',
       201
     );
   } catch (error) {
-    console.error('캠페인 생성 오류:', error);
-    return createErrorResponse(
-      '캠페인 생성에 실패했습니다.',
-      500,
-      error instanceof Error ? error.message : undefined
-    );
+    return handleApiError(error, { endpoint: 'campaigns', method: 'POST', userId: user?.id });
   }
 }

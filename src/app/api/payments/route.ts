@@ -87,8 +87,15 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 토스페이먼츠 클라이언트 키 (환경변수에서 가져오거나 하드코딩)
-    const clientKey = process.env.TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq'
+    // 토스페이먼츠 클라이언트 키
+    const clientKey = process.env.TOSS_CLIENT_KEY
+    if (!clientKey) {
+      console.error('TOSS_CLIENT_KEY is not configured')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
     
     // 결제 요청 정보
     const paymentRequest = {
@@ -96,8 +103,8 @@ export async function POST(request: NextRequest) {
       orderId: payment.orderId,
       orderName: `${campaign.title} 캠페인 결제`,
       customerName: user.name || user.email,
-      successUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payments/callback/success`,
-      failUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payments/callback/fail`
+      successUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/payments/callback/success`,
+      failUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/payments/callback/fail`
     }
 
     return NextResponse.json({

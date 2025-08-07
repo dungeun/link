@@ -37,7 +37,13 @@ export async function GET(request: NextRequest) {
     }
 
     // 토스페이먼츠 결제 승인 API 호출
-    const tossSecretKey = process.env.TOSS_SECRET_KEY || 'test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R'
+    const tossSecretKey = process.env.TOSS_SECRET_KEY
+    if (!tossSecretKey) {
+      console.error('TOSS_SECRET_KEY is not configured')
+      return NextResponse.redirect(
+        new URL('/business/campaigns/new?error=server_config_error', request.url)
+      )
+    }
     const base64SecretKey = Buffer.from(tossSecretKey + ':').toString('base64')
 
     const confirmResponse = await fetch('https://api.tosspayments.com/v1/payments/confirm', {
@@ -83,6 +89,21 @@ export async function GET(request: NextRequest) {
       data: {
         isPaid: true,
         status: 'ACTIVE'
+      }
+    })
+
+    // Revenue 기록 추가 (플랫폼 수수료)
+    await prisma.revenue.create({
+      data: {
+        type: 'campaign_fee',
+        amount: payment.amount * 0.1, // 플랫폼 수수료 10%
+        referenceId: payment.id,
+        description: `캠페인 수수료 - 토스페이먼츠`,
+        metadata: {
+          campaignId: payment.campaignId,
+          paymentKey,
+          paymentMethod: 'TOSS'
+        }
       }
     })
 

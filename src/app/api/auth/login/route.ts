@@ -3,25 +3,25 @@ import { prisma } from '@/lib/db/prisma'
 import * as bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
+import { JWT_SECRET } from '@/lib/auth/constants'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-
 export async function POST(request: NextRequest) {
   try {
-    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
-    console.log('Request method:', request.method)
-    console.log('Request URL:', request.url)
+    logger.debug('Request headers:', Object.fromEntries(request.headers.entries()))
+    logger.debug('Request method:', request.method)
+    logger.debug('Request URL:', request.url)
     
     let body;
     try {
       const textBody = await request.text()
-      console.log('Raw request body:', textBody)
+      logger.debug('Raw request body:', textBody)
       body = JSON.parse(textBody)
     } catch (parseError) {
-      console.error('JSON parsing error:', parseError)
+      logger.error('JSON parsing error:', parseError)
       return NextResponse.json(
         { error: 'Invalid JSON format' },
         { status: 400 }
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     
     const { email, password } = body
     
-    console.log('Login attempt for:', email, 'Password length:', password?.length)
+    logger.debug('Login attempt for:', email, 'Password length:', password?.length)
 
     if (!email || !password) {
       return NextResponse.json(
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      console.log('User not found for email:', email)
+      logger.debug('User not found for email:', email)
       return NextResponse.json(
         { error: '이메일 또는 비밀번호가 올바르지 않습니다.' },
         { status: 401 }
@@ -56,11 +56,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 비밀번호 확인
-    console.log('User found:', user.email, 'Type:', user.type, 'Status:', user.status)
+    logger.debug('User found:', user.email, 'Type:', user.type, 'Status:', user.status)
     
     const isValidPassword = await bcrypt.compare(password, user.password);
     
-    console.log('Password validation result:', isValidPassword)
+    logger.debug('Password validation result:', isValidPassword)
     if (!isValidPassword) {
       return NextResponse.json(
         { error: '이메일 또는 비밀번호가 올바르지 않습니다.' },
@@ -109,31 +109,23 @@ export async function POST(request: NextRequest) {
       accessToken: token // Add this for backward compatibility with useAuth hook
     })
 
-    // 쿠키 설정
-    response.cookies.set('auth-token', token, {
+    // 쿠키 보안 설정 (환경에 따라 적절히 설정)
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
       httpOnly: true,
-      secure: false, // HTTP 환경에서도 작동하도록 수정
-      sameSite: 'lax',
+      secure: isProduction, // 프로덕션에서는 HTTPS 강제
+      sameSite: 'lax' as const,
       maxAge: 60 * 60 * 24 * 7, // 7일
       path: '/'
-    })
-    
-    // accessToken 쿠키도 설정 (호환성)
-    response.cookies.set('accessToken', token, {
-      httpOnly: true,
-      secure: false, // HTTP 환경에서도 작동하도록 수정
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7일
-      path: '/'
-    })
+    };
+
+    response.cookies.set('auth-token', token, cookieOptions);
+    response.cookies.set('accessToken', token, cookieOptions); // 호환성 유지
 
     return response
 
   } catch (error: any) {
-    console.error('Login error:', error)
-    return NextResponse.json(
-      { error: error.message || 'Login failed' },
-      { status: 401 }
-    )
+    const { handleApiError } = await import('@/lib/utils/api-error');
+    return handleApiError(error, { endpoint: 'login' });
   }
 }

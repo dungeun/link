@@ -1,45 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-// 인증 미들웨어
-async function authenticate(request: NextRequest) {
-  const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-}
+import { withAuth } from '@/lib/auth/middleware';
+import { createErrorResponse, createSuccessResponse, createApiError, handleApiError } from '@/lib/utils/api-error';
 
 // POST /api/business/campaigns - 새 캠페인 생성
 export async function POST(request: NextRequest) {
+  let user: any = null;
   try {
-    const user = await authenticate(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
+    if ('error' in authResult) {
+      return authResult.error;
     }
-    
-    const userType = user.type?.toLowerCase();
-    if (userType !== 'business' && userType !== 'admin') {
-      return NextResponse.json(
-        { error: '비즈니스 계정만 캠페인을 생성할 수 있습니다.' },
-        { status: 403 }
-      );
-    }
+    user = authResult.user;
 
     const body = await request.json();
     const {
@@ -78,13 +50,11 @@ export async function POST(request: NextRequest) {
     if (!endDate) missingFields.push('종료일(endDate)');
     
     if (missingFields.length > 0) {
-      return NextResponse.json(
-        { 
-          error: '필수 필드가 누락되었습니다.',
-          missingFields: missingFields,
-          message: `다음 필드를 입력해주세요: ${missingFields.join(', ')}`
-        },
-        { status: 400 }
+      return createErrorResponse(
+        createApiError.validation(
+          `다음 필드를 입력해주세요: ${missingFields.join(', ')}`,
+          { missingFields }
+        )
       );
     }
 
@@ -95,16 +65,14 @@ export async function POST(request: NextRequest) {
     today.setHours(0, 0, 0, 0);
 
     if (startDateObj < today) {
-      return NextResponse.json(
-        { error: '시작일은 오늘 날짜 이후여야 합니다.' },
-        { status: 400 }
+      return createErrorResponse(
+        createApiError.validation('시작일은 오늘 날짜 이후여야 합니다.')
       );
     }
 
     if (endDateObj <= startDateObj) {
-      return NextResponse.json(
-        { error: '종료일은 시작일 이후여야 합니다.' },
-        { status: 400 }
+      return createErrorResponse(
+        createApiError.validation('종료일은 시작일 이후여야 합니다.')
       );
     }
 
@@ -132,48 +100,34 @@ export async function POST(request: NextRequest) {
         questions: questions ? questions : null,  // JSON 타입이므로 직접 저장
         status: 'DRAFT', // 결제 전에는 DRAFT 상태
         isPaid: false,
-        businessId: user.userId || user.id
+        businessId: user.id
       }
     });
 
-    return NextResponse.json({
-      message: '캠페인이 성공적으로 생성되었습니다.',
-      campaign
-    }, { status: 201 });
-  } catch (error) {
-    console.error('캠페인 생성 오류:', error);
-    return NextResponse.json(
-      { error: '캠페인 생성에 실패했습니다.' },
-      { status: 500 }
+    return createSuccessResponse(
+      campaign,
+      '캠페인이 성공적으로 생성되었습니다.',
+      201
     );
-  } finally {
-    await prisma.$disconnect();
+  } catch (error) {
+    return handleApiError(error, { userId: user?.id });
   }
 }
 
 // GET /api/business/campaigns - 비즈니스 계정의 캠페인 목록 조회
 export async function GET(request: NextRequest) {
+  let user: any = null;
   try {
-    const user = await authenticate(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
+    if ('error' in authResult) {
+      return authResult.error;
     }
-    
-    const userType = user.type?.toLowerCase();
-    if (userType !== 'business' && userType !== 'admin') {
-      return NextResponse.json(
-        { error: '권한이 없습니다.' },
-        { status: 403 }
-      );
-    }
+    user = authResult.user;
 
     // 비즈니스 계정의 캠페인 목록 조회
     const campaigns = await prisma.campaign.findMany({
       where: {
-        businessId: user.userId || user.id
+        businessId: user.id
       },
       orderBy: {
         createdAt: 'desc'
@@ -204,16 +158,8 @@ export async function GET(request: NextRequest) {
       createdAt: campaign.createdAt
     }));
 
-    return NextResponse.json({
-      campaigns: formattedCampaigns
-    });
+    return createSuccessResponse({ campaigns: formattedCampaigns });
   } catch (error) {
-    console.error('캠페인 조회 오류:', error);
-    return NextResponse.json(
-      { error: '캠페인 조회에 실패했습니다.' },
-      { status: 500 }
-    );
-  } finally {
-    await prisma.$disconnect();
+    return handleApiError(error, { userId: user?.id });
   }
 }

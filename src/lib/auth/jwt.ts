@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { JWT_SECRET, REFRESH_SECRET } from '@/lib/auth/constants';
 
 interface JWTPayload {
   id: string;
@@ -16,8 +17,8 @@ export async function signJWT(
   options?: jwt.SignOptions
 ): Promise<string> {
   const secret = 'expiresIn' in (options || {}) && options?.expiresIn === '7d'
-    ? process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-jwt-key-change-this-in-production'
-    : process.env.JWT_SECRET || 'your-secret-key';
+    ? REFRESH_SECRET
+    : JWT_SECRET;
 
   // Ensure userId is set for JWTPayload
   if ('email' in payload && !('userId' in payload)) {
@@ -32,8 +33,8 @@ export async function verifyJWT(
   isRefreshToken = false
 ): Promise<JWTPayload> {
   const secret = isRefreshToken
-    ? process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-jwt-key-change-this-in-production'
-    : process.env.JWT_SECRET || 'your-secret-key';
+    ? REFRESH_SECRET
+    : JWT_SECRET;
 
   return jwt.verify(token, secret) as JWTPayload;
 }

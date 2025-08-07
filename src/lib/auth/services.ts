@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { User } from '@/lib/auth'
 import { prisma } from '@/lib/db/prisma'
+import { JWT_SECRET, REFRESH_SECRET } from '@/lib/auth/constants'
+import { logger } from '@/lib/utils/logger'
 
 export interface LoginCredentials {
   email: string
@@ -23,8 +25,6 @@ export interface RegisterData {
 }
 
 class AuthServiceClass {
-  private JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-  private REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret'
 
   async login(credentials: LoginCredentials): Promise<{ user: User; token: string; refreshToken: string }> {
     const { email, password } = credentials
@@ -58,13 +58,13 @@ class AuthServiceClass {
 
       const token = jwt.sign(
         { userId: user.id, email: user.email, type: user.type },
-        this.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: '1h' }
       )
 
       const refreshToken = jwt.sign(
         { userId: user.id },
-        this.REFRESH_SECRET,
+        REFRESH_SECRET,
         { expiresIn: '7d' }
       )
 
@@ -79,7 +79,7 @@ class AuthServiceClass {
         refreshToken
       }
     } catch (error) {
-      console.error('Login error:', error)
+      logger.error('Login error:', error)
       throw new Error('Invalid credentials')
     }
   }
@@ -146,13 +146,13 @@ class AuthServiceClass {
 
       const token = jwt.sign(
         { userId: user.id, email: user.email, type: user.type },
-        this.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: '1h' }
       )
 
       const refreshToken = jwt.sign(
         { userId: user.id },
-        this.REFRESH_SECRET,
+        REFRESH_SECRET,
         { expiresIn: '7d' }
       )
 
@@ -167,24 +167,24 @@ class AuthServiceClass {
         refreshToken
       }
     } catch (error) {
-      console.error('Registration error:', error)
+      logger.error('Registration error:', error)
       throw error
     }
   }
 
   async refreshToken(token: string): Promise<{ token: string; refreshToken: string }> {
     try {
-      const decoded = jwt.verify(token, this.REFRESH_SECRET) as any
+      const decoded = jwt.verify(token, REFRESH_SECRET) as any
       
       const newToken = jwt.sign(
         { userId: decoded.userId },
-        this.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: '1h' }
       )
 
       const newRefreshToken = jwt.sign(
         { userId: decoded.userId },
-        this.REFRESH_SECRET,
+        REFRESH_SECRET,
         { expiresIn: '7d' }
       )
 
@@ -196,7 +196,7 @@ class AuthServiceClass {
 
   async verifyToken(token: string): Promise<any> {
     try {
-      return jwt.verify(token, this.JWT_SECRET)
+      return jwt.verify(token, JWT_SECRET)
     } catch (error) {
       throw new Error('Invalid token')
     }
@@ -214,7 +214,7 @@ class AuthServiceClass {
 
   async logout(sessionId: string): Promise<void> {
     // Mock logout - in real app, this would clear session from database/redis
-    console.log('Logging out session:', sessionId)
+    logger.log('Logging out session:', sessionId)
   }
 
   async validateToken(token: string): Promise<any> {
@@ -244,7 +244,7 @@ class AuthServiceClass {
         type: user.type as 'BUSINESS' | 'INFLUENCER' | 'ADMIN'
       }
     } catch (error) {
-      console.error('Error fetching user:', error)
+      logger.error('Error fetching user:', error)
       return null
     }
   }

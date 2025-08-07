@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+import { JWT_SECRET } from '@/lib/auth/constants';
+import { logger } from '@/lib/utils/logger';
 
 export interface AuthUser {
   id: string;
@@ -46,14 +46,14 @@ export async function authenticateAdmin(request: NextRequest): Promise<AuthUser 
   }
 
   if (!token) {
-    console.log('[Admin Auth] No token found');
-    console.log('[Admin Auth] Headers:', Object.fromEntries(request.headers.entries()));
+    logger.debug('[Admin Auth] No token found');
+    logger.debug('[Admin Auth] Headers:', Object.fromEntries(request.headers.entries()));
     return null;
   }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    console.log('[Admin Auth] JWT verified successfully:', { type: decoded.type, email: decoded.email });
+    logger.debug('[Admin Auth] JWT verified successfully:', { type: decoded.type, email: decoded.email });
     
     // userId 필드가 있으면 id로 변환
     if (decoded.userId && !decoded.id) {
@@ -62,7 +62,7 @@ export async function authenticateAdmin(request: NextRequest): Promise<AuthUser 
     
     return decoded;
   } catch (error) {
-    console.error('[Admin Auth] JWT verification failed:', error);
+    logger.error('[Admin Auth] JWT verification failed:', error);
     return null;
   }
 }

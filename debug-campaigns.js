@@ -3,7 +3,12 @@ const { PrismaClient } = require('@prisma/client');
 require('dotenv').config({ path: '.env.local' });
 require('dotenv').config({ path: '.env' });
 
-process.env.DATABASE_URL = 'postgres://linkpick_user:LinkPick2024!@coolify.one-q.xyz:5433/revu_platform';
+// DATABASE_URL은 환경 변수에서 읽어야 합니다
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL 환경 변수가 설정되지 않았습니다.');
+  console.error('.env.local 또는 .env 파일에 DATABASE_URL을 설정해주세요.');
+  process.exit(1);
+}
 
 const prisma = new PrismaClient({
   log: ['query', 'info', 'warn', 'error'],

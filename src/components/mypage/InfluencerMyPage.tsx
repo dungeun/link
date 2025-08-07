@@ -1261,25 +1261,35 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
               <button
                 onClick={async () => {
                   setLoadingFollowers(true)
-                  // 시뮬레이션: 실제로는 API 호출
-                  setTimeout(() => {
-                    const mockFollowers = {
-                      instagram: socialLinks.instagram ? Math.floor(Math.random() * 50000) + 10000 : 0,
-                      youtube: socialLinks.youtube ? Math.floor(Math.random() * 100000) + 5000 : 0,
-                      naverBlog: socialLinks.naverBlog ? Math.floor(Math.random() * 30000) + 1000 : 0,
-                      tiktok: socialLinks.tiktok ? Math.floor(Math.random() * 80000) + 15000 : 0
-                    }
-                    
-                    const totalFollowers = mockFollowers.instagram + mockFollowers.youtube + mockFollowers.naverBlog + mockFollowers.tiktok
-                    
-                    if (totalFollowers > 0) {
-                      setStats({...stats, followers: totalFollowers})
-                      alert(`팔로워 수가 업데이트되었습니다!\n\nInstagram: ${mockFollowers.instagram.toLocaleString()}\nYouTube: ${mockFollowers.youtube.toLocaleString()}\n네이버 블로그: ${mockFollowers.naverBlog.toLocaleString()}\nTikTok: ${mockFollowers.tiktok.toLocaleString()}\n\n총 팔로워: ${totalFollowers.toLocaleString()}`)
+                  try {
+                    // 실제 API 호출로 팔로워 수 업데이트
+                    const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token')
+                    const response = await fetch('/api/influencer/social-stats', {
+                      headers: {
+                        'Authorization': `Bearer ${token}`
+                      }
+                    })
+
+                    if (response.ok) {
+                      const data = await response.json()
+                      const { socialStats } = data
+                      
+                      if (socialStats.total > 0) {
+                        setStats({...stats, followers: socialStats.total})
+                        alert(`팔로워 수가 업데이트되었습니다!\n\nInstagram: ${socialStats.instagram.toLocaleString()}\nYouTube: ${socialStats.youtube.toLocaleString()}\n네이버 블로그: ${socialStats.blog.toLocaleString()}\nTikTok: ${socialStats.tiktok.toLocaleString()}\n\n총 팔로워: ${socialStats.total.toLocaleString()}`)
+                      } else {
+                        alert('SNS 계정의 팔로워 정보를 가져올 수 없습니다. SNS 계정을 연동해주세요.')
+                      }
                     } else {
-                      alert('SNS 계정을 먼저 입력해주세요.')
+                      const error = await response.json()
+                      alert('팔로워 수 업데이트에 실패했습니다: ' + (error.error || '알 수 없는 오류'))
                     }
+                  } catch (error) {
+                    console.error('팔로워 수 업데이트 오류:', error)
+                    alert('팔로워 수 업데이트 중 오류가 발생했습니다.')
+                  } finally {
                     setLoadingFollowers(false)
-                  }, 2000)
+                  }
                 }}
                 disabled={loadingFollowers}
                 className={`w-full px-4 py-2 rounded-lg font-medium transition-colors ${

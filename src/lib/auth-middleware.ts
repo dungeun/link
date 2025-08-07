@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { getServerSession } from '@/lib/auth-server';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+import { JWT_SECRET } from '@/lib/auth/constants';
 
 export interface AuthUser {
   id: string;

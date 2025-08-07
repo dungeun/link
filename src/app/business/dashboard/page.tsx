@@ -26,6 +26,15 @@ function BusinessDashboardContent() {
     totalSpent: 0
   }
 
+  // 성장률 데이터 상태
+  const [growthData, setGrowthData] = useState({
+    campaigns: { value: 0, period: 'month' },
+    activeCampaigns: { value: 0, period: 'week' },
+    applications: { value: 0, period: 'month' },
+    roi: 0
+  })
+  const [growthLoading, setGrowthLoading] = useState(true)
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -80,7 +89,37 @@ function BusinessDashboardContent() {
     setActiveTab(tab)
   }, [searchParams])
 
-  // fetchStats 함수 제거 - useBusinessStats로 대체됨
+  // 성장률 데이터 가져오기
+  useEffect(() => {
+    const fetchGrowthData = async () => {
+      if (!user) return
+      
+      try {
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token')
+        const response = await fetch('/api/business/stats/growth', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setGrowthData({
+            campaigns: data.growth.campaigns,
+            activeCampaigns: data.growth.activeCampaigns,
+            applications: data.growth.applications,
+            roi: data.roi
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch growth data:', error)
+      } finally {
+        setGrowthLoading(false)
+      }
+    }
+
+    fetchGrowthData()
+  }, [user])
 
   if (isLoading || statsLoading) {
     return (
@@ -145,10 +184,23 @@ function BusinessDashboardContent() {
             <p className="text-sm text-gray-500 mt-1">총 캠페인 수</p>
             <div className="mt-3 text-xs text-indigo-600">
               <span className="inline-flex items-center">
-                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                +20% 지난달 대비
+                {growthData.campaigns.value > 0 ? (
+                  <>
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                    +{growthData.campaigns.value}% 지난달 대비
+                  </>
+                ) : growthData.campaigns.value < 0 ? (
+                  <>
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    {growthData.campaigns.value}% 지난달 대비
+                  </>
+                ) : (
+                  <span>변동 없음</span>
+                )}
               </span>
             </div>
           </div>
@@ -164,10 +216,23 @@ function BusinessDashboardContent() {
             <p className="text-sm text-gray-500 mt-1">현재 진행중</p>
             <div className="mt-3 text-xs text-green-600">
               <span className="inline-flex items-center">
-                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                +5% 지난주 대비
+                {growthData.activeCampaigns.value > 0 ? (
+                  <>
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                    +{growthData.activeCampaigns.value}% 지난주 대비
+                  </>
+                ) : growthData.activeCampaigns.value < 0 ? (
+                  <>
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    {growthData.activeCampaigns.value}% 지난주 대비
+                  </>
+                ) : (
+                  <span>변동 없음</span>
+                )}
               </span>
             </div>
           </div>
@@ -183,10 +248,23 @@ function BusinessDashboardContent() {
             <p className="text-sm text-gray-500 mt-1">누적 지원자</p>
             <div className="mt-3 text-xs text-purple-600">
               <span className="inline-flex items-center">
-                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                +35% 이번달
+                {growthData.applications.value > 0 ? (
+                  <>
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                    +{growthData.applications.value}% 이번달
+                  </>
+                ) : growthData.applications.value < 0 ? (
+                  <>
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    {growthData.applications.value}% 이번달
+                  </>
+                ) : (
+                  <span>변동 없음</span>
+                )}
               </span>
             </div>
           </div>
@@ -202,7 +280,7 @@ function BusinessDashboardContent() {
             <p className="text-sm text-gray-500 mt-1">누적 집행 금액</p>
             <div className="mt-3 text-xs text-blue-600">
               <span className="inline-flex items-center">
-                ROI 320% 달성
+                {growthData.roi > 0 ? `ROI ${growthData.roi}% 달성` : '아직 ROI 데이터가 없습니다'}
               </span>
             </div>
           </div>

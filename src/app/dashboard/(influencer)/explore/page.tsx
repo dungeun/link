@@ -117,12 +117,61 @@ export default function ExploreCampaignsPage() {
   ];
 
   useEffect(() => {
-    // API 호출 시뮬레이션
-    setTimeout(() => {
-      setCampaigns(mockCampaigns);
-      setFilteredCampaigns(mockCampaigns);
-      setLoading(false);
-    }, 1000);
+    // 실제 API 호출로 캠페인 데이터 가져오기
+    const fetchCampaigns = async () => {
+      try {
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token')
+        const params = new URLSearchParams({
+          status: 'ACTIVE',
+          page: '1',
+          limit: '20'
+        })
+        
+        const response = await fetch(`/api/campaigns?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          const formattedCampaigns: Campaign[] = data.campaigns.map((campaign: any) => ({
+            id: campaign.id,
+            title: campaign.title,
+            brand: campaign.brand_name,
+            brandLogo: `/images/brands/${campaign.brand_name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            description: campaign.description,
+            budget: campaign.budget,
+            deadline: campaign.application_deadline,
+            category: campaign.category.toLowerCase(),
+            platform: campaign.platforms || [],
+            requiredFollowers: campaign.required_followers || 0,
+            location: campaign.location || '전국',
+            viewCount: campaign.view_count || 0,
+            applicantCount: campaign.applicant_count || 0,
+            imageUrl: campaign.thumbnail_image_url || campaign.header_image_url || '/images/campaigns/default.jpg',
+            tags: campaign.tags || [],
+            status: 'active' as const
+          }))
+          setCampaigns(formattedCampaigns)
+          setFilteredCampaigns(formattedCampaigns)
+        } else {
+          console.error('Failed to fetch campaigns')
+          // 실패 시 목 데이터 사용
+          setCampaigns(mockCampaigns)
+          setFilteredCampaigns(mockCampaigns)
+        }
+      } catch (error) {
+        console.error('Error fetching campaigns:', error)
+        // 에러 시 목 데이터 사용
+        setCampaigns(mockCampaigns)
+        setFilteredCampaigns(mockCampaigns)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCampaigns()
   }, []);
 
   useEffect(() => {

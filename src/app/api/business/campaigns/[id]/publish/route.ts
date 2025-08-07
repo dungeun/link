@@ -1,26 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-// 인증 미들웨어
-async function authenticate(request: NextRequest) {
-  const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value || cookieStore.get('accessToken')?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-}
+import { withAuth } from '@/lib/auth/middleware';
 
 // POST /api/business/campaigns/[id]/publish - 캠페인 활성화
 export async function POST(
@@ -28,21 +8,11 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = await authenticate(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
+    if ('error' in authResult) {
+      return authResult.error;
     }
-
-    const userType = user.type?.toLowerCase();
-    if (userType !== 'business' && userType !== 'admin') {
-      return NextResponse.json(
-        { error: '권한이 없습니다.' },
-        { status: 403 }
-      );
-    }
+    const { user } = authResult;
 
     const campaignId = params.id;
 
@@ -59,7 +29,7 @@ export async function POST(
     }
 
     // 권한 확인
-    if (campaign.businessId !== (user.userId || user.id) && userType !== 'admin') {
+    if (campaign.businessId !== user.id && user.type !== 'ADMIN') {
       return NextResponse.json(
         { error: '이 캠페인을 활성화할 권한이 없습니다.' },
         { status: 403 }
@@ -80,7 +50,8 @@ export async function POST(
       campaign: updatedCampaign
     });
   } catch (error) {
-    console.error('캠페인 활성화 오류:', error);
+    const { logError } = await import('@/lib/utils/logger');
+    logError(error, '캠페인 활성화 오류');
     return NextResponse.json(
       { error: '캠페인 활성화에 실패했습니다.' },
       { status: 500 }

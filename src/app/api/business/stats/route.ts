@@ -3,7 +3,9 @@ import { prisma } from '@/lib/db/prisma';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+// API 라우트를 동적으로 설정 (정적 생성 방지)
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 // 인증 미들웨어
 async function authenticate(request: NextRequest) {
@@ -18,6 +20,11 @@ async function authenticate(request: NextRequest) {
   }
 
   try {
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET is not configured');
+      return null;
+    }
     const decoded = jwt.verify(token, JWT_SECRET) as any;
     console.log('Decoded user type:', decoded.type);
     return decoded;

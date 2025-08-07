@@ -6,10 +6,14 @@ import { cookies } from 'next/headers';
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
 // 인증 미들웨어
 async function authenticate(request: NextRequest) {
+  const JWT_SECRET = process.env.JWT_SECRET;
+  if (!JWT_SECRET) {
+    console.error('JWT_SECRET is not configured');
+    return null;
+  }
+  
   // Authorization 헤더 확인
   let token = request.headers.get('Authorization')?.replace('Bearer ', '');
   

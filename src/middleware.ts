@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyJWTEdge, getTokenFromHeader } from '@/lib/auth/jwt-edge';
+import { logger } from '@/lib/utils/logger';
+import { addSecurityHeaders, addApiSecurityHeaders, securityCheck } from './middleware.security';
 
 // 인증이 필요없는 public 경로들
 const publicPaths = [
@@ -49,21 +51,31 @@ const protectedPagePaths = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  console.log('[Middleware] Request to:', pathname);
+  logger.debug('[Middleware] Request to:', pathname);
+
+  // 보안 체크
+  const securityResult = securityCheck(request);
+  if (!securityResult.allowed) {
+    logger.warn('[Security] Request blocked:', securityResult.reason);
+    return new NextResponse('Forbidden', { status: 403 });
+  }
+
+  // 응답 준비
+  let response = NextResponse.next();
 
   // Public 페이지는 인증 체크 스킵
   if (publicPagePaths.some(path => pathname === path || pathname.startsWith(path + '/'))) {
-    return NextResponse.next();
+    return addSecurityHeaders(response);
   }
 
   // Public API는 인증 체크 스킵
   if (publicPaths.some(path => pathname.startsWith(path))) {
-    return NextResponse.next();
+    return pathname.startsWith('/api/') ? addApiSecurityHeaders(response) : addSecurityHeaders(response);
   }
 
   // 기타 API 라우트는 각 라우트에서 인증 처리
   if (pathname.startsWith('/api/')) {
-    return NextResponse.next();
+    return addApiSecurityHeaders(response);
   }
 
   // 페이지 라우트 보호
@@ -78,7 +90,7 @@ export async function middleware(request: NextRequest) {
       const payload = await verifyJWTEdge<{id: string, email: string, type: string}>(token);
       
       if (!payload) {
-        console.error('[Middleware] Invalid token');
+        logger.error('[Middleware] Invalid token');
         return NextResponse.redirect(new URL('/login', request.url));
       }
       
@@ -96,12 +108,13 @@ export async function middleware(request: NextRequest) {
       }
       
     } catch (error) {
-      console.error('[Middleware] JWT verification failed:', error);
+      logger.error('[Middleware] JWT verification failed:', error);
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }
 
-  return NextResponse.next();
+  // 모든 응답에 보안 헤더 추가
+  return addSecurityHeaders(response);
 }
 
 export const config = {

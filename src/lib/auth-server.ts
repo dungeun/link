@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '@/lib/auth/constants';
 
 export async function getServerSession() {
   const cookieStore = cookies();
@@ -10,7 +11,7 @@ export async function getServerSession() {
   }
   
   try {
-    const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'your-secret-key') as any;
+    const decoded = jwt.verify(token.value, JWT_SECRET) as any;
     return {
       user: {
         id: decoded.userId,

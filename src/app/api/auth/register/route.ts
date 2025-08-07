@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authService } from '@/lib/auth/services'
 import { uploadFile } from '@/lib/file-upload'
+import { ValidationHelper, userRegisterSchema, businessProfileSchema } from '@/lib/utils/validation'
+import { PerformanceTimer } from '@/lib/utils/performance'
+import { createSuccessResponse, handleApiError } from '@/lib/utils/api-error'
+import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
+  const timer = new PerformanceTimer('api.auth.register.POST');
+  
   try {
     const contentType = request.headers.get('content-type') || ''
-    let email, password, name, type, phone, address, companyName, businessNumber
+    let userData: any = {}
     let businessFileUrl = null
     let businessFileName = null
     let businessFileSize = null
@@ -17,78 +23,86 @@ export async function POST(request: NextRequest) {
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData()
       
-      email = formData.get('email') as string
-      password = formData.get('password') as string
-      name = formData.get('name') as string
-      type = formData.get('type') as string
-      phone = formData.get('phone') as string
-      address = formData.get('address') as string
-      companyName = formData.get('companyName') as string
-      businessNumber = formData.get('businessNumber') as string
+      userData = {
+        email: formData.get('email') as string,
+        password: formData.get('password') as string,
+        name: formData.get('name') as string,
+        type: (formData.get('type') as string)?.toUpperCase() || 'INFLUENCER',
+        phone: formData.get('phone') as string,
+        address: formData.get('address') as string
+      }
       
       // 비즈니스 계정인 경우 파일 처리
-      if (type === 'BUSINESS') {
+      if (userData.type === 'BUSINESS') {
         const businessFile = formData.get('businessFile') as File
+        const companyName = formData.get('companyName') as string
+        const businessNumber = formData.get('businessNumber') as string
+        
+        // 비즈니스 프로필 데이터 추가
+        const businessProfileData = {
+          companyName,
+          businessNumber,
+          businessCategory: formData.get('businessCategory') as string || '기타',
+          representativeName: formData.get('representativeName') as string || userData.name,
+          businessAddress: formData.get('businessAddress') as string || userData.address
+        }
+        
+        // 비즈니스 프로필 유효성 검사
+        const businessValidation = await ValidationHelper.validate(businessProfileData, businessProfileSchema);
+        if (!businessValidation.success) {
+          const errors = ValidationHelper.formatErrorMessages(businessValidation.errors!);
+          return NextResponse.json({ error: '비즈니스 프로필 정보가 유효하지 않습니다.', details: errors }, { status: 400 });
+        }
+        
         if (businessFile && businessFile instanceof File) {
-          // 파일 크기 검증 (5MB)
-          if (businessFile.size > 5 * 1024 * 1024) {
-            return NextResponse.json(
-              { error: '파일 크기는 5MB 이하여야 합니다.' },
-              { status: 400 }
-            )
+          // 파일 검증 (새로운 유틸리티 사용)
+          const docValidation = ValidationHelper.validateDocumentFile(businessFile, 5);
+          if (!docValidation.valid) {
+            return NextResponse.json({ error: '사업자등록증 파일이 유효하지 않습니다.', details: docValidation.errors }, { status: 400 });
           }
           
           // 파일 업로드
           businessFileUrl = await uploadFile(businessFile, 'business-registration')
           businessFileName = businessFile.name
           businessFileSize = businessFile.size
-        } else if (type === 'BUSINESS') {
-          return NextResponse.json(
-            { error: '비즈니스 계정은 사업자등록증이 필수입니다.' },
-            { status: 400 }
-          )
+        } else {
+          return NextResponse.json({ error: '비즈니스 계정은 사업자등록증이 필수입니다.' }, { status: 400 });
         }
+        
+        // 비즈니스 정보를 userData에 추가
+        Object.assign(userData, businessProfileData);
       }
     } else {
       // JSON 처리 (기존 방식)
       const body = await request.json()
-      email = body.email
-      password = body.password
-      name = body.name
-      type = body.type || body.role
-      phone = body.phone
-      address = body.address
+      userData = {
+        email: body.email,
+        password: body.password,
+        name: body.name,
+        type: (body.type || body.role)?.toUpperCase() || 'INFLUENCER',
+        phone: body.phone,
+        address: body.address
+      }
     }
 
-    if (!email || !password || !name || !type) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+    // 사용자 등록 데이터 유효성 검사
+    const userValidation = await ValidationHelper.validate(userData, userRegisterSchema);
+    if (!userValidation.success) {
+      const errors = ValidationHelper.formatErrorMessages(userValidation.errors!);
+      return NextResponse.json({ error: '사용자 정보가 유효하지 않습니다.', details: errors }, { status: 400 });
     }
 
-    const normalizedType = type.toLowerCase()
-    if (normalizedType !== 'business' && normalizedType !== 'influencer') {
-      return NextResponse.json(
-        { error: 'Invalid role' },
-        { status: 400 }
-      )
-    }
-
-    // Register user with business file info
-    const registerResponse = await authService.register({ 
-      email, 
-      password, 
-      name,
-      type: normalizedType,
-      phone,
-      address,
-      companyName,
-      businessNumber,
-      businessFileUrl,
-      businessFileName,
-      businessFileSize
-    })
+    // Register user with business file info (성능 측정 포함)
+    const registerResponse = await PerformanceTimer.measure(
+      'authService.register',
+      () => authService.register({ 
+        ...userData,
+        businessFileUrl,
+        businessFileName,
+        businessFileSize
+      }),
+      { userType: userData.type, hasBusinessFile: !!businessFileUrl }
+    );
 
     // Set cookies
     const response = NextResponse.json({
@@ -100,27 +114,39 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Set httpOnly cookies for tokens
+    // Set httpOnly cookies for tokens (보안 설정)
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     response.cookies.set('accessToken', registerResponse.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'lax',
       maxAge: 60 * 60, // 1 hour
+      path: '/'
     })
 
     response.cookies.set('refreshToken', registerResponse.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/'
     })
+
+    timer.end();
+    
+    logger.logInfo('User registered successfully', { 
+      userId: registerResponse.user.id, 
+      userType: userData.type,
+      hasBusinessFile: !!businessFileUrl 
+    });
 
     return response
   } catch (error: any) {
-    console.error('Registration error:', error)
-    return NextResponse.json(
-      { error: error.message || 'Registration failed' },
-      { status: 400 }
-    )
+    return handleApiError(error, { 
+      endpoint: 'auth/register',
+      method: 'POST',
+      context: { hasBusinessFile: !!businessFileUrl }
+    });
   }
 }
