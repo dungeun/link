@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/db/prisma';
 import { requireAuth, createAuthResponse, createErrorResponse } from '@/lib/auth-middleware';
 import { paginationSchema, campaignCreateSchema, ValidationHelper } from '@/lib/utils/validation';
 import { z } from 'zod';
@@ -91,6 +91,9 @@ export async function GET(request: NextRequest) {
                 hashtags: true,
                 imageUrl: true,
                 imageId: true,
+                headerImageUrl: true,
+                thumbnailImageUrl: true,
+                productImages: true,
                 status: true,
                 isPaid: true,
                 maxApplicants: true,
@@ -147,7 +150,7 @@ export async function GET(request: NextRequest) {
           applicant_count: campaign._count.applications,
           maxApplicants: campaign.maxApplicants,
           rewardAmount: campaign.rewardAmount,
-          image_url: campaign.imageUrl || '/images/campaigns/default.jpg',
+          image_url: campaign.thumbnailImageUrl || campaign.headerImageUrl || campaign.imageUrl || '/images/campaigns/default.jpg',
           tags: (() => {
             if (!campaign.hashtags) return [];
             try {
@@ -210,10 +213,7 @@ export async function GET(request: NextRequest) {
       CachePresets.CAMPAIGN_LIST.ttl // 5분 캐시
     );
 
-    const response = NextResponse.json({
-      success: true,
-      data: cachedData
-    });
+    const response = NextResponse.json(cachedData);
     
     // 성능 최적화를 위한 캐시 헤더 추가
     ResponseCache.addCacheHeaders(response, CachePresets.CAMPAIGN_LIST.ttl, CachePresets.CAMPAIGN_LIST.swr);

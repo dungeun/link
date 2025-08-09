@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "PORT=$(node scripts/find-free-port.js) && next dev -p $PORT",
+    "dev": "PORT=$(node scripts/find-free-port.js) && echo \"🚀 Starting REVU Platform on port $PORT\" && next dev -p $PORT",
     "build": "prisma generate && next build",
     "start": "PORT=$(node scripts/find-free-port.js) && next start -p $PORT",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .next",
+    "stop": "node scripts/stop-all-ports.js",
+    "restart": "npm run stop && npm run dev",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
@@ -19,7 +21,9 @@
     "db:seed-real": "ts-node prisma/seed-real-accounts.ts",
     "db:remove-placeholders": "ts-node prisma/remove-placeholder-images.ts",
     "db:verify": "ts-node prisma/verify-data.ts",
-    "db:update-images": "ts-node prisma/update-campaign-images.ts"
+    "db:update-images": "ts-node prisma/update-campaign-images.ts",
+    "db:migrate-images": "node scripts/migrate-images-to-local.js",
+    "studio": "STUDIO_PORT=$(node scripts/find-free-port.js 5555) && echo \"📊 Starting Prisma Studio on port $STUDIO_PORT\" && prisma studio --port $STUDIO_PORT"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",

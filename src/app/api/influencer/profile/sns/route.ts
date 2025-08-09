@@ -14,7 +14,19 @@ export async function PATCH(request: NextRequest) {
     }
 
     const user = await verifyJWT(token);
-    const { instagram, youtube, naverBlog, tiktok } = await request.json();
+    const { 
+      instagram, 
+      instagramFollowers,
+      youtube, 
+      youtubeSubscribers,
+      naverBlog, 
+      tiktok,
+      tiktokFollowers,
+      facebook,
+      facebookFollowers,
+      twitter,
+      twitterFollowers
+    } = await request.json();
 
     // 프로필이 있는지 확인
     const existingProfile = await prisma.profile.findUnique({
@@ -27,9 +39,16 @@ export async function PATCH(request: NextRequest) {
         where: { userId: user.id },
         data: {
           instagram,
+          instagramFollowers,
           youtube,
+          youtubeSubscribers,
           naverBlog,
-          tiktok
+          tiktok,
+          tiktokFollowers,
+          facebook,
+          facebookFollowers,
+          twitter,
+          twitterFollowers
         }
       });
     } else {
@@ -38,9 +57,16 @@ export async function PATCH(request: NextRequest) {
         data: {
           userId: user.id,
           instagram,
+          instagramFollowers,
           youtube,
+          youtubeSubscribers,
           naverBlog,
-          tiktok
+          tiktok,
+          tiktokFollowers,
+          facebook,
+          facebookFollowers,
+          twitter,
+          twitterFollowers
         }
       });
     }

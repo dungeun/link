@@ -24,7 +24,8 @@ function findFreePort(startPort = 3000) {
 
 // If called directly, find and print available port
 if (require.main === module) {
-  findFreePort()
+  const startPort = process.argv[2] ? parseInt(process.argv[2]) : 3000;
+  findFreePort(startPort)
     .then(port => {
       console.log(port);
       process.exit(0);

@@ -121,17 +121,33 @@ export default function AdminCampaignsPage() {
 
   const handleStatusChange = async (campaignId: string, newStatus: string) => {
     try {
+      console.log('=== Status Change Request ===')
+      console.log('Campaign ID:', campaignId)
+      console.log('New Status:', newStatus)
+      
       const response = await adminApi.put(`/api/admin/campaigns/${campaignId}/status`, { status: newStatus })
       
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+      
       if (response.ok) {
+        const data = await response.json()
+        console.log('Success response:', data)
+        
         setCampaigns(prev => prev.map(campaign =>
           campaign.id === campaignId ? { ...campaign, status: newStatus } : campaign
         ))
+        alert(`상태가 ${newStatus}로 변경되었습니다.`)
       } else {
-        alert('상태 변경에 실패했습니다.')
+        const errorData = await response.json()
+        console.error('Error response:', errorData)
+        alert(`상태 변경에 실패했습니다: ${errorData.error || '알 수 없는 오류'}`)
       }
     } catch (error) {
-      console.error('상태 변경 실패:', error)
+      console.error('=== Status Change Error ===')
+      console.error('Error type:', error?.constructor?.name)
+      console.error('Error message:', error instanceof Error ? error.message : error)
+      console.error('Full error:', error)
       alert('상태 변경 중 오류가 발생했습니다.')
     }
   }
@@ -160,9 +176,11 @@ export default function AdminCampaignsPage() {
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
       case 'ACTIVE': return 'bg-green-100 text-green-800'
-      case 'DRAFT': return 'bg-yellow-100 text-yellow-800'
+      case 'DRAFT': return 'bg-gray-100 text-gray-800'
+      case 'PENDING_REVIEW': return 'bg-yellow-100 text-yellow-800'
       case 'PAUSED': return 'bg-orange-100 text-orange-800'
       case 'COMPLETED': return 'bg-blue-100 text-blue-800'
+      case 'REJECTED': return 'bg-red-100 text-red-800'
       case 'CANCELLED': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
@@ -171,11 +189,68 @@ export default function AdminCampaignsPage() {
   const getStatusText = (status: string) => {
     switch (status.toUpperCase()) {
       case 'ACTIVE': return '진행중'
-      case 'DRAFT': return '승인대기'
+      case 'DRAFT': return '초안'
+      case 'PENDING_REVIEW': return '승인대기'
       case 'PAUSED': return '일시중지'
       case 'COMPLETED': return '완료'
+      case 'REJECTED': return '거절됨'
       case 'CANCELLED': return '취소'
       default: return '알 수 없음'
+    }
+  }
+
+  // 캠페인 승인 처리
+  const handleApproveCampaign = async (campaignId: string) => {
+    if (!confirm('이 캠페인을 승인하시겠습니까?')) {
+      return
+    }
+    
+    try {
+      const response = await adminApi.post(`/api/admin/campaigns/${campaignId}/approve`, {})
+      
+      if (response.ok) {
+        setCampaigns(prev => prev.map(campaign =>
+          campaign.id === campaignId ? { ...campaign, status: 'ACTIVE' } : campaign
+        ))
+        alert('캠페인이 승인되었습니다.')
+      } else {
+        const errorData = await response.json()
+        alert(`승인 실패: ${errorData.error || '알 수 없는 오류'}`)
+      }
+    } catch (error) {
+      console.error('캠페인 승인 실패:', error)
+      alert('캠페인 승인 중 오류가 발생했습니다.')
+    }
+  }
+
+  // 캠페인 거절 처리
+  const handleRejectCampaign = async (campaignId: string) => {
+    const reason = prompt('거절 사유를 입력해주세요:')
+    if (!reason || reason.trim().length === 0) {
+      alert('거절 사유는 필수입니다.')
+      return
+    }
+    
+    try {
+      const response = await adminApi.post(`/api/admin/campaigns/${campaignId}/reject`, { reason })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setCampaigns(prev => prev.map(campaign =>
+          campaign.id === campaignId ? { ...campaign, status: 'REJECTED' } : campaign
+        ))
+        if (data.refundRequired) {
+          alert('캠페인이 거절되었습니다. 환불 처리가 필요합니다.')
+        } else {
+          alert('캠페인이 거절되었습니다.')
+        }
+      } else {
+        const errorData = await response.json()
+        alert(`거절 실패: ${errorData.error || '알 수 없는 오류'}`)
+      }
+    } catch (error) {
+      console.error('캠페인 거절 실패:', error)
+      alert('캠페인 거절 중 오류가 발생했습니다.')
     }
   }
 
@@ -357,7 +432,7 @@ export default function AdminCampaignsPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">진행중</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {campaigns.filter(c => c.status === 'active').length}
+                  {campaigns.filter(c => c.status.toUpperCase() === 'ACTIVE').length}
                 </p>
               </div>
             </div>
@@ -373,7 +448,7 @@ export default function AdminCampaignsPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">승인대기</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {campaigns.filter(c => c.status === 'pending').length}
+                  {campaigns.filter(c => c.status.toUpperCase() === 'PENDING_REVIEW').length}
                 </p>
               </div>
             </div>
@@ -410,14 +485,29 @@ export default function AdminCampaignsPage() {
               전체
             </button>
             <button
-              onClick={() => handleTabChange('DRAFT')}
+              onClick={() => handleTabChange('PENDING_REVIEW')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'DRAFT'
+                activeTab === 'PENDING_REVIEW'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               승인대기
+              {campaigns.filter(c => c.status.toUpperCase() === 'PENDING_REVIEW').length > 0 && (
+                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  {campaigns.filter(c => c.status.toUpperCase() === 'PENDING_REVIEW').length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => handleTabChange('REJECTED')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'REJECTED'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              거절됨
             </button>
             <button
               onClick={() => handleTabChange('ACTIVE')}
@@ -440,14 +530,14 @@ export default function AdminCampaignsPage() {
               완료
             </button>
             <button
-              onClick={() => handleTabChange('CANCELLED')}
+              onClick={() => handleTabChange('PAUSED')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'CANCELLED'
+                activeTab === 'PAUSED'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              취소
+              일시중지
             </button>
             <button
               onClick={() => handleTabChange('trash')}
@@ -489,7 +579,6 @@ export default function AdminCampaignsPage() {
                   <option value="active">진행중</option>
                   <option value="paused">일시중지</option>
                   <option value="completed">완료</option>
-                  <option value="cancelled">취소</option>
                 </select>
               </div>
             )}
@@ -635,63 +724,9 @@ export default function AdminCampaignsPage() {
                   </td>
                   {activeTab !== 'trash' && (
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => handleStatusChange(campaign.id, 'DRAFT')}
-                          className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                            campaign.status === 'DRAFT' 
-                              ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' 
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                          disabled={campaign.status === 'DRAFT'}
-                        >
-                          승인대기
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(campaign.id, 'ACTIVE')}
-                          className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                            campaign.status === 'ACTIVE' 
-                              ? 'bg-green-100 text-green-800 border border-green-300' 
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                          disabled={campaign.status === 'ACTIVE'}
-                        >
-                          진행중
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(campaign.id, 'PAUSED')}
-                          className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                            campaign.status === 'PAUSED' 
-                              ? 'bg-orange-100 text-orange-800 border border-orange-300' 
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                          disabled={campaign.status === 'PAUSED'}
-                        >
-                          일시중지
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(campaign.id, 'COMPLETED')}
-                          className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                            campaign.status === 'COMPLETED' 
-                              ? 'bg-blue-100 text-blue-800 border border-blue-300' 
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                          disabled={campaign.status === 'COMPLETED'}
-                        >
-                          완료
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(campaign.id, 'CANCELLED')}
-                          className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                            campaign.status === 'CANCELLED' 
-                              ? 'bg-red-100 text-red-800 border border-red-300' 
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                          disabled={campaign.status === 'CANCELLED'}
-                        >
-                          취소
-                        </button>
-                      </div>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                        {getStatusText(campaign.status)}
+                      </span>
                     </td>
                   )}
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -706,6 +741,24 @@ export default function AdminCampaignsPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                       </button>
+                      {campaign.status.toUpperCase() === 'PENDING_REVIEW' && campaign.isPaid && (
+                        <>
+                          <button
+                            onClick={() => handleApproveCampaign(campaign.id)}
+                            className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                            title="승인"
+                          >
+                            승인
+                          </button>
+                          <button
+                            onClick={() => handleRejectCampaign(campaign.id)}
+                            className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                            title="거절"
+                          >
+                            거절
+                          </button>
+                        </>
+                      )}
                       {activeTab === 'trash' ? (
                         <>
                           <button

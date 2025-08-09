@@ -2,7 +2,7 @@
 
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { SortableMenuItem } from '@/components/admin/SortableMenuItem';
+import { SortableMenuItemWithLanguagePack } from '@/components/admin/SortableMenuItemWithLanguagePack';
 import { useUIConfigStore } from '@/lib/stores/ui-config.store';
 import type { MenuItem } from '@/lib/stores/ui-config.store';
 
@@ -72,7 +72,7 @@ export function HeaderConfigTab() {
           <SortableContext items={config.header.menus} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
               {config.header.menus.map((menu) => (
-                <SortableMenuItem
+                <SortableMenuItemWithLanguagePack
                   key={menu.id}
                   menu={menu}
                   onUpdate={handleMenuUpdate}

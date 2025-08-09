@@ -7,6 +7,7 @@ import { AuthService, User } from '@/lib/auth'
 import { useUIConfigStore } from '@/lib/stores/ui-config.store'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { useLanguage } from '@/hooks/useLanguage'
 
 interface Campaign {
   id: string
@@ -30,6 +31,9 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // 언어팩 사용
+  const { t } = useLanguage()
   
   // UI 설정 가져오기
   const { config, loadSettingsFromAPI } = useUIConfigStore()
@@ -186,7 +190,7 @@ export default function HomePage() {
         {visibleSections.map((section) => {
           switch (section.type) {
             case 'hero':
-              // 메인 배너 2단 슬라이드
+              // 메인 배너 슬라이드 (모바일: 1개씩, 데스크톱: 2개씩)
               return bannerSlides.length > 0 ? (
                 <div key={section.id} className="relative mb-8">
                   <div className="overflow-hidden">
@@ -194,65 +198,148 @@ export default function HomePage() {
                       className="flex transition-transform duration-500 ease-out"
                       style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                     >
-                      {/* 2개씩 그룹으로 묶어서 표시 */}
-                      {Array.from({ length: Math.ceil(bannerSlides.length / 2) }, (_, pageIndex) => (
-                        <div key={pageIndex} className="min-w-full grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          {bannerSlides.slice(pageIndex * 2, pageIndex * 2 + 2).map((slide) => {
-                            const SlideContent = (
-                              <div
-                                className={`w-full h-64 md:h-80 ${slide.bgColor} text-white relative rounded-2xl overflow-hidden`}
-                                style={{
-                                  backgroundImage: slide.backgroundImage ? `url(${slide.backgroundImage})` : undefined,
-                                  backgroundSize: 'cover',
-                                  backgroundPosition: 'center'
-                                }}
-                              >
-                                <div className={`p-6 md:p-8 h-full flex flex-col justify-center ${slide.backgroundImage ? 'bg-black/30' : ''}`}>
-                                  <div>
-                                    {slide.tag && (
-                                      <span className="inline-block bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs font-medium mb-2">
-                                        {slide.tag}
-                                      </span>
-                                    )}
-                                    <h2 className="text-2xl md:text-3xl font-bold mb-2 whitespace-pre-line">
-                                      {slide.title}
-                                    </h2>
-                                    <p className="text-base opacity-90">{slide.subtitle}</p>
-                                    {slide.link && !slide.backgroundImage && (
-                                      <Link 
-                                        href={slide.link}
-                                        className="inline-block mt-4 bg-white/20 backdrop-blur border border-white/30 px-4 py-2 rounded-full hover:bg-white/30 transition text-sm"
-                                      >
-                                        자세히 보기 →
-                                      </Link>
-                                    )}
+                      {bannerSlides.map((slide, slideIndex) => (
+                        <div key={slide.id} className="min-w-full">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {/* 현재 슬라이드 */}
+                            <div className="w-full">
+                              {slide.link && slide.backgroundImage ? (
+                                <Link href={slide.link} className="block group">
+                                  <div className="relative">
+                                    <div
+                                      className={`w-full h-64 md:h-80 ${slide.bgColor} text-white relative rounded-2xl overflow-hidden`}
+                                      style={{
+                                        backgroundImage: slide.backgroundImage ? `url(${slide.backgroundImage})` : undefined,
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center'
+                                      }}
+                                    >
+                                      <div className={`p-6 md:p-8 h-full flex flex-col justify-center ${slide.backgroundImage ? 'bg-black/30' : ''}`}>
+                                        <div>
+                                          {slide.tag && (
+                                            <span className="inline-block bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs font-medium mb-2">
+                                              {t(slide.tag, slide.tag)}
+                                            </span>
+                                          )}
+                                          <h2 className="text-2xl md:text-3xl font-bold mb-2 whitespace-pre-line">
+                                            {t(slide.title, slide.title)}
+                                          </h2>
+                                          <p className="text-base opacity-90">{t(slide.subtitle, slide.subtitle)}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition rounded-2xl" />
+                                  </div>
+                                </Link>
+                              ) : (
+                                <div
+                                  className={`w-full h-64 md:h-80 ${slide.bgColor} text-white relative rounded-2xl overflow-hidden`}
+                                  style={{
+                                    backgroundImage: slide.backgroundImage ? `url(${slide.backgroundImage})` : undefined,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center'
+                                  }}
+                                >
+                                  <div className={`p-6 md:p-8 h-full flex flex-col justify-center ${slide.backgroundImage ? 'bg-black/30' : ''}`}>
+                                    <div>
+                                      {slide.tag && (
+                                        <span className="inline-block bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs font-medium mb-2">
+                                          {t(slide.tag, slide.tag)}
+                                        </span>
+                                      )}
+                                      <h2 className="text-2xl md:text-3xl font-bold mb-2 whitespace-pre-line">
+                                        {t(slide.title, slide.title)}
+                                      </h2>
+                                      <p className="text-base opacity-90">{t(slide.subtitle, slide.subtitle)}</p>
+                                      {slide.link && !slide.backgroundImage && (
+                                        <Link 
+                                          href={slide.link}
+                                          className="inline-block mt-4 bg-white/20 backdrop-blur border border-white/30 px-4 py-2 rounded-full hover:bg-white/30 transition text-sm"
+                                        >
+                                          {t('home.banner.view_more', '자세히 보기')} {t('common.arrow_right', '→')}
+                                        </Link>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            );
+                              )}
+                            </div>
 
-                            return slide.link && slide.backgroundImage ? (
-                              <Link key={slide.id} href={slide.link} className="block group">
-                                <div className="relative">
-                                  {SlideContent}
-                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition rounded-2xl" />
-                                </div>
-                              </Link>
-                            ) : (
-                              <div key={slide.id}>
-                                {SlideContent}
+                            {/* 데스크톱에서만 표시되는 두 번째 슬라이드 */}
+                            {slideIndex + 1 < bannerSlides.length && (
+                              <div className="w-full hidden lg:block">
+                                {bannerSlides[slideIndex + 1].link && bannerSlides[slideIndex + 1].backgroundImage ? (
+                                  <Link href={bannerSlides[slideIndex + 1].link} className="block group">
+                                    <div className="relative">
+                                      <div
+                                        className={`w-full h-64 md:h-80 ${bannerSlides[slideIndex + 1].bgColor} text-white relative rounded-2xl overflow-hidden`}
+                                        style={{
+                                          backgroundImage: bannerSlides[slideIndex + 1].backgroundImage ? `url(${bannerSlides[slideIndex + 1].backgroundImage})` : undefined,
+                                          backgroundSize: 'cover',
+                                          backgroundPosition: 'center'
+                                        }}
+                                      >
+                                        <div className={`p-6 md:p-8 h-full flex flex-col justify-center ${bannerSlides[slideIndex + 1].backgroundImage ? 'bg-black/30' : ''}`}>
+                                          <div>
+                                            {bannerSlides[slideIndex + 1].tag && (
+                                              <span className="inline-block bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs font-medium mb-2">
+                                                {t(bannerSlides[slideIndex + 1].tag, bannerSlides[slideIndex + 1].tag)}
+                                              </span>
+                                            )}
+                                            <h2 className="text-2xl md:text-3xl font-bold mb-2 whitespace-pre-line">
+                                              {t(bannerSlides[slideIndex + 1].title, bannerSlides[slideIndex + 1].title)}
+                                            </h2>
+                                            <p className="text-base opacity-90">{t(bannerSlides[slideIndex + 1].subtitle, bannerSlides[slideIndex + 1].subtitle)}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition rounded-2xl" />
+                                    </div>
+                                  </Link>
+                                ) : (
+                                  <div
+                                    className={`w-full h-64 md:h-80 ${bannerSlides[slideIndex + 1].bgColor} text-white relative rounded-2xl overflow-hidden`}
+                                    style={{
+                                      backgroundImage: bannerSlides[slideIndex + 1].backgroundImage ? `url(${bannerSlides[slideIndex + 1].backgroundImage})` : undefined,
+                                      backgroundSize: 'cover',
+                                      backgroundPosition: 'center'
+                                    }}
+                                  >
+                                    <div className={`p-6 md:p-8 h-full flex flex-col justify-center ${bannerSlides[slideIndex + 1].backgroundImage ? 'bg-black/30' : ''}`}>
+                                      <div>
+                                        {bannerSlides[slideIndex + 1].tag && (
+                                          <span className="inline-block bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs font-medium mb-2">
+                                            {t(bannerSlides[slideIndex + 1].tag, bannerSlides[slideIndex + 1].tag)}
+                                          </span>
+                                        )}
+                                        <h2 className="text-2xl md:text-3xl font-bold mb-2 whitespace-pre-line">
+                                          {t(bannerSlides[slideIndex + 1].title, bannerSlides[slideIndex + 1].title)}
+                                        </h2>
+                                        <p className="text-base opacity-90">{t(bannerSlides[slideIndex + 1].subtitle, bannerSlides[slideIndex + 1].subtitle)}</p>
+                                        {bannerSlides[slideIndex + 1].link && !bannerSlides[slideIndex + 1].backgroundImage && (
+                                          <Link 
+                                            href={bannerSlides[slideIndex + 1].link}
+                                            className="inline-block mt-4 bg-white/20 backdrop-blur border border-white/30 px-4 py-2 rounded-full hover:bg-white/30 transition text-sm"
+                                          >
+                                            {t('home.banner.view_more', '자세히 보기')} {t('common.arrow_right', '→')}
+                                          </Link>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                            );
-                          })}
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                   
                   {/* 슬라이드 컨트롤 */}
-                  {Math.ceil(bannerSlides.length / 2) > 1 && (
+                  {bannerSlides.length > 1 && (
                     <div className="flex justify-center gap-2 mt-4">
-                      {Array.from({ length: Math.ceil(bannerSlides.length / 2) }, (_, index) => (
+                      {bannerSlides.map((_, index) => (
                         <button
                           key={index}
                           onClick={() => setCurrentSlide(index)}
@@ -294,11 +381,11 @@ export default function HomePage() {
                               category.badge === '신규' ? 'bg-blue-500 text-white' : 
                               'bg-gray-500 text-white'
                             }`}>
-                              {category.badge}
+                              {t(category.badge, category.badge)}
                             </span>
                           )}
                         </div>
-                        <span className="text-sm text-gray-700">{category.name}</span>
+                        <span className="text-sm text-gray-700">{t(category.name, category.name)}</span>
                       </Link>
                     ))}
                     </div>
@@ -323,7 +410,7 @@ export default function HomePage() {
                           <span className="text-2xl">{link.icon}</span>
                         )
                       )}
-                      <span className="font-medium">{link.title}</span>
+                      <span className="font-medium">{t(link.title, link.title)}</span>
                     </Link>
                   ))}
                 </div>
@@ -357,10 +444,10 @@ export default function HomePage() {
                           <h3 className={`text-xl font-bold mb-1 ${
                             config.mainPage.promoBanner.backgroundImage ? 'text-white' : 'text-gray-900'
                           }`}>
-                            {config.mainPage.promoBanner.title}
+                            {t(config.mainPage.promoBanner.title, config.mainPage.promoBanner.title)}
                           </h3>
                           <p className={config.mainPage.promoBanner.backgroundImage ? 'text-white/90' : 'text-gray-700'}>
-                            {config.mainPage.promoBanner.subtitle}
+                            {t(config.mainPage.promoBanner.subtitle, config.mainPage.promoBanner.subtitle)}
                           </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -419,13 +506,13 @@ export default function HomePage() {
                 <section key={section.id} className="mb-12">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold">{config.mainPage.rankingSection.title}</h2>
+                      <h2 className="text-2xl font-bold">{t(config.mainPage.rankingSection.title, config.mainPage.rankingSection.title)}</h2>
                       {config.mainPage.rankingSection.subtitle && (
-                        <p className="text-gray-600 mt-1">{config.mainPage.rankingSection.subtitle}</p>
+                        <p className="text-gray-600 mt-1">{t(config.mainPage.rankingSection.subtitle, config.mainPage.rankingSection.subtitle)}</p>
                       )}
                     </div>
                     <Link href="/campaigns" className="text-indigo-600 hover:text-indigo-700 font-medium">
-                      전체보기 →
+                      {t('home.ranking.view_all', '전체보기')} {t('common.arrow_right', '→')}
                     </Link>
                   </div>
                   
@@ -493,12 +580,12 @@ export default function HomePage() {
                                 {campaign.title}
                               </h3>
                               <div className="flex items-center justify-between text-sm text-gray-600">
-                                <span>D-{campaign.deadline}</span>
+                                <span>{t('home.ranking.days_left', 'D-{days}').replace('{days}', campaign.deadline.toString())}</span>
                                 <span className="font-medium text-indigo-600">{campaign.budget}</span>
                               </div>
                               <div className="mt-2 pt-2 border-t">
                                 <div className="flex items-center justify-between text-xs text-gray-500">
-                                  <span>신청 {campaign.applicants}/{campaign.maxApplicants}</span>
+                                  <span>{t('home.ranking.applicants', '신청 {current}/{max}').replace('{current}', campaign.applicants.toString()).replace('{max}', campaign.maxApplicants.toString())}</span>
                                   <div className="flex gap-1">
                                     {[...Array(5)].map((_, i) => (
                                       <div key={i} className={`w-1.5 h-1.5 rounded-full ${
@@ -524,20 +611,20 @@ export default function HomePage() {
               return (
                 <section key={section.id} className="mb-12">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold">추천 캠페인</h2>
+                    <h2 className="text-2xl font-bold">{t('home.recommended.title', '추천 캠페인')}</h2>
                     <Link href="/campaigns" className="text-indigo-600 hover:text-indigo-700 font-medium">
-                      전체보기 →
+                      {t('home.recommended.view_all', '전체보기')} {t('common.arrow_right', '→')}
                     </Link>
                   </div>
                   
                   {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {[...Array(10)].map((_, i) => (
                         <div key={i} className="bg-gray-100 rounded-xl h-64 animate-pulse" />
                       ))}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {campaigns.slice(0, 10).map((campaign) => (
                         <Link
                           key={campaign.id}
@@ -559,7 +646,7 @@ export default function HomePage() {
                             </div>
                             <div className="absolute top-2 right-2">
                               <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                                D-{campaign.deadline}
+{t('home.recommended.days_remaining', '{days}일 남음').replace('{days}', campaign.deadline.toString())}
                               </span>
                             </div>
                           </div>
@@ -570,7 +657,7 @@ export default function HomePage() {
                             <p className="text-sm text-gray-600 mb-3">{campaign.brand}</p>
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-gray-500">
-                                지원 {campaign.applicants}/{campaign.maxApplicants}명
+{t('home.recommended.applicants_count', '지원 {current}/{max}명').replace('{current}', campaign.applicants.toString()).replace('{max}', campaign.maxApplicants.toString())}
                               </span>
                               <span className="font-medium text-indigo-600">
                                 {campaign.budget}
@@ -600,7 +687,7 @@ export default function HomePage() {
                     </div>
                     {customSection.showMoreButton && (
                       <Link href={customSection.moreButtonLink || '/campaigns'} className="text-indigo-600 hover:text-indigo-700 font-medium">
-                        {customSection.moreButtonText || '더보기'} →
+                        {customSection.moreButtonText || t('home.custom.more_button_default', '더보기')} {t('common.arrow_right', '→')}
                       </Link>
                     )}
                   </div>
@@ -696,7 +783,7 @@ export default function HomePage() {
                               </h3>
                               <div className="flex items-center justify-between text-sm text-gray-600">
                                 <span>{campaign.budget}</span>
-                                <span>{campaign.deadline}일 남음</span>
+                                <span>{t('home.recommended.days_remaining', '{days}일 남음').replace('{days}', campaign.deadline.toString())}</span>
                               </div>
                             </div>
                           </Link>
@@ -714,20 +801,20 @@ export default function HomePage() {
 
         {/* 하단 CTA */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-center text-white">
-          <h3 className="text-2xl font-bold mb-2">지금 바로 시작하세요</h3>
-          <p className="text-white/80 mb-6">5분이면 충분합니다. 복잡한 절차 없이 바로 시작할 수 있어요.</p>
+          <h3 className="text-2xl font-bold mb-2">{t('home.bottom_cta.title', '지금 바로 시작하세요')}</h3>
+          <p className="text-white/80 mb-6">{t('home.bottom_cta.subtitle', '5분이면 충분합니다. 복잡한 절차 없이 바로 시작할 수 있어요.')}</p>
           <div className="flex gap-4 justify-center">
             <Link
               href="/register?type=business"
               className="bg-white text-indigo-600 px-6 py-3 rounded-full font-medium hover:shadow-lg transition"
             >
-              브랜드로 시작하기
+              {t('home.bottom_cta.brand_button', '브랜드로 시작하기')}
             </Link>
             <Link
               href="/register?type=influencer"
               className="bg-white/20 backdrop-blur text-white px-6 py-3 rounded-full font-medium hover:bg-white/30 transition"
             >
-              인플루언서로 시작하기
+              {t('home.bottom_cta.influencer_button', '인플루언서로 시작하기')}
             </Link>
           </div>
         </div>

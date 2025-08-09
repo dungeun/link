@@ -1,0 +1,54 @@
+// Translation 테이블 추가 스키마
+// 기존 schema.prisma에 추가할 내용
+
+model CampaignTranslation {
+  id               String   @id @default(cuid())
+  campaignId       String
+  language         String   // 'en', 'ja', 'zh' 등
+  title            String
+  description      String   @db.Text
+  requirements     String?  @db.Text
+  hashtags         String[] // 번역된 해시태그
+  isAutoTranslated Boolean  @default(true) // 자동 번역 여부
+  lastEditedBy     String?  // 수동 수정한 관리자 ID
+  editedAt         DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  campaign         Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  editor           User?    @relation("TranslationEditor", fields: [lastEditedBy], references: [id])
+  
+  @@unique([campaignId, language])
+  @@index([language])
+  @@map("campaign_translations")
+}
+
+model PostTranslation {
+  id               String   @id @default(cuid())
+  postId           String
+  language         String   // 'en', 'ja', 'zh' 등
+  title            String
+  content          String   @db.Text
+  isAutoTranslated Boolean  @default(true)
+  lastEditedBy     String?
+  editedAt         DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  post             Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  editor           User?    @relation("PostTranslationEditor", fields: [lastEditedBy], references: [id])
+  
+  @@unique([postId, language])
+  @@index([language])
+  @@map("post_translations")
+}
+
+// Campaign 모델에 추가할 관계
+// translations CampaignTranslation[]
+
+// Post 모델에 추가할 관계  
+// translations PostTranslation[]
+
+// User 모델에 추가할 관계
+// editedCampaignTranslations CampaignTranslation[] @relation("TranslationEditor")
+// editedPostTranslations     PostTranslation[]     @relation("PostTranslationEditor")

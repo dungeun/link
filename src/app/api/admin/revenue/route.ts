@@ -101,43 +101,50 @@ export async function GET(req: NextRequest) {
       ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 
       : 0
 
-    // 기간별 수익 데이터 조회
-    let dateFormat: string
-    let dateTrunc: string
-    switch (period) {
-      case 'daily':
-        dateFormat = 'YYYY-MM-DD'
-        dateTrunc = 'day'
-        break
-      case 'weekly':
-        dateFormat = 'YYYY-WW'
-        dateTrunc = 'week'
-        break
-      case 'yearly':
-        dateFormat = 'YYYY'
-        dateTrunc = 'year'
-        break
-      default:
-        dateFormat = 'YYYY-MM'
-        dateTrunc = 'month'
-    }
+    // 플랫폼 수수료율 설정
+    const platformFeeRate = DEFAULT_PLATFORM_FEE_RATE || 0.1 // 10% 기본 수수료
 
+    // 기간별 수익 데이터 조회
     const periodRevenue = await prisma.$queryRaw<Array<{
       period: string
       revenue: number
       expenses: number
       netProfit: number
     }>>`
+      WITH revenue_data AS (
+        SELECT 
+          CASE 
+            WHEN ${period} = 'daily' THEN TO_CHAR(date, 'YYYY-MM-DD')
+            WHEN ${period} = 'weekly' THEN TO_CHAR(date, 'YYYY-WW')
+            WHEN ${period} = 'yearly' THEN TO_CHAR(date, 'YYYY')
+            ELSE TO_CHAR(date, 'YYYY-MM')
+          END as period,
+          SUM(amount) as revenue
+        FROM revenues
+        WHERE date >= ${start} AND date <= ${end}
+        GROUP BY 1
+      ),
+      expense_data AS (
+        SELECT 
+          CASE 
+            WHEN ${period} = 'daily' THEN TO_CHAR(date, 'YYYY-MM-DD')
+            WHEN ${period} = 'weekly' THEN TO_CHAR(date, 'YYYY-WW')
+            WHEN ${period} = 'yearly' THEN TO_CHAR(date, 'YYYY')
+            ELSE TO_CHAR(date, 'YYYY-MM')
+          END as period,
+          SUM(amount) as expenses
+        FROM expenses
+        WHERE date >= ${start} AND date <= ${end}
+        GROUP BY 1
+      )
       SELECT 
-        TO_CHAR(r.date, ${dateFormat}) as period,
-        COALESCE(SUM(r.amount), 0)::float as revenue,
-        COALESCE(SUM(e.amount), 0)::float as expenses,
-        (COALESCE(SUM(r.amount), 0) * ${platformFeeRate} - COALESCE(SUM(e.amount), 0))::float as netProfit
-      FROM revenues r
-      LEFT JOIN expenses e ON DATE_TRUNC(${dateTrunc}, r.date) = DATE_TRUNC(${dateTrunc}, e.date)
-      WHERE r.date >= ${start} AND r.date <= ${end}
-      GROUP BY TO_CHAR(r.date, ${dateFormat})
-      ORDER BY period
+        COALESCE(r.period, e.period) as period,
+        COALESCE(r.revenue, 0)::float as revenue,
+        COALESCE(e.expenses, 0)::float as expenses,
+        (COALESCE(r.revenue, 0) * ${platformFeeRate} - COALESCE(e.expenses, 0))::float as netProfit
+      FROM revenue_data r
+      FULL OUTER JOIN expense_data e ON r.period = e.period
+      ORDER BY 1
     `
 
     // 카테고리별 수익 데이터 조회 (type으로 그룹화)
@@ -171,8 +178,7 @@ export async function GET(req: NextRequest) {
     // 응답 데이터 구성
     const totalRevenue = revenueData._sum.amount || 0
     const totalExpenses = expenseData._sum.amount || 0
-    const platformFeeRate = DEFAULT_PLATFORM_FEE_RATE || 0.1 // 10% 기본 수수료
-    const platformFee = totalRevenue * platformFeeRate
+    const platformFee = totalRevenue * platformFeeRate // platformFeeRate is already declared on line 105
     const settlementAmount = totalRevenue * (1 - platformFeeRate)
     const netProfit = platformFee - totalExpenses
     

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/db/prisma';
 import { verifyJWT } from '@/lib/auth/jwt';
 
 // 인증 미들웨어

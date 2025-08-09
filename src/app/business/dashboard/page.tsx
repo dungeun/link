@@ -9,10 +9,12 @@ import { useBusinessStats } from '@/hooks/useSharedData'
 import CampaignManagementTab from '@/components/business/CampaignManagementTab'
 import ApplicantManagementTab from '@/components/business/ApplicantManagementTab'
 import { BarChart3, Users, TrendingUp, DollarSign } from 'lucide-react'
+import { useLanguage } from '@/hooks/useLanguage'
 
 function BusinessDashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const [user, setUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'campaigns')
@@ -126,7 +128,7 @@ function BusinessDashboardContent() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-gray-600">{t('common.loading', '로딩 중...')}</p>
         </div>
       </div>
     )
@@ -144,25 +146,25 @@ function BusinessDashboardContent() {
       {/* 메인 컨텐츠 */}
       <div className="min-h-screen bg-gray-50">
 
-      {/* 서브 히어로 섹션 */}
+      {/* 서브 히어로 섹션 - 모바일 최적화 */}
       <section className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white">
-        <div className="container mx-auto px-6 py-12">
+        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
           <div className="max-w-4xl">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              안녕하세요, {user?.name || user?.email || '비즈니스'}님! 👋
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
+              {t('business.dashboard.greeting', '안녕하세요, {name}님! 👋').replace('{name}', user?.name || user?.email || t('business.default_name', '비즈니스'))}
             </h1>
-            <p className="text-lg text-white/80 mb-6">
-              오늘도 성공적인 캠페인을 만들어보세요.
+            <p className="text-base sm:text-lg text-white/80 mb-4 sm:mb-6">
+              {t('business.dashboard.subtitle', '오늘도 성공적인 캠페인을 만들어보세요.')}
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
               <Link 
                 href="/business/campaigns/new" 
-                className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                className="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white text-indigo-600 rounded-lg font-medium hover:bg-gray-100 transition-colors text-sm sm:text-base"
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                새 캠페인 만들기
+                {t('business.dashboard.new_campaign', '새 캠페인 만들기')}
               </Link>
             </div>
           </div>
@@ -170,134 +172,146 @@ function BusinessDashboardContent() {
       </section>
 
       {/* 메인 컨텐츠 */}
-      <main className="container mx-auto px-6 py-8 flex-1">
-        {/* 통계 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">전체 캠페인</h3>
-              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-indigo-600" />
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1">
+        {/* 통계 카드 - 모바일 최적화 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t('business.stats.total_campaigns', '전체 캠페인')}</h3>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{stats.totalCampaigns}</p>
+              </div>
+              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-indigo-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
+                <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6 text-indigo-600" />
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalCampaigns}</p>
-            <p className="text-sm text-gray-500 mt-1">총 캠페인 수</p>
-            <div className="mt-3 text-xs text-indigo-600">
+            <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3">{t('business.stats.total_campaigns_desc', '총 캠페인 수')}</p>
+            <div className="text-xs text-indigo-600">
               <span className="inline-flex items-center">
                 {growthData.campaigns.value > 0 ? (
                   <>
-                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                     </svg>
-                    +{growthData.campaigns.value}% 지난달 대비
+                    <span className="truncate">+{growthData.campaigns.value}% {t('business.stats.vs_last_month', '지난달 대비')}</span>
                   </>
                 ) : growthData.campaigns.value < 0 ? (
                   <>
-                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3 h-3 mr-1 flex-shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    {growthData.campaigns.value}% 지난달 대비
+                    <span className="text-red-500 truncate">{growthData.campaigns.value}% {t('business.stats.vs_last_month', '지난달 대비')}</span>
                   </>
                 ) : (
-                  <span>변동 없음</span>
+                  <span className="text-gray-500 truncate">{t('business.stats.no_change', '변동 없음')}</span>
                 )}
               </span>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">진행중 캠페인</h3>
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-green-600" />
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t('business.stats.active_campaigns', '진행중 캠페인')}</h3>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{stats.activeCampaigns}</p>
+              </div>
+              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
+                <TrendingUp className="w-4 h-4 sm:w-6 sm:h-6 text-green-600" />
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.activeCampaigns}</p>
-            <p className="text-sm text-gray-500 mt-1">현재 진행중</p>
-            <div className="mt-3 text-xs text-green-600">
+            <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3">{t('business.stats.active_campaigns_desc', '현재 진행중')}</p>
+            <div className="text-xs text-green-600">
               <span className="inline-flex items-center">
                 {growthData.activeCampaigns.value > 0 ? (
                   <>
-                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                     </svg>
-                    +{growthData.activeCampaigns.value}% 지난주 대비
+                    <span className="truncate">+{growthData.activeCampaigns.value}% {t('business.stats.vs_last_week', '지난주 대비')}</span>
                   </>
                 ) : growthData.activeCampaigns.value < 0 ? (
                   <>
-                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3 h-3 mr-1 flex-shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    {growthData.activeCampaigns.value}% 지난주 대비
+                    <span className="text-red-500 truncate">{growthData.activeCampaigns.value}% {t('business.stats.vs_last_week', '지난주 대비')}</span>
                   </>
                 ) : (
-                  <span>변동 없음</span>
+                  <span className="text-gray-500 truncate">{t('business.stats.no_change', '변동 없음')}</span>
                 )}
               </span>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">총 지원자</h3>
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-purple-600" />
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t('business.stats.total_applicants', '총 지원자')}</h3>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{stats.totalApplications}</p>
+              </div>
+              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-purple-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
+                <Users className="w-4 h-4 sm:w-6 sm:h-6 text-purple-600" />
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalApplications}</p>
-            <p className="text-sm text-gray-500 mt-1">누적 지원자</p>
-            <div className="mt-3 text-xs text-purple-600">
+            <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3">{t('business.stats.total_applicants_desc', '누적 지원자')}</p>
+            <div className="text-xs text-purple-600">
               <span className="inline-flex items-center">
                 {growthData.applications.value > 0 ? (
                   <>
-                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                     </svg>
-                    +{growthData.applications.value}% 이번달
+                    <span className="truncate">+{growthData.applications.value}% {t('business.stats.this_month', '이번달')}</span>
                   </>
                 ) : growthData.applications.value < 0 ? (
                   <>
-                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3 h-3 mr-1 flex-shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    {growthData.applications.value}% 이번달
+                    <span className="text-red-500 truncate">{growthData.applications.value}% {t('business.stats.this_month', '이번달')}</span>
                   </>
                 ) : (
-                  <span>변동 없음</span>
+                  <span className="text-gray-500 truncate">{t('business.stats.no_change', '변동 없음')}</span>
                 )}
               </span>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">총 지출</h3>
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-blue-600" />
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t('business.stats.total_spent', '총 지출')}</h3>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">₩{stats.totalSpent.toLocaleString()}</p>
+              </div>
+              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
+                <DollarSign className="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" />
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">₩{stats.totalSpent.toLocaleString()}</p>
-            <p className="text-sm text-gray-500 mt-1">누적 집행 금액</p>
-            <div className="mt-3 text-xs text-blue-600">
+            <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3">{t('business.stats.total_spent_desc', '누적 집행 금액')}</p>
+            <div className="text-xs text-blue-600">
               <span className="inline-flex items-center">
-                {growthData.roi > 0 ? `ROI ${growthData.roi}% 달성` : '아직 ROI 데이터가 없습니다'}
+                <span className="truncate">
+                  {growthData.roi > 0 ? 
+                    t('business.stats.roi_achieved', 'ROI {value}% 달성').replace('{value}', growthData.roi.toString()) : 
+                    t('business.stats.no_roi_data', '아직 ROI 데이터가 없습니다')}
+                </span>
               </span>
             </div>
           </div>
         </div>
 
-        {/* 탭 네비게이션 */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
+        {/* 탭 네비게이션 - 모바일 최적화 */}
+        <div className="border-b border-gray-200 mb-4 sm:mb-6">
+          <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto">
             <button
               onClick={() => handleTabChange('campaigns')}
               className={`${
                 activeTab === 'campaigns'
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              } whitespace-nowrap py-3 sm:py-4 px-1 border-b-2 font-medium text-sm sm:text-base transition-colors flex-shrink-0`}
             >
-              내 캠페인
+              {t('business.tabs.my_campaigns', '내 캠페인')}
             </button>
             <button
               onClick={() => handleTabChange('applicants')}
@@ -305,9 +319,9 @@ function BusinessDashboardContent() {
                 activeTab === 'applicants'
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              } whitespace-nowrap py-3 sm:py-4 px-1 border-b-2 font-medium text-sm sm:text-base transition-colors flex-shrink-0`}
             >
-              지원자 관리
+              {t('business.tabs.applicant_management', '지원자 관리')}
             </button>
           </nav>
         </div>

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { requireAdminAuth } from '@/lib/admin-auth';
+import { translationService } from '@/lib/services/translation.service';
+import { authenticate } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -157,6 +159,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '필수 정보가 누락되었습니다.' }, { status: 400 });
     }
 
+    // 자동 번역 수행 (Google Translate API 키가 설정된 경우)
+    let translatedData = {};
+    const enableTranslation = process.env.GOOGLE_TRANSLATE_API_KEY && body.enableTranslation !== false;
+    
+    if (enableTranslation) {
+      try {
+        translatedData = await translationService.translateCampaignData({
+          title,
+          description,
+          requirements,
+          hashtags
+        });
+      } catch (error) {
+        console.error('Translation failed:', error);
+        // 번역 실패 시에도 캠페인 생성은 계속 진행
+      }
+    }
+
     // 캠페인 생성
     const campaign = await prisma.campaign.create({
       data: {
@@ -170,7 +190,12 @@ export async function POST(request: NextRequest) {
         hashtags,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        status: status.toUpperCase()
+        status: status.toUpperCase(),
+        imageUrl,
+        // 번역된 데이터를 JSON 필드에 저장
+        ...(Object.keys(translatedData).length > 0 && {
+          translations: translatedData
+        })
       },
       include: {
         business: {

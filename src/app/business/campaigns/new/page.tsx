@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast'
 import { useTemplates } from '@/hooks/useSharedData'
 import { invalidateCache } from '@/hooks/useCachedData'
-import { Save, Trash2, Youtube } from 'lucide-react'
+import { Save, Trash2, Youtube, Users, Twitter } from 'lucide-react'
 
 // Component imports
 import StepBasicInfo from '@/components/business/campaign-form/StepBasicInfo'
@@ -43,7 +43,9 @@ const platformIcons = {
   INSTAGRAM: <InstagramIcon />,
   YOUTUBE: <Youtube className="w-6 h-6" />,
   TIKTOK: <TikTokIcon />,
-  BLOG: <BlogIcon />
+  FACEBOOK: <Users className="w-6 h-6" />,
+  TWITTER: <Twitter className="w-6 h-6" />,
+  NAVERBLOG: <BlogIcon />
 }
 
 interface CampaignTemplate {
@@ -421,26 +423,27 @@ export default function NewCampaignPage() {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="container mx-auto px-6 py-8 max-w-4xl">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">새 캠페인 만들기</h1>
-              <p className="text-gray-600 mt-2">캠페인 정보를 입력하여 인플루언서를 모집하세요.</p>
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">새 캠페인 만들기</h1>
+              <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">캠페인 정보를 입력하여 인플루언서를 모집하세요.</p>
             </div>
             
-            {/* Template buttons */}
-            <div className="flex gap-2">
+            {/* Template buttons - 모바일 최적화 */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setShowTemplateModal(true)}
+                className="text-sm"
               >
                 <Save className="w-4 h-4 mr-2" />
                 템플릿 저장
               </Button>
               <Select value={selectedTemplate || ''} onValueChange={(value) => value && loadTemplate(value)}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-full sm:w-48 text-sm">
                   <SelectValue placeholder={loadingTemplates ? "로딩 중..." : "템플릿 불러오기"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -479,30 +482,30 @@ export default function NewCampaignPage() {
           </div>
         </div>
         
-        {/* Progress bar */}
-        <div className="mb-8">
+        {/* Progress bar - 모바일 최적화 */}
+        <div className="mb-6 sm:mb-8">
           <Progress value={progress} className="h-2" />
-          <div className="flex justify-between mt-4">
+          <div className="flex justify-between mt-3 sm:mt-4">
             {steps.map((step) => (
               <div
                 key={step.number}
-                className={`flex flex-col items-center ${
+                className={`flex flex-col items-center flex-1 ${
                   currentStep >= step.number ? 'text-indigo-600' : 'text-gray-400'
                 }`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
                   currentStep >= step.number ? 'bg-indigo-600 text-white' : 'bg-gray-200'
                 }`}>
                   {step.number}
                 </div>
-                <span className="text-sm mt-2">{step.title}</span>
+                <span className="text-xs sm:text-sm mt-1 sm:mt-2 text-center leading-tight">{step.title}</span>
               </div>
             ))}
           </div>
         </div>
         
-        {/* Form content */}
-        <div className="bg-white rounded-lg shadow-sm p-8">
+        {/* Form content - 모바일 최적화 */}
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 md:p-8">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-600">{error}</p>
@@ -554,25 +557,25 @@ export default function NewCampaignPage() {
               />
               
               <div className="mt-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">결제 방법 선택</h3>
-                <div className="grid grid-cols-3 gap-3">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-700 mb-3">결제 방법 선택</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
                     type="button"
                     onClick={() => setSelectedPaymentMethod('CARD')}
-                    className={`p-3 rounded-lg border-2 transition-all ${
+                    className={`p-4 sm:p-3 rounded-lg border-2 transition-all touch-manipulation ${
                       selectedPaymentMethod === 'CARD'
                         ? 'border-indigo-600 bg-indigo-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="text-center">
-                      <div className="flex items-center justify-center mb-2">
-                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center justify-center mb-2 sm:mb-2">
+                        <svg className="w-7 h-7 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                       </div>
-                      <div className="font-medium text-sm">신용카드</div>
-                      <p className="text-xs text-gray-600 mt-1">
+                      <div className="font-medium text-sm sm:text-sm">신용카드</div>
+                      <p className="text-xs text-gray-600 mt-1 sm:mt-1">
                         모든 카드 결제 가능
                       </p>
                       {selectedPaymentMethod === 'CARD' && (
@@ -590,20 +593,20 @@ export default function NewCampaignPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedPaymentMethod('TRANSFER')}
-                    className={`p-3 rounded-lg border-2 transition-all ${
+                    className={`p-4 sm:p-3 rounded-lg border-2 transition-all touch-manipulation ${
                       selectedPaymentMethod === 'TRANSFER'
                         ? 'border-indigo-600 bg-indigo-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="text-center">
-                      <div className="flex items-center justify-center mb-2">
-                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center justify-center mb-2 sm:mb-2">
+                        <svg className="w-7 h-7 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                         </svg>
                       </div>
-                      <div className="font-medium text-sm">계좌이체</div>
-                      <p className="text-xs text-gray-600 mt-1">
+                      <div className="font-medium text-sm sm:text-sm">계좌이체</div>
+                      <p className="text-xs text-gray-600 mt-1 sm:mt-1">
                         즉시 결제 처리
                       </p>
                       {selectedPaymentMethod === 'TRANSFER' && (
@@ -621,20 +624,20 @@ export default function NewCampaignPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedPaymentMethod('MOBILE')}
-                    className={`p-3 rounded-lg border-2 transition-all ${
+                    className={`p-4 sm:p-3 rounded-lg border-2 transition-all touch-manipulation ${
                       selectedPaymentMethod === 'MOBILE'
                         ? 'border-indigo-600 bg-indigo-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="text-center">
-                      <div className="flex items-center justify-center mb-2">
-                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center justify-center mb-2 sm:mb-2">
+                        <svg className="w-7 h-7 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg>
                       </div>
-                      <div className="font-medium text-sm">휴대폰 결제</div>
-                      <p className="text-xs text-gray-600 mt-1">
+                      <div className="font-medium text-sm sm:text-sm">휴대폰 결제</div>
+                      <p className="text-xs text-gray-600 mt-1 sm:mt-1">
                         휴대폰 요금 합산
                       </p>
                       {selectedPaymentMethod === 'MOBILE' && (
@@ -660,13 +663,14 @@ export default function NewCampaignPage() {
             </>
           )}
           
-          {/* Navigation buttons */}
-          <div className="flex justify-between mt-8">
+          {/* Navigation buttons - 모바일 최적화 */}
+          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8">
             <Button
               type="button"
               variant="outline"
               onClick={currentStep === 1 ? () => router.back() : handlePrev}
               disabled={loading}
+              className="w-full sm:w-auto px-6 py-3 text-base font-medium"
             >
               {currentStep === 1 ? '취소' : '이전'}
             </Button>
@@ -676,6 +680,7 @@ export default function NewCampaignPage() {
                 type="button"
                 onClick={handleNext}
                 disabled={loading}
+                className="w-full sm:w-auto px-6 py-3 text-base font-medium"
               >
                 다음
               </Button>
@@ -684,6 +689,7 @@ export default function NewCampaignPage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading}
+                className="w-full sm:w-auto px-6 py-3 text-base font-medium"
               >
                 {loading ? '처리 중...' : 
                  selectedPaymentMethod === 'TRANSFER' ? '캠페인 생성하기' : '결제하고 캠페인 생성'}

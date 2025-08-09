@@ -92,16 +92,42 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
             </Button>
             <Button
               type="button"
-              variant={formData.platform === 'BLOG' ? 'default' : 'outline'}
+              variant={formData.platform === 'FACEBOOK' ? 'default' : 'outline'}
               size="sm"
               className={cn(
                 "flex items-center justify-center gap-2 px-4 py-2",
-                formData.platform === 'BLOG' && "bg-green-600 hover:bg-green-700"
+                formData.platform === 'FACEBOOK' && "bg-blue-600 hover:bg-blue-700"
               )}
-              onClick={() => setFormData({...formData, platform: 'BLOG'})}
+              onClick={() => setFormData({...formData, platform: 'FACEBOOK'})}
             >
-              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.BLOG}</span>
-              <span className="text-xs">블로그</span>
+              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.FACEBOOK}</span>
+              <span className="text-xs">페이스북</span>
+            </Button>
+            <Button
+              type="button"
+              variant={formData.platform === 'TWITTER' ? 'default' : 'outline'}
+              size="sm"
+              className={cn(
+                "flex items-center justify-center gap-2 px-4 py-2",
+                formData.platform === 'TWITTER' && "bg-sky-500 hover:bg-sky-600"
+              )}
+              onClick={() => setFormData({...formData, platform: 'TWITTER'})}
+            >
+              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.TWITTER}</span>
+              <span className="text-xs">트위터</span>
+            </Button>
+            <Button
+              type="button"
+              variant={formData.platform === 'NAVERBLOG' ? 'default' : 'outline'}
+              size="sm"
+              className={cn(
+                "flex items-center justify-center gap-2 px-4 py-2",
+                formData.platform === 'NAVERBLOG' && "bg-green-600 hover:bg-green-700"
+              )}
+              onClick={() => setFormData({...formData, platform: 'NAVERBLOG'})}
+            >
+              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.NAVERBLOG}</span>
+              <span className="text-xs">네이버</span>
             </Button>
           </div>
         </div>

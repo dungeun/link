@@ -41,7 +41,7 @@ export const dateRangeSchema = z.object({
 );
 
 // 플랫폼 관련 스키마
-export const platformSchema = z.enum(['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'NAVERBLOG']);
+export const platformSchema = z.enum(['INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'FACEBOOK', 'TWITTER', 'NAVERBLOG']);
 export const statusSchema = z.enum(['DRAFT', 'ACTIVE', 'COMPLETED', 'CANCELLED']);
 export const userTypeSchema = z.enum(['ADMIN', 'BUSINESS', 'INFLUENCER']);
 

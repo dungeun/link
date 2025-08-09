@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { X, Upload } from 'lucide-react'
 import { adminApi } from '@/lib/admin-api'
+import { ImageUpload } from '@/components/ui/ImageUpload'
 
 interface CampaignCreateModalProps {
   isOpen: boolean
@@ -23,97 +24,15 @@ export default function CampaignCreateModal({ isOpen, onClose, onSuccess }: Camp
     endDate: '',
     requirements: '',
     hashtags: '',
-    imageUrl: ''
+    imageUrl: '',
+    enableTranslation: true // 자동 번역 기본 활성화
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
-  const [imageUploading, setImageUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // 파일 타입 검증
-    if (!file.type.startsWith('image/')) {
-      setError('이미지 파일만 업로드 가능합니다.')
-      return
-    }
-
-    // 파일 크기 검증 (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('파일 크기는 5MB 이하여야 합니다.')
-      return
-    }
-
-    setImageUploading(true)
-    setError('')
-
-    try {
-      // 이미지 리사이즈
-      const resizedImage = await resizeImage(file, 800, 600)
-      setUploadedImage(resizedImage)
-      setFormData(prev => ({ ...prev, imageUrl: resizedImage }))
-    } catch (err) {
-      setError('이미지 업로드에 실패했습니다.')
-    } finally {
-      setImageUploading(false)
-    }
-  }
-
-  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const img = new window.Image()
-        img.onload = () => {
-          const canvas = document.createElement('canvas')
-          let width = img.width
-          let height = img.height
-
-          // 비율 유지하며 리사이즈
-          if (width > height) {
-            if (width > maxWidth) {
-              height = height * (maxWidth / width)
-              width = maxWidth
-            }
-          } else {
-            if (height > maxHeight) {
-              width = width * (maxHeight / height)
-              height = maxHeight
-            }
-          }
-
-          canvas.width = width
-          canvas.height = height
-
-          const ctx = canvas.getContext('2d')
-          if (!ctx) {
-            reject(new Error('Canvas context not available'))
-            return
-          }
-
-          ctx.drawImage(img, 0, 0, width, height)
-          
-          // 이미지를 base64로 변환
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
-          resolve(dataUrl)
-        }
-        img.onerror = () => reject(new Error('이미지 로드 실패'))
-        img.src = e.target?.result as string
-      }
-      reader.onerror = () => reject(new Error('파일 읽기 실패'))
-      reader.readAsDataURL(file)
-    })
-  }
-
-  const removeImage = () => {
-    setUploadedImage(null)
-    setFormData(prev => ({ ...prev, imageUrl: '' }))
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
+  const handleImageChange = (imageUrl: string | string[]) => {
+    const url = Array.isArray(imageUrl) ? imageUrl[0] : imageUrl
+    setFormData(prev => ({ ...prev, imageUrl: url }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -160,12 +79,9 @@ export default function CampaignCreateModal({ isOpen, onClose, onSuccess }: Camp
           endDate: '',
           requirements: '',
           hashtags: '',
-          imageUrl: ''
+          imageUrl: '',
+          enableTranslation: true
         })
-        setUploadedImage(null)
-        if (fileInputRef.current) {
-          fileInputRef.current.value = ''
-        }
       } else {
         const data = await response.json()
         setError(data.error || '캠페인 생성에 실패했습니다.')
@@ -255,8 +171,9 @@ export default function CampaignCreateModal({ isOpen, onClose, onSuccess }: Camp
                           <option value="INSTAGRAM">Instagram</option>
                           <option value="YOUTUBE">YouTube</option>
                           <option value="TIKTOK">TikTok</option>
-                          <option value="BLOG">Blog</option>
+                          <option value="FACEBOOK">Facebook</option>
                           <option value="TWITTER">Twitter</option>
+                          <option value="NAVERBLOG">네이버 블로그</option>
                         </select>
                       </div>
                       
@@ -345,69 +262,30 @@ export default function CampaignCreateModal({ isOpen, onClose, onSuccess }: Camp
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         대표 이미지
                       </label>
-                      <div className="space-y-2">
-                        {/* 이미지 업로드 영역 */}
-                        <div 
-                          onClick={() => fileInputRef.current?.click()}
-                          className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-500 cursor-pointer transition-colors"
-                        >
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                          />
-                          
-                          {uploadedImage ? (
-                            <div className="relative">
-                              <img 
-                                src={uploadedImage} 
-                                alt="캠페인 대표 이미지" 
-                                className="w-full h-48 object-cover rounded-lg"
-                              />
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  removeImage()
-                                }}
-                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="text-center">
-                              {imageUploading ? (
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                              ) : (
-                                <>
-                                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                  <p className="mt-2 text-sm text-gray-600">
-                                    클릭하여 이미지 업로드
-                                  </p>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    JPG, PNG, GIF (최대 5MB)
-                                  </p>
-                                </>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                      <ImageUpload
+                        value={formData.imageUrl}
+                        onChange={handleImageChange}
+                        category="campaigns"
+                        multiple={false}
+                        className="w-full"
+                      />
+                    </div>
 
-                        {/* URL 입력 옵션 */}
-                        <div className="relative">
-                          <input
-                            type="url"
-                            value={!uploadedImage ? formData.imageUrl : ''}
-                            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                            disabled={!!uploadedImage}
-                            placeholder="또는 이미지 URL을 입력하세요"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                          />
-                        </div>
-                      </div>
+                    {/* 자동 번역 옵션 */}
+                    <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+                      <input
+                        type="checkbox"
+                        id="enableTranslation"
+                        checked={formData.enableTranslation}
+                        onChange={(e) => setFormData({ ...formData, enableTranslation: e.target.checked })}
+                        className="mr-3"
+                      />
+                      <label htmlFor="enableTranslation" className="text-sm text-gray-700">
+                        <span className="font-medium">자동 번역 활성화</span>
+                        <span className="ml-2 text-gray-600">
+                          (캠페인 정보를 영어와 일본어로 자동 번역합니다)
+                        </span>
+                      </label>
                     </div>
                   </div>
                 </div>

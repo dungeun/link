@@ -3,6 +3,7 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { UserDataProvider } from '@/contexts/UserDataContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 
 // Query Client
 const queryClient = new QueryClient({
@@ -18,9 +19,11 @@ const queryClient = new QueryClient({
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <UserDataProvider>
-        {children}
-      </UserDataProvider>
+      <LanguageProvider>
+        <UserDataProvider>
+          {children}
+        </UserDataProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

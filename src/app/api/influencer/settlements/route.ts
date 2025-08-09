@@ -1,75 +1,147 @@
+// 인플루언서 정산 조회 API
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
 import { verifyJWT } from '@/lib/auth/jwt';
+import { prisma } from '@/lib/db/prisma';
+import { settlementService } from '@/lib/services/settlement.service';
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
-
-// GET /api/influencer/settlements - 인플루언서 정산 내역 조회
+// 내 정산 목록 조회
 export async function GET(request: NextRequest) {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const user = await verifyJWT(token);
-    if (user.type !== 'INFLUENCER') {
+    if (!user || user.type !== 'INFLUENCER') {
       return NextResponse.json(
-        { error: '인플루언서만 접근할 수 있습니다.' },
+        { error: '인플루언서 권한이 필요합니다.' },
         { status: 403 }
       );
     }
 
-    // 정산 내역 조회
+    const searchParams = request.nextUrl.searchParams;
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const status = searchParams.get('status');
+
+    const skip = (page - 1) * limit;
+
+    // 필터 조건
+    const where: any = {
+      influencerId: user.id
+    };
+    
+    if (status) {
+      where.status = status;
+    }
+
+    // 전체 개수 조회
+    const totalCount = await prisma.settlement.count({ where });
+
+    // 정산 목록 조회
     const settlements = await prisma.settlement.findMany({
-      where: {
-        influencerId: user.id
-      },
+      where,
       include: {
         items: {
-          include: {
-            application: {
-              include: {
-                campaign: {
-                  select: {
-                    id: true,
-                    title: true
-                  }
-                }
-              }
-            }
+          select: {
+            id: true,
+            amount: true,
+            campaignTitle: true
           }
         }
       },
       orderBy: {
         createdAt: 'desc'
-      }
+      },
+      skip,
+      take: limit
     });
 
-    // 정산 데이터 형식화
-    const formattedSettlements = settlements.map(settlement => ({
-      id: settlement.id,
-      totalAmount: settlement.totalAmount,
-      status: settlement.status,
-      createdAt: settlement.createdAt.toISOString(),
-      processedAt: settlement.processedAt?.toISOString(),
-      items: settlement.items.map(item => ({
-        id: item.id,
-        campaignTitle: item.campaignTitle,
-        amount: item.amount,
-        createdAt: item.application.campaign.startDate.toISOString()
-      }))
-    }));
+    // 정산 통계
+    const stats = await settlementService.getSettlementStatistics();
+    
+    // 정산 가능 여부 체크
+    const eligibility = await settlementService.checkSettlementEligibility(user.id);
 
     return NextResponse.json({
-      settlements: formattedSettlements
+      success: true,
+      data: {
+        settlements,
+        stats: {
+          totalSettled: stats.amounts.completed,
+          pending: stats.amounts.pending,
+          thisMonth: stats.amounts.total
+        },
+        eligibility,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages: Math.ceil(totalCount / limit)
+        }
+      }
     });
-
   } catch (error) {
-    console.error('정산 내역 조회 오류:', error);
+    console.error('정산 목록 조회 오류:', error);
     return NextResponse.json(
-      { error: '정산 내역을 불러오는데 실패했습니다.' },
+      { error: '정산 목록 조회 중 오류가 발생했습니다.' },
+      { status: 500 }
+    );
+  }
+}
+
+// 정산 요청
+export async function POST(request: NextRequest) {
+  try {
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await verifyJWT(token);
+    if (!user || user.type !== 'INFLUENCER') {
+      return NextResponse.json(
+        { error: '인플루언서 권한이 필요합니다.' },
+        { status: 403 }
+      );
+    }
+
+    // 정산 가능 여부 체크
+    const eligibility = await settlementService.checkSettlementEligibility(user.id);
+    
+    if (!eligibility.eligible) {
+      return NextResponse.json(
+        { 
+          error: eligibility.reason,
+          potentialAmount: eligibility.potentialAmount 
+        },
+        { status: 400 }
+      );
+    }
+
+    // 정산 생성
+    const result = await settlementService.createSettlement(user.id);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        settlementId: result.settlementId,
+        amount: result.amount,
+        message: '정산 요청이 완료되었습니다.'
+      }
+    });
+  } catch (error) {
+    console.error('정산 요청 오류:', error);
+    return NextResponse.json(
+      { error: '정산 요청 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

@@ -59,9 +59,9 @@ function MyPageContent() {
         {/* 메인 헤더 사용 */}
         <Header />
 
-        {/* Main Content */}
-        <main className="container mx-auto px-6 py-8 pt-24">
-          <div className="max-w-6xl mx-auto">
+        {/* 모바일 최적화된 Main Content */}
+        <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 pt-20 sm:pt-24">
+          <div className="max-w-7xl mx-auto">
             {/* 사용자 타입별 컴포넌트 렌더링 */}
             {userType === 'INFLUENCER' || userType === 'USER' ? (
               <InfluencerMyPage 

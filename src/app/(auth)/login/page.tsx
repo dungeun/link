@@ -16,9 +16,9 @@ export default function LoginPage() {
   })
   
   const [demoAccounts, setDemoAccounts] = useState<{
-    influencer: { email: string; name: string } | null;
-    business: { email: string; name: string } | null;
-    admin: { email: string; name: string } | null;
+    influencer: { email: string; name: string; password: string } | null;
+    business: { email: string; name: string; password: string } | null;
+    admin: { email: string; name: string; password: string } | null;
   }>({ influencer: null, business: null, admin: null })
   
   // URL 파라미터에서 에러 메시지 확인
@@ -129,24 +129,27 @@ export default function LoginPage() {
     
     // 선택된 계정 정보 가져오기
     let email = ''
+    let password = ''
+    
     if (userType === 'user' && demoAccounts.influencer) {
       email = demoAccounts.influencer.email
+      password = demoAccounts.influencer.password
     } else if (userType === 'business' && demoAccounts.business) {
       email = demoAccounts.business.email
+      password = demoAccounts.business.password
     } else if (userType === 'admin' && demoAccounts.admin) {
       email = demoAccounts.admin.email
+      password = demoAccounts.admin.password
     } else {
       // 폴백: 기본 계정 사용
       const credentials = {
-        user: { email: 'user@example.com', password: 'password123' },
-        business: { email: 'business@company.com', password: 'password123' },
-        admin: { email: 'admin@linkpick.co.kr', password: 'password123' }
+        user: { email: 'influencer1@revu.com', password: 'influencer@2024' },
+        business: { email: 'business1@company.com', password: 'business@2024' },
+        admin: { email: 'admin@revu.com', password: 'admin@2024!' }
       }
       email = credentials[userType].email
+      password = credentials[userType].password
     }
-    
-    // 모든 계정 동일한 비밀번호 사용
-    let password = 'password123'
     
     const cred = { email, password }
     setFormData(cred)
@@ -333,7 +336,11 @@ export default function LoginPage() {
                   {demoAccounts.admin && (
                     <p>관리자: {demoAccounts.admin.name}</p>
                   )}
-                  <p className="mt-2 text-gray-400">모든 데모 계정 비밀번호: password123</p>
+                  <div className="mt-2 text-gray-400 space-y-1">
+                    <p>인플루언서: influencer@2024</p>
+                    <p>클라이언트: business@2024</p>
+                    <p>관리자: admin@2024!</p>
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">

@@ -6,41 +6,12 @@ export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   try {
-    // 활성 상태인 비즈니스와 인플루언서 계정만 가져오기 (관리자 제외)
-    const users = await prisma.user.findMany({
+    // 고정된 데모 계정 반환 (랜덤 선택 대신 고정)
+    const influencer = await prisma.user.findFirst({
       where: {
-        type: {
-          in: ['BUSINESS', 'INFLUENCER']
-        },
-        status: 'ACTIVE' // 활성 계정만 선택
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        type: true,
-        status: true
-      }
-    })
-
-    // 타입별로 분류
-    const businessUsers = users.filter(u => u.type === 'BUSINESS')
-    const influencerUsers = users.filter(u => u.type === 'INFLUENCER')
-
-    // 각 타입에서 랜덤하게 1개씩 선택
-    const randomBusiness = businessUsers.length > 0 
-      ? businessUsers[Math.floor(Math.random() * businessUsers.length)]
-      : null
-    
-    const randomInfluencer = influencerUsers.length > 0
-      ? influencerUsers[Math.floor(Math.random() * influencerUsers.length)]
-      : null
-
-    // 관리자 계정 추가 - 특정 계정 우선 사용
-    const adminUser = await prisma.user.findFirst({
-      where: { 
-        type: 'ADMIN',
-        email: 'admin@linkpick.co.kr'
+        email: 'influencer1@revu.com',
+        type: 'INFLUENCER',
+        status: 'ACTIVE'
       },
       select: {
         id: true,
@@ -48,8 +19,28 @@ export async function GET(request: NextRequest) {
         name: true,
         type: true
       }
-    }) || await prisma.user.findFirst({
-      where: { type: 'ADMIN' },
+    })
+
+    const business = await prisma.user.findFirst({
+      where: {
+        email: 'business1@company.com',
+        type: 'BUSINESS',
+        status: 'ACTIVE'
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        type: true
+      }
+    })
+
+    const admin = await prisma.user.findFirst({
+      where: {
+        email: 'admin@revu.com',
+        type: 'ADMIN',
+        status: 'ACTIVE'
+      },
       select: {
         id: true,
         email: true,
@@ -59,20 +50,23 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      influencer: randomInfluencer ? {
-        email: randomInfluencer.email,
-        name: randomInfluencer.name,
-        type: 'influencer'
+      influencer: influencer ? {
+        email: influencer.email,
+        name: influencer.name,
+        type: 'influencer',
+        password: 'influencer@2024' // 데모용으로 비밀번호 표시
       } : null,
-      business: randomBusiness ? {
-        email: randomBusiness.email,
-        name: randomBusiness.name,
-        type: 'business'
+      business: business ? {
+        email: business.email,
+        name: business.name,
+        type: 'business',
+        password: 'business@2024' // 데모용으로 비밀번호 표시
       } : null,
-      admin: adminUser ? {
-        email: adminUser.email,
-        name: adminUser.name,
-        type: 'admin'
+      admin: admin ? {
+        email: admin.email,
+        name: admin.name,
+        type: 'admin',
+        password: 'admin@2024!' // 데모용으로 비밀번호 표시
       } : null
     })
   } catch (error) {

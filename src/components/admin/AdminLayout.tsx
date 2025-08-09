@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { useLanguage } from '@/hooks/useLanguage'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -13,6 +14,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth()
+  const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const menuItems = [
     {
-      title: '대시보드',
+      title: t('admin.menu.dashboard', '대시보드'),
       href: '/admin',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,7 +44,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )
     },
     {
-      title: '사용자 관리',
+      title: t('admin.menu.users', '사용자 관리'),
       href: '/admin/users',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,7 +53,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )
     },
     {
-      title: '캠페인 관리',
+      title: t('admin.menu.campaigns', '캠페인 관리'),
       href: '/admin/campaigns',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,7 +62,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )
     },
     {
-      title: '결제 관리',
+      title: t('admin.menu.payments', '결제 관리'),
       href: '/admin/payments',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +71,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )
     },
     {
-      title: '정산 관리',
+      title: t('admin.menu.settlements', '정산 관리'),
       href: '/admin/settlements',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +80,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )
     },
     {
-      title: '매출 관리',
+      title: t('admin.menu.revenue', '매출 관리'),
       href: '/admin/revenue',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +89,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )
     },
     {
-      title: '통계 분석',
+      title: t('admin.menu.analytics', '통계 분석'),
       href: '/admin/analytics',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +98,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )
     },
     {
-      title: '콘텐츠 관리',
+      title: t('admin.menu.content', '콘텐츠 관리'),
       href: '/admin/content',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,16 +107,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )
     },
     {
-      title: '게시판 관리',
-      href: '/admin/boards',
+      title: t('admin.menu.translations', '언어팩'),
+      href: '/admin/translations',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
         </svg>
       )
     },
     {
-      title: '시스템 설정',
+      title: t('admin.menu.settings', '시스템 설정'),
       href: '/admin/settings',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +126,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )
     },
     {
-      title: 'UI 설정',
+      title: t('admin.menu.ui_config', 'UI 설정'),
       href: '/admin/ui-config',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,7 +135,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )
     },
     {
-      title: '신고 관리',
+      title: t('admin.menu.reports', '신고 관리'),
       href: '/admin/reports',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +155,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          <p className="mt-2 text-gray-600">로딩 중...</p>
+          <p className="mt-2 text-gray-600">{t('admin.loading', '로딩 중...')}</p>
         </div>
       </div>
     )
@@ -163,74 +165,104 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* PC 1920px 최적화 - 최소 너비 설정 */}
+      <div className="min-w-[1920px] w-full">
 
-      {/* 사이드바 */}
-      <div className="fixed inset-y-0 left-0 z-40 w-64 bg-gray-900">
-        <div className="flex flex-col h-full">
-          {/* 로고 */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-800">
-            <Link href="/admin" className="text-2xl font-bold text-white">
-              LinkPick Admin
-            </Link>
-          </div>
+        {/* 사이드바 - PC 전용 확장 */}
+        <div className="fixed inset-y-0 left-0 z-40 w-80 bg-gray-900 shadow-xl">
+          <div className="flex flex-col h-full">
+            {/* 로고 - 더 큰 공간 */}
+            <div className="flex items-center justify-between px-8 py-6 border-b border-gray-800">
+              <Link href="/admin" className="text-3xl font-bold text-white">
+                LinkPick Admin
+              </Link>
+            </div>
 
-          {/* 네비게이션 메뉴 */}
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {menuItems.map((item) => {
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                  }`}
-                >
-                  {item.icon}
-                  <span className="ml-3">{item.title}</span>
-                </Link>
-              )
-            })}
-          </nav>
+            {/* 네비게이션 메뉴 - 더 넓은 간격 */}
+            <nav className="flex-1 px-6 py-8 space-y-2 overflow-y-auto">
+              {menuItems.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center px-6 py-4 rounded-xl transition-colors text-base font-medium ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    }`}
+                  >
+                    <span className="w-6 h-6 mr-4">{item.icon}</span>
+                    <span>{item.title}</span>
+                  </Link>
+                )
+              })}
+            </nav>
 
-          {/* 사용자 정보 */}
-          <div className="px-4 py-6 border-t border-gray-800">
-            <div className="flex items-center px-4">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
-                  <span className="text-white font-medium">
-                    {user.name?.charAt(0).toUpperCase()}
-                  </span>
+            {/* 사용자 정보 - 더 넓은 레이아웃 */}
+            <div className="px-6 py-8 border-t border-gray-800">
+              <div className="flex items-center px-6 py-4 bg-gray-800 rounded-xl">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">
+                      {user.name?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <p className="text-base font-semibold text-white">{user.name}</p>
+                  <p className="text-sm text-gray-400">{t('admin.label.admin', '관리자')}</p>
                 </div>
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-white">{user.name}</p>
-                <p className="text-xs text-gray-400">관리자</p>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="mt-4 w-full px-6 py-3 text-base text-gray-400 hover:text-white hover:bg-red-600 rounded-xl transition-colors flex items-center justify-center font-medium"
+              >
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                {t('admin.action.logout', '로그아웃')}
+              </button>
             </div>
-            <button
-              onClick={handleLogout}
-              className="mt-4 w-full px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors flex items-center"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              로그아웃
-            </button>
           </div>
         </div>
-      </div>
 
-      {/* 메인 콘텐츠 */}
-      <div className="ml-64">
-        {/* 페이지 콘텐츠 */}
-        <main className="p-6">
-          {children}
-        </main>
-      </div>
+        {/* 메인 콘텐츠 - 1920px에 맞춘 여백 */}
+        <div className="ml-80">
+          {/* 상단 헤더바 */}
+          <div className="sticky top-0 z-30 bg-white border-b border-gray-200 px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {menuItems.find(item => item.href === pathname)?.title || '관리자 대시보드'}
+                </h1>
+                <p className="text-sm text-gray-600 mt-1">
+                  {new Date().toLocaleDateString('ko-KR', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    weekday: 'long'
+                  })}
+                </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="text-sm text-gray-600">
+                  화면 해상도: 1920px 최적화
+                </div>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              </div>
+            </div>
+          </div>
 
+          {/* 페이지 콘텐츠 - 더 넓은 패딩 */}
+          <main className="p-8 max-w-none">
+            <div className="max-w-[1440px] mx-auto">
+              {children}
+            </div>
+          </main>
+        </div>
+
+      </div>
     </div>
   )
 }

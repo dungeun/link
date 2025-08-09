@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import AdminLayout from '@/components/admin/AdminLayout'
-import ImageUpload from '@/components/admin/ImageUpload'
+import { ImageUpload } from '@/components/ui/ImageUpload'
+import { ApiConfigSection } from '@/components/admin/ApiConfigSection'
 import { apiGet, apiPut } from '@/lib/api/client'
 
 interface SystemSettings {
@@ -147,7 +148,7 @@ export default function AdminSettingsPage() {
   const [initialLoading, setInitialLoading] = useState(true)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState<'general' | 'website' | 'payments' | 'content' | 'notifications' | 'legal'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'website' | 'payments' | 'content' | 'notifications' | 'legal' | 'api'>('general')
 
   useEffect(() => {
     loadSettings()
@@ -214,20 +215,27 @@ export default function AdminSettingsPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        {/* 헤더 */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">시스템 설정</h1>
-            <p className="text-gray-600 mt-1">플랫폼의 전반적인 설정을 관리합니다</p>
+      <div className="space-y-8">
+        {/* PC 1920px 최적화된 헤더 */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">시스템 설정</h1>
+              <p className="text-xl text-gray-600">플랫폼의 전반적인 설정을 관리합니다</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-500">
+                마지막 수정: {new Date().toLocaleString('ko-KR')}
+              </div>
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className="px-8 py-3 bg-blue-600 text-white text-lg font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                {loading ? '저장중...' : '설정 저장'}
+              </button>
+            </div>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? '저장중...' : '설정 저장'}
-          </button>
         </div>
 
         {/* 알림 메시지 */}
@@ -306,6 +314,16 @@ export default function AdminSettingsPage() {
             >
               약관 및 정책
             </button>
+            <button
+              onClick={() => setActiveTab('api')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'api'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              API 설정
+            </button>
           </nav>
         </div>
 
@@ -350,41 +368,51 @@ export default function AdminSettingsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={settings.general.maintenanceMode}
-                  onChange={(e) => handleInputChange('general', 'maintenanceMode', e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label className="ml-2 text-sm text-gray-700">
-                  유지보수 모드
-                </label>
+            {/* PC 1920px 최적화된 체크박스 그리드 */}
+            <div className="grid grid-cols-3 gap-8">
+              <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={settings.general.maintenanceMode}
+                    onChange={(e) => handleInputChange('general', 'maintenanceMode', e.target.checked)}
+                    className="h-6 w-6 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-lg"
+                  />
+                  <label className="ml-4 text-base font-medium text-gray-900">
+                    유지보수 모드
+                  </label>
+                </div>
+                <p className="mt-2 text-sm text-gray-600">사이트를 임시적으로 비활성화합니다</p>
               </div>
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={settings.general.registrationEnabled}
-                  onChange={(e) => handleInputChange('general', 'registrationEnabled', e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label className="ml-2 text-sm text-gray-700">
-                  회원가입 허용
-                </label>
+              <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={settings.general.registrationEnabled}
+                    onChange={(e) => handleInputChange('general', 'registrationEnabled', e.target.checked)}
+                    className="h-6 w-6 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-lg"
+                  />
+                  <label className="ml-4 text-base font-medium text-gray-900">
+                    회원가입 허용
+                  </label>
+                </div>
+                <p className="mt-2 text-sm text-gray-600">새로운 사용자의 가입을 허용합니다</p>
               </div>
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={settings.general.emailVerificationRequired}
-                  onChange={(e) => handleInputChange('general', 'emailVerificationRequired', e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label className="ml-2 text-sm text-gray-700">
-                  이메일 인증 필수
-                </label>
+              <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={settings.general.emailVerificationRequired}
+                    onChange={(e) => handleInputChange('general', 'emailVerificationRequired', e.target.checked)}
+                    className="h-6 w-6 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-lg"
+                  />
+                  <label className="ml-4 text-base font-medium text-gray-900">
+                    이메일 인증 필수
+                  </label>
+                </div>
+                <p className="mt-2 text-sm text-gray-600">회원가입 시 이메일 인증이 필요합니다</p>
               </div>
             </div>
           </div>
@@ -397,38 +425,40 @@ export default function AdminSettingsPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">웹사이트 설정</h2>
           
           {/* 브랜딩 */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div>
               <h3 className="text-md font-medium text-gray-900 mb-4">브랜딩</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <ImageUpload
-                    value={settings.website.logo}
-                    onChange={(value) => handleInputChange('website', 'logo', value)}
-                    label="로고 이미지"
-                    accept="image/*"
-                    maxSize={2}
-                    dimensions={{
-                      height: 40,
-                      aspectRatio: '16:9'
-                    }}
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    로고 이미지
+                  </label>
+                  <div className="max-w-xs">
+                    <ImageUpload
+                      value={settings.website.logo}
+                      onChange={(value) => handleInputChange('website', 'logo', value)}
+                      category="temp"
+                      maxSize={2}
+                      className="w-full"
+                    />
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">
                     헤더에 표시될 로고입니다. 높이 40px에 최적화됩니다.
                   </p>
                 </div>
                 <div>
-                  <ImageUpload
-                    value={settings.website.favicon}
-                    onChange={(value) => handleInputChange('website', 'favicon', value)}
-                    label="파비콘"
-                    accept="image/*"
-                    maxSize={1}
-                    dimensions={{
-                      width: 32,
-                      height: 32
-                    }}
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    파비콘
+                  </label>
+                  <div className="max-w-xs">
+                    <ImageUpload
+                      value={settings.website.favicon}
+                      onChange={(value) => handleInputChange('website', 'favicon', value)}
+                      category="temp"
+                      maxSize={1}
+                      className="w-full"
+                    />
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">
                     브라우저 탭에 표시될 아이콘입니다. 32x32px 정사각형이 권장됩니다.
                   </p>
@@ -476,109 +506,6 @@ export default function AdminSettingsPage() {
               </div>
             </div>
 
-            {/* 푸터 설정 */}
-            <div>
-              <h3 className="text-md font-medium text-gray-900 mb-4">푸터 설정</h3>
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={settings.website.footerEnabled}
-                    onChange={(e) => handleInputChange('website', 'footerEnabled', e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label className="ml-2 text-sm text-gray-700">
-                    푸터 표시
-                  </label>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    푸터 텍스트
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.website.footerText}
-                    onChange={(e) => handleInputChange('website', 'footerText', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="© 2024 LinkPick. All rights reserved."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    푸터 링크
-                  </label>
-                  <div className="space-y-2">
-                    {settings.website.footerLinks.map((link, index) => (
-                      <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                        <div className="col-span-4">
-                          <input
-                            type="text"
-                            value={link.title}
-                            onChange={(e) => {
-                              const newLinks = [...settings.website.footerLinks]
-                              newLinks[index].title = e.target.value
-                              handleInputChange('website', 'footerLinks', newLinks)
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                            placeholder="링크 제목"
-                          />
-                        </div>
-                        <div className="col-span-5">
-                          <input
-                            type="url"
-                            value={link.url}
-                            onChange={(e) => {
-                              const newLinks = [...settings.website.footerLinks]
-                              newLinks[index].url = e.target.value
-                              handleInputChange('website', 'footerLinks', newLinks)
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                            placeholder="URL"
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <div className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={link.newWindow}
-                              onChange={(e) => {
-                                const newLinks = [...settings.website.footerLinks]
-                                newLinks[index].newWindow = e.target.checked
-                                handleInputChange('website', 'footerLinks', newLinks)
-                              }}
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label className="ml-1 text-xs text-gray-700">새창</label>
-                          </div>
-                        </div>
-                        <div className="col-span-1">
-                          <button
-                            onClick={() => {
-                              const newLinks = settings.website.footerLinks.filter((_, i) => i !== index)
-                              handleInputChange('website', 'footerLinks', newLinks)
-                            }}
-                            className="text-red-600 hover:text-red-700 text-sm"
-                          >
-                            삭제
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    <button
-                      onClick={() => {
-                        const newLinks = [...settings.website.footerLinks, { title: '', url: '', newWindow: false }]
-                        handleInputChange('website', 'footerLinks', newLinks)
-                      }}
-                      className="text-blue-600 hover:text-blue-700 text-sm"
-                    >
-                      + 링크 추가
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* 소셜 미디어 */}
             <div>
@@ -712,21 +639,21 @@ export default function AdminSettingsPage() {
                   />
                 </div>
                 <div>
-                  <ImageUpload
-                    value={settings.website.seo.ogImage}
-                    onChange={(value) => {
-                      const newSeo = { ...settings.website.seo, ogImage: value }
-                      handleInputChange('website', 'seo', newSeo)
-                    }}
-                    label="OG 이미지"
-                    accept="image/*"
-                    maxSize={5}
-                    dimensions={{
-                      width: 1200,
-                      height: 630,
-                      aspectRatio: '1.91:1'
-                    }}
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    OG 이미지
+                  </label>
+                  <div className="max-w-md">
+                    <ImageUpload
+                      value={settings.website.seo.ogImage}
+                      onChange={(value) => {
+                        const newSeo = { ...settings.website.seo, ogImage: value }
+                        handleInputChange('website', 'seo', newSeo)
+                      }}
+                      category="temp"
+                      maxSize={5}
+                      className="w-full"
+                    />
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">
                     소셜 미디어에서 공유될 때 표시되는 이미지입니다. 1200x630px 권장.
                   </p>
@@ -1094,6 +1021,17 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* API 설정 */}
+        {activeTab === 'api' && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">API 연동 설정</h2>
+            <p className="text-gray-600 mb-6">
+              외부 서비스 API 키와 연동 정보를 관리합니다. 각 서비스의 API 키는 안전하게 암호화되어 저장됩니다.
+            </p>
+            <ApiConfigSection />
           </div>
         )}
       </div>

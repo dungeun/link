@@ -219,7 +219,7 @@ class AuthServiceClass {
 
   async validateToken(token: string): Promise<any> {
     try {
-      const decoded = jwt.verify(token, this.JWT_SECRET)
+      const decoded = jwt.verify(token, JWT_SECRET)
       return decoded
     } catch (error) {
       return null

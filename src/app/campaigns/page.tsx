@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import PageLayout from '@/components/layouts/PageLayout'
 import { AuthService } from '@/lib/auth'
+import { useLanguage } from '@/hooks/useLanguage'
 
 interface Campaign {
   id: string;
@@ -37,6 +38,9 @@ export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // 언어팩 사용
+  const { t } = useLanguage()
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -46,17 +50,17 @@ export default function CampaignsPage() {
   const [categoryStats, setCategoryStats] = useState<{[key: string]: number}>({})
 
   const categories = [
-    { id: 'all', name: '전체', count: pagination.total },
-    { id: '패션', name: '패션', count: categoryStats['패션'] || 0 },
-    { id: '뷰티', name: '뷰티', count: categoryStats['뷰티'] || 0 },
-    { id: '음식', name: '음식', count: categoryStats['음식'] || 0 },
-    { id: '여행', name: '여행', count: categoryStats['여행'] || 0 },
-    { id: '기술', name: '기술', count: categoryStats['기술'] || 0 },
-    { id: '라이프스타일', name: '라이프스타일', count: categoryStats['라이프스타일'] || 0 },
-    { id: '스포츠', name: '스포츠', count: categoryStats['스포츠'] || 0 },
-    { id: '게임', name: '게임', count: categoryStats['게임'] || 0 },
-    { id: '교육', name: '교육', count: categoryStats['교육'] || 0 },
-    { id: '헬스', name: '헬스', count: categoryStats['헬스'] || 0 }
+    { id: 'all', name: t('campaigns.category.all', '전체'), count: pagination.total },
+    { id: '패션', name: t('campaigns.category.fashion', '패션'), count: categoryStats['패션'] || 0 },
+    { id: '뷰티', name: t('campaigns.category.beauty', '뷰티'), count: categoryStats['뷰티'] || 0 },
+    { id: '음식', name: t('campaigns.category.food', '음식'), count: categoryStats['음식'] || 0 },
+    { id: '여행', name: t('campaigns.category.travel', '여행'), count: categoryStats['여행'] || 0 },
+    { id: '기술', name: t('campaigns.category.tech', '기술'), count: categoryStats['기술'] || 0 },
+    { id: '라이프스타일', name: t('campaigns.category.lifestyle', '라이프스타일'), count: categoryStats['라이프스타일'] || 0 },
+    { id: '스포츠', name: t('campaigns.category.sports', '스포츠'), count: categoryStats['스포츠'] || 0 },
+    { id: '게임', name: t('campaigns.category.game', '게임'), count: categoryStats['게임'] || 0 },
+    { id: '교육', name: t('campaigns.category.education', '교육'), count: categoryStats['교육'] || 0 },
+    { id: '헬스', name: t('campaigns.category.health', '헬스'), count: categoryStats['헬스'] || 0 }
   ]
 
   // 캠페인 데이터 가져오기
@@ -81,7 +85,7 @@ export default function CampaignsPage() {
       const response = await fetch(`/api/campaigns?${params}`)
       
       if (!response.ok) {
-        throw new Error('캠페인 데이터를 가져오는데 실패했습니다.')
+        throw new Error(t('error.campaigns_fetch_failed', '캠페인 데이터를 가져오는데 실패했습니다.'))
       }
       
       const data = await response.json()
@@ -100,7 +104,7 @@ export default function CampaignsPage() {
       setCategoryStats(data.categoryStats || {})
     } catch (err) {
       console.error('캠페인 데이터 조회 오류:', err)
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : t('error.unknown_error_occurred', '알 수 없는 오류가 발생했습니다.'))
       setCampaigns([])
     } finally {
       setLoading(false)
@@ -140,7 +144,7 @@ export default function CampaignsPage() {
   const toggleFavorite = async (campaignId: string) => {
     const user = AuthService.getCurrentUser()
     if (!user) {
-      alert('로그인이 필요합니다.')
+      alert(t('auth.login_required_message', '로그인이 필요합니다.'))
       return
     }
 
@@ -163,7 +167,7 @@ export default function CampaignsPage() {
       } else {
         const error = await response.json()
         console.error('Like error:', error)
-        alert('좋아요 처리 중 오류가 발생했습니다.')
+        alert(t('error.like_processing_failed', '좋아요 처리 중 오류가 발생했습니다.'))
       }
     } catch (error) {
       console.error('Error toggling favorite:', error)
@@ -214,10 +218,10 @@ export default function CampaignsPage() {
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center text-white">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              진행 중인 캠페인
+              {t('campaigns.hero.title', '진행 중인 캠페인')}
             </h1>
             <p className="text-xl text-white/80">
-              당신에게 맞는 브랜드 캠페인을 찾아보세요
+              {t('campaigns.hero.subtitle', '당신에게 맞는 브랜드 캠페인을 찾아보세요')}
             </p>
           </div>
         </div>
@@ -252,7 +256,7 @@ export default function CampaignsPage() {
                 onChange={(e) => handlePlatformChange(e.target.value)}
                 className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="all">모든 플랫폼</option>
+                <option value="all">{t('campaigns.filter.all_platforms', '모든 플랫폼')}</option>
                 <option value="instagram">Instagram</option>
                 <option value="youtube">YouTube</option>
                 <option value="tiktok">TikTok</option>
@@ -267,9 +271,9 @@ export default function CampaignsPage() {
                   onChange={(e) => setSelectedSort(e.target.value)}
                   className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 >
-                  <option value="latest">최신순</option>
-                  <option value="deadline">마감임박순</option>
-                  <option value="popular">인기순</option>
+                  <option value="latest">{t('campaigns.sort.latest', '최신순')}</option>
+                  <option value="deadline">{t('campaigns.sort.deadline', '마감임박순')}</option>
+                  <option value="popular">{t('campaigns.sort.popular', '인기순')}</option>
                 </select>
 
               </div>
@@ -294,13 +298,13 @@ export default function CampaignsPage() {
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
                 <div>
-                  <h3 className="font-medium">데이터 로딩 실패</h3>
+                  <h3 className="font-medium">{t('error.data_loading_failed_title', '데이터 로딩 실패')}</h3>
                   <p className="text-sm mt-1">{error}</p>
                   <button 
                     onClick={fetchCampaigns}
                     className="mt-2 text-sm bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors"
                   >
-                    다시 시도
+                    {t('action.retry', '다시 시도')}
                   </button>
                 </div>
               </div>
@@ -311,7 +315,7 @@ export default function CampaignsPage() {
             <>
               <div className="mb-8">
                 <p className="text-gray-600">
-                  총 <span className="font-bold text-cyan-600">{pagination.total}개</span>의 캠페인이 있습니다.
+                  {t('campaigns.status.total_campaigns_count', '총 {count}개의 캠페인이 있습니다.').replace('{count}', `${pagination.total}`)}
                 </p>
               </div>
 
@@ -320,8 +324,8 @@ export default function CampaignsPage() {
                   <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">캠페인이 없습니다</h3>
-                  <p className="mt-1 text-sm text-gray-500">조건에 맞는 캠페인을 찾을 수 없습니다.</p>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">{t('campaigns.status.no_campaigns_available', '캠페인이 없습니다')}</h3>
+                  <p className="mt-1 text-sm text-gray-500">{t('campaigns.status.no_matching_campaigns', '조건에 맞는 캠페인을 찾을 수 없습니다.')}</p>
                   <div className="mt-6">
                     <button
                       onClick={() => {
@@ -331,7 +335,7 @@ export default function CampaignsPage() {
                       }}
                       className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700"
                     >
-                      필터 초기화
+                      {t('campaigns.action.reset_filters', '필터 초기화')}
                     </button>
                   </div>
                 </div>
@@ -340,7 +344,8 @@ export default function CampaignsPage() {
 
 
           {/* 쇼핑몰 스타일 이미지 뷰 */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {/* 모바일 최적화된 캠페인 그리드 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
             {sortedCampaigns.map((campaign, index) => {
               // 가상 이미지 URL 배열
               const virtualImages = [
@@ -388,20 +393,21 @@ export default function CampaignsPage() {
               const daysLeft = Math.ceil((new Date(campaign.application_deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
               
               return (
-                <div key={campaign.id} className="group relative animate-in fade-in slide-in-from-bottom-4 duration-600" style={{ animationDelay: `${index * 50}ms` }}>
+                <div key={campaign.id} className="group relative animate-in fade-in slide-in-from-bottom-4 duration-600 w-full" style={{ animationDelay: `${index * 50}ms` }}>
                   <Link href={`/campaigns/${campaign.id}`} className="block">
-                    {/* 이미지 컨테이너 */}
-                    <div className="relative aspect-square mb-3 overflow-hidden rounded-lg bg-gray-100">
-                      {/* 즐겨찾기 버튼 */}
+                    {/* 모바일 최적화된 이미지 컨테이너 */}
+                    <div className="relative aspect-square sm:aspect-[4/3] md:aspect-square mb-3 overflow-hidden rounded-xl bg-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
+                      {/* 모바일 최적화된 즐겨찾기 버튼 */}
                       <button
                         onClick={(e) => {
                           e.preventDefault();
                           toggleFavorite(campaign.id);
                         }}
-                        className="absolute top-2 right-2 z-10 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition-all shadow-sm"
+                        className="absolute top-3 right-3 z-10 w-10 h-10 bg-white/95 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white transition-all shadow-md active:scale-95"
+                        aria-label="즐겨찾기"
                       >
                         <svg 
-                          className={`w-4 h-4 transition-colors ${favorites.includes(campaign.id) ? 'text-red-500 fill-current' : 'text-gray-600'}`} 
+                          className={`w-5 h-5 transition-all duration-200 ${favorites.includes(campaign.id) ? 'text-red-500 fill-current scale-110' : 'text-gray-600'}`} 
                           fill="none" 
                           stroke="currentColor" 
                           viewBox="0 0 24 24"
@@ -410,10 +416,11 @@ export default function CampaignsPage() {
                         </svg>
                       </button>
                       
-                      {/* 마감일 배지 */}
+                      {/* 모바일 최적화된 마감일 배지 */}
                       {daysLeft <= 7 && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                          마감임박 D-{daysLeft}
+                        <div className="absolute top-3 left-3 bg-red-500 text-white text-xs sm:text-sm font-bold px-3 py-2 rounded-full shadow-lg">
+                          <span className="hidden sm:inline">마감임박 </span>
+                          D-{daysLeft}
                         </div>
                       )}
                       
@@ -429,43 +436,43 @@ export default function CampaignsPage() {
                       />
                     </div>
                     
-                    {/* 정보 섹션 */}
-                    <div className="space-y-1">
+                    {/* 모바일 최적화된 정보 섹션 */}
+                    <div className="space-y-2 px-1">
                       {/* 브랜드명 */}
-                      <p className="text-xs text-gray-500 font-medium">{campaign.brand_name}</p>
+                      <p className="text-xs sm:text-sm text-gray-500 font-medium truncate">{campaign.brand_name}</p>
                       
-                      {/* 제목 */}
-                      <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-cyan-600 transition-colors">
+                      {/* 제목 - 모바일에서 더 크게 */}
+                      <h3 className="font-semibold text-sm sm:text-base text-gray-900 line-clamp-2 group-hover:text-cyan-600 transition-colors leading-tight">
                         {campaign.title}
                       </h3>
                       
                       {/* 카테고리 & 플랫폼 */}
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <span className="bg-gray-100 px-2 py-0.5 rounded">{campaign.category}</span>
-                        <div className="flex gap-0.5">
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="bg-gray-100 px-2 py-1 rounded-full text-gray-600 font-medium">{campaign.category}</span>
+                        <div className="flex gap-1">
                           {campaign.platforms?.slice(0, 2).map((platform: string) => (
-                            <span key={platform} className="text-sm">
+                            <span key={platform} className="text-base">
                               {getPlatformIcon(platform)}
                             </span>
                           ))}
                         </div>
                       </div>
                       
-                      {/* 가격 정보 (예산) */}
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-bold text-gray-900">
+                      {/* 가격 정보 (예산) - 모바일에서 더 크게 */}
+                      <div className="flex items-center justify-between pt-1">
+                        <p className="text-base sm:text-lg font-bold text-gray-900">
                           ₩{campaign.budget.toLocaleString()}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {campaign.applicant_count}명 지원
+                          {t('campaigns.card.applicant_count', '{count}명 지원').replace('{count}', campaign.applicant_count.toString())}
                         </p>
                       </div>
                       
                       {/* 추가 정보 */}
                       <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span>팔로워 {campaign.required_followers.toLocaleString()}+</span>
+                        <span>{t('campaigns.card.followers_required', '팔로워 {count}+').replace('{count}', campaign.required_followers.toLocaleString())}</span>
                         <span>•</span>
-                        <span>D-{daysLeft}</span>
+                        <span>{t('campaigns.card.days_left', 'D-{days}').replace('{days}', daysLeft.toString())}</span>
                       </div>
                     </div>
                   </Link>
@@ -483,7 +490,7 @@ export default function CampaignsPage() {
                   disabled={pagination.page === 1}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  이전
+                  {t('pagination.previous', '이전')}
                 </button>
                 
                 <span className="px-4 py-2 text-gray-700">
@@ -495,7 +502,7 @@ export default function CampaignsPage() {
                   disabled={pagination.page === pagination.totalPages}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  다음
+                  {t('pagination.next', '다음')}
                 </button>
               </div>
             </div>
@@ -511,16 +518,16 @@ export default function CampaignsPage() {
       <section className="py-16 bg-gradient-to-r from-blue-600 to-cyan-600">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            원하는 캠페인을 찾지 못하셨나요?
+            {t('campaigns.cta.not_found_title', '원하는 캠페인을 찾지 못하셨나요?')}
           </h2>
           <p className="text-xl text-white/80 mb-8">
-            프로필을 등록하면 맞춤 캠페인 추천을 받을 수 있습니다.
+            {t('campaigns.cta.profile_register_desc', '프로필을 등록하면 맞춤 캠페인 추천을 받을 수 있습니다.')}
           </p>
           <Link 
             href="/register?type=influencer" 
             className="inline-block px-8 py-4 bg-white text-blue-600 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
           >
-            인플루언서로 등록하기
+            {t('campaigns.cta.register_as_influencer', '인플루언서로 등록하기')}
           </Link>
         </div>
       </section>

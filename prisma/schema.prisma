@@ -21,9 +21,11 @@ enum ApplicationStatus {
 
 enum CampaignStatus {
   DRAFT
+  PENDING_REVIEW
   ACTIVE
   PAUSED
   COMPLETED
+  REJECTED
 }
 
 enum PaymentStatus {
@@ -67,6 +69,8 @@ model User {
   settlements          Settlement[]
   campaignLikes        CampaignLike[]
   reports              Report[]
+  editedCampaignTranslations CampaignTranslation[] @relation("TranslationEditor")
+  editedPostTranslations     PostTranslation[]     @relation("PostTranslationEditor")
 
   @@map("users")
 }
@@ -86,6 +90,10 @@ model Profile {
   youtubeSubscribers    Int?
   tiktok                String?
   tiktokFollowers       Int?
+  facebook              String?
+  facebookFollowers     Int?
+  twitter               String?
+  twitterFollowers      Int?
   averageEngagementRate Float?
   categories            String?
   isVerified            Boolean   @default(false)
@@ -172,6 +180,8 @@ model Campaign {
   productIntro         String?
   viewCount            Int                   @default(0)
   platforms            String?
+  translations         Json?                 // 다국어 번역 데이터 (title, description, requirements 등) - deprecated
+  campaignTranslations CampaignTranslation[] // 새로운 번역 관계
   applications         CampaignApplication[]
   business             User                  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   payments             Payment[]
@@ -363,12 +373,32 @@ model File {
 model SiteConfig {
   id        String   @id @default(cuid())
   key       String   @unique
-  value     String
+  value     String   @db.Text
+  type      String   @default("string") // string, number, boolean, json
+  category  String?  // general, website, payments, content, notifications, legal, api
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
   @@index([key])
+  @@index([category])
   @@map("site_config")
+}
+
+model ApiConfig {
+  id           String   @id @default(cuid())
+  service      String   @unique // google_translate, toss_payments, aws_s3, etc
+  apiKey       String?  @db.Text
+  apiSecret    String?  @db.Text
+  endpoint     String?
+  region       String?
+  bucket       String?
+  additionalConfig Json?
+  isEnabled    Boolean  @default(false)
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  
+  @@index([service])
+  @@map("api_config")
 }
 
 model Post {
@@ -385,6 +415,7 @@ model Post {
   updatedAt DateTime   @updatedAt
   comments  Comment[]
   postLikes PostLike[]
+  postTranslations PostTranslation[] // 새로운 번역 관계
   author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("posts")
@@ -482,6 +513,22 @@ model Report {
   @@map("reports")
 }
 
+model LanguagePack {
+  id          String   @id @default(cuid())
+  key         String   @unique // 번역 키 (예: menu.home, button.submit)
+  ko          String   // 한국어
+  en          String   // 영어
+  ja          String   // 일본어
+  category    String   // 카테고리 (menu, button, label, message 등)
+  description String?  // 설명
+  isEditable  Boolean  @default(true) // 수정 가능 여부
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@map("language_packs")
+}
+
 model Revenue {
   id           String   @id @default(cuid())
   type         String   // 'campaign_fee', 'premium_subscription', 'featured_listing'
@@ -510,4 +557,47 @@ model Expense {
   @@index([type])
   @@index([date])
   @@map("expenses")
+}
+// prisma/schema.prisma 파일 끝에 추가할 내용
+
+model CampaignTranslation {
+  id               String   @id @default(cuid())
+  campaignId       String
+  language         String   // 'en', 'ja', 'zh' 등
+  title            String
+  description      String   @db.Text
+  requirements     String?  @db.Text
+  hashtags         String[] // 번역된 해시태그
+  isAutoTranslated Boolean  @default(true) // 자동 번역 여부
+  lastEditedBy     String?  // 수동 수정한 관리자 ID
+  editedAt         DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  campaign         Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  editor           User?    @relation("TranslationEditor", fields: [lastEditedBy], references: [id])
+  
+  @@unique([campaignId, language])
+  @@index([language])
+  @@map("campaign_translations")
+}
+
+model PostTranslation {
+  id               String   @id @default(cuid())
+  postId           String
+  language         String   // 'en', 'ja', 'zh' 등
+  title            String
+  content          String   @db.Text
+  isAutoTranslated Boolean  @default(true)
+  lastEditedBy     String?
+  editedAt         DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  post             Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  editor           User?    @relation("PostTranslationEditor", fields: [lastEditedBy], references: [id])
+  
+  @@unique([postId, language])
+  @@index([language])
+  @@map("post_translations")
 }

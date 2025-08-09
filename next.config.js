@@ -16,11 +16,27 @@ const nextConfig = {
 
   // 이미지 도메인 설정
   images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+      }
+    ],
+    // 로컬 이미지는 별도 설정 불필요 (public 폴더)
     domains: [
-      'localhost',
-      'res.cloudinary.com',
-      'images.unsplash.com',
-      'ui-avatars.com'
+      'localhost'
     ],
   },
 

@@ -3,17 +3,21 @@
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { useUIConfigStore } from '@/lib/stores/ui-config.store'
+import { useLanguage } from '@/hooks/useLanguage'
+import { useSiteSettings } from '@/hooks/useSiteSettings'
 
 export default function Footer() {
   const { config, websiteSettings, loadSettingsFromAPI } = useUIConfigStore()
   const { columns, social, copyright } = config.footer
+  const { t } = useLanguage()
+  const { settings: siteSettings } = useSiteSettings()
 
   useEffect(() => {
     loadSettingsFromAPI()
   }, [])
 
   // 관리자 설정이 있으면 우선 사용, 없으면 기본 설정 사용
-  const footerEnabled = websiteSettings?.footerEnabled ?? true
+  const footerEnabled = siteSettings.website?.footerEnabled ?? websiteSettings?.footerEnabled ?? true
 
   if (!footerEnabled) {
     return null
@@ -26,15 +30,17 @@ export default function Footer() {
           {/* 브랜드 정보 */}
           <div className="col-span-1">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-4">
-              {config.header.logo.text}
+              {siteSettings.general?.siteName || config.header.logo.text}
             </h3>
             <p className="text-gray-400 mb-4">
-              브랜드와 인플루언서를 연결하는 스마트한 마케팅 플랫폼
+              {siteSettings.general?.siteDescription || '브랜드와 인플루언서를 연결하는 스마트한 마케팅 플랫폼'}
             </p>
             <div className="flex space-x-4">
-              {social && social
-                .filter(s => s.visible)
-                .map((socialItem, index) => {
+              {/* 관리자 설정의 소셜 링크 우선 사용 */}
+              {siteSettings.website?.socialLinks ? (
+                Object.entries(siteSettings.website.socialLinks)
+                  .filter(([_, url]) => url)
+                  .map(([platform, url]) => {
                   const icons: { [key: string]: JSX.Element } = {
                     twitter: (
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -63,48 +69,87 @@ export default function Footer() {
                     )
                   };
                   
-                  return (
-                    <a 
-                      key={index}
-                      href={socialItem.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-gray-400 hover:text-white transition-colors"
-                    >
-                      {icons[socialItem.platform] || null}
-                    </a>
-                  );
-                })}
+                    return (
+                      <a 
+                        key={platform}
+                        href={url as string} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        {icons[platform] || null}
+                      </a>
+                    );
+                  })
+              ) : (
+                social && social
+                  .filter(s => s.visible)
+                  .map((socialItem, index) => {
+                    return (
+                      <a 
+                        key={index}
+                        href={socialItem.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        {icons[socialItem.platform] || null}
+                      </a>
+                    );
+                  })
+              )}
             </div>
           </div>
 
-          {/* UI Config의 컬럼 사용 */}
-          {columns
-            .sort((a, b) => a.order - b.order)
-            .map(column => (
-              <div key={column.id}>
-                <h4 className="text-lg font-semibold mb-4">{column.title}</h4>
+          {/* 관리자 설정의 푸터 링크 또는 UI Config의 컬럼 사용 */}
+          {siteSettings.website?.footerLinks && siteSettings.website.footerLinks.length > 0 ? (
+            <div className="col-span-3 grid md:grid-cols-3 gap-8">
+              <div>
+                <h4 className="text-lg font-semibold mb-4">서비스</h4>
                 <ul className="space-y-2">
-                  {column.links
-                    .filter(link => link.visible)
-                    .sort((a, b) => a.order - b.order)
-                    .map(link => (
-                      <li key={link.id}>
-                        <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
-                          {link.label}
-                        </Link>
-                      </li>
-                    ))}
+                  {siteSettings.website.footerLinks.map((link, index) => (
+                    <li key={index}>
+                      <Link 
+                        href={link.url} 
+                        className="text-gray-400 hover:text-white transition-colors"
+                        target={link.newWindow ? '_blank' : undefined}
+                        rel={link.newWindow ? 'noopener noreferrer' : undefined}
+                      >
+                        {link.title}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
-            ))}
+            </div>
+          ) : (
+            columns
+              .sort((a, b) => a.order - b.order)
+              .map(column => (
+                <div key={column.id}>
+                  <h4 className="text-lg font-semibold mb-4">{t(column.title, column.title)}</h4>
+                  <ul className="space-y-2">
+                    {column.links
+                      .filter(link => link.visible)
+                      .sort((a, b) => a.order - b.order)
+                      .map(link => (
+                        <li key={link.id}>
+                          <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
+                            {t(link.label, link.label)}
+                          </Link>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ))
+          )}
         </div>
 
         {/* 구분선 */}
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 text-sm mb-4 md:mb-0">
-              <p>{copyright}</p>
+              <p>{siteSettings.website?.footerText || t(copyright, copyright)}</p>
               <p className="mt-1">
                 사업자등록번호: 123-45-67890 | 대표: 홍길동 | 
                 <br className="md:hidden" />
@@ -114,7 +159,7 @@ export default function Footer() {
             
             <div className="flex items-center space-x-4">
               <div className="text-gray-400 text-sm">
-                <p>고객센터: 1588-1234</p>
+                <p>고객센터: {siteSettings.general?.supportEmail || '1588-1234'}</p>
                 <p>평일 09:00~18:00 (주말/공휴일 휴무)</p>
               </div>
             </div>

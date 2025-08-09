@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useUIConfigStore } from '@/lib/stores/ui-config.store';
-import { HeaderConfigTab } from '@/components/admin/ui-config/HeaderConfigTab';
-import { FooterConfigTab } from '@/components/admin/ui-config/FooterConfigTab';
+import { HeaderConfigImproved } from '@/components/admin/ui-config/HeaderConfigImproved';
+import { FooterConfigImproved } from '@/components/admin/ui-config/FooterConfigImproved';
 import { SectionsConfigTab } from '@/components/admin/ui-config/SectionsConfigTab';
 import { SectionOrderTab } from '@/components/admin/ui-config/SectionOrderTab';
 
@@ -93,8 +93,8 @@ export default function UIConfigPage() {
         </button>
       </div>
 
-      {activeTab === 'header' && <HeaderConfigTab />}
-      {activeTab === 'footer' && <FooterConfigTab />}
+      {activeTab === 'header' && <HeaderConfigImproved />}
+      {activeTab === 'footer' && <FooterConfigImproved />}
       {activeTab === 'sections' && <SectionsConfigTab />}
       {activeTab === 'section-order' && <SectionOrderTab />}
 
