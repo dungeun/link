@@ -523,6 +523,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                       }`}
                     >
                       완료 ({myCampaigns.filter((c: any) => c.status === 'completed').length})
+                    </button>
                   </nav>
                 </div>
               </div>
