@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // output: 'standalone', // 일시적으로 비활성화
   typescript: {
     ignoreBuildErrors: true,
   },

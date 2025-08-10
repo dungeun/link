@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "PORT=$(node scripts/find-free-port.js) && echo \"🚀 Starting REVU Platform on port $PORT\" && next dev -p $PORT",
     "build": "prisma generate && next build",
-    "start": "PORT=$(node scripts/find-free-port.js) && next start -p $PORT",
+    "start": "HOSTNAME=0.0.0.0 PORT=3000 next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .next",
