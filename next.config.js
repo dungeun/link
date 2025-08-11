@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Coolify 배포를 위한 설정
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  // Vercel 배포를 위한 설정 (standalone 모드 비활성화)
+  // output: 'standalone', // Vercel에서는 자동 처리
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
