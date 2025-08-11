@@ -4,10 +4,30 @@ import { prisma } from '@/lib/db/prisma';
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+// 번역 헬퍼 함수
+async function getTranslation(key: string, language: string = 'ko'): Promise<string> {
+  try {
+    const translation = await prisma.languagePack.findUnique({
+      where: { key }
+    });
+    
+    if (translation) {
+      return translation[language as keyof typeof translation] as string || translation.ko || key;
+    }
+    return key;
+  } catch (error) {
+    console.error(`Translation error for key ${key}:`, error);
+    return key;
+  }
+}
+
 // GET /api/ui-config - 공개 UI 설정 조회 (모든 사용자 접근 가능)
 export async function GET(request: NextRequest) {
   try {
-    // 기본 설정 먼저 준비
+    // 언어 파라미터 추출
+    const { searchParams } = new URL(request.url);
+    const language = searchParams.get('lang') || 'ko';
+    // 기본 설정 먼저 준비 (번역 적용)
     const defaultConfig = {
         header: {
           logo: {
@@ -15,13 +35,13 @@ export async function GET(request: NextRequest) {
             imageUrl: null
           },
           menus: [
-            { id: 'menu-1', label: 'header.menu.campaigns', href: '/campaigns', order: 1, visible: true },
-            { id: 'menu-2', label: 'header.menu.influencers', href: '/influencers', order: 2, visible: true },
-            { id: 'menu-3', label: 'header.menu.community', href: '/community', order: 3, visible: true },
-            { id: 'menu-4', label: 'header.menu.pricing', href: '/pricing', order: 4, visible: true },
+            { id: 'menu-1', label: await getTranslation('header.menu.campaigns', language), href: '/campaigns', order: 1, visible: true },
+            { id: 'menu-2', label: await getTranslation('header.menu.influencers', language), href: '/influencers', order: 2, visible: true },
+            { id: 'menu-3', label: await getTranslation('header.menu.community', language), href: '/community', order: 3, visible: true },
+            { id: 'menu-4', label: await getTranslation('header.menu.pricing', language), href: '/pricing', order: 4, visible: true },
           ],
           ctaButton: {
-            text: 'header.cta.start',
+            text: await getTranslation('header.cta.start', language),
             href: '/register',
             visible: true
           }
@@ -68,9 +88,9 @@ export async function GET(request: NextRequest) {
             {
               id: 'slide-1',
               type: 'blue' as const,
-              tag: 'hero.slide1.tag',
-              title: 'hero.slide1.title',
-              subtitle: 'hero.slide1.subtitle',
+              tag: await getTranslation('hero.slide1.tag', language),
+              title: await getTranslation('hero.slide1.title', language),
+              subtitle: await getTranslation('hero.slide1.subtitle', language),
               bgColor: 'bg-gradient-to-br from-blue-400 to-blue-600',
               order: 1,
               visible: true,
@@ -78,8 +98,8 @@ export async function GET(request: NextRequest) {
             {
               id: 'slide-2',
               type: 'dark' as const,
-              title: 'hero.slide2.title',
-              subtitle: 'hero.slide2.subtitle',
+              title: await getTranslation('hero.slide2.title', language),
+              subtitle: await getTranslation('hero.slide2.subtitle', language),
               bgColor: 'bg-gradient-to-br from-gray-800 to-gray-900',
               order: 2,
               visible: true,
