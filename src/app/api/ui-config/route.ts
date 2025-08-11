@@ -4,17 +4,37 @@ import { prisma } from '@/lib/db/prisma';
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-// 번역 헬퍼 함수
+// 번역 캐시
+const translationCache = new Map<string, any>();
+let cacheTimestamp = 0;
+const CACHE_TTL = 60 * 1000; // 1분 캐시
+
+// 번역 헬퍼 함수 (캐싱 포함)
 async function getTranslation(key: string, language: string = 'ko'): Promise<string> {
   try {
+    // 캐시 확인
+    const now = Date.now();
+    if (now - cacheTimestamp > CACHE_TTL) {
+      translationCache.clear();
+      cacheTimestamp = now;
+    }
+    
+    const cacheKey = `${key}_${language}`;
+    if (translationCache.has(cacheKey)) {
+      return translationCache.get(cacheKey);
+    }
+    
     const translation = await prisma.languagePack.findUnique({
       where: { key }
     });
     
+    let result = key;
     if (translation) {
-      return translation[language as keyof typeof translation] as string || translation.ko || key;
+      result = translation[language as keyof typeof translation] as string || translation.ko || key;
     }
-    return key;
+    
+    translationCache.set(cacheKey, result);
+    return result;
   } catch (error) {
     console.error(`Translation error for key ${key}:`, error);
     return key;
@@ -107,8 +127,8 @@ export async function GET(request: NextRequest) {
             {
               id: 'slide-3',
               type: 'green' as const,
-              title: 'hero.slide3.title',
-              subtitle: 'hero.slide3.subtitle',
+              title: await getTranslation('hero.slide3.title', language),
+              subtitle: await getTranslation('hero.slide3.subtitle', language),
               bgColor: 'bg-gradient-to-br from-green-400 to-green-600',
               order: 3,
               visible: true,
@@ -116,9 +136,9 @@ export async function GET(request: NextRequest) {
             {
               id: 'slide-4',
               type: 'pink' as const,
-              tag: 'hero.slide4.tag',
-              title: 'hero.slide4.title',
-              subtitle: 'hero.slide4.subtitle',
+              tag: await getTranslation('hero.slide4.tag', language),
+              title: await getTranslation('hero.slide4.title', language),
+              subtitle: await getTranslation('hero.slide4.subtitle', language),
               bgColor: 'bg-gradient-to-br from-pink-400 to-pink-600',
               order: 4,
               visible: true,
@@ -126,8 +146,8 @@ export async function GET(request: NextRequest) {
             {
               id: 'slide-5',
               type: 'blue' as const,
-              title: 'hero.slide5.title',
-              subtitle: 'hero.slide5.subtitle',
+              title: await getTranslation('hero.slide5.title', language),
+              subtitle: await getTranslation('hero.slide5.subtitle', language),
               bgColor: 'bg-gradient-to-br from-indigo-400 to-indigo-600',
               order: 5,
               visible: true,
@@ -135,9 +155,9 @@ export async function GET(request: NextRequest) {
             {
               id: 'slide-6',
               type: 'dark' as const,
-              tag: 'hero.slide6.tag',
-              title: 'hero.slide6.title',
-              subtitle: 'hero.slide6.subtitle',
+              tag: await getTranslation('hero.slide6.tag', language),
+              title: await getTranslation('hero.slide6.title', language),
+              subtitle: await getTranslation('hero.slide6.subtitle', language),
               bgColor: 'bg-gradient-to-br from-gray-700 to-gray-900',
               order: 6,
               visible: true,

@@ -5,23 +5,23 @@ FROM node:18-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable
-RUN corepack prepare pnpm@latest --activate
-
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN npm ci
 
 # Copy source code
 COPY . .
 
+# Generate Prisma Client
+RUN npx prisma generate
+
 # Build the application
 ENV NEXT_TELEMETRY_DISABLED 1
-RUN pnpm run build
+ENV NODE_ENV production
+RUN npm run build
 
 # Production stage
 FROM node:18-alpine AS runner

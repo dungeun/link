@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'standalone', // 일시적으로 비활성화
+  // Coolify 배포를 위한 설정
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: true,
+  
   typescript: {
     ignoreBuildErrors: true,
   },
