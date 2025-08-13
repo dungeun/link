@@ -1,15 +1,16 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
-type Language = 'ko' | 'en' | 'ja';
+type Language = 'ko' | 'en' | 'jp';
 
 interface LanguagePack {
   id: string;
   key: string;
   ko: string;
   en: string;
-  ja: string;
+  jp: string;
   category: string;
   description?: string;
 }
@@ -30,59 +31,81 @@ const getStoredLanguage = (): Language => {
   if (typeof window === 'undefined') return 'ko';
   
   const stored = localStorage.getItem('language');
-  if (stored && ['ko', 'en', 'ja'].includes(stored)) {
+  if (stored && ['ko', 'en', 'jp'].includes(stored)) {
     return stored as Language;
   }
   
   // 브라우저 언어 감지
   const browserLang = navigator.language.toLowerCase();
   if (browserLang.startsWith('ko')) return 'ko';
-  if (browserLang.startsWith('ja')) return 'ja';
+  if (browserLang.startsWith('jp')) return 'jp';
   if (browserLang.startsWith('en')) return 'en';
   
   return 'ko'; // 기본값
 };
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
+interface LanguageProviderProps {
+  children: React.ReactNode;
+  initialLanguagePacks?: Record<string, LanguagePack>;
+}
+
+export function LanguageProvider({ children, initialLanguagePacks = {} }: LanguageProviderProps) {
+  // 하이드레이션 문제 방지를 위해 초기값은 'ko'로 설정
   const [currentLanguage, setCurrentLanguageState] = useState<Language>('ko');
-  const [languagePacks, setLanguagePacks] = useState<Record<string, LanguagePack>>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [languagePacks, setLanguagePacks] = useState<Record<string, LanguagePack>>(initialLanguagePacks);
+  const [isLoading, setIsLoading] = useState(!Object.keys(initialLanguagePacks).length);
+  const queryClient = useQueryClient();
+  
+  // 클라이언트에서만 실제 언어 설정 적용
+  useEffect(() => {
+    const storedLang = getStoredLanguage();
+    if (storedLang !== 'ko') {
+      setCurrentLanguageState(storedLang);
+    }
+  }, []);
 
   // 언어 목록
   const languages = [
     { code: 'ko' as Language, name: 'Korean', nativeName: '한국어' },
     { code: 'en' as Language, name: 'English', nativeName: 'English' },
-    { code: 'ja' as Language, name: 'Japanese', nativeName: '日本語' }
+    { code: 'jp' as Language, name: 'Japanese', nativeName: '日本語' }
   ];
 
   // 언어팩 로드
-  useEffect(() => {
-    const loadLanguagePacks = async () => {
-      try {
-        const response = await fetch('/api/language-packs');
-        if (response.ok) {
-          const packs: LanguagePack[] = await response.json();
-          const packMap = packs.reduce((acc, pack) => {
-            acc[pack.key] = pack;
-            return acc;
-          }, {} as Record<string, LanguagePack>);
-          setLanguagePacks(packMap);
-        }
-      } catch (error) {
-        console.error('Failed to load language packs:', error);
-      } finally {
-        setIsLoading(false);
+  const loadLanguagePacks = useCallback(async () => {
+    // 이미 언어팩이 있으면 로드하지 않음
+    if (Object.keys(languagePacks).length > 0) {
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/language-packs');
+      if (response.ok) {
+        const packs: LanguagePack[] = await response.json();
+        console.log(`Loaded ${packs.length} language packs from API`);
+        const packMap = packs.reduce((acc, pack) => {
+          acc[pack.key] = pack;
+          return acc;
+        }, {} as Record<string, LanguagePack>);
+        console.log(`Language pack keys loaded:`, Object.keys(packMap).filter(k => k.startsWith('menu.')));
+        setLanguagePacks(packMap);
+      } else {
+        console.error('Failed to load language packs: HTTP', response.status);
       }
-    };
+    } catch (error) {
+      console.error('Failed to load language packs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [languagePacks]);
 
-    loadLanguagePacks();
-  }, []);
-
-  // 초기 언어 설정
   useEffect(() => {
-    const lang = getStoredLanguage();
-    setCurrentLanguageState(lang);
-  }, []);
+    // 초기 언어팩이 없을 때만 로드
+    if (Object.keys(languagePacks).length === 0) {
+      loadLanguagePacks();
+    }
+  }, [loadLanguagePacks]);
 
   // 언어 설정 함수
   const setLanguage = useCallback((lang: Language) => {
@@ -93,19 +116,28 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.lang = lang;
       // 커스텀 이벤트 발생 (다른 컴포넌트에서 감지 가능)
       window.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
+      // 언어팩 재로드 (캐시 갱신)
+      loadLanguagePacks();
+      // React Query 캐시 무효화 - 모든 쿼리 재실행
+      queryClient.invalidateQueries();
     }
-  }, []);
+  }, [loadLanguagePacks, queryClient]);
 
   // 번역 함수
   const t = useCallback((key: string, fallback?: string): string => {
     const pack = languagePacks[key];
     if (!pack) {
       // 언어팩이 없으면 fallback 또는 key 반환
+      console.log(`Translation missing for key: ${key}, available keys: ${Object.keys(languagePacks).length}`);
       return fallback || key;
     }
     
     // 현재 언어에 맞는 텍스트 반환
-    return pack[currentLanguage] || pack.ko || fallback || key;
+    const result = pack[currentLanguage] || pack.ko || fallback || key;
+    if (key.startsWith('menu.')) {
+      console.log(`Translation for ${key}: ${result} (lang: ${currentLanguage})`);
+    }
+    return result;
   }, [languagePacks, currentLanguage]);
 
   // 동적 텍스트 번역 (API 호출)

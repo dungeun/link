@@ -13,9 +13,6 @@ async function authenticate(request: NextRequest) {
   const cookieStore = cookies();
   const token = cookieStore.get('auth-token')?.value;
 
-  console.log('=== API Auth Check ===');
-  console.log('Token:', token ? 'exists' : 'missing');
-
   if (!token) {
     return null;
   }
@@ -28,10 +25,9 @@ async function authenticate(request: NextRequest) {
     }
 
     const decoded = jwt.verify(token, secrets.jwtSecret!) as any;
-    console.log('Decoded user type:', decoded.type);
     return decoded;
   } catch (error) {
-    console.error('Token verification error:', error);
+    
     return null;
   }
 }

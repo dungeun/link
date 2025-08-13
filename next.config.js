@@ -6,6 +6,21 @@ const nextConfig = {
   poweredByHeader: false,
   generateEtags: true,
   
+  // 로그 레벨 설정 (프로덕션에서 로그 줄임)
+  logging: {
+    fetches: {
+      fullUrl: false,
+    },
+  },
+  
+  // 개발 서버 로그 최소화
+  ...(process.env.NODE_ENV === 'development' && {
+    onDemandEntries: {
+      maxInactiveAge: 25 * 1000,
+      pagesBufferLength: 2,
+    },
+  }),
+  
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -37,6 +52,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'ui-avatars.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'loremflickr.com',
       }
     ],
     // 로컬 이미지는 별도 설정 불필요 (public 폴더)

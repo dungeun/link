@@ -10,8 +10,10 @@ interface BankingInfoProps {
 }
 
 export default function BankingInfo({ userId, initialData, onSave }: BankingInfoProps) {
-  const [activeTab, setActiveTab] = useState<'domestic' | 'international' | 'shipping'>('domestic')
+  const [accountType, setAccountType] = useState<'domestic' | 'international'>(initialData?.accountType || 'domestic')
+  const [activeTab, setActiveTab] = useState<'account' | 'shipping'>('account')
   const [data, setData] = useState({
+    accountType: initialData?.accountType || 'domestic',
     domestic: {
       bankName: initialData?.domestic?.bankName || '',
       accountNumber: initialData?.domestic?.accountNumber || '',
@@ -98,7 +100,10 @@ export default function BankingInfo({ userId, initialData, onSave }: BankingInfo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(data)
+    onSave({
+      ...data,
+      accountType
+    })
   }
 
   return (
@@ -107,26 +112,15 @@ export default function BankingInfo({ userId, initialData, onSave }: BankingInfo
       <div className="border-b border-gray-200">
         <nav className="flex -mb-px">
           <button
-            onClick={() => setActiveTab('domestic')}
+            onClick={() => setActiveTab('account')}
             className={`px-6 py-3 text-sm font-medium border-b-2 transition ${
-              activeTab === 'domestic'
+              activeTab === 'account'
                 ? 'border-indigo-600 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             <CreditCard className="w-4 h-4 inline mr-2" />
-            국내 계좌
-          </button>
-          <button
-            onClick={() => setActiveTab('international')}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition ${
-              activeTab === 'international'
-                ? 'border-indigo-600 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <Globe className="w-4 h-4 inline mr-2" />
-            국제 송금
+            출금 계좌
           </button>
           <button
             onClick={() => setActiveTab('shipping')}
@@ -143,89 +137,120 @@ export default function BankingInfo({ userId, initialData, onSave }: BankingInfo
       </div>
 
       <form onSubmit={handleSubmit} className="p-6">
-        {/* 국내 계좌 정보 */}
-        {activeTab === 'domestic' && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                은행명 <span className="text-red-500">*</span>
+        {/* 계좌 정보 탭 */}
+        {activeTab === 'account' && (
+          <div className="space-y-6">
+            {/* 계좌 유형 선택 */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                계좌 유형 선택
               </label>
-              <select
-                value={data.domestic.bankName}
-                onChange={(e) => handleDomesticChange('bankName', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                required
-              >
-                <option value="">선택하세요</option>
-                <option value="국민은행">국민은행</option>
-                <option value="신한은행">신한은행</option>
-                <option value="우리은행">우리은행</option>
-                <option value="하나은행">하나은행</option>
-                <option value="농협은행">농협은행</option>
-                <option value="기업은행">기업은행</option>
-                <option value="카카오뱅크">카카오뱅크</option>
-                <option value="토스뱅크">토스뱅크</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                계좌번호 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={data.domestic.accountNumber}
-                onChange={(e) => handleDomesticChange('accountNumber', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                placeholder="'-' 없이 입력"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                예금주명 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={data.domestic.accountHolder}
-                onChange={(e) => handleDomesticChange('accountHolder', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-            </div>
-          </div>
-        )}
-
-        {/* 국제 송금 정보 */}
-        {activeTab === 'international' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  영문 이름 (English Name)
+              <div className="flex gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="accountType"
+                    value="domestic"
+                    checked={accountType === 'domestic'}
+                    onChange={(e) => setAccountType('domestic')}
+                    className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="text-sm font-medium">국내 계좌</span>
                 </label>
-                <input
-                  type="text"
-                  value={data.international.englishName}
-                  onChange={(e) => handleInternationalChange('englishName', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Hong Gil Dong"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  계좌번호 (Account Number)
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="accountType"
+                    value="international"
+                    checked={accountType === 'international'}
+                    onChange={(e) => setAccountType('international')}
+                    className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="text-sm font-medium">해외 계좌</span>
                 </label>
-                <input
-                  type="text"
-                  value={data.international.accountNumber}
-                  onChange={(e) => handleInternationalChange('accountNumber', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
               </div>
             </div>
+
+            {/* 국내 계좌 정보 */}
+            {accountType === 'domestic' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    은행명 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={data.domestic.bankName}
+                    onChange={(e) => handleDomesticChange('bankName', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="예: KB국민은행, 신한은행, 카카오뱅크 등"
+                    required
+                  />
+                  <p className="mt-1 text-xs text-gray-500">은행명을 직접 입력해주세요</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    계좌번호 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={data.domestic.accountNumber}
+                    onChange={(e) => handleDomesticChange('accountNumber', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="'-' 없이 입력 (예: 00012345678)"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    예금주명 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={data.domestic.accountHolder}
+                    onChange={(e) => handleDomesticChange('accountHolder', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="계좌에 등록된 이름"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 해외 계좌 정보 */}
+            {accountType === 'international' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      영문 이름 (English Name) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={data.international.englishName}
+                      onChange={(e) => handleInternationalChange('englishName', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Hong Gil Dong"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      계좌번호 (Account Number) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={data.international.accountNumber}
+                      onChange={(e) => handleInternationalChange('accountNumber', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      placeholder="계좌번호 또는 IBAN"
+                      required
+                    />
+                  </div>
+                </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -268,30 +293,50 @@ export default function BankingInfo({ userId, initialData, onSave }: BankingInfo
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  은행 영문명 (Bank Name)
+                  은행 영문명 (Bank Name) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={data.international.bankEnglishName}
                   onChange={(e) => handleInternationalChange('bankEnglishName', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  placeholder="KB Kookmin Bank"
+                  placeholder="예: Bank of America, HSBC, Citibank"
+                  required
                 />
+                <p className="mt-1 text-xs text-gray-500">은행의 정확한 영문명을 입력해주세요</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  SWIFT 코드
+                  SWIFT/BIC 코드 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={data.international.swiftCode}
                   onChange={(e) => handleInternationalChange('swiftCode', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  placeholder="CZNBKRSEXXX"
+                  placeholder="예: CZNBKRSEXXX"
+                  required
                 />
+                <p className="mt-1 text-xs text-gray-500">8자리 또는 11자리 SWIFT/BIC 코드</p>
               </div>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                라우팅 번호 (Routing Number) - 선택
+              </label>
+              <input
+                type="text"
+                value={data.international.branchCode}
+                onChange={(e) => handleInternationalChange('branchCode', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                placeholder="미국 은행의 경우 ABA/Routing Number"
+              />
+              <p className="mt-1 text-xs text-gray-500">미국 은행의 경우 9자리 라우팅 번호, 다른 국가는 해당 코드 입력</p>
+            </div>
+              </div>
+            )}
           </div>
         )}
 

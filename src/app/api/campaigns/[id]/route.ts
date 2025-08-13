@@ -169,6 +169,17 @@ export async function GET(
         productImages: campaign.productImages ? (typeof campaign.productImages === 'string' ? JSON.parse(campaign.productImages) : campaign.productImages) : [],
         status: campaign.status,
         createdAt: campaign.createdAt,
+        // 새로운 필드들 추가
+        applicationStartDate: campaign.applicationStartDate,
+        applicationEndDate: campaign.applicationEndDate,
+        contentStartDate: campaign.contentStartDate,
+        contentEndDate: campaign.contentEndDate,
+        resultAnnouncementDate: campaign.resultAnnouncementDate,
+        provisionDetails: campaign.provisionDetails,
+        campaignMission: campaign.campaignMission,
+        keywords: campaign.keywords,
+        additionalNotes: campaign.additionalNotes,
+        announcementDate: campaign.announcementDate,
         _count: {
           applications: campaign._count.applications,
           likes: campaign._count.campaignLikes

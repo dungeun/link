@@ -163,7 +163,7 @@ interface UIConfigStore {
   removeCustomSection: (id: string) => void;
   updateSectionOrder: (order: SectionOrder[]) => void;
   updateWebsiteSettings: (settings: any) => void;
-  loadSettingsFromAPI: () => Promise<void>;
+  loadSettingsFromAPI: (language?: string) => Promise<void>;
   resetToDefault: () => void;
   setConfig: (config: UIConfig) => void;
 }
@@ -490,11 +490,12 @@ export const useUIConfigStore = create<UIConfigStore>()(
         })),
       updateWebsiteSettings: (settings) =>
         set({ websiteSettings: settings }),
-      loadSettingsFromAPI: async () => {
+      loadSettingsFromAPI: async (language?: string) => {
         try {
           // UI config 로드 (공개 API 사용)
           console.log('Loading UI config from API...');
-          const uiConfigResponse = await fetch('/api/ui-config')
+          const langParam = language ? `?lang=${language}` : '';
+          const uiConfigResponse = await fetch(`/api/ui-config${langParam}`)
           if (uiConfigResponse.ok) {
             const uiData = await uiConfigResponse.json()
             console.log('UI config loaded:', uiData.config);

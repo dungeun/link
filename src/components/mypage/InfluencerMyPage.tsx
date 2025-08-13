@@ -16,6 +16,12 @@ import {
   Clock, CheckCircle, XCircle, AlertCircle, Calendar, DollarSign, 
   Eye, FileText, Upload, MessageSquare, TrendingUp, Star, User as UserIcon
 } from 'lucide-react'
+import { useLanguage } from '@/hooks/useLanguage'
+import SNSConnection from './SNSConnection'
+import BankingInfo from './BankingInfo'
+import AddressInput, { AddressData } from '@/components/ui/AddressInput'
+import ProfileImageUpload from '@/components/ui/ProfileImageUpload'
+import { getCountryFlag, normalizeCountryName } from '@/lib/utils/country-flags'
 
 interface InfluencerMyPageProps {
   user: User
@@ -24,6 +30,9 @@ interface InfluencerMyPageProps {
 }
 
 export default function InfluencerMyPage({ user, activeTab, setActiveTab }: InfluencerMyPageProps) {
+  // 언어 훅 사용
+  const { t } = useLanguage()
+  
   // 캐싱된 데이터 사용
   const { profileData, refreshProfile } = useUserData()
   const { data: statsData, isLoading: loadingStats, refetch: refetchStats } = useInfluencerStats()
@@ -64,9 +73,27 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
   })
   const [showBankModal, setShowBankModal] = useState(false)
   const [bankInfo, setBankInfo] = useState({
-    bankName: '',
-    bankAccountNumber: '',
-    bankAccountHolder: ''
+    accountType: 'domestic',
+    domestic: {
+      bankName: '',
+      accountNumber: '',
+      accountHolder: ''
+    },
+    international: {
+      englishName: '',
+      englishAddress: {
+        street: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        country: ''
+      },
+      accountNumber: '',
+      internationalCode: '',
+      bankEnglishName: '',
+      swiftCode: '',
+      branchCode: ''
+    }
   })
   const [submittingWithdrawal, setSubmittingWithdrawal] = useState(false)
   
@@ -76,12 +103,24 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
     email: profileData?.email || user.email || '',
     bio: profileData?.profile?.bio || '',
     phone: profileData?.profile?.phone || '',
+    realName: profileData?.profile?.realName || '',
+    birthDate: profileData?.profile?.birthDate ? new Date(profileData.profile.birthDate).toISOString().split('T')[0] : '',
+    nationality: profileData?.profile?.nationality || '',
+    address: profileData?.profile?.address || '',
+    gender: profileData?.profile?.gender || '',
     instagram: profileData?.profile?.instagram || '',
     youtube: profileData?.profile?.youtube || '',
     tiktok: profileData?.profile?.tiktok || '',
     naverBlog: profileData?.profile?.naverBlog || '',
     categories: profileData?.profile?.categories ? parseCategories(profileData.profile.categories) : []
   })
+  const [addressData, setAddressData] = useState<AddressData | null>(
+    profileData?.profile?.addressData ? profileData.profile.addressData as AddressData : null
+  )
+  const [profileImage, setProfileImage] = useState<string | null>(
+    profileData?.profile?.profileImage || null
+  )
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null)
   const [savingProfile, setSavingProfile] = useState(false)
   
   // 지원 목록과 관심 목록 상태 - 캐싱된 데이터 사용
@@ -111,7 +150,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
       const approvedApplications = applications
         .filter((app: any) => app.status === 'APPROVED')
         .map((app: any) => {
-          // 콘텐츠 제출 상태에 따라 캠페인 상태 결정
+          // {t('mypage.action.submit_content', '콘텐츠 제출')} 상태에 따라 캠페인 상태 결정
           let campaignStatus = 'in_progress'
           if (app.submittedContent) {
             if (app.submittedContent.status === 'APPROVED') {
@@ -147,12 +186,25 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
         email: profileData.email || user.email || '',
         bio: profileData.profile?.bio || '',
         phone: profileData.profile?.phone || '',
+        realName: profileData.profile?.realName || '',
+        birthDate: profileData.profile?.birthDate ? new Date(profileData.profile.birthDate).toISOString().split('T')[0] : '',
+        nationality: profileData.profile?.nationality || '',
+        address: profileData.profile?.address || '',
+        gender: profileData.profile?.gender || '',
         instagram: profileData.profile?.instagram || '',
         youtube: profileData.profile?.youtube || '',
         tiktok: profileData.profile?.tiktok || '',
         naverBlog: profileData.profile?.naverBlog || '',
         categories: profileData.profile?.categories ? parseCategories(profileData.profile.categories) : []
       })
+      
+      // addressData 업데이트
+      setAddressData(
+        profileData.profile?.addressData ? profileData.profile.addressData as AddressData : null
+      )
+      
+      // profileImage 업데이트  
+      setProfileImage(profileData.profile?.profileImage || null)
     }
   }, [profileData, user])
   
@@ -233,6 +285,13 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
     }
   }
   
+  // 프로필 이미지 변경 처리
+  const handleProfileImageChange = (imageUrl: string | null, imageFile?: File) => {
+    setProfileImage(imageUrl)
+    setProfileImageFile(imageFile || null)
+  }
+
+
   // 프로필 저장
   const handleSaveProfile = async () => {
     try {
@@ -243,7 +302,11 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         },
-        body: JSON.stringify(profileForm)
+        body: JSON.stringify({
+          ...profileForm,
+          addressData: addressData,
+          profileImage: profileImage
+        })
       })
       
       if (response.ok) {
@@ -261,83 +324,46 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
   }
 
   const tabs = [
-    { id: 'campaigns', name: '캠페인', icon: '📢' },
-    { id: 'saved', name: '관심 목록', icon: '⭐' },
-    { id: 'earnings', name: '수익 관리', icon: '💰' },
-    { id: 'profile', name: '프로필', icon: '👤' }
+    { id: 'campaigns', name: t('mypage.tab.campaigns', '캠페인'), icon: '📢' },
+    { id: 'saved', name: t('mypage.tab.saved', '관심 목록'), icon: '⭐' },
+    { id: 'earnings', name: t('mypage.tab.earnings', '수익 관리'), icon: '💰' },
+    { id: 'profile', name: t('mypage.tab.profile', '프로필 설정'), icon: '👤' }
   ]
 
   return (
     <div className="space-y-6">
-      {/* 은행 정보 수정 모달 - 모바일 최적화 */}
+      {/* 은행 정보 수정 모달 - BankingInfo 컴포넌트 사용 */}
       {showBankModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">출금 계좌 정보</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  은행 선택
-                </label>
-                <select 
-                  value={bankInfo.bankName}
-                  onChange={(e) => setBankInfo({...bankInfo, bankName: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                >
-                  <option value="">은행을 선택하세요</option>
-                  <option value="KB국민은행">KB국민은행</option>
-                  <option value="신한은행">신한은행</option>
-                  <option value="우리은행">우리은행</option>
-                  <option value="하나은행">하나은행</option>
-                  <option value="농협은행">농협은행</option>
-                  <option value="IBK기업은행">IBK기업은행</option>
-                  <option value="SC제일은행">SC제일은행</option>
-                  <option value="카카오뱅크">카카오뱅크</option>
-                  <option value="토스뱅크">토스뱅크</option>
-                  <option value="케이뱅크">케이뱅크</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  계좌번호
-                </label>
-                <input
-                  type="text"
-                  value={bankInfo.bankAccountNumber}
-                  onChange={(e) => setBankInfo({...bankInfo, bankAccountNumber: e.target.value})}
-                  placeholder="계좌번호를 입력하세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  예금주
-                </label>
-                <input
-                  type="text"
-                  value={bankInfo.bankAccountHolder}
-                  onChange={(e) => setBankInfo({...bankInfo, bankAccountHolder: e.target.value})}
-                  placeholder="예금주명을 입력하세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                />
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 mt-6">
+          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">출금 계좌 정보 등록</h3>
               <button
                 onClick={() => setShowBankModal(false)}
-                className="flex-1 py-3 sm:py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium active:scale-95 transition-all"
+                className="text-gray-400 hover:text-gray-500"
               >
-                취소
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-              <button
-                onClick={async () => {
-                  if (!bankInfo.bankName || !bankInfo.bankAccountNumber || !bankInfo.bankAccountHolder) {
-                    alert('모든 정보를 입력해주세요.')
-                    return
+            </div>
+            <div className="p-4">
+              <BankingInfo
+                userId={user.id}
+                initialData={bankInfo}
+                onSave={async (data) => {
+                  const accountData = data.accountType === 'domestic' ? data.domestic : data.international
+                  
+                  if (data.accountType === 'domestic') {
+                    if (!accountData.bankName || !accountData.accountNumber || !accountData.accountHolder) {
+                      alert('모든 필수 정보를 입력해주세요.')
+                      return
+                    }
+                  } else {
+                    if (!accountData.englishName || !accountData.accountNumber || !accountData.bankEnglishName || !accountData.swiftCode) {
+                      alert('모든 필수 정보를 입력해주세요.')
+                      return
+                    }
                   }
                   
                   // 프로필 업데이트 API 호출
@@ -351,20 +377,21 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                       },
                       body: JSON.stringify({
                         ...profileForm,
-                        bankName: bankInfo.bankName,
-                        bankAccountNumber: bankInfo.bankAccountNumber,
-                        bankAccountHolder: bankInfo.bankAccountHolder
+                        bankingInfo: data
                       })
                     })
                     
                     if (response.ok) {
+                      setBankInfo(data)
                       // 출금 폼에도 반영
-                      setWithdrawalForm(prev => ({
-                        ...prev,
-                        bankName: bankInfo.bankName,
-                        accountNumber: bankInfo.bankAccountNumber,
-                        accountHolder: bankInfo.bankAccountHolder
-                      }))
+                      if (data.accountType === 'domestic') {
+                        setWithdrawalForm(prev => ({
+                          ...prev,
+                          bankName: data.domestic.bankName,
+                          accountNumber: data.domestic.accountNumber,
+                          accountHolder: data.domestic.accountHolder
+                        }))
+                      }
                       setShowBankModal(false)
                       alert('계좌 정보가 저장되었습니다.')
                     } else {
@@ -375,11 +402,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                     alert('계좌 정보 저장 중 오류가 발생했습니다.')
                   }
                 }}
-                disabled={!bankInfo.bankName || !bankInfo.bankAccountNumber || !bankInfo.bankAccountHolder}
-                className="flex-1 py-3 sm:py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium active:scale-95 transition-all"
-              >
-                저장
-              </button>
+              />
             </div>
           </div>
         </div>
@@ -387,29 +410,44 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
       {/* 사용자 정보 헤더 - 모바일 최적화 */}
       <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-lg sm:text-xl">
-              {user.name?.charAt(0).toUpperCase()}
-            </span>
+          <div className="relative flex-shrink-0">
+            {profileData?.profile?.profileImage ? (
+              <img
+                src={profileData.profile.profileImage}
+                alt="프로필 이미지"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-4 border-white shadow-lg"
+              />
+            ) : (
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                <span className="text-white font-bold text-lg sm:text-xl">
+                  {user.name?.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+            
+            {/* 국적 국기 아이콘 */}
+            {profileForm.nationality && (
+              <div className="absolute -top-0.5 -right-0.5 w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center">
+                <span className="text-xs sm:text-sm" title={`국적: ${profileForm.nationality}`}>
+                  {getCountryFlag(normalizeCountryName(profileForm.nationality))}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{user.name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{user.name}</h1>
+            </div>
             <p className="text-sm sm:text-base text-gray-600">인플루언서</p>
           </div>
-          <button
-            onClick={() => setShowEditModal(true)}
-            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium active:scale-95"
-          >
-            SNS 수정
-          </button>
         </div>
         
         {/* 통계 카드 - 모바일 최적화 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div className="bg-blue-50 p-4 sm:p-5 rounded-xl border border-blue-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm text-blue-600 font-medium">총 캠페인</p>
+                <p className="text-xs sm:text-sm text-blue-600 font-medium">{t('mypage.stats.total_campaigns', '총 캠페인')}</p>
                 <p className="text-xl sm:text-2xl font-bold text-blue-900 mt-1">{stats.totalCampaigns}</p>
               </div>
               <div className="text-blue-500 text-xl sm:text-2xl">📝</div>
@@ -418,23 +456,12 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
           <div className="bg-green-50 p-4 sm:p-5 rounded-xl border border-green-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm text-green-600 font-medium">총 수익</p>
+                <p className="text-xs sm:text-sm text-green-600 font-medium">{t('mypage.stats.total_earnings', '총 수익')}</p>
                 <p className="text-lg sm:text-2xl font-bold text-green-900 mt-1">
                   ₩{stats.totalEarnings.toLocaleString()}
                 </p>
               </div>
               <div className="text-green-500 text-xl sm:text-2xl">💰</div>
-            </div>
-          </div>
-          <div className="bg-purple-50 p-4 sm:p-5 rounded-xl border border-purple-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-purple-600 font-medium">총 조회수</p>
-                <p className="text-lg sm:text-2xl font-bold text-purple-900 mt-1">
-                  {stats.totalViews.toLocaleString()}
-                </p>
-              </div>
-              <div className="text-purple-500 text-xl sm:text-2xl">👁️</div>
             </div>
           </div>
         </div>
@@ -482,7 +509,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                           : 'border-transparent text-gray-500 hover:text-gray-700 active:text-gray-800'
                       }`}
                     >
-                      전체 ({applications.length})
+                      {t('mypage.campaign.all', '전체')} ({applications.length})
                     </button>
                     <button
                       onClick={() => setCampaignActiveTab('reviewing')}
@@ -492,7 +519,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                           : 'border-transparent text-gray-500 hover:text-gray-700 active:text-gray-800'
                       }`}
                     >
-                      심사중 ({applications.filter((app: any) => app.status === 'PENDING').length})
+                      {t('mypage.campaign.reviewing', '심사중')} ({applications.filter((app: any) => app.status === 'PENDING').length})
                     </button>
                     <button
                       onClick={() => setCampaignActiveTab('active')}
@@ -502,7 +529,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                           : 'border-transparent text-gray-500 hover:text-gray-700 active:text-gray-800'
                       }`}
                     >
-                      진행중 ({myCampaigns.filter((c: any) => ['approved', 'in_progress', 'submitted'].includes(c.status)).length})
+                      {t('mypage.campaign.active', '진행중')} ({myCampaigns.filter((c: any) => ['approved', 'in_progress', 'submitted'].includes(c.status)).length})
                     </button>
                     <button
                       onClick={() => setCampaignActiveTab('rejected')}
@@ -512,7 +539,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                           : 'border-transparent text-gray-500 hover:text-gray-700 active:text-gray-800'
                       }`}
                     >
-                      거절됨 ({applications.filter((app: any) => app.status === 'REJECTED').length})
+                      {t('mypage.campaign.rejected', '거절됨')} ({applications.filter((app: any) => app.status === 'REJECTED').length})
                     </button>
                     <button
                       onClick={() => setCampaignActiveTab('completed')}
@@ -522,7 +549,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                           : 'border-transparent text-gray-500 hover:text-gray-700 active:text-gray-800'
                       }`}
                     >
-                      완료 ({myCampaigns.filter((c: any) => c.status === 'completed').length})
+                      {t('mypage.campaign.completed', '완료')} ({myCampaigns.filter((c: any) => c.status === 'completed').length})
                     </button>
                   </nav>
                 </div>
@@ -568,10 +595,10 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                                 app.status === 'COMPLETED' ? 'bg-purple-100 text-purple-800' :
                                 'bg-gray-100 text-gray-800'
                               }`}>
-                                {app.status === 'PENDING' ? '심사중' :
-                                 app.status === 'APPROVED' ? '승인됨' :
-                                 app.status === 'REJECTED' ? '거절됨' :
-                                 app.status === 'COMPLETED' ? '완료됨' : ''}
+                                {app.status === 'PENDING' ? t('mypage.status.pending', '심사중') :
+                                 app.status === 'APPROVED' ? t('mypage.status.approved', '승인됨') :
+                                 app.status === 'REJECTED' ? t('mypage.status.rejected', '거절됨') :
+                                 app.status === 'COMPLETED' ? t('mypage.status.completed', '완료됨') : ''}
                               </span>
                             </div>
                             {app.status === 'REJECTED' && app.rejectionReason && (
@@ -584,7 +611,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                                 href={`/campaigns/${app.campaignId}`}
                                 className="inline-flex items-center px-3 py-1.5 bg-cyan-50 text-cyan-600 hover:text-cyan-700 hover:bg-cyan-100 font-medium text-sm rounded-lg transition-colors active:scale-95"
                               >
-                                상세보기 →
+                                {t('mypage.action.view_details', '상세보기')} →
                               </a>
                             </div>
                           </div>
@@ -620,12 +647,12 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                             campaign.status === 'completed' ? 'bg-purple-100 text-purple-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
-                            {campaign.status === 'pending' ? '심사중' :
-                             campaign.status === 'approved' ? '승인됨' :
-                             campaign.status === 'in_progress' ? '진행중' :
-                             campaign.status === 'rejected' ? '거절됨' :
-                             campaign.status === 'submitted' ? '제출 완료' :
-                             campaign.status === 'completed' ? '완료됨' : ''}
+                            {campaign.status === 'pending' ? t('mypage.status.pending', '심사중') :
+                             campaign.status === 'approved' ? t('mypage.status.approved', '승인됨') :
+                             campaign.status === 'in_progress' ? t('mypage.status.in_progress', '진행중') :
+                             campaign.status === 'rejected' ? t('mypage.status.rejected', '거절됨') :
+                             campaign.status === 'submitted' ? t('mypage.status.submitted', '제출 완료') :
+                             campaign.status === 'completed' ? t('mypage.status.completed', '완료됨') : ''}
                           </span>
                         </div>
 
@@ -667,14 +694,14 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                               className="inline-flex items-center justify-center px-4 py-2.5 bg-cyan-600 text-white text-sm font-medium rounded-lg hover:bg-cyan-700 gap-2 active:scale-95 transition-all"
                             >
                               <Upload className="h-4 w-4" />
-                              콘텐츠 제출
+                              {t('mypage.action.submit_content', '콘텐츠 제출')}
                             </a>
                           )}
                           <a
                             href={`/campaigns/${campaign.id}`}
                             className="inline-flex items-center justify-center px-4 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 active:scale-95 transition-all"
                           >
-                            상세보기
+                            {t('mypage.action.view_details', '상세보기')}
                           </a>
                         </div>
                       </div>
@@ -751,19 +778,19 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
               {/* 수익 요약 카드 - 모바일 최적화 */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200">
-                  <p className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">총 수익</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">{t('mypage.stats.total_earnings', '총 수익')}</p>
                   <p className="text-xl sm:text-2xl font-bold text-gray-900">
                     ₩{stats.totalEarnings.toLocaleString()}
                   </p>
                 </div>
                 <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200">
-                  <p className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">출금 가능 금액</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">{t('mypage.earnings.withdrawable_amount', '출금 가능 금액')}</p>
                   <p className="text-xl sm:text-2xl font-bold text-green-600">
                     ₩{withdrawals.withdrawableAmount.toLocaleString()}
                   </p>
                 </div>
                 <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200">
-                  <p className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">출금 대기중</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">{t('mypage.earnings.pending_amount', '출금 대기중')}</p>
                   <p className="text-xl sm:text-2xl font-bold text-yellow-600">
                     ₩{(withdrawals.pendingAmount || 0).toLocaleString()}
                   </p>
@@ -773,20 +800,30 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
               {/* 은행 정보 섹션 - 모바일 최적화 */}
               <div className="bg-gray-50 p-4 sm:p-6 rounded-xl">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">출금 계좌 정보</h4>
+                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">{t('mypage.earnings.bank_info', '출금 계좌 정보')}</h4>
                   <button 
                     onClick={() => setShowBankModal(true)}
                     className="text-sm text-cyan-600 hover:text-cyan-700 font-medium active:scale-95 transition-all px-2 py-1 rounded"
                   >
-                    {bankInfo.bankName ? '변경' : '등록'}
+                    {(bankInfo.accountType === 'domestic' && bankInfo.domestic.bankName) || 
+                     (bankInfo.accountType === 'international' && bankInfo.international.bankEnglishName) ? '변경' : '등록'}
                   </button>
                 </div>
                 
-                {bankInfo.bankName ? (
+                {bankInfo.accountType === 'domestic' && bankInfo.domestic.bankName ? (
                   <div className="space-y-2 text-sm">
-                    <p><span className="text-gray-600">은행:</span> {bankInfo.bankName}</p>
-                    <p><span className="text-gray-600">계좌번호:</span> {bankInfo.bankAccountNumber}</p>
-                    <p><span className="text-gray-600">예금주:</span> {bankInfo.bankAccountHolder}</p>
+                    <p className="text-cyan-600 font-medium">🏦 국내 계좌</p>
+                    <p><span className="text-gray-600">은행:</span> {bankInfo.domestic.bankName}</p>
+                    <p><span className="text-gray-600">계좌번호:</span> {bankInfo.domestic.accountNumber}</p>
+                    <p><span className="text-gray-600">예금주:</span> {bankInfo.domestic.accountHolder}</p>
+                  </div>
+                ) : bankInfo.accountType === 'international' && bankInfo.international.bankEnglishName ? (
+                  <div className="space-y-2 text-sm">
+                    <p className="text-cyan-600 font-medium">🌍 해외 계좌</p>
+                    <p><span className="text-gray-600">Bank:</span> {bankInfo.international.bankEnglishName}</p>
+                    <p><span className="text-gray-600">Account:</span> {bankInfo.international.accountNumber}</p>
+                    <p><span className="text-gray-600">SWIFT:</span> {bankInfo.international.swiftCode}</p>
+                    <p><span className="text-gray-600">Name:</span> {bankInfo.international.englishName}</p>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500">출금을 위해 계좌 정보를 등록해주세요.</p>
@@ -795,7 +832,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
 
               {/* 출금 신청 섹션 - 모바일 최적화 */}
               <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200">
-                <h4 className="font-medium text-gray-900 mb-4 text-sm sm:text-base">출금 신청</h4>
+                <h4 className="font-medium text-gray-900 mb-4 text-sm sm:text-base">{t('mypage.earnings.withdraw_request', '출금 신청')}</h4>
                 
                 <div className="space-y-4">
                   <div>
@@ -940,7 +977,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                             href={`/campaigns/${campaign.id}`}
                             className="px-3 py-2 bg-cyan-600 text-white text-xs sm:text-sm rounded-lg hover:bg-cyan-700 text-center active:scale-95 transition-all font-medium"
                           >
-                            상세보기
+                            {t('mypage.action.view_details', '상세보기')}
                           </a>
                           <button 
                             onClick={async () => {
@@ -1011,17 +1048,12 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       은행 선택
                     </label>
-                    <select 
+                    <input 
+                      type="text"
                       value={withdrawalForm.bankName}
                       onChange={(e) => setWithdrawalForm({...withdrawalForm, bankName: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                      <option value="">은행을 선택하세요</option>
-                      <option value="KB국민은행">KB국민은행</option>
-                      <option value="신한은행">신한은행</option>
-                      <option value="우리은행">우리은행</option>
-                      <option value="하나은행">하나은행</option>
-                      <option value="농협은행">농협은행</option>
-                    </select>
+                      placeholder="은행명을 입력하세요 (예: KB국민은행)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500" />
                   </div>
 
                   <div>
@@ -1101,75 +1133,165 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
 
           {!loadingStats && activeTab === 'profile' && (
             <div className="space-y-6">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900">프로필 설정</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">프로필 및 SNS 설정</h3>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    이름
-                  </label>
-                  <input
-                    type="text"
-                    value={profileForm.name}
-                    onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    이메일
-                  </label>
-                  <input
-                    type="email"
-                    value={profileForm.email}
-                    onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    인스타그램 계정
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="@username"
-                    value={profileForm.instagram}
-                    onChange={(e) => setProfileForm({...profileForm, instagram: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    유튜브 채널
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="@channelname"
-                    value={profileForm.youtube}
-                    onChange={(e) => setProfileForm({...profileForm, youtube: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    자기소개
-                  </label>
-                  <textarea
-                    rows={4}
-                    placeholder="자신을 소개해주세요..."
-                    value={profileForm.bio}
-                    onChange={(e) => setProfileForm({...profileForm, bio: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none"
+              {/* 프로필 이미지 섹션 */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('mypage.profile.profile_image', '프로필 이미지')}</h4>
+                <div className="flex justify-center">
+                  <ProfileImageUpload
+                    currentImage={profileImage}
+                    userName={user.name}
+                    nationality={profileForm.nationality}
+                    onImageChange={handleProfileImageChange}
                   />
                 </div>
               </div>
+              
+              {/* 기본 정보 섹션 */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('mypage.profile.basic_info', '기본 정보')}</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      이름
+                    </label>
+                    <input
+                      type="text"
+                      value={profileForm.name}
+                      onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      이메일
+                    </label>
+                    <input
+                      type="email"
+                      value={profileForm.email}
+                      onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      전화번호
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="010-0000-0000"
+                      value={profileForm.phone}
+                      onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      자기소개
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="자신을 소개해주세요..."
+                      value={profileForm.bio}
+                      onChange={(e) => setProfileForm({...profileForm, bio: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 개인 정보 섹션 */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('mypage.profile.personal_info', '개인 정보')}</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      실명
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="실명을 입력하세요"
+                      value={profileForm.realName}
+                      onChange={(e) => setProfileForm({...profileForm, realName: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      생년월일
+                    </label>
+                    <input
+                      type="date"
+                      value={profileForm.birthDate}
+                      onChange={(e) => setProfileForm({...profileForm, birthDate: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      국적
+                    </label>
+                    <select
+                      value={profileForm.nationality}
+                      onChange={(e) => setProfileForm({...profileForm, nationality: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      <option value="">국적을 선택하세요</option>
+                      <option value="대한민국">대한민국</option>
+                      <option value="미국">미국</option>
+                      <option value="일본">일본</option>
+                      <option value="중국">중국</option>
+                      <option value="캐나다">캐나다</option>
+                      <option value="호주">호주</option>
+                      <option value="영국">영국</option>
+                      <option value="독일">독일</option>
+                      <option value="프랑스">프랑스</option>
+                      <option value="기타">기타</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      성별
+                    </label>
+                    <select
+                      value={profileForm.gender}
+                      onChange={(e) => setProfileForm({...profileForm, gender: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      <option value="">성별을 선택하세요</option>
+                      <option value="남성">남성</option>
+                      <option value="여성">여성</option>
+                      <option value="기타">기타</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      주소
+                    </label>
+                    <AddressInput
+                      nationality={profileForm.nationality}
+                      value={addressData}
+                      onChange={setAddressData}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SNS 계정 섹션 - 새로운 SNSConnection 컴포넌트 사용 */}
+              <SNSConnection 
+                onFollowersUpdate={(totalFollowers) => {
+                  // 총 팔로워 수가 업데이트되면 통계 새로고침
+                  refetchStats()
+                }}
+              />
               
               <div className="flex justify-end">
                 <button 
                   onClick={handleSaveProfile}
                   disabled={savingProfile}
                   className="w-full sm:w-auto px-6 py-3 sm:py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-50 font-medium active:scale-95 transition-all">
-                  {savingProfile ? '저장 중...' : '저장하기'}
+                  {savingProfile ? '저장 중...' : t('mypage.action.save_profile', '프로필 저장하기')}
                 </button>
               </div>
             </div>
@@ -1177,180 +1299,6 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
         </div>
       </div>
 
-      {/* SNS 수정 모달 - 모바일 최적화 */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">SNS 계정 수정</h3>
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <span className="flex items-center gap-2">
-                    <span className="text-pink-500">📷</span> Instagram
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={socialLinks.instagram}
-                  onChange={(e) => setSocialLinks({...socialLinks, instagram: e.target.value})}
-                  placeholder="@username"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <span className="flex items-center gap-2">
-                    <span className="text-red-500">🎥</span> YouTube
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={socialLinks.youtube}
-                  onChange={(e) => setSocialLinks({...socialLinks, youtube: e.target.value})}
-                  placeholder="youtube.com/@channelname"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <span className="flex items-center gap-2">
-                    <span className="text-green-500">📝</span> 네이버 블로그
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={socialLinks.naverBlog}
-                  onChange={(e) => setSocialLinks({...socialLinks, naverBlog: e.target.value})}
-                  placeholder="blog.naver.com/blogid"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <span className="flex items-center gap-2">
-                    <span className="text-purple-500">🎵</span> TikTok
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={socialLinks.tiktok}
-                  onChange={(e) => setSocialLinks({...socialLinks, tiktok: e.target.value})}
-                  placeholder="@username"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                />
-              </div>
-            </div>
-            
-            {/* 팔로워 가져오기 버튼 - 모바일 최적화 */}
-            <div className="mt-4 p-4 bg-gray-50 rounded-xl">
-              <p className="text-xs sm:text-sm text-gray-600 mb-3">SNS 계정을 입력하고 실제 팔로워 수를 가져올 수 있습니다.</p>
-              <button
-                onClick={async () => {
-                  setLoadingFollowers(true)
-                  try {
-                    // 실제 API 호출로 팔로워 수 업데이트
-                    const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token')
-                    const response = await fetch('/api/influencer/social-stats', {
-                      headers: {
-                        'Authorization': `Bearer ${token}`
-                      }
-                    })
-
-                    if (response.ok) {
-                      const data = await response.json()
-                      const { socialStats } = data
-                      
-                      if (socialStats.total > 0) {
-                        setStats({...stats, followers: socialStats.total})
-                        alert(`팔로워 수가 업데이트되었습니다!\n\nInstagram: ${socialStats.instagram.toLocaleString()}\nYouTube: ${socialStats.youtube.toLocaleString()}\n네이버 블로그: ${socialStats.blog.toLocaleString()}\nTikTok: ${socialStats.tiktok.toLocaleString()}\n\n총 팔로워: ${socialStats.total.toLocaleString()}`)
-                      } else {
-                        alert('SNS 계정의 팔로워 정보를 가져올 수 없습니다. SNS 계정을 연동해주세요.')
-                      }
-                    } else {
-                      const error = await response.json()
-                      alert('팔로워 수 업데이트에 실패했습니다: ' + (error.error || '알 수 없는 오류'))
-                    }
-                  } catch (error) {
-                    console.error('팔로워 수 업데이트 오류:', error)
-                    alert('팔로워 수 업데이트 중 오류가 발생했습니다.')
-                  } finally {
-                    setLoadingFollowers(false)
-                  }
-                }}
-                disabled={loadingFollowers}
-                className={`w-full px-4 py-3 sm:py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
-                  loadingFollowers 
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                    : 'bg-cyan-600 text-white hover:bg-cyan-700 active:scale-95'
-                }`}
-              >
-                {loadingFollowers ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    팔로워 수 가져오는 중...
-                  </span>
-                ) : (
-                  '팔로워 수 가져오기'
-                )}
-              </button>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-3 mt-6">
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium active:scale-95 transition-all"
-              >
-                취소
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    const response = await fetch('/api/influencer/profile/sns', {
-                      method: 'PATCH',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                      },
-                      body: JSON.stringify(socialLinks)
-                    })
-                    
-                    if (response.ok) {
-                      setShowEditModal(false)
-                      alert('SNS 계정이 업데이트되었습니다.')
-                      refreshProfile() // 캐시 갱신
-                    } else {
-                      alert('SNS 계정 업데이트에 실패했습니다.')
-                    }
-                  } catch (error) {
-                    console.error('Error updating SNS:', error)
-                    alert('SNS 계정 업데이트 중 오류가 발생했습니다.')
-                  }
-                }}
-                className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 font-medium active:scale-95 transition-all"
-              >
-                저장
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   )

@@ -15,7 +15,9 @@ interface StepBasicInfoProps {
     INSTAGRAM: React.ReactNode
     YOUTUBE: React.ReactNode
     TIKTOK: React.ReactNode
-    BLOG: React.ReactNode
+    FACEBOOK: React.ReactNode
+    X: React.ReactNode
+    NAVERBLOG: React.ReactNode
   }
 }
 
@@ -105,16 +107,16 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
             </Button>
             <Button
               type="button"
-              variant={formData.platform === 'TWITTER' ? 'default' : 'outline'}
+              variant={formData.platform === 'X' ? 'default' : 'outline'}
               size="sm"
               className={cn(
                 "flex items-center justify-center gap-2 px-4 py-2",
-                formData.platform === 'TWITTER' && "bg-sky-500 hover:bg-sky-600"
+                formData.platform === 'X' && "bg-black hover:bg-gray-900"
               )}
-              onClick={() => setFormData({...formData, platform: 'TWITTER'})}
+              onClick={() => setFormData({...formData, platform: 'X'})}
             >
-              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.TWITTER}</span>
-              <span className="text-xs">트위터</span>
+              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.X}</span>
+              <span className="text-xs">X</span>
             </Button>
             <Button
               type="button"

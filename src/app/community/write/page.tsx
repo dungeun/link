@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -8,11 +8,28 @@ import { AuthService } from '@/lib/auth'
 
 export default function WritePostPage() {
   const router = useRouter()
-  const [user] = useState(AuthService.getCurrentUser())
+  const [user, setUser] = useState<any>(null)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [category, setCategory] = useState('free')
   const [loading, setLoading] = useState(false)
+
+  // Check login status on component mount and when window gets focus
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const currentUser = AuthService.getCurrentUser()
+      setUser(currentUser)
+    }
+    
+    checkLoginStatus()
+    
+    // Re-check when window gets focus (in case user logged in on another tab)
+    window.addEventListener('focus', checkLoginStatus)
+    
+    return () => {
+      window.removeEventListener('focus', checkLoginStatus)
+    }
+  }, [])
 
   const categories = [
     { id: 'tips', name: '캠페인 팁', icon: '💡' },

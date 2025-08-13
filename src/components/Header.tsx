@@ -28,7 +28,7 @@ export default function Header({ variant = 'default' }: HeaderProps) {
   const notificationRef = useRef<HTMLDivElement>(null)
   const { config, loadSettingsFromAPI } = useUIConfigStore()
   const { user, isAuthenticated, logout } = useAuth()
-  const { t } = useLanguage()
+  const { t, currentLanguage } = useLanguage()
   const { settings: siteSettings } = useSiteSettings()
   
   const isTransparent = variant === 'transparent'
@@ -63,15 +63,21 @@ export default function Header({ variant = 'default' }: HeaderProps) {
     }
     
     // UI 설정 로드
-    console.log('Header: Loading UI settings...');
-    loadSettingsFromAPI()
+    console.log('Header: Loading UI settings with language:', currentLanguage);
+    loadSettingsFromAPI(currentLanguage)
     
     return () => {
       if (isTransparent) {
         window.removeEventListener('scroll', handleScroll)
       }
     }
-  }, [isTransparent, user])
+  }, [isTransparent, user, loadSettingsFromAPI, currentLanguage])
+
+  // 언어 변경 시 UI 설정 재로드
+  useEffect(() => {
+    console.log('Header: Language changed to', currentLanguage, '- reloading UI config...');
+    loadSettingsFromAPI(currentLanguage)
+  }, [currentLanguage, loadSettingsFromAPI])
 
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
@@ -161,7 +167,7 @@ export default function Header({ variant = 'default' }: HeaderProps) {
                     href={menu.href} 
                     className="hover:opacity-80 transition font-medium text-white"
                   >
-                    {t(menu.label, menu.label)}
+                    {menu.label}
                   </Link>
                 ))}
             </nav>
@@ -170,8 +176,8 @@ export default function Header({ variant = 'default' }: HeaderProps) {
 
           {/* 사용자 메뉴와 권한별 메뉴 */}
           <nav className="flex items-center gap-3 sm:gap-6 flex-1 justify-end">
-            {/* 언어 선택 */}
-            <LanguageSelector />
+            {/* 언어 선택 - 관리자 페이지가 아닐 때만 표시 */}
+            {!pathname.startsWith('/admin') && <LanguageSelector />}
             
             {/* 알림 아이콘 - 모바일 최적화 */}
             {isAuthenticated && (
@@ -330,7 +336,7 @@ export default function Header({ variant = 'default' }: HeaderProps) {
                         onClick={() => setShowMobileMenu(false)}
                       >
                         <span className="w-2 h-2 bg-blue-400 rounded-full mr-4"></span>
-                        {t(menu.label, menu.label)}
+                        {menu.label}
                       </Link>
                     ))}
                   

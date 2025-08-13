@@ -12,9 +12,6 @@ async function authenticate(request: NextRequest) {
   const cookieStore = cookies();
   const token = cookieStore.get('auth-token')?.value;
 
-  console.log('=== API Auth Check ===');
-  console.log('Token:', token ? 'exists' : 'missing');
-
   if (!token) {
     return null;
   }
@@ -22,14 +19,13 @@ async function authenticate(request: NextRequest) {
   try {
     const JWT_SECRET = process.env.JWT_SECRET;
     if (!JWT_SECRET) {
-      console.error('JWT_SECRET is not configured');
+      
       return null;
     }
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    console.log('Decoded user type:', decoded.type);
     return decoded;
   } catch (error) {
-    console.error('Token verification error:', error);
+    
     return null;
   }
 }
@@ -39,7 +35,6 @@ export async function GET(request: NextRequest) {
   try {
     const user = await authenticate(request);
     if (!user) {
-      console.log('Authentication failed - no user');
       return NextResponse.json(
         { error: '인증이 필요합니다.' },
         { status: 401 }
@@ -48,7 +43,6 @@ export async function GET(request: NextRequest) {
     
     const userType = user.type?.toLowerCase();
     if (userType !== 'business' && userType !== 'admin') {
-      console.log('Invalid user type:', user.type);
       return NextResponse.json(
         { error: '비즈니스 계정만 접근 가능합니다.' },
         { status: 403 }

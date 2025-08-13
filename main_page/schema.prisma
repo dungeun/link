@@ -1,0 +1,219 @@
+// This is your Prisma schema file for the main page template
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 사용자 관련 모델
+// ============================================
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  password      String?
+  name          String?
+  type          UserType     @default(USER)
+  status        UserStatus   @default(ACTIVE)
+  verified      Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  lastLoginAt   DateTime?
+  deletedAt     DateTime?
+  isOnboarded   Boolean      @default(false)
+  
+  profile       UserProfile?
+  
+  @@index([email])
+  @@index([type, status])
+  @@map("users")
+}
+
+model UserProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  bio             String?
+  profileImage    String?
+  phoneNumber     String?
+  address         String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("user_profiles")
+}
+
+// ============================================
+// UI 설정 관련 모델
+// ============================================
+
+model UISection {
+  id          String      @id @default(cuid())
+  key         String      @unique
+  title       String?
+  type        String
+  isActive    Boolean     @default(true)
+  order       Int         @default(0)
+  data        Json?
+  props       Json?
+  style       Json?
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  texts       UIText[]
+  
+  @@index([key])
+  @@index([isActive])
+  @@map("ui_sections")
+}
+
+model UIText {
+  id          String      @id @default(cuid())
+  sectionId   String
+  section     UISection   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  
+  key         String
+  language    String      @default("ko")
+  text        String      @db.Text
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@unique([sectionId, key, language])
+  @@index([language])
+  @@map("ui_texts")
+}
+
+// ============================================
+// 언어팩 관련 모델
+// ============================================
+
+model LanguagePack {
+  id            String      @id @default(cuid())
+  languageCode  String
+  namespace     String
+  key           String
+  value         String      @db.Text
+  description   String?
+  category      String?
+  isActive      Boolean     @default(true)
+  version       Int         @default(1)
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  updatedBy     String?
+  
+  metadata      Json?
+  
+  @@unique([languageCode, namespace, key])
+  @@index([languageCode, namespace])
+  @@index([languageCode, isActive])
+  @@index([category])
+  @@map("language_packs")
+}
+
+model TranslationSettings {
+  id                  String    @id @default(cuid())
+  
+  // 기본 설정
+  defaultLanguage     String    @default("ko")
+  fallbackLanguage    String    @default("en")
+  enabledLanguages    String[]  @default(["ko", "en", "ja", "zh", "es", "pt", "fr", "de", "it", "ru"])
+  
+  // 자동 번역 설정
+  autoTranslate       Boolean   @default(false)
+  translationService  String?   // google, deepl, azure 등
+  apiKey             String?
+  
+  // 캐시 설정
+  cacheEnabled        Boolean   @default(true)
+  cacheTTL            Int       @default(3600) // seconds
+  
+  // 기타 설정
+  showMissingKeys     Boolean   @default(false)
+  missingKeyPrefix    String    @default("[MISSING]")
+  
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  
+  @@map("translation_settings")
+}
+
+// ============================================
+// 메뉴 및 네비게이션
+// ============================================
+
+model MenuItem {
+  id          String      @id @default(cuid())
+  key         String      @unique
+  parentId    String?
+  parent      MenuItem?   @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children    MenuItem[]  @relation("MenuHierarchy")
+  
+  label       Json        // 다국어 라벨 { ko: "홈", en: "Home", ... }
+  href        String?
+  icon        String?
+  order       Int         @default(0)
+  isActive    Boolean     @default(true)
+  isExternal  Boolean     @default(false)
+  target      String?     // _blank, _self 등
+  
+  // 권한 관련
+  requiredRole UserType[]  @default([])
+  isPublic     Boolean     @default(true)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([isActive, order])
+  @@map("menu_items")
+}
+
+// ============================================
+// 시스템 설정
+// ============================================
+
+model SystemConfig {
+  id          String      @id @default(cuid())
+  key         String      @unique
+  value       Json
+  type        String      // string, number, boolean, json
+  category    String      // general, email, payment, etc
+  description String?
+  isPublic    Boolean     @default(false)
+  isEditable  Boolean     @default(true)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([category])
+  @@index([key])
+  @@map("system_configs")
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum UserType {
+  USER
+  ADMIN
+  MODERATOR
+  GUEST
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+}

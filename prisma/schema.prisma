@@ -8,70 +8,42 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-enum UserType {
-  ADMIN
-  BUSINESS
-  INFLUENCER
-}
-
-enum ApplicationStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum CampaignStatus {
-  DRAFT
-  PENDING_REVIEW
-  ACTIVE
-  PAUSED
-  COMPLETED
-  REJECTED
-}
-
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  CANCELLED
-  PARTIAL_REFUNDED
-  REFUNDED
-}
-
 model User {
-  id                   String                @id @default(cuid())
-  email                String                @unique
-  password             String
-  name                 String
-  type                 String
-  status               String                @default("ACTIVE")
-  statusReason         String?
-  statusUpdatedAt      DateTime?
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  lastLogin            DateTime?
-  verified             Boolean               @default(false)
-  applicationTemplates ApplicationTemplate[]
-  businessProfile      BusinessProfile?
-  applications         CampaignApplication[]
-  campaignTemplates    CampaignTemplate[]
-  campaigns            Campaign[]
-  comments             Comment[]
-  files                File[]
-  followers            Follow[]              @relation("UserFollowers")
-  following            Follow[]              @relation("UserFollowing")
-  notificationSettings NotificationSettings?
-  notifications        Notification[]
-  payments             Payment[]
-  postLikes            PostLike[]
-  posts                Post[]
-  profile              Profile?
-  savedCampaigns       SavedCampaign[]
-  settlements          Settlement[]
-  campaignLikes        CampaignLike[]
-  reports              Report[]
+  id                         String                @id @default(cuid())
+  email                      String                @unique
+  password                   String
+  name                       String
+  type                       String
+  status                     String                @default("ACTIVE")
+  statusReason               String?
+  statusUpdatedAt            DateTime?
+  createdAt                  DateTime              @default(now())
+  updatedAt                  DateTime              @updatedAt
+  lastLogin                  DateTime?
+  verified                   Boolean               @default(false)
+  applicationTemplates       ApplicationTemplate[]
+  businessProfile            BusinessProfile?
+  applications               CampaignApplication[]
+  campaignLikes              CampaignLike[]
+  campaignTemplates          CampaignTemplate[]
   editedCampaignTranslations CampaignTranslation[] @relation("TranslationEditor")
+  campaigns                  Campaign[]
+  comments                   Comment[]
+  files                      File[]
+  followers                  Follow[]              @relation("UserFollowers")
+  following                  Follow[]              @relation("UserFollowing")
+  logs                       Log[]
+  notificationSettings       NotificationSettings?
+  notifications              Notification[]
+  payments                   Payment[]
+  postLikes                  PostLike[]
   editedPostTranslations     PostTranslation[]     @relation("PostTranslationEditor")
+  posts                      Post[]
+  profile                    Profile?
+  reports                    Report[]
+  savedCampaigns             SavedCampaign[]
+  settlements                Settlement[]
+  socialAccounts             SocialAccount[]
 
   @@map("users")
 }
@@ -83,8 +55,11 @@ model Profile {
   profileImage          String?
   profileImageId        String?
   phone                 String?
-  birthYear             Int?
+  realName              String?   // 실명
+  birthDate             DateTime? // 생년월일 (전체 날짜)
+  birthYear             Int?      // 기존 birthYear 유지 (호환성)
   gender                String?
+  nationality           String?   // 국적
   instagram             String?
   instagramFollowers    Int?
   youtube               String?
@@ -104,7 +79,11 @@ model Profile {
   updatedAt             DateTime  @updatedAt
   followerCount         Int       @default(0)
   naverBlog             String?
-  address               String?
+  naverBlogFollowers    Int?
+  naverBlogTodayVisitors Int?
+  snsLastUpdated        DateTime?
+  address               String?   // 기존 호환성을 위해 유지
+  addressData           Json?     // 구조화된 주소 데이터 (한국/해외 구분)
   bankName              String?
   bankAccountNumber     String?
   bankAccountHolder     String?
@@ -121,9 +100,9 @@ model BusinessProfile {
   representativeName   String
   businessAddress      String
   businessCategory     String
-  businessRegistration String?   // 사업자등록증 파일 URL
-  businessFileName     String?   // 원본 파일명
-  businessFileSize     Int?      // 파일 크기 (bytes)
+  businessRegistration String?
+  businessFileName     String?
+  businessFileSize     Int?
   isVerified           Boolean   @default(false)
   verificationNotes    String?
   verifiedAt           DateTime?
@@ -158,36 +137,47 @@ model Campaign {
   endDate              DateTime
   requirements         String?
   hashtags             String?
-  imageUrl             String?               // 기존 필드 (호환성 유지)
+  imageUrl             String?
   imageId              String?
-  headerImageUrl       String?               // 상세페이지 헤더 배경 이미지
-  thumbnailImageUrl    String?               // 썸네일 이미지
-  announcementDate     DateTime?             // 지원자 발표일
+  headerImageUrl       String?
+  thumbnailImageUrl    String?
+  announcementDate     DateTime?
   status               String                @default("DRAFT")
   isPaid               Boolean               @default(false)
   reviewFeedback       String?
   reviewedAt           DateTime?
   maxApplicants        Int                   @default(100)
   rewardAmount         Float                 @default(0)
-  detailImages         Json?                 // 상세 이미지 배열
-  productImages        Json?                 // 상품소개 이미지 배열
-  questions            Json?                 // 추가 질문 JSON
+  detailImages         Json?
+  productImages        Json?
+  questions            Json?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   deliverables         String?
   detailedRequirements String?
-  platformFeeRate      Float                 @default(0.2) // 플랫폼 수수료율 (기본 20%)
+  platformFeeRate      Float                 @default(0.2)
   location             String                @default("전국")
   productIntro         String?
   viewCount            Int                   @default(0)
   platforms            String?
-  translations         Json?                 // 다국어 번역 데이터 (title, description, requirements 등) - deprecated
-  campaignTranslations CampaignTranslation[] // 새로운 번역 관계
+  translations         Json?
+  // 새로운 필드들 (기존 startDate, endDate, announcementDate는 이미 존재)
+  applicationStartDate DateTime?             // 캠페인 신청 시작일 (지원 접수 시작)
+  applicationEndDate   DateTime?             // 캠페인 신청 종료일 (지원 접수 마감)
+  contentStartDate     DateTime?             // 콘텐츠 등록 시작일
+  contentEndDate       DateTime?             // 콘텐츠 등록 종료일
+  resultAnnouncementDate DateTime?           // 캠페인 결과 발표일
+  provisionDetails     String?               // 제공 내역
+  campaignMission      String?               // 캠페인 미션
+  keywords             String?               // 키워드
+  additionalNotes      String?               // 추가 안내사항
   applications         CampaignApplication[]
+  campaignLikes        CampaignLike[]
+  campaignTranslations CampaignTranslation[]
+  categories           CampaignCategory[]
   business             User                  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   payments             Payment[]
   savedByUsers         SavedCampaign[]
-  campaignLikes        CampaignLike[]
 
   @@map("campaigns")
 }
@@ -374,9 +364,9 @@ model File {
 model SiteConfig {
   id        String   @id @default(cuid())
   key       String   @unique
-  value     String   @db.Text
-  type      String   @default("string") // string, number, boolean, json
-  category  String?  // general, website, payments, content, notifications, legal, api
+  value     String
+  type      String   @default("string")
+  category  String?
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
@@ -386,38 +376,38 @@ model SiteConfig {
 }
 
 model ApiConfig {
-  id           String   @id @default(cuid())
-  service      String   @unique // google_translate, toss_payments, aws_s3, etc
-  apiKey       String?  @db.Text
-  apiSecret    String?  @db.Text
-  endpoint     String?
-  region       String?
-  bucket       String?
+  id               String   @id @default(cuid())
+  service          String   @unique
+  apiKey           String?
+  apiSecret        String?
+  endpoint         String?
+  region           String?
+  bucket           String?
   additionalConfig Json?
-  isEnabled    Boolean  @default(false)
-  updatedAt    DateTime @updatedAt
-  createdAt    DateTime @default(now())
-  
+  isEnabled        Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+
   @@index([service])
   @@map("api_config")
 }
 
 model Post {
-  id        String     @id @default(cuid())
-  title     String
-  content   String
-  authorId  String
-  category  String
-  status    String     @default("PUBLISHED")
-  views     Int        @default(0)
-  likes     Int        @default(0)
-  isPinned  Boolean    @default(false)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  comments  Comment[]
-  postLikes PostLike[]
-  postTranslations PostTranslation[] // 새로운 번역 관계
-  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  id               String            @id @default(cuid())
+  title            String
+  content          String
+  authorId         String
+  category         String
+  status           String            @default("PUBLISHED")
+  views            Int               @default(0)
+  likes            Int               @default(0)
+  isPinned         Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  comments         Comment[]
+  postLikes        PostLike[]
+  postTranslations PostTranslation[]
+  author           User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("posts")
 }
@@ -491,55 +481,73 @@ model CampaignLike {
   createdAt  DateTime @default(now())
   campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([campaignId, userId])
   @@map("campaign_likes")
 }
 
 model Report {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   reporterId  String
-  type        String   // 'content', 'user', 'campaign', 'payment'
+  type        String
   targetId    String
   reason      String
   description String?
-  status      String   @default("pending") // 'pending', 'investigating', 'resolved', 'dismissed'
-  priority    String   @default("medium") // 'low', 'medium', 'high', 'urgent'
+  status      String    @default("pending")
+  priority    String    @default("medium")
   adminNotes  String?
   resolvedAt  DateTime?
   resolvedBy  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  reporter    User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  reporter    User      @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@map("reports")
 }
 
 model LanguagePack {
   id          String   @id @default(cuid())
-  key         String   @unique // 번역 키 (예: menu.home, button.submit)
-  ko          String   // 한국어
-  en          String   // 영어
-  ja          String   // 일본어
-  category    String   // 카테고리 (menu, button, label, message 등)
-  description String?  // 설명
-  isEditable  Boolean  @default(true) // 수정 가능 여부
+  key         String   @unique
+  ko          String
+  en          String
+  category    String
+  description String?
+  isEditable  Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  jp          String
 
   @@index([category])
   @@map("language_packs")
 }
 
+model UISection {
+  id            String   @id @default(cuid())
+  sectionId     String   @unique // hero, category, quicklinks, promo, ranking, recommended, custom_1, etc.
+  type          String   // hero, category, quicklinks, promo, ranking, recommended, custom
+  title         String?  // 섹션 제목
+  subtitle      String?  // 섹션 부제목
+  content       Json?    // 섹션별 커스텀 콘텐츠 (배너 슬라이드, 메뉴 아이템 등)
+  order         Int      @default(0)
+  visible       Boolean  @default(true)
+  translations  Json?    // 다국어 번역 데이터 {en: {...}, jp: {...}}
+  settings      Json?    // 섹션별 설정 (columns, rows, showBadge, criteria 등)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("ui_sections")
+}
+
 model Revenue {
-  id           String   @id @default(cuid())
-  type         String   // 'campaign_fee', 'premium_subscription', 'featured_listing'
-  amount       Float
-  referenceId  String?  // Related campaign, user, or payment ID
-  description  String?
-  metadata     Json?
-  date         DateTime @default(now())
-  createdAt    DateTime @default(now())
-  
+  id          String   @id @default(cuid())
+  type        String
+  amount      Float
+  referenceId String?
+  description String?
+  metadata    Json?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+
   @@index([type])
   @@index([date])
   @@map("revenues")
@@ -547,58 +555,203 @@ model Revenue {
 
 model Expense {
   id          String   @id @default(cuid())
-  type        String   // 'influencer_payment', 'refund', 'operational'
+  type        String
   amount      Float
-  referenceId String?  // Related settlement, refund, or payment ID
+  referenceId String?
   description String?
   metadata    Json?
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
-  
+
   @@index([type])
   @@index([date])
   @@map("expenses")
 }
-// prisma/schema.prisma 파일 끝에 추가할 내용
 
 model CampaignTranslation {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   campaignId       String
-  language         String   // 'en', 'ja', 'zh' 등
+  language         String
   title            String
-  description      String   @db.Text
-  requirements     String?  @db.Text
-  hashtags         String[] // 번역된 해시태그
-  isAutoTranslated Boolean  @default(true) // 자동 번역 여부
-  lastEditedBy     String?  // 수동 수정한 관리자 ID
+  description      String
+  requirements     String?
+  hashtags         String[]
+  isAutoTranslated Boolean   @default(true)
+  lastEditedBy     String?
   editedAt         DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
-  campaign         Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  editor           User?    @relation("TranslationEditor", fields: [lastEditedBy], references: [id])
-  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  campaign         Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  editor           User?     @relation("TranslationEditor", fields: [lastEditedBy], references: [id])
+
   @@unique([campaignId, language])
   @@index([language])
   @@map("campaign_translations")
 }
 
 model PostTranslation {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   postId           String
-  language         String   // 'en', 'ja', 'zh' 등
+  language         String
   title            String
-  content          String   @db.Text
-  isAutoTranslated Boolean  @default(true)
+  content          String
+  isAutoTranslated Boolean   @default(true)
   lastEditedBy     String?
   editedAt         DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
-  post             Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  editor           User?    @relation("PostTranslationEditor", fields: [lastEditedBy], references: [id])
-  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  editor           User?     @relation("PostTranslationEditor", fields: [lastEditedBy], references: [id])
+  post             Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
   @@unique([postId, language])
   @@index([language])
   @@map("post_translations")
+}
+
+model Log {
+  id         String   @id @default(uuid())
+  level      String   @db.VarChar(10)
+  message    String
+  context    Json?
+  userId     String?
+  requestId  String?  @db.VarChar(50)
+  errorStack String?
+  component  String?  @db.VarChar(100)
+  operation  String?  @db.VarChar(100)
+  duration   Int?
+  metadata   Json?
+  ipAddress  String?  @db.VarChar(45)
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([level])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([requestId])
+  @@index([component])
+  @@map("logs")
+}
+
+enum UserType {
+  ADMIN
+  BUSINESS
+  INFLUENCER
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CampaignStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  PAUSED
+  COMPLETED
+  REJECTED
+}
+
+model SocialAccount {
+  id            String    @id @default(cuid())
+  userId        String
+  provider      String    // google, kakao, naver
+  providerUserId String   // 소셜 서비스에서의 사용자 ID
+  accessToken   String?   // 액세스 토큰 (필요한 경우)
+  refreshToken  String?   // 리프레시 토큰 (필요한 경우)
+  profileImage  String?   // 소셜 프로필 이미지 URL
+  profileData   Json?     // 기타 프로필 정보
+  expiresAt     DateTime? // 토큰 만료 시간
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([provider])
+  @@map("social_accounts")
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+  PARTIAL_REFUNDED
+  REFUNDED
+}
+
+// 카테고리 시스템
+model Category {
+  id               String             @id @default(cuid())
+  slug             String             @unique
+  parentId         String?
+  level            Int                @default(1)
+  name             String
+  description      String?
+  icon             String?
+  color            String?
+  imageUrl         String?
+  order            Int?               @default(0)
+  isActive         Boolean            @default(true)
+  showInMenu       Boolean            @default(false)
+  menuOrder        Int?
+  seoTitle         String?
+  seoDescription   String?
+  customPageContent Json?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // 관계
+  parent           Category?          @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children         Category[]         @relation("CategoryHierarchy")
+  campaigns        CampaignCategory[]
+  categoryPage     CategoryPage?
+  
+  @@index([parentId])
+  @@index([level])
+  @@index([isActive])
+  @@index([showInMenu])
+  @@map("categories")
+}
+
+model CategoryPage {
+  id              String    @id @default(cuid())
+  categoryId      String    @unique
+  title           String
+  content         Json
+  layout          String?   @default("grid")
+  heroSection     Json?
+  featuredSection Json?
+  filterOptions   Json?
+  customSections  Json?
+  seoSettings     Json?
+  isPublished     Boolean   @default(false)
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // 관계
+  category        Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  @@index([isPublished])
+  @@map("category_pages")
+}
+
+model CampaignCategory {
+  id         String   @id @default(cuid())
+  campaignId String
+  categoryId String
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  
+  // 관계
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  @@unique([campaignId, categoryId])
+  @@index([campaignId])
+  @@index([categoryId])
+  @@map("campaign_categories")
 }

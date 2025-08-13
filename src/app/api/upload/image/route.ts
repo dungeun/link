@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveImageLocally } from '@/lib/utils/image-upload';
 import { authenticateAdmin } from '@/lib/admin-auth';
+import { prisma } from '@/lib/db/prisma';
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,11 +46,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // DB에 파일 정보 저장
+    const fileRecord = await prisma.file.create({
+      data: {
+        userId: user.id,
+        filename: result.filePath?.split('/').pop() || file.name,
+        originalName: file.name,
+        mimetype: file.type,
+        size: file.size,
+        path: result.filePath || '',
+        url: result.publicUrl || '',
+        type: category,
+        metadata: JSON.stringify({
+          uploadedAt: new Date(),
+          category,
+          userAgent: request.headers.get('user-agent')
+        })
+      }
+    });
+
     return NextResponse.json({
       success: true,
       imageUrl: result.publicUrl,
       fileName: file.name,
-      size: file.size
+      size: file.size,
+      fileId: fileRecord.id
     });
 
   } catch (error) {

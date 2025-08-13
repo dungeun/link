@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyJWTEdge, getTokenFromHeader } from '@/lib/auth/jwt-edge';
-import { logger } from '@/lib/utils/logger';
+import { logger, createApiLogger, createPerformanceLogger } from '@/lib/logger';
 import { addSecurityHeaders, addApiSecurityHeaders, securityCheck } from './middleware.security';
 
 // 인증이 필요없는 public 경로들
@@ -50,13 +50,27 @@ const protectedPagePaths = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // API 요청에 대한 성능 로깅
+  let perfLogger: ReturnType<typeof createPerformanceLogger> | null = null;
+  if (pathname.startsWith('/api/') && pathname !== '/api/logs') {
+    perfLogger = createPerformanceLogger(`${request.method} ${pathname}`);
+  }
 
-  logger.debug('[Middleware] Request to:', pathname);
+  // 디버그 로그는 필요시에만 활성화 (LOG_LEVEL=debug일 때만)
+  if (process.env.LOG_LEVEL === 'debug') {
+    logger.debug({ path: pathname, method: request.method }, 'Middleware: Request received');
+  }
 
   // 보안 체크
   const securityResult = securityCheck(request);
   if (!securityResult.allowed) {
-    logger.warn('[Security] Request blocked:', securityResult.reason);
+    logger.warn({ 
+      reason: securityResult.reason,
+      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
+      userAgent: request.headers.get('user-agent')
+    }, 'Security: Request blocked');
+    if (perfLogger) perfLogger.end({ status: 403, blocked: true });
     return new NextResponse('Forbidden', { status: 403 });
   }
 
@@ -90,7 +104,8 @@ export async function middleware(request: NextRequest) {
       const payload = await verifyJWTEdge<{id: string, email: string, type: string}>(token);
       
       if (!payload) {
-        logger.error('[Middleware] Invalid token');
+        logger.error({ token: token?.substring(0, 10) + '...' }, 'Middleware: Invalid token');
+        if (perfLogger) perfLogger.end({ status: 302, redirect: '/login' });
         return NextResponse.redirect(new URL('/login', request.url));
       }
       
@@ -108,11 +123,17 @@ export async function middleware(request: NextRequest) {
       }
       
     } catch (error) {
-      logger.error('[Middleware] JWT verification failed:', error);
+      logger.error({ error }, 'Middleware: JWT verification failed');
+      if (perfLogger) perfLogger.end({ status: 302, redirect: '/login', error: true });
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }
 
+  // 성능 로깅 종료
+  if (perfLogger) {
+    perfLogger.end({ status: 200 });
+  }
+  
   // 모든 응답에 보안 헤더 추가
   return addSecurityHeaders(response);
 }

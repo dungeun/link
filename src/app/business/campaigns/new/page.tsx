@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast'
 import { useTemplates } from '@/hooks/useSharedData'
 import { invalidateCache } from '@/hooks/useCachedData'
-import { Save, Trash2, Youtube, Users, Twitter } from 'lucide-react'
+import { Save, Trash2, Youtube, Users } from 'lucide-react'
 
 // Component imports
 import StepBasicInfo from '@/components/business/campaign-form/StepBasicInfo'
@@ -33,6 +33,12 @@ const TikTokIcon = () => (
   </svg>
 )
 
+const XIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+)
+
 const BlogIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
     <path d="M6.94 14.036c-.233.624-.43 1.2-.606 1.783.96-.697 2.101-1.139 3.418-1.304 2.513-.314 4.746-1.973 5.876-4.058l-1.456-1.455c-.706 1.263-2.188 2.548-4.062 2.805-1.222.167-2.415.642-3.17 1.229zM16 2.5c-1.621 0-3.128.665-4.2 1.737L9.063 6.975c-1.075 1.072-1.737 2.579-1.737 4.2 0 3.268 2.732 6 6 6s6-2.732 6-6-2.732-6-6-6zm0 10c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.846 0 3.543-.497 5.02-1.327l-1.411-1.411C14.5 19.775 13.295 20 12 20c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8c0 1.295-.225 2.5-.738 3.609l1.411 1.411C21.503 15.543 22 13.846 22 12c0-5.52-4.48-10-10-10z"/>
@@ -44,7 +50,7 @@ const platformIcons = {
   YOUTUBE: <Youtube className="w-6 h-6" />,
   TIKTOK: <TikTokIcon />,
   FACEBOOK: <Users className="w-6 h-6" />,
-  TWITTER: <Twitter className="w-6 h-6" />,
+  X: <XIcon />,
   NAVERBLOG: <BlogIcon />
 }
 
@@ -80,11 +86,21 @@ export default function NewCampaignPage() {
     headerImageUrl: '',  // 상세페이지 헤더 배경 이미지
     thumbnailImageUrl: '',  // 썸네일 이미지
     youtubeUrl: '',
-    maxApplicants: ''
+    maxApplicants: '',
+    // 새로운 필드들
+    applicationStartDate: '',
+    applicationEndDate: '',
+    contentStartDate: '',
+    contentEndDate: '',
+    resultAnnouncementDate: '',
+    provisionDetails: '',
+    campaignMission: '',
+    keywords: '',
+    additionalNotes: ''
   })
   
   // Product images (상품소개 이미지 3장)
-  const [productImages, setProductImages] = useState<string[]>(['', '', ''])
+  const [productImages, setProductImages] = useState<string[]>([])
   
   // Dynamic questions
   const defaultQuestions: DynamicQuestion[] = [
@@ -282,7 +298,17 @@ export default function NewCampaignPage() {
         targetFollowers: Number(formData.targetFollowers),
         maxApplicants: Number(formData.maxApplicants) || 100,
         productImages: productImages.filter(img => img !== ''),  // 빈 문자열 제거
-        questions: dynamicQuestions.filter(q => q.enabled !== false)
+        questions: dynamicQuestions.filter(q => q.enabled !== false),
+        // 새로운 필드들 (빈 문자열인 경우 null로 변환)
+        applicationStartDate: formData.applicationStartDate || null,
+        applicationEndDate: formData.applicationEndDate || null,
+        contentStartDate: formData.contentStartDate || null,
+        contentEndDate: formData.contentEndDate || null,
+        resultAnnouncementDate: formData.resultAnnouncementDate || null,
+        provisionDetails: formData.provisionDetails || null,
+        campaignMission: formData.campaignMission || null,
+        keywords: formData.keywords || null,
+        additionalNotes: formData.additionalNotes || null
       }
       
       const response = await fetch('/api/business/campaigns', {
@@ -304,7 +330,7 @@ export default function NewCampaignPage() {
       }
       
       const data = await response.json()
-      const createdCampaignId = data.campaign.id
+      const createdCampaignId = data.data.id
       
       // 계좌이체인 경우 바로 결제 완료 처리
       if (selectedPaymentMethod === 'TRANSFER') {

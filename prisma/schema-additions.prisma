@@ -3,7 +3,7 @@
 model CampaignTranslation {
   id               String   @id @default(cuid())
   campaignId       String
-  language         String   // 'en', 'ja', 'zh' 등
+  language         String   // 'en', 'jp', 'zh' 등
   title            String
   description      String   @db.Text
   requirements     String?  @db.Text
@@ -25,7 +25,7 @@ model CampaignTranslation {
 model PostTranslation {
   id               String   @id @default(cuid())
   postId           String
-  language         String   // 'en', 'ja', 'zh' 등
+  language         String   // 'en', 'jp', 'zh' 등
   title            String
   content          String   @db.Text
   isAutoTranslated Boolean  @default(true)

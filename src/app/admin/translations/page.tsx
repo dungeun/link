@@ -11,10 +11,10 @@ interface TranslationType {
   originalId: string
   ko: string
   en: string
-  ja: string
+  jp: string
   isAutoTranslated: {
     en: boolean
-    ja: boolean
+    jp: boolean
   }
   lastEditedBy?: string
   editedAt?: string
@@ -28,15 +28,21 @@ export default function TranslationManagementPage() {
   const [categories, setCategories] = useState<{category: string, count: number}[]>([])
   const [loading, setLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState<{ en: string; ja: string }>({ en: '', ja: '' })
-  const [editingField, setEditingField] = useState<'en' | 'ja' | null>(null)
+  const [editForm, setEditForm] = useState<{ en: string; jp: string }>({ en: '', jp: '' })
+  const [editingField, setEditingField] = useState<'en' | 'jp' | null>(null)
   const [autoTranslating, setAutoTranslating] = useState<string | null>(null)
   const [apiStatus, setApiStatus] = useState<'checking' | 'available' | 'unavailable'>('checking')
+  const [showUntranslatedOnly, setShowUntranslatedOnly] = useState(false)
   const [apiSettings, setApiSettings] = useState({
     apiKey: '',
     defaultSourceLang: 'ko',
-    defaultTargetLangs: ['en', 'ja'],
-    autoTranslateOnCreate: false
+    defaultTargetLangs: ['en', 'jp'],
+    autoTranslateOnCreate: false,
+    languagePackSetup: {
+      isConfigured: false,
+      languages: ['ko', 'en', 'jp'],
+      configuredAt: null
+    }
   })
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
@@ -45,7 +51,8 @@ export default function TranslationManagementPage() {
   const loadTranslations = async () => {
     setLoading(true)
     try {
-      const response = await adminApi.get(`/api/admin/translations?type=${selectedType}`)
+      const untranslatedParam = showUntranslatedOnly ? '&untranslatedOnly=true' : ''
+      const response = await adminApi.get(`/api/admin/translations?type=${selectedType}${untranslatedParam}`)
       if (response.ok) {
         const data = await response.json()
         
@@ -121,7 +128,7 @@ export default function TranslationManagementPage() {
       loadApiSettings()
     }
     checkApiStatus()
-  }, [selectedType])
+  }, [selectedType, showUntranslatedOnly])
 
   // 카테고리 변경 시 필터링
   useEffect(() => {
@@ -146,7 +153,15 @@ export default function TranslationManagementPage() {
       const response = await adminApi.get('/api/admin/translations/settings')
       if (response.ok) {
         const data = await response.json()
-        setApiSettings(data)
+        // languagePackSetup이 없는 경우 기본값 설정
+        setApiSettings({
+          ...data,
+          languagePackSetup: data.languagePackSetup || {
+            isConfigured: false,
+            languages: ['ko', 'en', 'jp'],
+            configuredAt: null
+          }
+        })
       }
     } catch (error) {
       console.error('API 설정 불러오기 실패:', error)
@@ -248,7 +263,7 @@ export default function TranslationManagementPage() {
     try {
       const response = await adminApi.post('/api/admin/translations/auto', {
         text,
-        targetLanguages: ['en', 'ja'],
+        targetLanguages: ['en', 'jp'],
         sourceLanguage: 'ko'
       })
 
@@ -294,17 +309,17 @@ export default function TranslationManagementPage() {
   }
 
   // 수동 편집 시작 - 개별 필드
-  const startEditField = (item: TranslationType, field: 'en' | 'ja') => {
+  const startEditField = (item: TranslationType, field: 'en' | 'jp') => {
     setEditingId(item.id)
     setEditingField(field)
     setEditForm({
       en: item.en,
-      ja: item.ja
+      jp: item.jp
     })
   }
 
   // 수동 편집 저장 - 개별 필드
-  const saveEditField = async (id: string, field: 'en' | 'ja') => {
+  const saveEditField = async (id: string, field: 'en' | 'jp') => {
     try {
       const updateData: any = { type: selectedType }
       updateData[field] = editForm[field]
@@ -325,7 +340,7 @@ export default function TranslationManagementPage() {
   const cancelEdit = () => {
     setEditingId(null)
     setEditingField(null)
-    setEditForm({ en: '', ja: '' })
+    setEditForm({ en: '', jp: '' })
   }
 
   // 일괄 자동 번역
@@ -341,7 +356,7 @@ export default function TranslationManagementPage() {
     try {
       const response = await adminApi.post('/api/admin/translations/batch', {
         type: selectedType,
-        targetLanguages: ['en', 'ja'],
+        targetLanguages: ['en', 'jp'],
         sourceLanguage: 'ko'
       })
 
@@ -479,6 +494,19 @@ export default function TranslationManagementPage() {
                   <RefreshCw className="w-4 h-4" />
                   새로고침
                 </button>
+                
+                {/* 번역 누락 항목만 표시 토글 */}
+                {(selectedType === 'menu' || selectedType === 'main-sections') && (
+                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={showUntranslatedOnly}
+                      onChange={(e) => setShowUntranslatedOnly(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">번역 누락 항목만</span>
+                  </label>
+                )}
               </div>
 
               <div className="text-sm text-gray-600">
@@ -601,25 +629,25 @@ export default function TranslationManagementPage() {
                           )}
                         </label>
                         <button
-                          onClick={() => startEditField(item, 'ja')}
+                          onClick={() => startEditField(item, 'jp')}
                           className="p-1 text-blue-600 hover:bg-blue-50 rounded"
                           title="일본어 번역 수정"
                         >
                           <Edit2 className="w-3 h-3" />
                         </button>
                       </div>
-                      {editingId === item.id && editingField === 'ja' ? (
+                      {editingId === item.id && editingField === 'jp' ? (
                         <div className="space-y-2">
                           <textarea
                             value={editForm.ja}
-                            onChange={(e) => setEditForm({ ...editForm, ja: e.target.value })}
+                            onChange={(e) => setEditForm({ ...editForm, jp: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             rows={3}
                             placeholder="일본어 번역을 입력하세요"
                           />
                           <div className="flex gap-2">
                             <button
-                              onClick={() => saveEditField(item.id, 'ja')}
+                              onClick={() => saveEditField(item.id, 'jp')}
                               className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 flex items-center gap-1"
                             >
                               <Save className="w-3 h-3" />
@@ -668,7 +696,7 @@ export default function TranslationManagementPage() {
             <div className="mt-6 bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold mb-4">번역 진행률</h3>
               <div className="space-y-4">
-                {['en', 'ja'].map(lang => {
+                {['en', 'jp'].map(lang => {
                   const translated = translations.filter(t => t[lang as keyof typeof t]).length
                   const percentage = translations.length > 0 ? (translated / translations.length) * 100 : 0
                   
@@ -699,6 +727,177 @@ export default function TranslationManagementPage() {
         {/* API 설정 */}
         {selectedType === 'api-settings' && (
           <div className="space-y-6">
+            {/* 언어팩 초기 설정 섹션 */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">언어팩 설정</h3>
+                {apiSettings.languagePackSetup?.isConfigured && (
+                  <span className="inline-flex items-center px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">
+                    ✓ 설정 완료
+                  </span>
+                )}
+              </div>
+              
+              {!apiSettings.languagePackSetup?.isConfigured ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-amber-600 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-amber-800 mb-1">중요 안내</h4>
+                        <p className="text-sm text-amber-700">
+                          언어팩은 초기 설정 후 변경할 수 없습니다.<br/>
+                          반드시 3개 언어를 선택해야 하며, 추가 언어는 별도 비용이 발생합니다.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      지원 언어 선택 (정확히 3개 선택)
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {[
+                        { code: 'ko', name: '한국어', flag: '🇰🇷' },
+                        { code: 'en', name: '영어', flag: '🇺🇸' },
+                        { code: 'jp', name: '일본어', flag: '🇯🇵' },
+                        { code: 'zh', name: '중국어', flag: '🇨🇳' },
+                        { code: 'es', name: '스페인어', flag: '🇪🇸' },
+                        { code: 'fr', name: '프랑스어', flag: '🇫🇷' },
+                        { code: 'de', name: '독일어', flag: '🇩🇪' },
+                        { code: 'ru', name: '러시아어', flag: '🇷🇺' },
+                        { code: 'pt', name: '포르투갈어', flag: '🇵🇹' }
+                      ].map(lang => (
+                        <label
+                          key={lang.code}
+                          className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
+                            apiSettings.languagePackSetup?.languages?.includes(lang.code)
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-300 hover:border-gray-400'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={apiSettings.languagePackSetup?.languages?.includes(lang.code) || false}
+                            onChange={(e) => {
+                              const currentLangs = apiSettings.languagePackSetup?.languages || [];
+                              if (e.target.checked) {
+                                if (currentLangs.length < 3) {
+                                  setApiSettings({
+                                    ...apiSettings,
+                                    languagePackSetup: {
+                                      ...apiSettings.languagePackSetup,
+                                      languages: [...currentLangs, lang.code]
+                                    }
+                                  });
+                                } else {
+                                  alert('최대 3개 언어만 선택할 수 있습니다.');
+                                }
+                              } else {
+                                if (currentLangs.length > 1) {
+                                  setApiSettings({
+                                    ...apiSettings,
+                                    languagePackSetup: {
+                                      ...apiSettings.languagePackSetup,
+                                      languages: currentLangs.filter(l => l !== lang.code)
+                                    }
+                                  });
+                                } else {
+                                  alert('최소 1개 언어는 선택되어야 합니다.');
+                                }
+                              }
+                            }}
+                            className="sr-only"
+                          />
+                          <span className="text-2xl mr-2">{lang.flag}</span>
+                          <span className="text-sm font-medium">{lang.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-sm text-gray-500">
+                      선택된 언어: {apiSettings.languagePackSetup?.languages?.length || 0}/3
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => {
+                        const languages = apiSettings.languagePackSetup?.languages || [];
+                        if (languages.length !== 3) {
+                          alert('정확히 3개의 언어를 선택해주세요.');
+                          return;
+                        }
+                        
+                        if (confirm('선택한 언어로 설정하시겠습니까?\n\n' + 
+                                   '⚠️ 주의: 한번 설정하면 변경할 수 없습니다.\n' +
+                                   '추가 언어가 필요한 경우 별도 비용이 발생합니다.\n\n' +
+                                   '선택된 언어: ' + languages.join(', '))) {
+                          setApiSettings({
+                            ...apiSettings,
+                            languagePackSetup: {
+                              ...apiSettings.languagePackSetup,
+                              isConfigured: true,
+                              configuredAt: new Date().toISOString()
+                            }
+                          });
+                          // 여기에 실제 저장 로직 추가
+                        }
+                      }}
+                      disabled={(apiSettings.languagePackSetup?.languages?.length || 0) !== 3}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      언어팩 설정 확정
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <h4 className="text-sm font-semibold text-green-800 mb-2">설정된 언어팩</h4>
+                    <div className="flex gap-4">
+                      {(apiSettings.languagePackSetup?.languages || []).map(langCode => {
+                        const langInfo = {
+                          ko: { name: '한국어', flag: '🇰🇷' },
+                          en: { name: '영어', flag: '🇺🇸' },
+                          jp: { name: '일본어', flag: '🇯🇵' },
+                          zh: { name: '중국어', flag: '🇨🇳' },
+                          es: { name: '스페인어', flag: '🇪🇸' },
+                          fr: { name: '프랑스어', flag: '🇫🇷' },
+                          de: { name: '독일어', flag: '🇩🇪' },
+                          ru: { name: '러시아어', flag: '🇷🇺' },
+                          pt: { name: '포르투갈어', flag: '🇵🇹' }
+                        }[langCode] || { name: langCode, flag: '🌐' };
+                        
+                        return (
+                          <div key={langCode} className="flex items-center px-3 py-2 bg-white rounded-lg shadow-sm">
+                            <span className="text-2xl mr-2">{langInfo.flag}</span>
+                            <span className="font-medium">{langInfo.name}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {apiSettings.languagePackSetup?.configuredAt && (
+                      <p className="mt-3 text-xs text-gray-600">
+                        설정일시: {new Date(apiSettings.languagePackSetup.configuredAt).toLocaleString('ko-KR')}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      <strong>추가 언어가 필요하신가요?</strong><br/>
+                      추가 언어팩은 별도 비용이 발생합니다.<br/>
+                      문의: support@linkpick.com
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Google Translate API 설정 */}
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold mb-4">Google Translate API 설정</h3>
               
@@ -749,7 +948,7 @@ export default function TranslationManagementPage() {
                   >
                     <option value="ko">한국어</option>
                     <option value="en">영어</option>
-                    <option value="ja">일본어</option>
+                    <option value="jp">일본어</option>
                   </select>
                 </div>
 
@@ -758,7 +957,7 @@ export default function TranslationManagementPage() {
                     기본 대상 언어
                   </label>
                   <div className="space-y-2">
-                    {['en', 'ja', 'zh', 'es', 'fr', 'de'].map(lang => (
+                    {['en', 'jp', 'zh', 'es', 'fr', 'de'].map(lang => (
                       <label key={lang} className="flex items-center">
                         <input
                           type="checkbox"
@@ -779,7 +978,7 @@ export default function TranslationManagementPage() {
                           className="mr-2"
                         />
                         {lang === 'en' ? '영어' :
-                         lang === 'ja' ? '일본어' :
+                         lang === 'jp' ? '일본어' :
                          lang === 'zh' ? '중국어' :
                          lang === 'es' ? '스페인어' :
                          lang === 'fr' ? '프랑스어' : '독일어'}

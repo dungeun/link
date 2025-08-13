@@ -34,7 +34,17 @@ export async function POST(request: NextRequest) {
       detailImages,
       productImages,
       youtubeUrl,
-      questions
+      questions,
+      // 새로운 필드들
+      applicationStartDate,
+      applicationEndDate,
+      contentStartDate,
+      contentEndDate,
+      resultAnnouncementDate,
+      provisionDetails,
+      campaignMission,
+      keywords,
+      additionalNotes
     } = body;
 
     // 유효성 검사 - 누락된 필드 구체적으로 알려주기
@@ -98,6 +108,16 @@ export async function POST(request: NextRequest) {
         detailImages: detailImages ? JSON.stringify(detailImages) : null,
         productImages: productImages ? JSON.stringify(productImages) : null,
         questions: questions ? questions : null,  // JSON 타입이므로 직접 저장
+        // 새로운 필드들
+        applicationStartDate: applicationStartDate ? new Date(applicationStartDate) : null,
+        applicationEndDate: applicationEndDate ? new Date(applicationEndDate) : null,
+        contentStartDate: contentStartDate ? new Date(contentStartDate) : null,
+        contentEndDate: contentEndDate ? new Date(contentEndDate) : null,
+        resultAnnouncementDate: resultAnnouncementDate ? new Date(resultAnnouncementDate) : null,
+        provisionDetails: provisionDetails || null,
+        campaignMission: campaignMission || null,
+        keywords: keywords || null,
+        additionalNotes: additionalNotes || null,
         status: 'DRAFT', // 결제 전에는 DRAFT 상태
         isPaid: false,
         businessId: user.id

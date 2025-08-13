@@ -43,7 +43,7 @@ export default function CampaignsPage() {
   const { t } = useLanguage()
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 20,
+    limit: 20, // 5 rows * 4 columns = 20 items per page
     total: 0,
     totalPages: 0
   })
@@ -344,8 +344,8 @@ export default function CampaignsPage() {
 
 
           {/* 쇼핑몰 스타일 이미지 뷰 */}
-          {/* 모바일 최적화된 캠페인 그리드 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+          {/* 모바일 최적화된 캠페인 그리드 - 4열 그리드로 변경 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {sortedCampaigns.map((campaign, index) => {
               // 가상 이미지 URL 배열
               const virtualImages = [

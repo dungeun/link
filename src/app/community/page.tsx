@@ -99,13 +99,16 @@ export default function CommunityPage() {
         category: selectedCategory,
         search: searchTerm,
         page: currentPage.toString(),
-        limit: '10'
+        limit: '15' // 15개 게시물 표시
       })
 
       const response = await fetch(`/api/posts?${params}`)
       if (response.ok) {
         const data = await response.json()
-        setPosts(data.posts)
+        // 공지사항 3개를 상단에 고정
+        const notices = data.posts.filter((post: Post) => post.category === 'notice' && post.isPinned).slice(0, 3)
+        const regularPosts = data.posts.filter((post: Post) => !(post.category === 'notice' && post.isPinned))
+        setPosts([...notices, ...regularPosts].slice(0, 15))
         setTotalPages(data.pagination.totalPages)
       }
     } catch (error) {

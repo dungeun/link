@@ -1,25 +1,83 @@
+/**
+ * Prisma 쿼리 최적화 유틸리티
+ * N+1 문제 해결 및 성능 최적화를 위한 헬퍼 함수
+ */
+
 import { Prisma, PrismaClient } from '@prisma/client';
-import { performanceMonitor } from '@/lib/performance';
+import { prisma } from '@/lib/db/prisma';
+import { logger } from '@/lib/logger/production';
 
 /**
- * Optimized query patterns for common operations
+ * 캠페인 조회 시 기본 include 옵션
+ * N+1 문제를 방지하기 위해 관련 데이터를 한 번에 로드
  */
+export const campaignIncludeDefault = {
+  business: {
+    select: {
+      id: true,
+      companyName: true,
+      businessName: true,
+      contactEmail: true,
+      category: true,
+      logo: true,
+    },
+  },
+  applications: {
+    select: {
+      id: true,
+      status: true,
+      appliedAt: true,
+      acceptedAt: true,
+      completedAt: true,
+      rejectedAt: true,
+      influencerId: true,
+    },
+  },
+  reports: {
+    select: {
+      id: true,
+      createdAt: true,
+      status: true,
+      influencerId: true,
+    },
+  },
+  likes: {
+    select: {
+      id: true,
+      userId: true,
+      createdAt: true,
+    },
+  },
+  savedByUsers: {
+    select: {
+      id: true,
+      userId: true,
+      campaignId: true,
+      createdAt: true,
+    },
+  },
+  _count: {
+    select: {
+      applications: true,
+      reports: true,
+      likes: true,
+      savedByUsers: true,
+    },
+  },
+} as const;
 
 /**
  * Get campaigns with optimized includes to prevent N+1 queries
+ * Legacy support for existing code
  */
 export function getCampaignWithRelations(includeApplications: boolean = false) {
   return {
     business: {
       select: {
         id: true,
-        name: true,
-        businessProfile: {
-          select: {
-            companyName: true,
-            businessCategory: true
-          }
-        }
+        companyName: true,
+        businessName: true,
+        category: true,
       }
     },
     ...(includeApplications && {
@@ -229,5 +287,22 @@ export async function withQueryMetrics<T>(
   queryName: string,
   queryFn: () => Promise<T>
 ): Promise<T> {
-  return performanceMonitor.measure(`db.${queryName}`, queryFn);
+  const startTime = Date.now();
+  
+  try {
+    const result = await queryFn();
+    const duration = Date.now() - startTime;
+    
+    if (duration > 1000) {
+      logger.warn(`Slow query detected: ${queryName}`, { duration });
+    } else {
+      logger.debug(`Query executed: ${queryName}`, { duration });
+    }
+    
+    return result;
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`Query failed: ${queryName}`, error, { duration });
+    throw error;
+  }
 }

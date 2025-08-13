@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams
     const type = searchParams.get('type') || 'campaign'
+    const untranslatedOnly = searchParams.get('untranslatedOnly') === 'true'
 
     let data: any[] = []
 
@@ -65,65 +66,91 @@ export async function GET(request: NextRequest) {
       }))
     } else if (type === 'menu') {
       // 메뉴 관련 LanguagePack 데이터만 조회
+      const whereClause: any = {
+        OR: [
+          { category: 'ui_menu' },
+          { category: 'ui_action' },
+          { category: 'ui_notification' }
+        ]
+      }
+
       const languagePacks = await prisma.languagePack.findMany({
-        where: {
-          OR: [
-            { category: 'ui_menu' },
-            { category: 'ui_action' },
-            { category: 'ui_notification' }
-          ]
-        },
+        where: whereClause,
         orderBy: [
           { category: 'asc' },
           { key: 'asc' }
         ]
       })
 
-      data = languagePacks.map(pack => ({
+      let filteredPacks = languagePacks
+      
+      // 번역되지 않은 항목만 필터링 (JavaScript로 필터링)
+      if (untranslatedOnly) {
+        filteredPacks = languagePacks.filter(pack => {
+          const enMissing = !pack.en || pack.en === pack.ko || pack.en.trim() === ''
+          const jpMissing = !pack.jp || pack.jp === pack.ko || pack.jp.trim() === ''
+          return enMissing || jpMissing
+        })
+      }
+
+      data = filteredPacks.map(pack => ({
         id: pack.id,
         type: 'menu',
         originalId: pack.id,
         ko: pack.ko,
         en: pack.en,
-        ja: pack.ja,
+        jp: pack.jp,
         key: pack.key,
         category: pack.category,
         isAutoTranslated: {
           en: false,
-          ja: false,
+          jp: false,
         }
       }))
     } else if (type === 'main-sections') {
       // 메인 섹션 관련 LanguagePack 데이터만 조회
+      const whereClause: any = {
+        OR: [
+          { category: 'ui_hero' },
+          { category: 'ui_category' },
+          { category: 'ui_quicklink' },
+          { category: 'ui_promo' },
+          { category: 'ui_ranking' },
+          { category: 'ui_footer' }
+        ]
+      }
+
       const languagePacks = await prisma.languagePack.findMany({
-        where: {
-          OR: [
-            { category: 'ui_hero' },
-            { category: 'ui_category' },
-            { category: 'ui_quicklink' },
-            { category: 'ui_promo' },
-            { category: 'ui_ranking' },
-            { category: 'ui_footer' }
-          ]
-        },
+        where: whereClause,
         orderBy: [
           { category: 'asc' },
           { key: 'asc' }
         ]
       })
 
-      data = languagePacks.map(pack => ({
+      let filteredPacks = languagePacks
+
+      // 번역되지 않은 항목만 필터링 (JavaScript로 필터링)
+      if (untranslatedOnly) {
+        filteredPacks = languagePacks.filter(pack => {
+          const enMissing = !pack.en || pack.en === pack.ko || pack.en.trim() === ''
+          const jpMissing = !pack.jp || pack.jp === pack.ko || pack.jp.trim() === ''
+          return enMissing || jpMissing
+        })
+      }
+
+      data = filteredPacks.map(pack => ({
         id: pack.id,
         type: 'main-sections',
         originalId: pack.id,
         ko: pack.ko,
         en: pack.en,
-        ja: pack.ja,
+        jp: pack.jp,
         key: pack.key,
         category: pack.category,
         isAutoTranslated: {
           en: false,
-          ja: false,
+          jp: false,
         }
       }))
     }
@@ -147,7 +174,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { id, en, ja, type } = body
+    const { id, en, jp, ja, type } = body
 
     if (type === 'campaign') {
       // 영어 번역 업데이트 또는 생성
@@ -179,7 +206,8 @@ export async function PUT(request: NextRequest) {
       }
 
       // 일본어 번역 업데이트 또는 생성
-      if (ja !== undefined) {
+      if (ja !== undefined || jp !== undefined) {
+        const jpValue = ja || jp  // Support both ja and jp for backward compatibility
         await prisma.campaignTranslation.upsert({
           where: {
             campaignId_language: {
@@ -188,7 +216,7 @@ export async function PUT(request: NextRequest) {
             }
           },
           update: {
-            title: ja,
+            title: jpValue,
             isAutoTranslated: false,
             lastEditedBy: authResult.user.id,
             editedAt: new Date()
@@ -196,7 +224,7 @@ export async function PUT(request: NextRequest) {
           create: {
             campaignId: id,
             language: 'ja',
-            title: ja,
+            title: jpValue,
             description: '',
             hashtags: [],
             isAutoTranslated: false,
@@ -233,7 +261,8 @@ export async function PUT(request: NextRequest) {
         })
       }
 
-      if (ja !== undefined) {
+      if (ja !== undefined || jp !== undefined) {
+        const jpValue = ja || jp  // Support both ja and jp for backward compatibility
         await prisma.postTranslation.upsert({
           where: {
             postId_language: {
@@ -242,7 +271,7 @@ export async function PUT(request: NextRequest) {
             }
           },
           update: {
-            title: ja,
+            title: jpValue,
             isAutoTranslated: false,
             lastEditedBy: authResult.user.id,
             editedAt: new Date()
@@ -250,7 +279,7 @@ export async function PUT(request: NextRequest) {
           create: {
             postId: id,
             language: 'ja',
-            title: ja,
+            title: jpValue,
             content: '',
             isAutoTranslated: false,
             lastEditedBy: authResult.user.id,
@@ -258,13 +287,14 @@ export async function PUT(request: NextRequest) {
           }
         })
       }
-    } else if (type === 'menu') {
+    } else if (type === 'menu' || type === 'main-sections') {
       // 메뉴 (LanguagePack) 업데이트
+      const jpValue = ja || jp  // Support both ja and jp for backward compatibility
       await prisma.languagePack.update({
         where: { id },
         data: {
           en: en || undefined,
-          ja: ja || undefined,
+          jp: jpValue || undefined,
         }
       })
     }

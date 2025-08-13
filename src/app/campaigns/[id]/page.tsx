@@ -94,6 +94,17 @@ interface Campaign {
   productImages: string[] | null
   status: string
   createdAt: string
+  // 새로운 필드들
+  applicationStartDate?: string | null
+  applicationEndDate?: string | null
+  contentStartDate?: string | null
+  contentEndDate?: string | null
+  resultAnnouncementDate?: string | null
+  provisionDetails?: string | null
+  campaignMission?: string | null
+  keywords?: string | null
+  additionalNotes?: string | null
+  announcementDate?: string | null
   _count: {
     applications: number
     likes: number
@@ -583,14 +594,13 @@ export default function CampaignDetailPage() {
                   {campaign.productImages && Array.isArray(campaign.productImages) && campaign.productImages.length > 0 ? (
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold text-gray-900">제품 소개</h2>
-                      <div className="grid grid-cols-1 gap-6">
+                      <div className="space-y-6">
                         {(campaign.productImages || []).map((image, index) => (
-                          <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
-                            <Image
+                          <div key={index} className="relative w-full rounded-lg overflow-hidden">
+                            <img
                               src={image}
                               alt={`제품 이미지 ${index + 1}`}
-                              fill
-                              className="object-contain bg-gray-50"
+                              className="w-full h-auto object-cover"
                             />
                           </div>
                         ))}
@@ -617,6 +627,38 @@ export default function CampaignDetailPage() {
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">요구사항</h2>
                       <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{campaign.requirements}</p>
+                    </div>
+                  )}
+
+                  {/* 제공 내역 */}
+                  {campaign.provisionDetails && (
+                    <div className="pt-6 border-t">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-3">제공 내역</h2>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{campaign.provisionDetails}</p>
+                    </div>
+                  )}
+
+                  {/* 캠페인 미션 */}
+                  {campaign.campaignMission && (
+                    <div className="pt-6 border-t">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-3">캠페인 미션</h2>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{campaign.campaignMission}</p>
+                    </div>
+                  )}
+
+                  {/* 키워드 */}
+                  {campaign.keywords && (
+                    <div className="pt-6 border-t">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-3">키워드</h2>
+                      <p className="text-gray-700">{campaign.keywords}</p>
+                    </div>
+                  )}
+
+                  {/* 추가 안내사항 */}
+                  {campaign.additionalNotes && (
+                    <div className="pt-6 border-t">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-3">추가 안내사항</h2>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{campaign.additionalNotes}</p>
                     </div>
                   )}
 
@@ -697,16 +739,70 @@ export default function CampaignDetailPage() {
                   <span className="font-semibold">{(campaign.targetFollowers || 0).toLocaleString()}명</span>
                 </div>
 
-                {/* 기간 */}
+                {/* 캠페인 기간 */}
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     캠페인 기간
                   </span>
-                  <span className="font-semibold">
+                  <span className="font-semibold text-sm">
                     {new Date(campaign.startDate).toLocaleDateString()} ~ {new Date(campaign.endDate).toLocaleDateString()}
                   </span>
                 </div>
+
+                {/* 신청 기간 */}
+                {(campaign.applicationStartDate || campaign.applicationEndDate) && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      신청 기간
+                    </span>
+                    <span className="font-semibold text-sm">
+                      {campaign.applicationStartDate ? new Date(campaign.applicationStartDate).toLocaleDateString() : '시작일 미정'} ~ 
+                      {campaign.applicationEndDate ? new Date(campaign.applicationEndDate).toLocaleDateString() : '종료일 미정'}
+                    </span>
+                  </div>
+                )}
+
+                {/* 인플루언서 발표 */}
+                {campaign.announcementDate && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      인플루언서 발표
+                    </span>
+                    <span className="font-semibold text-sm">
+                      {new Date(campaign.announcementDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+
+                {/* 콘텐츠 등록 기간 */}
+                {(campaign.contentStartDate || campaign.contentEndDate) && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      콘텐츠 등록
+                    </span>
+                    <span className="font-semibold text-sm">
+                      {campaign.contentStartDate ? new Date(campaign.contentStartDate).toLocaleDateString() : '시작일 미정'} ~ 
+                      {campaign.contentEndDate ? new Date(campaign.contentEndDate).toLocaleDateString() : '종료일 미정'}
+                    </span>
+                  </div>
+                )}
+
+                {/* 결과 발표 */}
+                {campaign.resultAnnouncementDate && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      결과 발표
+                    </span>
+                    <span className="font-semibold text-sm">
+                      {new Date(campaign.resultAnnouncementDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
 
                 {/* 남은 기간 */}
                 <div className="flex items-center justify-between">

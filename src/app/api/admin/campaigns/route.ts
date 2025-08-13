@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { requireAdminAuth } from '@/lib/admin-auth';
 import { translationService } from '@/lib/services/translation.service';
-import { authenticate } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -121,22 +120,12 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/campaigns - 캠페인 생성 (관리자용)
 export async function POST(request: NextRequest) {
   try {
-    const user = await authenticate(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      );
+    // 공통 인증 함수 사용
+    const authResult = await requireAdminAuth(request);
+    if (authResult.error) {
+      return authResult.error;
     }
-    
-    // 관리자만 접근 가능
-    const userType = user.type?.toLowerCase();
-    if (userType !== 'admin') {
-      return NextResponse.json(
-        { error: '관리자만 접근할 수 있습니다.' },
-        { status: 403 }
-      );
-    }
+    const { user } = authResult;
 
     const body = await request.json();
     const {
@@ -177,6 +166,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // hashtags 처리 - 배열이면 쉼표로 구분된 문자열로 변환
+    const hashtagsString = Array.isArray(hashtags) 
+      ? hashtags.join(', ') 
+      : hashtags || null;
+
     // 캠페인 생성
     const campaign = await prisma.campaign.create({
       data: {
@@ -187,7 +181,7 @@ export async function POST(request: NextRequest) {
         budget: budget || 0,
         targetFollowers: targetFollowers || 0,
         requirements,
-        hashtags,
+        hashtags: hashtagsString,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         status: status.toUpperCase(),
