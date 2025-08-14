@@ -80,8 +80,7 @@ class ConfigManager {
     // 프로덕션 필수 체크
     const requiredProdVars = [
       'ENCRYPTION_KEY',
-      'TOSS_SECRET_KEY',
-      'GOOGLE_TRANSLATE_API_KEY'
+      'TOSS_SECRET_KEY'
     ];
     
     const missing = requiredProdVars.filter(

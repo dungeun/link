@@ -216,22 +216,10 @@ export class MemoryMonitor {
   private static intervals: NodeJS.Timeout[] = [];
 
   /**
-   * 메모리 사용량 로깅 시작
+   * 메모리 사용량 로깅 시작 (더 이상 사용하지 않음 - memory-monitor.ts 사용)
    */
   static startMonitoring(intervalMs: number = 30000): void {
-    const interval = setInterval(() => {
-      if (process.env.NODE_ENV === 'development') {
-        const usage = process.memoryUsage();
-        logger.debug('Memory Usage:', {
-          rss: `${Math.round(usage.rss / 1024 / 1024)}MB`,
-          heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)}MB`,
-          heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)}MB`,
-          external: `${Math.round(usage.external / 1024 / 1024)}MB`
-        });
-      }
-    }, intervalMs);
-
-    this.intervals.push(interval);
+    console.log('[DEPRECATED] Use memory-monitor.ts instead');
   }
 
   /**
@@ -375,9 +363,6 @@ export class PerformanceReport {
   }
 }
 
-// 개발 환경에서 메모리 모니터링 자동 시작
-if (process.env.NODE_ENV === 'development') {
-  MemoryMonitor.startMonitoring();
-}
+// 메모리 모니터링은 새로운 memory-monitor.ts에서 처리
 
 export { metricsStore };

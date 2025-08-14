@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOL | 놀수록 놀라운 세상</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="yanolja-clone.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">NOL</h1>
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="설렘 가득한 여름 준비하기">
+            </div>
+            <nav class="user-nav">
+                <a href="#"><i class="fa-regular fa-user"></i><span>마이</span></a>
+                <a href="#"><i class="fa-regular fa-heart"></i><span>찜</span></a>
+                <a href="#"><i class="fa-solid fa-cart-shopping"></i><span>장바구니</span></a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="menu-grid-container">
+            <div class="menu-grid">
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-plane"></i></div>
+                    <span>항공</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-suitcase-rolling"></i></div>
+                    <span>해외숙소</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-monument"></i></div>
+                    <span>해외투어티켓</span>
+                    <span class="badge blue">신규오픈</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-ticket"></i></div>
+                    <span>국내레저</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-masks-theater"></i></div>
+                    <span>공연/전시</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-location-arrow"></i></div>
+                    <span>주변</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-building"></i></div>
+                    <span>호텔/리조트</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-house-chimney"></i></div>
+                    <span>펜션/풀빌라</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-campground"></i></div>
+                    <span>캠핑/캠핑</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-hotel"></i></div>
+                    <span>모텔</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <div class="icon-wrapper"><i class="fa-solid fa-bus-simple"></i></div>
+                    <span>교통</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="main-banner-container">
+            <div class="main-banner" id="mainBanner">
+                <div class="banner-slide blue-slide">
+                    <div class="banner-content-wrapper">
+                        <div class="banner-text">
+                            <span class="banner-tag">해외여행 혜택</span>
+                            <h2>혜택 가득한 해외여행<br>최대 45만원 할인</h2>
+                            <p>태국/베트남 노선 더블할인까지</p>
+                        </div>
+                        <div class="banner-image">
+                            <img src="https://i.imgur.com/2V3g645.png" alt="얼리버드 쿠폰팩">
+                        </div>
+                    </div>
+                </div>
+                <div class="banner-slide dark-slide">
+                    <div class="banner-content-wrapper">
+                        <div class="banner-text">
+                            <h2>올여름, 어떤 놀라운<br>세계가 기다릴까요?</h2>
+                            <p>&lt;나의 세계를 놀랍게&gt; 보러가기</p>
+                        </div>
+                        <div class="banner-image">
+                            <img src="https://i.imgur.com/5GjSmzC.png" alt="여름 휴가">
+                        </div>
+                    </div>
+                </div>
+                <div class="banner-slide green-slide">
+                    <div class="banner-content-wrapper">
+                        <div class="banner-text">
+                            <h2>국내 숙소 최저가 도전</h2>
+                            <p>쿠폰 받고 추가 할인까지</p>
+                        </div>
+                        <div class="banner-image">
+                            <i class="fa-solid fa-house-user"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="banner-slide pink-slide">
+                    <div class="banner-content-wrapper">
+                        <div class="banner-text">
+                            <h2>레저/티켓 특가 찬스</h2>
+                            <p>워터파크부터 전시까지</p>
+                        </div>
+                        <div class="banner-image">
+                            <i class="fa-solid fa-person-swimming"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slider-controls">
+                <div class="pagination-dots" id="paginationDots"></div>
+                <button id="playPauseBtn" class="play-pause-btn"><i class="fa-solid fa-pause"></i></button>
+            </div>
+        </div>
+
+        <div class="shortcut-links">
+            <a href="#" class="shortcut-link">
+                <i class="fa-solid fa-gift"></i>
+                <span>NOL드로우</span>
+            </a>
+            <a href="#" class="shortcut-link">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span>이번달쿠폰팩</span>
+            </a>
+            <a href="#" class="shortcut-link">
+                <i class="fa-solid fa-champagne-glasses"></i>
+                <span>이벤트더보기</span>
+            </a>
+        </div>
+
+        <div class="promo-banner">
+            <div class="promo-text">
+                <strong>처음이니까, 10% + 10% 할인</strong>
+                <span>첫 시작을 더 가볍게!</span>
+            </div>
+            <i class="fa-solid fa-box-open"></i>
+        </div>
+    </main>
+
+    <script src="yanolja-clone.js"></script>
+</body>
+</html>

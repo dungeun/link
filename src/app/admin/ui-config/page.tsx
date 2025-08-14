@@ -7,6 +7,7 @@ import { HeaderConfigDB } from '@/components/admin/ui-config/HeaderConfigDB';
 import { FooterConfigDB } from '@/components/admin/ui-config/FooterConfigDB';
 import { SectionsConfigTab } from '@/components/admin/ui-config/SectionsConfigTab';
 import { SectionOrderTab } from '@/components/admin/ui-config/SectionOrderTab';
+import { CategoryConfigTab } from '@/components/admin/ui-config/CategoryConfigTab';
 import { useLanguage } from '@/hooks/useLanguage';
 
 export default function UIConfigPage() {
@@ -17,20 +18,20 @@ export default function UIConfigPage() {
   
   // URL 파라미터에서 탭 읽기
   const tabParam = searchParams.get('tab');
-  const initialTab = (tabParam as 'header' | 'footer' | 'sections' | 'section-order') || 'header';
-  const [activeTab, setActiveTab] = useState<'header' | 'footer' | 'sections' | 'section-order'>(initialTab);
+  const initialTab = (tabParam as 'header' | 'footer' | 'sections' | 'section-order' | 'categories') || 'header';
+  const [activeTab, setActiveTab] = useState<'header' | 'footer' | 'sections' | 'section-order' | 'categories'>(initialTab);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
 
   // URL 파라미터 변경 시 탭 업데이트
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['header', 'footer', 'sections', 'section-order'].includes(tab)) {
+    if (tab && ['header', 'footer', 'sections', 'section-order', 'categories'].includes(tab)) {
       setActiveTab(tab as any);
     }
   }, [searchParams]);
 
-  const handleTabChange = (tab: 'header' | 'footer' | 'sections' | 'section-order') => {
+  const handleTabChange = (tab: 'header' | 'footer' | 'sections' | 'section-order' | 'categories') => {
     setActiveTab(tab);
     router.push(`/admin/ui-config?tab=${tab}`);
   };
@@ -84,12 +85,23 @@ export default function UIConfigPage() {
         >
           {t('admin.ui.tab.sectionOrder', '섹션 순서')}
         </button>
+        <button
+          onClick={() => handleTabChange('categories')}
+          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+            activeTab === 'categories'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          {t('admin.ui.tab.categories', '카테고리')}
+        </button>
       </div>
 
       {activeTab === 'header' && <HeaderConfigDB />}
       {activeTab === 'footer' && <FooterConfigDB />}
       {activeTab === 'sections' && <SectionsConfigTab />}
       {activeTab === 'section-order' && <SectionOrderTab />}
+      {activeTab === 'categories' && <CategoryConfigTab />}
 
       {/* DB 연동 안내 */}
       {activeTab !== 'section-order' && (

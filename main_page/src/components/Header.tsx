@@ -63,19 +63,20 @@ export default function Header({ variant = 'default' }: HeaderProps) {
     }
     
     // UI 설정 로드
-    console.log('Header: Loading UI settings...');
-    loadSettingsFromAPI()
+    console.log('Header: Loading UI settings with language:', currentLanguage);
+    loadSettingsFromAPI(currentLanguage)
     
     return () => {
       if (isTransparent) {
         window.removeEventListener('scroll', handleScroll)
       }
     }
-  }, [isTransparent, user, loadSettingsFromAPI])
+  }, [isTransparent, user, loadSettingsFromAPI, currentLanguage])
 
   // 언어 변경 시 UI 설정 재로드
   useEffect(() => {
-    loadSettingsFromAPI()
+    console.log('Header: Language changed to', currentLanguage, '- reloading UI config...');
+    loadSettingsFromAPI(currentLanguage)
   }, [currentLanguage, loadSettingsFromAPI])
 
   // 드롭다운 외부 클릭 감지
@@ -166,7 +167,7 @@ export default function Header({ variant = 'default' }: HeaderProps) {
                     href={menu.href} 
                     className="hover:opacity-80 transition font-medium text-white"
                   >
-                    {t(menu.label, menu.label)}
+                    {menu.label}
                   </Link>
                 ))}
             </nav>
@@ -335,7 +336,7 @@ export default function Header({ variant = 'default' }: HeaderProps) {
                         onClick={() => setShowMobileMenu(false)}
                       >
                         <span className="w-2 h-2 bg-blue-400 rounded-full mr-4"></span>
-                        {t(menu.label, menu.label)}
+                        {menu.label}
                       </Link>
                     ))}
                   

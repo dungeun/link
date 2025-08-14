@@ -1,0 +1,451 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                         String                @id @default(cuid())
+  email                      String                @unique
+  password                   String
+  name                       String
+  type                       String
+  status                     String                @default("ACTIVE")
+  statusReason               String?
+  statusUpdatedAt            DateTime?
+  createdAt                  DateTime              @default(now())
+  updatedAt                  DateTime              @updatedAt
+  lastLogin                  DateTime?
+  verified                   Boolean               @default(false)
+  comments                   Comment[]
+  files                      File[]
+  followers                  Follow[]              @relation("UserFollowers")
+  following                  Follow[]              @relation("UserFollowing")
+  logs                       Log[]
+  notificationSettings       NotificationSettings?
+  notifications              Notification[]
+  postLikes                  PostLike[]
+  editedPostTranslations     PostTranslation[]     @relation("PostTranslationEditor")
+  posts                      Post[]
+  profile                    Profile?
+  reports                    Report[]
+  socialAccounts             SocialAccount[]
+  categories                 Category[]
+
+  @@map("users")
+}
+
+model Profile {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  bio                   String?
+  profileImage          String?
+  profileImageId        String?
+  phone                 String?
+  realName              String?   // 실명
+  birthDate             DateTime? // 생년월일 (전체 날짜)
+  birthYear             Int?      // 기존 birthYear 유지 (호환성)
+  gender                String?
+  nationality           String?   // 국적
+  instagram             String?
+  instagramFollowers    Int?
+  youtube               String?
+  youtubeSubscribers    Int?
+  tiktok                String?
+  tiktokFollowers       Int?
+  facebook              String?
+  facebookFollowers     Int?
+  twitter               String?
+  twitterFollowers      Int?
+  averageEngagementRate Float?
+  categories            String?
+  isVerified            Boolean   @default(false)
+  verificationNotes     String?
+  verifiedAt            DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  followerCount         Int       @default(0)
+  naverBlog             String?
+  naverBlogFollowers    Int?
+  naverBlogTodayVisitors Int?
+  snsLastUpdated        DateTime?
+  address               String?   // 기존 호환성을 위해 유지
+  addressData           Json?     // 구조화된 주소 데이터 (한국/해외 구분)
+  bankName              String?
+  bankAccountNumber     String?
+  bankAccountHolder     String?
+  accountType           String?   @default("domestic") // 'domestic' | 'international'
+  internationalBankInfo Json?     // 해외 계좌 정보 (JSON)
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model SocialAccount {
+  id                 String   @id @default(cuid())
+  userId             String
+  platform           String   // instagram, youtube, tiktok, facebook, twitter, naverBlog
+  username           String
+  profileUrl         String?
+  profileImage       String?
+  followers          Int?
+  followersUpdatedAt DateTime?
+  accessToken        String?  @db.Text
+  refreshToken       String?  @db.Text
+  tokenExpiresAt     DateTime?
+  isConnected        Boolean  @default(false)
+  lastSyncedAt       DateTime?
+  metadata           Json?    // 플랫폼별 추가 데이터
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@map("social_accounts")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model NotificationSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  emailEnabled    Boolean  @default(true)
+  pushEnabled     Boolean  @default(true)
+  smsEnabled      Boolean  @default(false)
+  marketingEmail  Boolean  @default(false)
+  marketingPush   Boolean  @default(false)
+  marketingSms    Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_settings")
+}
+
+model Board {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  boardType   String   @default("GENERAL")
+  isActive    Boolean  @default(true)
+  allowWrite  String   @default("ALL")
+  allowRead   String   @default("ALL")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  posts       Post[]
+
+  @@map("boards")
+}
+
+model Post {
+  id           String            @id @default(cuid())
+  boardId      String
+  authorId     String
+  categoryId   String?
+  title        String
+  content      String            @db.Text
+  excerpt      String?
+  images       String[]
+  viewCount    Int               @default(0)
+  likeCount    Int               @default(0)
+  commentCount Int               @default(0)
+  status       String            @default("published")
+  isPinned     Boolean           @default(false)
+  tags         String[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  author       User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  board        Board             @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  category     Category?         @relation(fields: [categoryId], references: [id])
+  comments     Comment[]
+  likes        PostLike[]
+  translations PostTranslation[]
+
+  @@map("posts")
+}
+
+model PostTranslation {
+  id         String   @id @default(cuid())
+  postId     String
+  language   String
+  title      String
+  content    String   @db.Text
+  excerpt    String?
+  editorId   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  editor     User?    @relation("PostTranslationEditor", fields: [editorId], references: [id])
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, language])
+  @@map("post_translations")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_likes")
+}
+
+model Report {
+  id           String   @id @default(cuid())
+  reporterId   String
+  targetType   String
+  targetId     String
+  reason       String
+  description  String?
+  status       String   @default("pending")
+  reviewedBy   String?
+  reviewNote   String?
+  reviewedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  reporter     User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+model File {
+  id           String   @id @default(cuid())
+  userId       String
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  storageType  String   @default("local")
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("files")
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  resource  String
+  resourceId String?
+  ip        String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("logs")
+}
+
+// 카테고리 시스템 (커머스용)
+model Category {
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  displayName  Json?         // 다국어 지원
+  description  String?
+  descriptionData Json?      // 다국어 지원
+  parentId     String?
+  level        Int           @default(0)
+  icon         String?
+  banner       String?
+  isActive     Boolean       @default(true)
+  menuOrder    Int           @default(0)
+  metaTitle    String?
+  metaDescription String?
+  keywords     String[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  userId       String?
+  parent       Category?     @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children     Category[]    @relation("CategoryHierarchy")
+  posts        Post[]
+  categoryPage CategoryPage?
+  user         User?         @relation(fields: [userId], references: [id])
+  uiMenus      UIMenu[]
+
+  @@map("categories")
+}
+
+model CategoryPage {
+  id              String   @id @default(cuid())
+  categoryId      String   @unique
+  heroTitle       String?
+  heroSubtitle    String?
+  heroImage       String?
+  content         Json?    // 커스텀 콘텐츠 블록들
+  seoTitle        String?
+  seoDescription  String?
+  seoKeywords     String[]
+  customCss       String?  @db.Text
+  customJs        String?  @db.Text
+  isPublished     Boolean  @default(false)
+  publishedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  category        Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@map("category_pages")
+}
+
+// UI 설정 관련 모델들
+model UISection {
+  id           String   @id @default(cuid())
+  type         String   // hero, category, quicklinks, promo 등
+  name         String
+  content      Json     // 섹션별 콘텐츠 데이터
+  translations Json?    // 다국어 번역 데이터
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([type])
+  @@map("ui_sections")
+}
+
+model UIMenu {
+  id           String    @id @default(cuid())
+  menuType     String    @default("header") // header, footer, sidebar 등
+  parentId     String?
+  label        String
+  labelData    Json?     // 다국어 지원 {"ko": "홈", "en": "Home", ...}
+  link         String?
+  icon         String?
+  categoryId   String?
+  order        Int       @default(0)
+  isActive     Boolean   @default(true)
+  openInNewTab Boolean   @default(false)
+  permissions  String[]  @default([])
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  parent       UIMenu?   @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children     UIMenu[]  @relation("MenuHierarchy")
+  category     Category? @relation(fields: [categoryId], references: [id])
+
+  @@map("ui_menus")
+}
+
+model LanguagePack {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  namespace   String   @default("common")
+  ko          String?
+  en          String?
+  jp          String?
+  zh          String?
+  es          String?
+  pt          String?
+  fr          String?
+  de          String?
+  it          String?
+  ru          String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([namespace])
+  @@index([key, namespace])
+  @@map("language_packs")
+}
+
+model TranslationSettings {
+  id                   String   @id @default(cuid())
+  defaultLanguage      String   @default("ko")
+  supportedLanguages   String[] @default(["ko", "en", "jp", "zh", "es", "pt", "fr", "de", "it", "ru"])
+  autoTranslate        Boolean  @default(false)
+  googleTranslateKey   String?
+  translationProvider  String   @default("google")
+  updatedAt            DateTime @updatedAt
+
+  @@map("translation_settings")
+}
+
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@map("system_configs")
+}
+
+model ApiConfig {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  apiKey      String?
+  apiSecret   String?
+  endpoint    String?
+  isActive    Boolean  @default(false)
+  config      Json?
+  updatedAt   DateTime @updatedAt
+
+  @@map("api_configs")
+}
+
+model MenuItem {
+  id         String     @id @default(cuid())
+  parentId   String?
+  label      String
+  link       String?
+  icon       String?
+  order      Int        @default(0)
+  isActive   Boolean    @default(true)
+  isExternal Boolean    @default(false)
+  permissions String[]   @default([])
+  metadata   Json?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  parent     MenuItem?  @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children   MenuItem[] @relation("MenuHierarchy")
+
+  @@map("menu_items")
+}

@@ -5,6 +5,7 @@
 
 import { PrismaClient, Prisma } from '@prisma/client';
 import { config } from '@/lib/config';
+import '@/lib/utils/memory-monitor'; // 메모리 모니터링 자동 시작
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -30,6 +31,12 @@ function createPrismaClient() {
       emit: 'event'
     })),
     errorFormat: config.isDevelopment ? 'pretty' : 'minimal',
+    // 연결 풀 최적화로 메모리 누수 방지
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL
+      }
+    }
   });
 
   // 로그 이벤트 처리

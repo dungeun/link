@@ -83,11 +83,15 @@ export function LanguageProvider({ children, initialLanguagePacks = {} }: Langua
       const response = await fetch('/api/language-packs');
       if (response.ok) {
         const packs: LanguagePack[] = await response.json();
+        console.log(`Loaded ${packs.length} language packs from API`);
         const packMap = packs.reduce((acc, pack) => {
           acc[pack.key] = pack;
           return acc;
         }, {} as Record<string, LanguagePack>);
+        console.log(`Language pack keys loaded:`, Object.keys(packMap).filter(k => k.startsWith('menu.')));
         setLanguagePacks(packMap);
+      } else {
+        console.error('Failed to load language packs: HTTP', response.status);
       }
     } catch (error) {
       console.error('Failed to load language packs:', error);
@@ -124,11 +128,16 @@ export function LanguageProvider({ children, initialLanguagePacks = {} }: Langua
     const pack = languagePacks[key];
     if (!pack) {
       // 언어팩이 없으면 fallback 또는 key 반환
+      console.log(`Translation missing for key: ${key}, available keys: ${Object.keys(languagePacks).length}`);
       return fallback || key;
     }
     
     // 현재 언어에 맞는 텍스트 반환
-    return pack[currentLanguage] || pack.ko || fallback || key;
+    const result = pack[currentLanguage] || pack.ko || fallback || key;
+    if (key.startsWith('menu.')) {
+      console.log(`Translation for ${key}: ${result} (lang: ${currentLanguage})`);
+    }
+    return result;
   }, [languagePacks, currentLanguage]);
 
   // 동적 텍스트 번역 (API 호출)

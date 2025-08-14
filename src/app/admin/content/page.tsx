@@ -327,25 +327,25 @@ export default function AdminContentPage() {
         {/* 콘텐츠 테이블 */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                     썸네일
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{maxWidth: '300px', width: '30%'}}>
                     콘텐츠 정보
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
                     캠페인
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                     성과
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                     상태
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                     액션
                   </th>
                 </tr>
@@ -354,8 +354,8 @@ export default function AdminContentPage() {
                 {filteredContents.map((content) => (
                   <tr key={content.id} className="hover:bg-gray-50">
                     {/* 썸네일 */}
-                    <td className="px-4 py-4">
-                      <div className="relative w-20 h-20 bg-gray-200 rounded">
+                    <td className="px-3 py-3 w-24">
+                      <div className="relative w-16 h-16 bg-gray-200 rounded">
                         {content.thumbnailUrl ? (
                           <img 
                             src={content.thumbnailUrl} 
@@ -364,38 +364,38 @@ export default function AdminContentPage() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-2xl">{getTypeIcon(content.type)}</span>
+                            <span className="text-xl">{getTypeIcon(content.type)}</span>
                           </div>
                         )}
                         <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
-                          <span className="text-sm">{getPlatformIcon(content.platform)}</span>
+                          <span className="text-xs">{getPlatformIcon(content.platform)}</span>
                         </div>
                       </div>
                     </td>
                     
                     {/* 콘텐츠 정보 */}
-                    <td className="px-4 py-4">
-                      <div>
-                        <div className="flex items-center mb-1">
-                          <span className="mr-2">{getTypeIcon(content.type)}</span>
-                          <span className="text-xs text-gray-500">{getTypeText(content.type)}</span>
+                    <td className="px-3 py-3" style={{maxWidth: '300px', width: '30%'}}>
+                      <div className="space-y-1">
+                        <div className="flex items-center">
+                          <span className="text-xs">{getTypeIcon(content.type)}</span>
+                          <span className="text-xs text-gray-500 ml-1">{getTypeText(content.type)}</span>
                         </div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                        <h3 className="text-sm font-medium text-gray-900 truncate" title={content.title}>
                           {content.title}
                         </h3>
-                        <p className="text-xs text-gray-600 line-clamp-2">
+                        <p className="text-xs text-gray-600 line-clamp-1" title={content.description}>
                           {content.description}
                         </p>
-                        <div className="text-xs text-gray-500 mt-1">
-                          인플루언서: {content.influencerName}
+                        <div className="text-xs text-gray-500 truncate">
+                          {content.influencerName}
                         </div>
                       </div>
                     </td>
                     
                     {/* 캠페인 */}
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-3 w-48">
                       <div className="text-sm">
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-gray-900 truncate" title={content.campaignTitle}>
                           {content.campaignTitle}
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
@@ -405,68 +405,61 @@ export default function AdminContentPage() {
                     </td>
                     
                     {/* 성과 */}
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-3 w-24">
                       <div className="text-center space-y-1">
-                        <div className="flex items-center justify-center text-xs text-gray-600">
-                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                          {content.views.toLocaleString()}
+                        <div className="text-xs text-gray-600">
+                          👁 {content.views > 1000 ? `${(content.views/1000).toFixed(1)}k` : content.views}
                         </div>
-                        <div className="flex items-center justify-center text-xs text-gray-600">
-                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4 4 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                          {content.likes.toLocaleString()}
+                        <div className="text-xs text-gray-600">
+                          ❤️ {content.likes > 1000 ? `${(content.likes/1000).toFixed(1)}k` : content.likes}
                         </div>
-                        <div className="flex items-center justify-center text-xs text-gray-600">
-                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                          </svg>
-                          {content.comments.toLocaleString()}
+                        <div className="text-xs text-gray-600">
+                          💬 {content.comments > 1000 ? `${(content.comments/1000).toFixed(1)}k` : content.comments}
                         </div>
                       </div>
                     </td>
                     
                     {/* 상태 */}
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-3 py-3 w-24 text-center">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(content.status)}`}>
                         {getStatusText(content.status)}
                       </span>
                       {content.reviewedAt && (
                         <div className="text-xs text-gray-500 mt-1">
-                          {content.reviewedAt}
+                          {content.reviewedAt.slice(5, 10)}
                         </div>
                       )}
                     </td>
                     
                     {/* 액션 버튼 */}
-                    <td className="px-4 py-4">
-                      <div className="flex flex-col gap-1">
+                    <td className="px-3 py-3 w-20">
+                      <div className="flex flex-col items-center space-y-1">
                         {content.status === 'pending' && (
-                          <div className="flex gap-1">
+                          <div className="flex space-x-1">
                             <button
                               onClick={() => handleStatusChange(content.id, 'approved')}
-                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                              className="text-green-600 hover:text-green-900 p-1"
+                              title="승인"
                             >
-                              승인
+                              ✅
                             </button>
                             <button
                               onClick={() => handleStatusChange(content.id, 'rejected')}
-                              className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
+                              className="text-red-600 hover:text-red-900 p-1"
+                              title="거절"
                             >
-                              거절
+                              ❌
                             </button>
                           </div>
                         )}
                         
-                        <div className="flex gap-1">
+                        <div className="flex space-x-1">
                           <Link
                             href={`/admin/content/${content.id}`}
-                            className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors text-center"
+                            className="text-blue-600 hover:text-blue-900 p-1"
+                            title="상세보기"
                           >
-                            상세
+                            📄
                           </Link>
                           
                           {content.url && (
@@ -474,9 +467,10 @@ export default function AdminContentPage() {
                               href={content.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition-colors"
+                              className="text-gray-600 hover:text-gray-900 p-1"
+                              title="원본 콘텐츠"
                             >
-                              원본
+                              🔗
                             </a>
                           )}
                         </div>

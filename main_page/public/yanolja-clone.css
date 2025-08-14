@@ -1,0 +1,358 @@
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #fff;
+}
+
+.header {
+    background-color: #5f00ff;
+    color: white;
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+.logo {
+    font-size: 32px;
+    font-weight: 900;
+    margin: 0;
+}
+
+.search-bar {
+    flex-grow: 1;
+    margin: 0 30px;
+    background-color: white;
+    border-radius: 30px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+}
+
+.search-bar i {
+    color: #888;
+    margin-right: 10px;
+}
+
+.search-bar input {
+    border: none;
+    outline: none;
+    font-size: 16px;
+    width: 100%;
+    background: transparent;
+}
+
+.user-nav {
+    display: flex;
+    align-items: center;
+}
+
+.user-nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.user-nav i {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.main-content {
+    padding: 20px;
+    margin: 0 auto;
+}
+
+.menu-grid-container {
+    overflow-x: auto;
+    padding-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    max-width: 1440px;
+    margin: 0 auto 30px;
+}
+
+.menu-grid {
+    display: flex;
+    gap: 10px;
+    width: max-content;
+}
+
+.menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    position: relative;
+    width: 80px;
+}
+
+.menu-item .icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    background-color: #f0f0f0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-item .icon-wrapper i {
+    font-size: 28px;
+    color: #5f00ff;
+}
+
+.menu-item .badge {
+    position: absolute;
+    top: -5px;
+    right: 10px;
+    background-color: #e0e0e0;
+    color: #555;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.menu-item .badge.blue {
+    background-color: #e6f2ff;
+    color: #007bff;
+}
+
+.main-banner-container {
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+    /* Removed max-width to allow full screen width */
+    margin: 0; /* Remove auto margin */
+    padding: 0; /* Remove padding */
+}
+
+.main-banner {
+    display: flex;
+    scroll-behavior: smooth;
+    width: 100%;
+}
+
+.banner-slide {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center content within the slide */
+    padding: 0; /* Padding moved to banner-content-wrapper */
+    box-sizing: border-box;
+    border-radius: 15px;
+    margin-right: 20px; /* Gap between slides */
+}
+
+.banner-content-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1440px; /* Content limited to 1440px */
+    width: 100%; /* Take full width of parent */
+    padding: 40px; /* Original padding */
+    box-sizing: border-box;
+}
+
+.blue-slide {
+    background-color: #e6f2ff;
+}
+
+.dark-slide {
+    background-color: #333;
+    color: white;
+}
+
+.green-slide {
+    background-color: #e6ffe6;
+    color: #333;
+}
+
+.pink-slide {
+    background-color: #ffe6f2;
+    color: #333;
+}
+
+.banner-text .banner-tag {
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.banner-text h2 {
+    font-size: 28px;
+    margin: 15px 0;
+}
+
+.banner-text p {
+    font-size: 16px;
+    margin: 0;
+}
+
+.banner-image img {
+    max-width: 150px;
+}
+
+.dark-slide .banner-image img {
+    border-radius: 15px;
+    width: 250px;
+    height: 150px;
+    object-fit: cover;
+}
+
+.banner-slide .banner-image i {
+    font-size: 100px;
+    color: #5f00ff;
+}
+
+.slider-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 40px;
+    display: flex;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 5px 10px;
+    border-radius: 20px;
+    color: #333;
+}
+
+.pagination-dots {
+    display: flex;
+    gap: 5px;
+    margin-right: 10px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.dot.active {
+    background-color: #5f00ff;
+}
+
+.play-pause-btn {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.shortcut-links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+    max-width: 1440px;
+    margin: 0 auto 30px;
+}
+
+.shortcut-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #333;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.shortcut-link i {
+    font-size: 24px;
+    margin-right: 10px;
+    color: #5f00ff;
+}
+
+.promo-banner {
+    background-color: #fff8e1;
+    border-radius: 15px;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    /* Removed max-width to allow full screen width */
+    margin: 30px 0; /* Remove auto margin and add vertical margin */
+}
+
+.promo-text {
+    text-align: center;
+}
+
+.promo-text strong {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.promo-text span {
+    font-size: 14px;
+    color: #555;
+}
+
+.promo-banner i {
+    font-size: 48px;
+    color: #ffc107;
+}
+
+/* Responsive styles for main banner */
+
+/* Default for screens smaller than 768px: 1 slide per view */
+@media (max-width: 767px) {
+    .banner-slide {
+        width: 100%; /* 1 slide per view */
+        flex-direction: column;
+        text-align: center;
+        margin-right: 0; /* No margin for 1-column */
+    }
+    .banner-content-wrapper {
+        flex-direction: column;
+        padding: 20px; /* Adjust padding for small screens */
+    }
+    .banner-image {
+        margin-top: 20px;
+    }
+}
+
+/* For screens 768px and wider (up to 1439px): 2 slides per view */
+@media (min-width: 768px) and (max-width: 1439px) {
+    .banner-slide {
+        width: calc(50vw - 10px); /* 2 slides per view, accounting for 20px gap */
+        margin-right: 20px; /* Gap between slides */
+    }
+}
+
+/* For screens 1440px and wider: 4 slides per view */
+@media (min-width: 1440px) {
+    .banner-slide {
+        width: calc(25vw - 15px); /* 4 slides per view, accounting for 20px gap */
+        margin-right: 20px; /* Gap between slides */
+    }
+}

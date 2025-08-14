@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import AdminLayout from '@/components/admin/AdminLayout'
 import CampaignDetailPanel from '@/components/admin/CampaignDetailPanel'
 import CampaignCreateModal from '@/components/admin/CampaignCreateModal'
+import CategoryEditPanel from '@/components/admin/CategoryEditPanel'
 import { adminApi } from '@/lib/admin-api'
 
 interface Campaign {
@@ -24,6 +25,8 @@ interface Campaign {
   imageUrl?: string
   isPaid: boolean
   platformFeeRate?: number
+  mainCategory?: string // 대분류 추가
+  category?: string // 중분류
 }
 
 export default function AdminCampaignsPage() {
@@ -39,10 +42,26 @@ export default function AdminCampaignsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('all') // 탭 상태 추가
   const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([]) // 선택된 캠페인 추가
+  const [selectedMainCategory, setSelectedMainCategory] = useState('all') // 대분류 필터 추가
+  const [statusMenuOpen, setStatusMenuOpen] = useState<string | null>(null) // 상태 메뉴 열림 상태
+  const [editCategoryId, setEditCategoryId] = useState<string | null>(null) // 카테고리 편집 중인 캠페인
+  const [isCategoryEditOpen, setIsCategoryEditOpen] = useState(false) // 카테고리 편집 패널 열림 상태
 
   useEffect(() => {
     fetchCampaigns()
-  }, [currentPage, filter, searchTerm, activeTab])
+  }, [currentPage, filter, searchTerm, activeTab, selectedMainCategory])
+
+  // 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setStatusMenuOpen(null)
+    }
+    
+    if (statusMenuOpen) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [statusMenuOpen])
 
   // activeTab에 따라 filter 업데이트
   useEffect(() => {
@@ -60,12 +79,14 @@ export default function AdminCampaignsPage() {
         page: currentPage.toString(),
         limit: '20',
         ...(activeTab === 'trash' ? { status: 'deleted' } : (filter !== 'all' && { status: filter })),
-        ...(searchTerm && { search: searchTerm })
+        ...(searchTerm && { search: searchTerm }),
+        ...(selectedMainCategory !== 'all' && { mainCategory: selectedMainCategory })
       })
       
       const response = await adminApi.get(`/api/admin/campaigns?${params}`)
       if (response.ok) {
         const data = await response.json()
+        console.log('📊 Pagination data:', data.pagination)
         setCampaigns(data.campaigns || [])
         setTotalPages(data.pagination?.totalPages || 1)
         setTotalCount(data.pagination?.total || 0)
@@ -119,36 +140,42 @@ export default function AdminCampaignsPage() {
     fetchCampaigns()
   }
 
+  // 카테고리 편집 열기
+  const openCategoryEdit = (campaignId: string) => {
+    setEditCategoryId(campaignId)
+    setIsCategoryEditOpen(true)
+  }
+
+  // 카테고리 편집 닫기
+  const closeCategoryEdit = () => {
+    setIsCategoryEditOpen(false)
+    setTimeout(() => setEditCategoryId(null), 300) // 애니메이션 후 초기화
+  }
+
+  // 카테고리 편집 완료 후 처리
+  const handleCategorySave = () => {
+    fetchCampaigns() // 목록 새로고침
+  }
+
   const handleStatusChange = async (campaignId: string, newStatus: string) => {
     try {
-      console.log('=== Status Change Request ===')
-      console.log('Campaign ID:', campaignId)
-      console.log('New Status:', newStatus)
-      
       const response = await adminApi.put(`/api/admin/campaigns/${campaignId}/status`, { status: newStatus })
       
-      console.log('Response status:', response.status)
-      console.log('Response ok:', response.ok)
-      
       if (response.ok) {
-        const data = await response.json()
-        console.log('Success response:', data)
-        
         setCampaigns(prev => prev.map(campaign =>
-          campaign.id === campaignId ? { ...campaign, status: newStatus } : campaign
+          campaign.id === campaignId ? { ...campaign, status: newStatus.toLowerCase() } : campaign
         ))
-        alert(`상태가 ${newStatus}로 변경되었습니다.`)
+        // 상태 변경 성공 시 알림 없이 자동 업데이트
       } else {
         const errorData = await response.json()
-        console.error('Error response:', errorData)
         alert(`상태 변경에 실패했습니다: ${errorData.error || '알 수 없는 오류'}`)
+        // 실패 시 원래 상태로 되돌리기 위해 데이터 다시 가져오기
+        fetchCampaigns()
       }
     } catch (error) {
-      console.error('=== Status Change Error ===')
-      console.error('Error type:', error?.constructor?.name)
-      console.error('Error message:', error instanceof Error ? error.message : error)
-      console.error('Full error:', error)
+      console.error('상태 변경 중 오류:', error)
       alert('상태 변경 중 오류가 발생했습니다.')
+      fetchCampaigns()
     }
   }
 
@@ -314,6 +341,33 @@ export default function AdminCampaignsPage() {
     }
   }
 
+  // 일괄 휴지통 이동
+  const handleBulkTrash = async () => {
+    if (selectedCampaigns.length === 0) {
+      alert('삭제할 캠페인을 선택해주세요.')
+      return
+    }
+    
+    if (!confirm(`선택한 ${selectedCampaigns.length}개의 캠페인을 휴지통으로 이동하시겠습니까?`)) {
+      return
+    }
+    
+    try {
+      const promises = selectedCampaigns.map(id => 
+        adminApi.put(`/api/admin/campaigns/${id}/status`, { status: 'deleted' })
+      )
+      
+      await Promise.all(promises)
+      
+      setCampaigns(prev => prev.filter(campaign => !selectedCampaigns.includes(campaign.id)))
+      setSelectedCampaigns([])
+      alert('선택한 캠페인이 휴지통으로 이동되었습니다.')
+    } catch (error) {
+      console.error('일괄 삭제 실패:', error)
+      alert('일괄 삭제 중 오류가 발생했습니다.')
+    }
+  }
+
   // 일괄 복원
   const handleBulkRestore = async () => {
     if (selectedCampaigns.length === 0) {
@@ -373,6 +427,22 @@ export default function AdminCampaignsPage() {
       case 'TIKTOK': return '🎵'
       case 'BLOG': return '✍️'
       default: return '📱'
+    }
+  }
+
+  const getMainCategoryBadge = (category: string) => {
+    switch (category?.toLowerCase()) {
+      case '캠페인':
+      case 'campaigns':
+        return 'bg-blue-100 text-blue-800'
+      case '병원':
+      case 'hospital':
+        return 'bg-green-100 text-green-800'
+      case '구매평':
+      case 'reviews':
+        return 'bg-orange-100 text-orange-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -552,6 +622,78 @@ export default function AdminCampaignsPage() {
               </svg>
               휴지통
             </button>
+            
+            {/* 구분선 */}
+            <div className="border-l border-gray-300 h-8 self-center mx-2"></div>
+            
+            {/* 대분류 필터 탭 */}
+            <button
+              onClick={() => {
+                setSelectedMainCategory('all')
+                setCurrentPage(1)
+              }}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                selectedMainCategory === 'all'
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              전체 대분류
+            </button>
+            <button
+              onClick={() => {
+                setSelectedMainCategory('캠페인')
+                setCurrentPage(1)
+              }}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                selectedMainCategory === '캠페인'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              캠페인
+              {campaigns.filter(c => c.mainCategory === '캠페인').length > 0 && (
+                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {campaigns.filter(c => c.mainCategory === '캠페인').length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                setSelectedMainCategory('병원')
+                setCurrentPage(1)
+              }}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                selectedMainCategory === '병원'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              병원
+              {campaigns.filter(c => c.mainCategory === '병원').length > 0 && (
+                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  {campaigns.filter(c => c.mainCategory === '병원').length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                setSelectedMainCategory('구매평')
+                setCurrentPage(1)
+              }}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                selectedMainCategory === '구매평'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              구매평
+              {campaigns.filter(c => c.mainCategory === '구매평').length > 0 && (
+                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  {campaigns.filter(c => c.mainCategory === '구매평').length}
+                </span>
+              )}
+            </button>
           </nav>
         </div>
 
@@ -585,6 +727,18 @@ export default function AdminCampaignsPage() {
           </div>
         </div>
 
+        {/* 일반 탭일 때 일괄 휴지통 버튼 */}
+        {activeTab !== 'trash' && selectedCampaigns.length > 0 && (
+          <div className="bg-white p-4 rounded-lg shadow flex justify-end gap-2">
+            <button
+              onClick={handleBulkTrash}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              선택 삭제 ({selectedCampaigns.length})
+            </button>
+          </div>
+        )}
+
         {/* 휴지통 탭일 때 일괄 작업 버튼 */}
         {activeTab === 'trash' && selectedCampaigns.length > 0 && (
           <div className="bg-white p-4 rounded-lg shadow flex justify-end gap-2">
@@ -604,178 +758,232 @@ export default function AdminCampaignsPage() {
         )}
 
         {/* 캠페인 테이블 */}
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {activeTab === 'trash' && (
-                  <th className="px-6 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedCampaigns.length === campaigns.length && campaigns.length > 0}
-                      onChange={toggleAllSelection}
-                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                  </th>
-                )}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[350px]">
+                <th className="px-3 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={selectedCampaigns.length === campaigns.length && campaigns.length > 0}
+                    onChange={toggleAllSelection}
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   캠페인
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  대분류
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  중분류
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   업체
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
-                  플랫폼
+                <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  SNS
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
+                <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   예산
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
-                  수수료율
+                <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  기간
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   지원자
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
-                  결제
-                </th>
                 {activeTab !== 'trash' && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     상태
                   </th>
                 )}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">
-                  작업
+                <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  액션
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {campaigns.map((campaign) => (
                 <tr key={campaign.id} className="hover:bg-gray-50">
-                  {activeTab === 'trash' && (
-                    <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedCampaigns.includes(campaign.id)}
-                        onChange={() => toggleCampaignSelection(campaign.id)}
-                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                      />
-                    </td>
-                  )}
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedCampaigns.includes(campaign.id)}
+                      onChange={() => toggleCampaignSelection(campaign.id)}
+                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                  </td>
+                  <td className="px-3 py-3">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-16 w-16">
+                      <div className="flex-shrink-0 h-10 w-10">
                         <img 
-                          className="h-16 w-16 rounded-lg object-cover"
+                          className="h-10 w-10 rounded object-cover"
                           src={campaign.imageUrl || '/placeholder-image.jpg'}
                           alt={campaign.title}
                         />
                       </div>
-                      <div className="ml-4 max-w-md">
+                      <div className="ml-3" style={{minWidth: '180px'}}>
                         <button
                           onClick={() => openCampaignDetail(campaign.id)}
-                          className="text-sm font-medium text-gray-900 hover:text-blue-600 text-left line-clamp-1"
+                          className="text-sm font-medium text-gray-900 hover:text-blue-600 text-left block"
+                          title={campaign.title}
                         >
                           {campaign.title}
                         </button>
-                        <div className="text-sm text-gray-500 line-clamp-2">{(campaign as any).description}</div>
                         <div className="text-xs text-gray-400">
-                          {campaign.startDate} ~ {campaign.endDate}
+                          {campaign.startDate.slice(5, 10)} ~ {campaign.endDate.slice(5, 10)}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 line-clamp-1">{campaign.businessName}</div>
-                    <div className="text-sm text-gray-500 line-clamp-1">{campaign.businessEmail}</div>
+                  <td className="px-3 py-3">
+                    <button
+                      onClick={() => openCategoryEdit(campaign.id)}
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium transition-all hover:scale-105 hover:shadow-md ${getMainCategoryBadge(campaign.mainCategory || '캠페인')}`}
+                      title="클릭하여 대분류 편집"
+                    >
+                      {campaign.mainCategory || '캠페인'}
+                      <svg className="w-3 h-3 ml-1 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <span className="text-lg mr-2">{getPlatformIcon((campaign as any).category)}</span>
-                      <span className="text-sm text-gray-900">{(campaign as any).category}</span>
+                  <td className="px-3 py-3">
+                    <button
+                      onClick={() => openCategoryEdit(campaign.id)}
+                      className="text-sm text-gray-900 hover:text-blue-600 hover:bg-gray-50 px-2 py-1 rounded transition-colors"
+                      title="클릭하여 중분류 편집"
+                    >
+                      {campaign.category || '-'}
+                      <svg className="w-3 h-3 inline-block ml-1 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="text-sm text-gray-900" title={campaign.businessName}>
+                      {campaign.businessName}
+                    </div>
+                    <div className="text-xs text-gray-500" title={campaign.businessEmail}>
+                      {campaign.businessEmail}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">₩{((campaign as any).budget || 0).toLocaleString()}</div>
-                    <div className="text-sm text-gray-500">{(campaign as any).targetFollowers.toLocaleString()} 팔로워</div>
+                  <td className="px-2 py-3 text-center">
+                    <span className="text-lg" title={campaign.platform}>
+                      {getPlatformIcon(campaign.platform)}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {((campaign.platformFeeRate || 0.2) * 100).toFixed(0)}%
+                  <td className="px-3 py-3 text-right">
+                    <div className="text-sm font-medium text-gray-900">₩{((campaign as any).budget / 10000).toFixed(0)}만</div>
+                  </td>
+                  <td className="px-3 py-3 text-center">
+                    <div className="text-xs text-gray-600">
+                      {campaign.startDate.slice(5, 7)}/{campaign.startDate.slice(8, 10)}
                     </div>
-                    <div className="text-xs text-gray-500">
-                      ₩{Math.floor((campaign as any).budget * (campaign.platformFeeRate || 0.2)).toLocaleString()}
+                    <div className="text-xs text-gray-600">
+                      ~ {campaign.endDate.slice(5, 7)}/{campaign.endDate.slice(8, 10)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-3 text-center">
                     <div className="text-sm text-gray-900">{campaign.applicantCount}명</div>
-                    <div className="text-sm text-gray-500">선택: {campaign.selectedCount}명</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {campaign.isPaid ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        결제완료
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        미결제
-                      </span>
-                    )}
+                    <div className="text-xs text-gray-500">선택: {campaign.selectedCount}</div>
                   </td>
                   {activeTab !== 'trash' && (
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
-                        {getStatusText(campaign.status)}
-                      </span>
+                    <td className="px-3 py-3 text-center">
+                      <div className="relative inline-block">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setStatusMenuOpen(statusMenuOpen === campaign.id ? null : campaign.id);
+                          }}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)} hover:opacity-80 transition-opacity`}
+                        >
+                          {getStatusText(campaign.status)}
+                          <svg className="w-3 h-3 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {statusMenuOpen === campaign.id && (
+                          <div className="absolute z-10 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(campaign.id, 'DRAFT'); setStatusMenuOpen(null); }}
+                              className="block w-full text-left px-3 py-2 text-xs hover:bg-gray-100 rounded-t-lg"
+                            >
+                              초안
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(campaign.id, 'PENDING_REVIEW'); setStatusMenuOpen(null); }}
+                              className="block w-full text-left px-3 py-2 text-xs hover:bg-gray-100"
+                            >
+                              승인대기
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(campaign.id, 'ACTIVE'); setStatusMenuOpen(null); }}
+                              className="block w-full text-left px-3 py-2 text-xs hover:bg-gray-100"
+                            >
+                              진행중
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(campaign.id, 'PAUSED'); setStatusMenuOpen(null); }}
+                              className="block w-full text-left px-3 py-2 text-xs hover:bg-gray-100"
+                            >
+                              일시중지
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(campaign.id, 'COMPLETED'); setStatusMenuOpen(null); }}
+                              className="block w-full text-left px-3 py-2 text-xs hover:bg-gray-100"
+                            >
+                              완료
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(campaign.id, 'REJECTED'); setStatusMenuOpen(null); }}
+                              className="block w-full text-left px-3 py-2 text-xs hover:bg-gray-100"
+                            >
+                              거절됨
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(campaign.id, 'CANCELLED'); setStatusMenuOpen(null); }}
+                              className="block w-full text-left px-3 py-2 text-xs hover:bg-gray-100 rounded-b-lg"
+                            >
+                              취소
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   )}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
+                  <td className="px-3 py-3 text-xs font-medium">
+                    <div className="flex items-center justify-center space-x-1">
                       <button
                         onClick={() => openCampaignDetail(campaign.id)}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="text-indigo-600 hover:text-indigo-900 p-1"
                         title="상세보기"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                       </button>
-                      {campaign.status.toUpperCase() === 'PENDING_REVIEW' && campaign.isPaid && (
-                        <>
-                          <button
-                            onClick={() => handleApproveCampaign(campaign.id)}
-                            className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
-                            title="승인"
-                          >
-                            승인
-                          </button>
-                          <button
-                            onClick={() => handleRejectCampaign(campaign.id)}
-                            className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
-                            title="거절"
-                          >
-                            거절
-                          </button>
-                        </>
-                      )}
                       {activeTab === 'trash' ? (
                         <>
                           <button
                             onClick={() => handleRestore(campaign.id)}
-                            className="text-green-600 hover:text-green-900"
+                            className="text-green-600 hover:text-green-900 p-1"
                             title="복원"
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                           </button>
                           <button
                             onClick={() => handlePermanentDelete(campaign.id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-600 hover:text-red-900 p-1"
                             title="영구삭제"
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
@@ -783,10 +991,10 @@ export default function AdminCampaignsPage() {
                       ) : (
                         <button
                           onClick={() => handleDeleteCampaign(campaign.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 p-1"
                           title="삭제"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
@@ -797,6 +1005,7 @@ export default function AdminCampaignsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
         
         {/* 페이지네이션 */}
@@ -904,6 +1113,14 @@ export default function AdminCampaignsPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={handleCreateSuccess}
+      />
+
+      {/* 카테고리 편집 패널 */}
+      <CategoryEditPanel
+        campaignId={editCategoryId}
+        isOpen={isCategoryEditOpen}
+        onClose={closeCategoryEdit}
+        onSave={handleCategorySave}
       />
     </AdminLayout>
   )

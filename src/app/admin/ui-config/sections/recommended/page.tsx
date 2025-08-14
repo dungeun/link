@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
@@ -29,6 +29,38 @@ export default function RecommendedSectionEditPage() {
     autoFilter: {}
   });
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // DB에서 데이터 로드
+  useEffect(() => {
+    loadSection();
+  }, []);
+
+  const loadSection = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/ui-sections/recommended');
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.section) {
+          setRecommendedSection({
+            title: data.section.title || '추천 캠페인',
+            subtitle: data.section.subtitle || '지금 주목할만한 캠페인을 만나보세요',
+            visible: data.section.visible,
+            count: data.section.content?.count || 10,
+            selectionMode: data.section.content?.selectionMode || 'auto',
+            autoFilter: data.section.content?.autoFilter || {},
+            manualCampaignIds: data.section.content?.manualCampaignIds || []
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading section:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleUpdate = (updates: Partial<RecommendedSection>) => {
     setRecommendedSection({ ...recommendedSection, ...updates });
@@ -37,10 +69,33 @@ export default function RecommendedSectionEditPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('저장되었습니다.');
-      router.push('/admin/ui-config?tab=sections');
+      const response = await fetch('/api/admin/ui-sections/recommended', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          visible: recommendedSection.visible,
+          title: recommendedSection.title,
+          subtitle: recommendedSection.subtitle,
+          content: {
+            count: recommendedSection.count,
+            selectionMode: recommendedSection.selectionMode,
+            autoFilter: recommendedSection.autoFilter,
+            manualCampaignIds: recommendedSection.manualCampaignIds
+          },
+          autoTranslate: true
+        })
+      });
+
+      if (response.ok) {
+        alert('저장되었습니다.');
+        router.push('/admin/ui-config?tab=sections');
+      } else {
+        throw new Error('Save failed');
+      }
     } catch (error) {
+      console.error('Error saving section:', error);
       alert('저장 중 오류가 발생했습니다.');
     } finally {
       setSaving(false);

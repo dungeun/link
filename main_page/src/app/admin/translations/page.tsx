@@ -32,6 +32,7 @@ export default function TranslationManagementPage() {
   const [editingField, setEditingField] = useState<'en' | 'jp' | null>(null)
   const [autoTranslating, setAutoTranslating] = useState<string | null>(null)
   const [apiStatus, setApiStatus] = useState<'checking' | 'available' | 'unavailable'>('checking')
+  const [showUntranslatedOnly, setShowUntranslatedOnly] = useState(false)
   const [apiSettings, setApiSettings] = useState({
     apiKey: '',
     defaultSourceLang: 'ko',
@@ -50,7 +51,8 @@ export default function TranslationManagementPage() {
   const loadTranslations = async () => {
     setLoading(true)
     try {
-      const response = await adminApi.get(`/api/admin/translations?type=${selectedType}`)
+      const untranslatedParam = showUntranslatedOnly ? '&untranslatedOnly=true' : ''
+      const response = await adminApi.get(`/api/admin/translations?type=${selectedType}${untranslatedParam}`)
       if (response.ok) {
         const data = await response.json()
         
@@ -126,7 +128,7 @@ export default function TranslationManagementPage() {
       loadApiSettings()
     }
     checkApiStatus()
-  }, [selectedType])
+  }, [selectedType, showUntranslatedOnly])
 
   // 카테고리 변경 시 필터링
   useEffect(() => {
@@ -492,6 +494,19 @@ export default function TranslationManagementPage() {
                   <RefreshCw className="w-4 h-4" />
                   새로고침
                 </button>
+                
+                {/* 번역 누락 항목만 표시 토글 */}
+                {(selectedType === 'menu' || selectedType === 'main-sections') && (
+                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={showUntranslatedOnly}
+                      onChange={(e) => setShowUntranslatedOnly(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">번역 누락 항목만</span>
+                  </label>
+                )}
               </div>
 
               <div className="text-sm text-gray-600">

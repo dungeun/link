@@ -19,6 +19,7 @@ model User {
   statusUpdatedAt            DateTime?
   createdAt                  DateTime              @default(now())
   updatedAt                  DateTime              @updatedAt
+  deletedAt                  DateTime?             // Soft delete 필드
   lastLogin                  DateTime?
   verified                   Boolean               @default(false)
   applicationTemplates       ApplicationTemplate[]
@@ -153,6 +154,7 @@ model Campaign {
   questions            Json?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?             // Soft delete 필드
   deliverables         String?
   detailedRequirements String?
   platformFeeRate      Float                 @default(0.2)
@@ -171,6 +173,8 @@ model Campaign {
   campaignMission      String?               // 캠페인 미션
   keywords             String?               // 키워드
   additionalNotes      String?               // 추가 안내사항
+  category             String?               // 중분류 카테고리
+  mainCategory         String?               // 대분류 카테고리
   applications         CampaignApplication[]
   campaignLikes        CampaignLike[]
   campaignTranslations CampaignTranslation[]
@@ -193,6 +197,7 @@ model CampaignApplication {
   rejectionReason String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?        // Soft delete 필드
   campaign        Campaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   influencer      User             @relation(fields: [influencerId], references: [id], onDelete: Cascade)
   contents        Content[]
@@ -404,6 +409,7 @@ model Post {
   isPinned         Boolean           @default(false)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?         // Soft delete 필드
   comments         Comment[]
   postLikes        PostLike[]
   postTranslations PostTranslation[]

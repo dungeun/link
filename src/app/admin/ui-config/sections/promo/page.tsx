@@ -398,14 +398,23 @@ export default function PromoSectionEditPage() {
                       : undefined
                   }}
                 >
-                  <div className={`flex items-center justify-between ${
+                  <div className={`flex flex-col items-center justify-center text-center min-h-[120px] ${
                     promoBanner.backgroundImage ? 'relative z-10' : ''
                   }`}>
                     {promoBanner.backgroundImage && (
                       <div className="absolute inset-0 bg-black/20 -z-10" />
                     )}
-                    <div>
-                      <h3 className={`text-xl font-bold mb-1`}
+                    
+                    {/* 아이콘을 텍스트 위에 배치 */}
+                    {promoBanner.icon && (
+                      <div className="mb-3">
+                        <span className="text-5xl">{promoBanner.icon}</span>
+                      </div>
+                    )}
+                    
+                    {/* 텍스트 중앙 정렬 */}
+                    <div className="space-y-2">
+                      <h3 className={`text-xl font-bold`}
                         style={{ 
                           color: promoBanner.backgroundImage ? '#FFFFFF' : promoBanner.textColor 
                         }}
@@ -419,11 +428,10 @@ export default function PromoSectionEditPage() {
                         {promoBanner.subtitle || '부제목을 입력하세요'}
                       </p>
                     </div>
-                    <div className="flex items-center gap-4">
-                      {promoBanner.icon && (
-                        <span className="text-5xl">{promoBanner.icon}</span>
-                      )}
-                      {promoBanner.link && (
+                    
+                    {/* 링크 화살표는 우측 하단에 위치 */}
+                    {promoBanner.link && (
+                      <div className="absolute bottom-4 right-4">
                         <svg className="w-6 h-6 opacity-50 group-hover:opacity-100 transition" 
                           fill="none" 
                           stroke={promoBanner.backgroundImage ? '#FFFFFF' : promoBanner.textColor} 
@@ -431,8 +439,8 @@ export default function PromoSectionEditPage() {
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -456,31 +464,35 @@ export default function PromoSectionEditPage() {
                         : undefined
                     }}
                   >
-                    <div className={`${promoBanner.backgroundImage ? 'relative z-10' : ''}`}>
+                    <div className={`flex flex-col items-center justify-center text-center min-h-[100px] ${promoBanner.backgroundImage ? 'relative z-10' : ''}`}>
                       {promoBanner.backgroundImage && (
                         <div className="absolute inset-0 bg-black/20 -z-10" />
                       )}
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold"
-                            style={{ 
-                              color: promoBanner.backgroundImage ? '#FFFFFF' : promoBanner.textColor 
-                            }}
-                          >
-                            {promoBanner.title || '제목을 입력하세요'}
-                          </h3>
-                          <p className="text-sm"
-                            style={{ 
-                              color: promoBanner.backgroundImage ? '#FFFFFF' : promoBanner.textColor,
-                              opacity: promoBanner.backgroundImage ? 0.9 : 0.8
-                            }}
-                          >
-                            {promoBanner.subtitle || '부제목을 입력하세요'}
-                          </p>
+                      
+                      {/* 아이콘을 텍스트 위에 배치 */}
+                      {promoBanner.icon && (
+                        <div className="mb-2">
+                          <span className="text-3xl">{promoBanner.icon}</span>
                         </div>
-                        {promoBanner.icon && (
-                          <span className="text-3xl ml-3">{promoBanner.icon}</span>
-                        )}
+                      )}
+                      
+                      {/* 텍스트 중앙 정렬 */}
+                      <div className="space-y-1">
+                        <h3 className="text-lg font-bold"
+                          style={{ 
+                            color: promoBanner.backgroundImage ? '#FFFFFF' : promoBanner.textColor 
+                          }}
+                        >
+                          {promoBanner.title || '제목을 입력하세요'}
+                        </h3>
+                        <p className="text-sm"
+                          style={{ 
+                            color: promoBanner.backgroundImage ? '#FFFFFF' : promoBanner.textColor,
+                            opacity: promoBanner.backgroundImage ? 0.9 : 0.8
+                          }}
+                        >
+                          {promoBanner.subtitle || '부제목을 입력하세요'}
+                        </p>
                       </div>
                     </div>
                   </div>

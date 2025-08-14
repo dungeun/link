@@ -36,14 +36,17 @@ export async function PUT(
     const dbStatus = status.toUpperCase()
     console.log('Status conversion:', { original: status, converted: dbStatus })
 
-    // 먼저 캠페인이 존재하는지 확인
+    // 먼저 캠페인이 존재하는지 확인 (삭제되지 않은 캠페인만)
     const existingCampaign = await prisma.campaign.findUnique({
-      where: { id: campaignId },
+      where: { 
+        id: campaignId,
+        deletedAt: null 
+      },
       select: { id: true, status: true, title: true }
     })
     
     if (!existingCampaign) {
-      console.log('Campaign not found:', campaignId)
+      console.log('Campaign not found or already deleted:', campaignId)
       return NextResponse.json(
         { error: 'Campaign not found' },
         { status: 404 }
@@ -52,7 +55,26 @@ export async function PUT(
     
     console.log('Existing campaign:', existingCampaign)
 
-    // 캠페인 상태 업데이트
+    // 'deleted' 상태인 경우 soft delete 수행
+    if (dbStatus === 'DELETED') {
+      console.log('Performing soft delete for campaign:', campaignId)
+      const updatedCampaign = await prisma.campaign.update({
+        where: { id: campaignId },
+        data: { 
+          deletedAt: new Date(),
+          updatedAt: new Date()
+        }
+      })
+      
+      console.log('Campaign soft deleted successfully:', { id: updatedCampaign.id })
+      return NextResponse.json({
+        success: true,
+        message: '캠페인이 성공적으로 삭제되었습니다.',
+        campaign: updatedCampaign
+      })
+    }
+
+    // 일반 상태 업데이트
     const updatedCampaign = await prisma.campaign.update({
       where: { id: campaignId },
       data: { 

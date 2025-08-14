@@ -274,3 +274,9 @@ export class TranslationService {
 
 // 싱글톤 인스턴스
 export const translationService = new TranslationService();
+
+// 편의를 위한 함수 export
+export async function translateText(text: string, targetLanguage: string): Promise<string> {
+  const result = await translationService.translateText(text, { to: targetLanguage });
+  return result.translatedText;
+}

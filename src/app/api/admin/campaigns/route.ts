@@ -19,12 +19,15 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
     const search = searchParams.get('search');
+    const mainCategory = searchParams.get('mainCategory');
     const page = Number(searchParams.get('page')) || 1;
     const limit = Number(searchParams.get('limit')) || 20;
     const skip = (page - 1) * limit;
 
     // 검색 조건 구성
-    const where: any = {};
+    const where: any = {
+      deletedAt: null // 삭제되지 않은 캠페인만 조회
+    };
     
     if (status && status !== 'all') {
       where.status = status;
@@ -39,12 +42,10 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // 캠페인 조회
-    const [campaigns, total] = await Promise.all([
+    // 캠페인 조회 - 먼저 모든 캠페인을 가져온 후 mainCategory로 필터링
+    const [allCampaigns, total] = await Promise.all([
       prisma.campaign.findMany({
         where,
-        skip,
-        take: limit,
         include: {
           business: {
             select: {
@@ -73,36 +74,53 @@ export async function GET(request: NextRequest) {
       prisma.campaign.count({ where })
     ]);
 
+    // mainCategory 필터링을 메모리에서 수행
+    let filteredCampaigns = allCampaigns;
+    if (mainCategory && mainCategory !== 'all') {
+      filteredCampaigns = allCampaigns.filter(campaign => {
+        const campaignMainCategory = campaign.mainCategory || '캠페인';
+        return campaignMainCategory === mainCategory;
+      });
+    }
+
+    // 페이지네이션 적용
+    const paginatedCampaigns = filteredCampaigns.slice(skip, skip + limit);
+    const filteredTotal = filteredCampaigns.length;
+
     // 응답 데이터 포맷
-    const formattedCampaigns = campaigns.map(campaign => ({
-      id: campaign.id,
-      title: campaign.title,
-      description: campaign.description,
-      businessName: campaign.business.businessProfile?.companyName || campaign.business.name,
-      businessEmail: campaign.business.email,
-      platform: campaign.platform,
-      budget: campaign.budget,
-      targetFollowers: campaign.targetFollowers,
-      startDate: campaign.startDate.toISOString().split('T')[0],
-      endDate: campaign.endDate.toISOString().split('T')[0],
-      status: campaign.status.toLowerCase(),
-      applicantCount: campaign._count.applications,
-      selectedCount: campaign.applications.length,
-      createdAt: campaign.createdAt.toISOString().split('T')[0],
-      imageUrl: campaign.imageUrl,
-      hashtags: campaign.hashtags,
-      requirements: campaign.requirements,
-      isPaid: campaign.isPaid,
-      platformFeeRate: (campaign as any).platformFeeRate || 0.2
-    }));
+    const formattedCampaigns = paginatedCampaigns.map(campaign => {      
+      return {
+        id: campaign.id,
+        title: campaign.title,
+        description: campaign.description,
+        businessName: campaign.business.businessProfile?.companyName || campaign.business.name,
+        businessEmail: campaign.business.email,
+        platform: campaign.platform,
+        budget: campaign.budget,
+        targetFollowers: campaign.targetFollowers,
+        startDate: campaign.startDate.toISOString().split('T')[0],
+        endDate: campaign.endDate.toISOString().split('T')[0],
+        status: campaign.status.toLowerCase(),
+        applicantCount: campaign._count.applications,
+        selectedCount: campaign.applications.length,
+        createdAt: campaign.createdAt.toISOString().split('T')[0],
+        imageUrl: campaign.imageUrl,
+        hashtags: campaign.hashtags,
+        requirements: campaign.requirements,
+        isPaid: campaign.isPaid,
+        platformFeeRate: campaign.platformFeeRate || 0.2,
+        mainCategory: campaign.mainCategory || '캠페인',
+        category: campaign.category || null
+      };
+    });
 
     return NextResponse.json({
       campaigns: formattedCampaigns,
       pagination: {
         page,
         limit,
-        total,
-        totalPages: Math.ceil(total / limit)
+        total: filteredTotal,
+        totalPages: Math.ceil(filteredTotal / limit)
       }
     });
 

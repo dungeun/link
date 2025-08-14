@@ -126,6 +126,15 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
       )
     },
     {
+      title: t('admin.menu.categories', '카테고리 관리'),
+      href: '/admin/categories',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      )
+    },
+    {
       title: t('admin.menu.ui_config', 'UI 설정'),
       href: '/admin/ui-config',
       icon: (
@@ -254,9 +263,9 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
             </div>
           </div>
 
-          {/* 페이지 콘텐츠 - 더 넓은 패딩 */}
+          {/* 페이지 콘텐츠 - 1920px 전체 활용 */}
           <main className="p-8 max-w-none">
-            <div className="max-w-[1440px] mx-auto">
+            <div className="w-full max-w-[1600px] mx-auto">
               {children}
             </div>
           </main>

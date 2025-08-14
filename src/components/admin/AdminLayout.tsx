@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { AdminLanguageProvider, useAdminLanguage } from '@/contexts/AdminLanguageContext'
+import AdminLanguageSelector from './AdminLanguageSelector'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -255,6 +256,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                 </p>
               </div>
               <div className="flex items-center space-x-4">
+                <AdminLanguageSelector />
                 <div className="text-sm text-gray-600">
                   화면 해상도: 1920px 최적화
                 </div>

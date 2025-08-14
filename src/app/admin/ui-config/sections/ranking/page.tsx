@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
@@ -24,6 +24,37 @@ export default function RankingSectionEditPage() {
     showBadge: true
   });
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // DB에서 데이터 로드
+  useEffect(() => {
+    loadSection();
+  }, []);
+
+  const loadSection = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/ui-sections/ranking');
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.section) {
+          setRankingSection({
+            title: data.section.title || '실시간 랭킹',
+            subtitle: data.section.subtitle || '지금 가장 인기있는 캠페인',
+            visible: data.section.visible,
+            count: data.section.content?.count || 5,
+            criteria: data.section.content?.criteria || 'popular',
+            showBadge: data.section.content?.showBadge ?? true
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading section:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleUpdate = (updates: Partial<RankingSection>) => {
     setRankingSection({ ...rankingSection, ...updates });
@@ -32,10 +63,32 @@ export default function RankingSectionEditPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('저장되었습니다.');
-      router.push('/admin/ui-config?tab=sections');
+      const response = await fetch('/api/admin/ui-sections/ranking', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          visible: rankingSection.visible,
+          title: rankingSection.title,
+          subtitle: rankingSection.subtitle,
+          content: {
+            count: rankingSection.count,
+            criteria: rankingSection.criteria,
+            showBadge: rankingSection.showBadge
+          },
+          autoTranslate: true
+        })
+      });
+
+      if (response.ok) {
+        alert('저장되었습니다.');
+        router.push('/admin/ui-config?tab=sections');
+      } else {
+        throw new Error('Save failed');
+      }
     } catch (error) {
+      console.error('Error saving section:', error);
       alert('저장 중 오류가 발생했습니다.');
     } finally {
       setSaving(false);

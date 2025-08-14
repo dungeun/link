@@ -13,11 +13,23 @@ const nextConfig = {
     },
   },
   
-  // 개발 서버 로그 최소화
+  // 개발 서버 메모리 최적화
   ...(process.env.NODE_ENV === 'development' && {
     onDemandEntries: {
-      maxInactiveAge: 25 * 1000,
-      pagesBufferLength: 2,
+      maxInactiveAge: 15 * 1000, // 15초로 단축
+      pagesBufferLength: 1, // 버퍼 크기 최소화
+    },
+    // 메모리 최적화
+    webpack: (config, { dev, isServer }) => {
+      if (dev && !isServer) {
+        config.watchOptions = {
+          poll: 1000,
+          aggregateTimeout: 300,
+          ignored: ['**/node_modules', '**/.git', '**/.next'],
+        };
+        config.cache = false; // 캐시 비활성화로 메모리 절약
+      }
+      return config;
     },
   }),
   

@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams
     const type = searchParams.get('type') || 'campaign'
+    const untranslatedOnly = searchParams.get('untranslatedOnly') === 'true'
 
     let data: any[] = []
 
@@ -65,21 +66,34 @@ export async function GET(request: NextRequest) {
       }))
     } else if (type === 'menu') {
       // 메뉴 관련 LanguagePack 데이터만 조회
+      const whereClause: any = {
+        OR: [
+          { category: 'ui_menu' },
+          { category: 'ui_action' },
+          { category: 'ui_notification' }
+        ]
+      }
+
       const languagePacks = await prisma.languagePack.findMany({
-        where: {
-          OR: [
-            { category: 'ui_menu' },
-            { category: 'ui_action' },
-            { category: 'ui_notification' }
-          ]
-        },
+        where: whereClause,
         orderBy: [
           { category: 'asc' },
           { key: 'asc' }
         ]
       })
 
-      data = languagePacks.map(pack => ({
+      let filteredPacks = languagePacks
+      
+      // 번역되지 않은 항목만 필터링 (JavaScript로 필터링)
+      if (untranslatedOnly) {
+        filteredPacks = languagePacks.filter(pack => {
+          const enMissing = !pack.en || pack.en === pack.ko || pack.en.trim() === ''
+          const jpMissing = !pack.jp || pack.jp === pack.ko || pack.jp.trim() === ''
+          return enMissing || jpMissing
+        })
+      }
+
+      data = filteredPacks.map(pack => ({
         id: pack.id,
         type: 'menu',
         originalId: pack.id,
@@ -95,24 +109,37 @@ export async function GET(request: NextRequest) {
       }))
     } else if (type === 'main-sections') {
       // 메인 섹션 관련 LanguagePack 데이터만 조회
+      const whereClause: any = {
+        OR: [
+          { category: 'ui_hero' },
+          { category: 'ui_category' },
+          { category: 'ui_quicklink' },
+          { category: 'ui_promo' },
+          { category: 'ui_ranking' },
+          { category: 'ui_footer' }
+        ]
+      }
+
       const languagePacks = await prisma.languagePack.findMany({
-        where: {
-          OR: [
-            { category: 'ui_hero' },
-            { category: 'ui_category' },
-            { category: 'ui_quicklink' },
-            { category: 'ui_promo' },
-            { category: 'ui_ranking' },
-            { category: 'ui_footer' }
-          ]
-        },
+        where: whereClause,
         orderBy: [
           { category: 'asc' },
           { key: 'asc' }
         ]
       })
 
-      data = languagePacks.map(pack => ({
+      let filteredPacks = languagePacks
+
+      // 번역되지 않은 항목만 필터링 (JavaScript로 필터링)
+      if (untranslatedOnly) {
+        filteredPacks = languagePacks.filter(pack => {
+          const enMissing = !pack.en || pack.en === pack.ko || pack.en.trim() === ''
+          const jpMissing = !pack.jp || pack.jp === pack.ko || pack.jp.trim() === ''
+          return enMissing || jpMissing
+        })
+      }
+
+      data = filteredPacks.map(pack => ({
         id: pack.id,
         type: 'main-sections',
         originalId: pack.id,

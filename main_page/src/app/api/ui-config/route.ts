@@ -47,6 +47,48 @@ export async function GET(request: NextRequest) {
     // 언어 파라미터 추출
     const { searchParams } = new URL(request.url);
     const language = searchParams.get('lang') || 'ko';
+    
+    // 데이터베이스에서 메뉴에 표시할 카테고리 조회
+    let categoryMenus = [];
+    try {
+      const categories = await prisma.category.findMany({
+        where: {
+          showInMenu: true,
+          isActive: true
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          icon: true,
+          menuOrder: true
+        },
+        orderBy: { menuOrder: 'asc' }
+      });
+
+      categoryMenus = categories.map((cat, index) => ({
+        id: `cat-${cat.id}`,
+        name: cat.name,
+        categoryId: cat.slug,
+        icon: cat.icon || '',
+        href: `/category/${cat.slug}`,
+        order: cat.menuOrder || index + 1,
+        visible: true
+      }));
+    } catch (error) {
+      console.warn('Failed to fetch category menus:', error);
+      // 기본 카테고리 메뉴 유지
+    }
+
+    // 헤더 메뉴용 카테고리 추가 (상위 3개만)
+    const headerCategoryMenus = categoryMenus.slice(0, 3).map((cat, index) => ({
+      id: `header-cat-${cat.id}`,
+      label: cat.name,
+      href: cat.href,
+      order: 10 + index, // 기본 메뉴 뒤에 배치
+      visible: true
+    }));
+
     // 기본 설정 먼저 준비 (번역 적용)
     const defaultConfig = {
         header: {
@@ -59,6 +101,7 @@ export async function GET(request: NextRequest) {
             { id: 'menu-2', label: await getTranslation('header.menu.influencers', language), href: '/influencers', order: 2, visible: true },
             { id: 'menu-3', label: await getTranslation('header.menu.community', language), href: '/community', order: 3, visible: true },
             { id: 'menu-4', label: await getTranslation('header.menu.pricing', language), href: '/pricing', order: 4, visible: true },
+            ...headerCategoryMenus,
           ],
           ctaButton: {
             text: await getTranslation('header.cta.start', language),
@@ -163,18 +206,15 @@ export async function GET(request: NextRequest) {
               visible: true,
             },
           ],
-          categoryMenus: [
-            { id: 'cat-1', name: await getTranslation('category.beauty', language), categoryId: 'beauty', icon: '', order: 1, visible: true },
-            { id: 'cat-2', name: await getTranslation('category.fashion', language), categoryId: 'fashion', icon: '', order: 2, visible: true },
-            { id: 'cat-3', name: await getTranslation('category.food', language), categoryId: 'food', icon: '', badge: await getTranslation('badge.hot', language), order: 3, visible: true },
-            { id: 'cat-4', name: await getTranslation('category.travel', language), categoryId: 'travel', icon: '', order: 4, visible: true },
-            { id: 'cat-5', name: await getTranslation('category.tech', language), categoryId: 'tech', icon: '', order: 5, visible: true },
-            { id: 'cat-6', name: await getTranslation('category.fitness', language), categoryId: 'fitness', icon: '', order: 6, visible: true },
-            { id: 'cat-7', name: await getTranslation('category.lifestyle', language), categoryId: 'lifestyle', icon: '', order: 7, visible: true },
-            { id: 'cat-8', name: await getTranslation('category.pet', language), categoryId: 'pet', icon: '', order: 8, visible: true },
-            { id: 'cat-9', name: await getTranslation('category.parenting', language), categoryId: 'parenting', icon: '', order: 9, visible: true },
-            { id: 'cat-10', name: await getTranslation('category.game', language), categoryId: 'game', icon: '', badge: await getTranslation('badge.new', language), order: 10, visible: true },
-            { id: 'cat-11', name: await getTranslation('category.education', language), categoryId: 'education', icon: '', order: 11, visible: true },
+          categoryMenus: categoryMenus.length > 0 ? categoryMenus : [
+            { id: 'cat-1', name: await getTranslation('category.beauty', language), categoryId: 'beauty', icon: '💄', href: '/category/beauty', order: 1, visible: true },
+            { id: 'cat-2', name: await getTranslation('category.fashion', language), categoryId: 'fashion', icon: '👗', href: '/category/fashion', order: 2, visible: true },
+            { id: 'cat-3', name: await getTranslation('category.food', language), categoryId: 'food', icon: '🍔', href: '/category/food', badge: await getTranslation('badge.hot', language), order: 3, visible: true },
+            { id: 'cat-4', name: await getTranslation('category.travel', language), categoryId: 'travel', icon: '✈️', href: '/category/travel', order: 4, visible: true },
+            { id: 'cat-5', name: await getTranslation('category.tech', language), categoryId: 'tech', icon: '💻', href: '/category/tech', order: 5, visible: true },
+            { id: 'cat-6', name: await getTranslation('category.fitness', language), categoryId: 'fitness', icon: '💪', href: '/category/fitness', order: 6, visible: true },
+            { id: 'cat-7', name: await getTranslation('category.lifestyle', language), categoryId: 'lifestyle', icon: '🌱', href: '/category/lifestyle', order: 7, visible: true },
+            { id: 'cat-8', name: await getTranslation('category.pet', language), categoryId: 'pet', icon: '🐕', href: '/category/pet', order: 8, visible: true },
           ],
           quickLinks: [
             { id: 'quick-1', title: await getTranslation('quicklink.events', language), icon: '🎁', link: '/events', order: 1, visible: true },

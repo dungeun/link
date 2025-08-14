@@ -50,15 +50,23 @@ export async function POST(req: NextRequest) {
     // 번역 처리
     let translations: any = {};
     if (autoTranslate) {
-      const [enTranslation, jpTranslation] = await Promise.all([
-        translateText(name, 'ko', 'en'),
-        translateText(name, 'ko', 'ja')
-      ]);
+      try {
+        const [enTranslation, jpTranslation] = await Promise.all([
+          translateText(name, 'en').catch(() => name),
+          translateText(name, 'ja').catch(() => name)
+        ]);
 
-      translations = {
-        en: { name: enTranslation },
-        jp: { name: jpTranslation }
-      };
+        translations = {
+          en: { name: enTranslation },
+          jp: { name: jpTranslation }
+        };
+      } catch (error) {
+        console.warn('Translation failed, using original text:', error);
+        translations = {
+          en: { name: name },
+          jp: { name: name }
+        };
+      }
     }
 
     // 메뉴 데이터 생성
@@ -147,27 +155,31 @@ export async function PUT(req: NextRequest) {
     // 번역 업데이트
     let updatedTranslations = menu.translations as any || {};
     if (autoTranslate && name) {
-      const [enTranslation, jpTranslation] = await Promise.all([
-        translateText(name, 'ko', 'en'),
-        translateText(name, 'ko', 'ja')
-      ]);
+      try {
+        const [enTranslation, jpTranslation] = await Promise.all([
+          translateText(name, 'en').catch(() => name),
+          translateText(name, 'ja').catch(() => name)
+        ]);
 
-      updatedTranslations = {
-        ...updatedTranslations,
-        en: { ...updatedTranslations.en, name: enTranslation },
-        jp: { ...updatedTranslations.jp, name: jpTranslation }
-      };
+        updatedTranslations = {
+          ...updatedTranslations,
+          en: { ...updatedTranslations.en, name: enTranslation },
+          jp: { ...updatedTranslations.jp, name: jpTranslation }
+        };
 
-      // 언어팩도 업데이트
-      const menuKey = (menu.content as any)?.label || menu.sectionId;
-      await prisma.languagePack.updateMany({
-        where: { key: menuKey },
-        data: {
-          ko: name,
-          en: enTranslation,
-          jp: jpTranslation
-        }
-      });
+        // 언어팩도 업데이트
+        const menuKey = (menu.content as any)?.label || menu.sectionId;
+        await prisma.languagePack.updateMany({
+          where: { key: menuKey },
+          data: {
+            ko: name,
+            en: enTranslation,
+            jp: jpTranslation
+          }
+        });
+      } catch (error) {
+        console.warn('Translation failed during update:', error);
+      }
     }
 
     // DB 업데이트

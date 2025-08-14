@@ -9,6 +9,8 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useLanguage } from '@/hooks/useLanguage'
 import { logger } from '@/lib/logger'
+import RankingSection from '@/components/home/RankingSection'
+import RecommendedSection from '@/components/home/RecommendedSection'
 
 interface Campaign {
   id: string
@@ -590,6 +592,26 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
                     )}
                   </div>
                 ) : null
+
+              case 'ranking':
+                return (
+                  <RankingSection
+                    key={section.id}
+                    section={section}
+                    localizedContent={localizedContent}
+                    t={t}
+                  />
+                )
+
+              case 'recommended':
+                return (
+                  <RecommendedSection
+                    key={section.id}
+                    section={section}
+                    localizedContent={localizedContent}
+                    t={t}
+                  />
+                )
 
               default:
                 return null
