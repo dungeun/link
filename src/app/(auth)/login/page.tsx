@@ -143,9 +143,9 @@ export default function LoginPage() {
     } else {
       // 폴백: 기본 계정 사용
       const credentials = {
-        user: { email: 'influencer1@revu.com', password: 'influencer@2024' },
-        business: { email: 'business1@company.com', password: 'business@2024' },
-        admin: { email: 'admin@revu.com', password: 'admin@2024!' }
+        user: { email: 'influencer@example.com', password: 'influencer2024' },
+        business: { email: 'business@company.com', password: 'business2024' },
+        admin: { email: 'admin@linkpick.co.kr', password: 'admin2024' }
       }
       email = credentials[userType].email
       password = credentials[userType].password
@@ -337,9 +337,9 @@ export default function LoginPage() {
                     <p>관리자: {demoAccounts.admin.name}</p>
                   )}
                   <div className="mt-2 text-gray-400 space-y-1">
-                    <p>인플루언서: influencer@2024</p>
-                    <p>클라이언트: business@2024</p>
-                    <p>관리자: admin@2024!</p>
+                    <p>인플루언서: influencer2024</p>
+                    <p>클라이언트: business2024</p>
+                    <p>관리자: admin2024</p>
                   </div>
                 </div>
               </div>

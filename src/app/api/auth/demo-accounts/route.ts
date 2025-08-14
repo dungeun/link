@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     // 새로운 데모 계정 반환
     const influencer = await prisma.user.findFirst({
       where: {
-        email: 'influencer@2024',
+        email: 'influencer@example.com',
         type: 'INFLUENCER',
         status: 'ACTIVE'
       },
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const business = await prisma.user.findFirst({
       where: {
-        email: 'business@2024',
+        email: 'business@company.com',
         type: 'BUSINESS',
         status: 'ACTIVE'
       },
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     const admin = await prisma.user.findFirst({
       where: {
-        email: 'admin@2024!',
+        email: 'admin@linkpick.co.kr',
         type: 'ADMIN',
         status: 'ACTIVE'
       },
@@ -54,34 +54,34 @@ export async function GET(request: NextRequest) {
         email: influencer.email,
         name: influencer.name,
         type: 'influencer',
-        password: 'demo2024!' // 실제 데모 비밀번호
+        password: 'influencer2024' // 실제 데모 비밀번호
       } : {
-        email: 'influencer@2024',
+        email: 'influencer@example.com',
         name: '데모 인플루언서',
         type: 'influencer',
-        password: 'demo2024!'
+        password: 'influencer2024'
       },
       business: business ? {
         email: business.email,
         name: business.name,
         type: 'business',
-        password: 'demo2024!' // 실제 데모 비밀번호
+        password: 'business2024' // 실제 데모 비밀번호
       } : {
-        email: 'business@2024',
+        email: 'business@company.com',
         name: '데모 비즈니스',
         type: 'business',
-        password: 'demo2024!'
+        password: 'business2024'
       },
       admin: admin ? {
         email: admin.email,
         name: admin.name,
         type: 'admin',
-        password: 'demo2024!' // 실제 데모 비밀번호
+        password: 'admin2024' // 실제 데모 비밀번호
       } : {
-        email: 'admin@2024!',
+        email: 'admin@linkpick.co.kr',
         name: '데모 관리자',
         type: 'admin',
-        password: 'demo2024!'
+        password: 'admin2024'
       }
     })
   } catch (error) {
