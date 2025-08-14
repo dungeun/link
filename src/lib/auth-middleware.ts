@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { getServerSession } from '@/lib/auth-server';
-import { JWT_SECRET } from '@/lib/auth/constants';
+import { getJWTSecret } from '@/lib/auth/constants';
 
 export interface AuthUser {
   id: string;
@@ -20,7 +20,8 @@ export async function authenticateJWT(request: NextRequest): Promise<AuthUser | 
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const jwtSecret = getJWTSecret();
+    const decoded = jwt.verify(token, jwtSecret) as any;
     return {
       id: decoded.id,
       email: decoded.email,

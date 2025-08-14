@@ -3,30 +3,20 @@ import { prisma } from '@/lib/db/prisma'
 import * as bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
-import { JWT_SECRET } from '@/lib/auth/constants'
+import { getJWTSecret } from '@/lib/auth/constants'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
+  console.log('=== LOGIN API START ===')
+  
   try {
-    logger.debug('Request headers:', Object.fromEntries(request.headers.entries()))
-    logger.debug('Request method:', request.method)
-    logger.debug('Request URL:', request.url)
-    
-    let body;
-    try {
-      const textBody = await request.text()
-      logger.debug('Raw request body:', textBody)
-      body = JSON.parse(textBody)
-    } catch (parseError) {
-      logger.error('JSON parsing error:', parseError)
-      return NextResponse.json(
-        { error: 'Invalid JSON format' },
-        { status: 400 }
-      )
-    }
+    // Request body 복제 후 사용
+    const requestClone = request.clone();
+    const body = await requestClone.json();
+    console.log('Parsed request body:', body);
     
     const { email, password } = body
     
@@ -83,6 +73,7 @@ export async function POST(request: NextRequest) {
     })
 
     // JWT 토큰 생성
+    const jwtSecret = getJWTSecret();
     const token = jwt.sign(
       {
         id: user.id,
@@ -91,7 +82,7 @@ export async function POST(request: NextRequest) {
         type: user.type,
         name: user.name
       },
-      JWT_SECRET,
+      jwtSecret,
       { expiresIn: '7d' }
     )
 
