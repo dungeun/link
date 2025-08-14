@@ -517,7 +517,7 @@ export default function CategoryCampaignsPage() {
                               
                               {/* 추가 정보 */}
                               <div className="flex items-center gap-2 text-xs text-gray-500">
-                                <span>{t('campaigns.card.followers_required', '팔로워 {count}+').replace('{count}', campaign.required_followers.toLocaleString())}</span>
+                                <span>{t('campaigns.card.followers_required', '팔로워 {count}+').replace('{count}', (campaign.required_followers || 0).toLocaleString())}</span>
                                 <span>•</span>
                                 <span>{t('campaigns.card.days_left', 'D-{days}').replace('{days}', daysLeft.toString())}</span>
                               </div>

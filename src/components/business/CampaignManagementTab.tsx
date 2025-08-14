@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { apiGet } from '@/lib/api/client'
-import { Plus, Search, Filter, Eye, Edit, Users, TrendingUp } from 'lucide-react'
+import { Plus, Search, Filter, Eye, Edit, Users, TrendingUp, Trash2 } from 'lucide-react'
 
 interface Campaign {
   id: string
@@ -34,22 +34,54 @@ export default function CampaignManagementTab() {
     fetchCampaigns()
   }, [])
 
+  const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
+    if (!confirm(`"${campaignTitle}" 캠페인을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/business/campaigns/${campaignId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+
+      if (response.ok) {
+        alert('캠페인이 성공적으로 삭제되었습니다.')
+        await fetchCampaigns() // 목록 새로고침
+      } else {
+        const error = await response.json()
+        alert(error.message || '캠페인 삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('캠페인 삭제 중 오류:', error)
+      alert('캠페인 삭제 중 오류가 발생했습니다.')
+    }
+  }
+
   const fetchCampaigns = async () => {
     try {
       setLoading(true)
+      console.log('[CampaignManagementTab] Fetching campaigns...')
       const response = await apiGet('/api/business/campaigns')
+      console.log('[CampaignManagementTab] Response status:', response.status)
       
       if (response.ok) {
         const data = await response.json()
-        setCampaigns(data.campaigns || [])
+        console.log('[CampaignManagementTab] Full response data:', data)
+        
+        // 응답 구조 처리 (success 래퍼가 있을 수 있음)
+        const campaignsData = data.data?.campaigns || data.campaigns || []
+        console.log('[CampaignManagementTab] Campaigns extracted:', campaignsData.length)
+        setCampaigns(campaignsData)
         
         // 통계 계산
-        const campaigns = data.campaigns || []
         setStats({
-          totalCampaigns: campaigns.length,
-          activeCampaigns: campaigns.filter((c: Campaign) => c.status === 'ACTIVE').length,
-          completedCampaigns: campaigns.filter((c: Campaign) => c.status === 'COMPLETED').length,
-          totalBudget: campaigns.reduce((sum: number, c: Campaign) => sum + (c.budget || 0), 0)
+          totalCampaigns: campaignsData.length,
+          activeCampaigns: campaignsData.filter((c: Campaign) => c.status === 'ACTIVE').length,
+          completedCampaigns: campaignsData.filter((c: Campaign) => c.status === 'COMPLETED').length,
+          totalBudget: campaignsData.reduce((sum: number, c: Campaign) => sum + (c.budget || 0), 0)
         })
       }
     } catch (error) {
@@ -245,27 +277,32 @@ export default function CampaignManagementTab() {
                   <div className="flex items-center gap-2">
                     <Link 
                       href={`/business/campaigns/${campaign.id}`}
-                      className="inline-flex items-center px-3 py-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                      className="inline-flex items-center px-3 py-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium border border-indigo-600 rounded-md hover:bg-indigo-50 transition-colors"
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       상세보기
                     </Link>
                     <Link 
                       href={`/business/campaigns/${campaign.id}/applicants`}
-                      className="inline-flex items-center px-3 py-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                      className="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 font-medium border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                     >
                       <Users className="w-4 h-4 mr-1" />
                       지원자
                     </Link>
-                    {campaign.status === 'ACTIVE' && (
-                      <Link 
-                        href={`/business/campaigns/${campaign.id}/edit`}
-                        className="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 font-medium"
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        수정
-                      </Link>
-                    )}
+                    <Link 
+                      href={`/business/campaigns/${campaign.id}/edit`}
+                      className="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 font-medium border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      수정
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteCampaign(campaign.id, campaign.title)}
+                      className="inline-flex items-center px-3 py-1.5 text-sm text-red-600 hover:text-red-700 font-medium border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      삭제
+                    </button>
                   </div>
                 </div>
               </div>

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast'
 import { useTemplates } from '@/hooks/useSharedData'
 import { invalidateCache } from '@/hooks/useCachedData'
+import { useAuth } from '@/hooks/useAuth'
 import { Save, Trash2, Youtube, Users } from 'lucide-react'
 
 // Component imports
@@ -67,6 +68,7 @@ interface CampaignTemplate {
 export default function NewCampaignPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -76,6 +78,8 @@ export default function NewCampaignPage() {
     title: '',
     description: '',
     platform: '',
+    budgetType: 'FREE',  // 기본값: 무료 캠페인
+    budget: 0,  // 캠페인 예산
     // 캠페인 기간
     startDate: '',  // 캠페인 시작일
     endDate: '',    // 캠페인 종료일
@@ -142,6 +146,18 @@ export default function NewCampaignPage() {
   // Template states - 캐싱된 데이터 사용
   const { data: templatesData, isLoading: loadingTemplates, refetch: refetchTemplates } = useTemplates('campaign')
   const templates = templatesData || []
+  
+  // 디버깅용 - 템플릿 데이터 확인 및 초기 로드
+  useEffect(() => {
+    console.log('Templates data:', templatesData)
+    console.log('Templates:', templates)
+    console.log('Loading templates:', loadingTemplates)
+    
+    // 초기 로드 시 템플릿 목록 가져오기
+    if (!templatesData && !loadingTemplates) {
+      refetchTemplates()
+    }
+  }, [templatesData, templates, loadingTemplates, refetchTemplates])
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [templateName, setTemplateName] = useState('')
   const [templateDescription, setTemplateDescription] = useState('')
@@ -165,7 +181,7 @@ export default function NewCampaignPage() {
     }
     
     try {
-      const response = await fetch('/api/business/campaign-templates', {
+      const response = await fetch('/api/business/templates', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +190,11 @@ export default function NewCampaignPage() {
         body: JSON.stringify({
           name: templateName,
           description: templateDescription,
-          data: formData
+          data: {
+            ...formData,
+            productImages,
+            dynamicQuestions
+          }
         })
       })
       
@@ -185,8 +205,10 @@ export default function NewCampaignPage() {
         setShowTemplateModal(false)
         setTemplateName('')
         setTemplateDescription('')
-        // 캐시 무효화하여 템플릿 목록 갱신
-        invalidateCache(`campaign_templates`)
+        // 캐시 무효화하여 템플릿 목록 갱신 - user.id 포함
+        if (user?.id) {
+          invalidateCache(`campaign_templates_${user.id}`)
+        }
         refetchTemplates()
       }
     } catch (error) {
@@ -201,7 +223,27 @@ export default function NewCampaignPage() {
   const loadTemplate = (templateId: string) => {
     const template = templates.find(t => t.id === templateId)
     if (template && template.data) {
-      setFormData({ ...formData, ...template.data })
+      // Parse template data if it's a string
+      const templateData = typeof template.data === 'string' 
+        ? JSON.parse(template.data) 
+        : template.data
+      
+      // Extract productImages and dynamicQuestions if they exist
+      const { productImages: savedImages, dynamicQuestions: savedQuestions, ...formFields } = templateData
+      
+      // Update form data
+      setFormData({ ...formData, ...formFields })
+      
+      // Update product images if saved
+      if (savedImages && Array.isArray(savedImages)) {
+        setProductImages(savedImages)
+      }
+      
+      // Update dynamic questions if saved
+      if (savedQuestions && Array.isArray(savedQuestions)) {
+        setDynamicQuestions(savedQuestions)
+      }
+      
       setSelectedTemplate(templateId)
       toast({
         title: '템플릿을 불러왔습니다.',
@@ -213,7 +255,7 @@ export default function NewCampaignPage() {
     if (!confirm('정말 이 템플릿을 삭제하시겠습니까?')) return
     
     try {
-      const response = await fetch(`/api/business/campaign-templates/${templateId}`, {
+      const response = await fetch(`/api/business/templates/${templateId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
@@ -224,8 +266,10 @@ export default function NewCampaignPage() {
         toast({
           title: '템플릿이 삭제되었습니다.',
         })
-        // 캐시 무효화하여 템플릿 목록 갱신
-        invalidateCache(`campaign_templates`)
+        // 캐시 무효화하여 템플릿 목록 갱신 - user.id 포함
+        if (user?.id) {
+          invalidateCache(`campaign_templates_${user.id}`)
+        }
         refetchTemplates()
       }
     } catch (error) {
@@ -242,6 +286,14 @@ export default function NewCampaignPage() {
       case 1:
         if (!formData.title || !formData.description || !formData.platform) {
           setError('모든 필수 정보를 입력해주세요.')
+          return false
+        }
+        if (!formData.budgetType) {
+          setError('캠페인 유형을 선택해주세요.')
+          return false
+        }
+        if (formData.budgetType === 'PAID' && (!formData.budget || formData.budget <= 0)) {
+          setError('유료 캠페인의 경우 예산을 입력해주세요.')
           return false
         }
         break
@@ -339,8 +391,12 @@ export default function NewCampaignPage() {
     
     try {
       // Create campaign
+      console.log('Form data before submit:', formData)
+      console.log('Budget type:', formData.budgetType, 'Budget:', formData.budget)
+      
       const campaignData = {
         ...formData,
+        budget: formData.budgetType === 'PAID' ? Number(formData.budget) || 0 : 0,  // 유료일 때만 예산 설정, Number로 확실히 변환
         maxApplicants: Number(formData.maxApplicants) || 100,
         productImages: productImages.filter(img => img !== ''),  // 빈 문자열 제거
         questions: dynamicQuestions.filter(q => q.enabled !== false),
@@ -355,6 +411,9 @@ export default function NewCampaignPage() {
         keywords: formData.keywords || null,
         additionalNotes: formData.additionalNotes || null
       }
+      
+      console.log('Campaign data to send:', campaignData)
+      console.log('Campaign budget value:', campaignData.budget, 'Type:', typeof campaignData.budget)
       
       const response = await fetch('/api/business/campaigns', {
         method: 'POST',
@@ -380,9 +439,10 @@ export default function NewCampaignPage() {
       // 계좌이체인 경우 바로 결제 완료 처리
       if (selectedPaymentMethod === 'TRANSFER') {
         // 계좌이체는 바로 결제 완료 처리
+        const campaignBudget = formData.budgetType === 'PAID' ? formData.budget : 0
         const paymentData = {
           orderId: `campaign_${createdCampaignId}_${Date.now()}`,
-          amount: baseFee + platformFee,
+          amount: baseFee + platformFee + campaignBudget,
           orderName: `캠페인: ${formData.title}`,
           customerName: '비즈니스',
           campaignId: createdCampaignId,
@@ -424,9 +484,10 @@ export default function NewCampaignPage() {
         router.push(`/business/campaigns/${createdCampaignId}`)
       } else {
         // 신용카드나 휴대폰 결제는 토스페이먼츠 사용
+        const campaignBudget = formData.budgetType === 'PAID' ? formData.budget : 0
         const paymentData = {
           orderId: `campaign_${createdCampaignId}_${Date.now()}`,
-          amount: baseFee + platformFee,
+          amount: baseFee + platformFee + campaignBudget,
           orderName: `캠페인: ${formData.title}`,
           customerName: '비즈니스',
           successUrl: `${window.location.origin}/business/campaigns/${createdCampaignId}/payment/success`,
@@ -623,8 +684,10 @@ export default function NewCampaignPage() {
           {currentStep === 4 && (
             <>
               <StepPayment
-                budget={baseFee}
+                baseFee={baseFee}
                 platformFee={platformFee}
+                budget={formData.budget}
+                budgetType={formData.budgetType}
               />
               
               <div className="mt-6">

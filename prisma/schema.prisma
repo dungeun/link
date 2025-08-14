@@ -88,6 +88,7 @@ model Profile {
   nationality            String?
   realName               String?
   addressData            Json?
+  profileCompleted       Boolean   @default(false)
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("profiles")
@@ -132,8 +133,8 @@ model Campaign {
   title                  String
   description            String
   platform               String
-  budget                 Float
-  targetFollowers        Int
+  budget                 Float?
+  targetFollowers        Int?
   startDate              DateTime
   endDate                DateTime
   requirements           String?

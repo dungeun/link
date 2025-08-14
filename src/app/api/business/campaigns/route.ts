@@ -19,6 +19,8 @@ export async function POST(request: NextRequest) {
       description,
       platform,
       platforms,
+      budget,  // budget 필드 추가
+      budgetType,  // budgetType 필드 추가
       maxApplicants,
       rewardAmount,
       startDate,
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
     if (!title) missingFields.push('제목(title)');
     if (!description) missingFields.push('설명(description)');
     if (!platform && (!platforms || platforms.length === 0)) missingFields.push('플랫폼(platform)');
-    // maxApplicants와 rewardAmount는 선택적으로 처리
+    // budget, targetFollowers, maxApplicants, rewardAmount는 모두 선택적으로 처리
     if (!startDate) missingFields.push('시작일(startDate)');
     if (!endDate) missingFields.push('종료일(endDate)');
     
@@ -89,6 +91,7 @@ export async function POST(request: NextRequest) {
         description,
         platform: platform || (platforms && platforms[0]) || 'INSTAGRAM',
         platforms: platforms ? JSON.stringify(platforms) : null,
+        budget: budget !== undefined ? budget : 0,  // budget 필드 추가
         maxApplicants: maxApplicants || 100,
         rewardAmount: rewardAmount || 0,
         startDate: startDateObj,
@@ -138,6 +141,11 @@ export async function GET(request: NextRequest) {
     }
     user = authResult.user;
 
+    console.log('=== GET /api/business/campaigns ===');
+    console.log('User ID:', user.id);
+    console.log('User Type:', user.type);
+    console.log('User Email:', user.email);
+
     // 비즈니스 계정의 캠페인 목록 조회
     const campaigns = await prisma.campaign.findMany({
       where: {
@@ -155,6 +163,11 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    console.log('Found campaigns:', campaigns.length);
+    campaigns.forEach(c => {
+      console.log(`- ${c.title} (Business: ${c.businessId})`);
+    });
+
     // 캠페인 데이터 형식 변환
     const formattedCampaigns = campaigns.map(campaign => ({
       id: campaign.id,
@@ -162,6 +175,7 @@ export async function GET(request: NextRequest) {
       description: campaign.description,
       platform: campaign.platform,
       platforms: campaign.platforms ? JSON.parse(campaign.platforms as string) : [campaign.platform],
+      budget: campaign.budget || 0, // budget 필드 추가
       maxApplications: campaign.maxApplicants,
       rewardAmount: campaign.rewardAmount,
       startDate: campaign.startDate,

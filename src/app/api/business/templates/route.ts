@@ -14,15 +14,18 @@ export async function GET(request: NextRequest) {
     user = authResult.user;
 
     // 비즈니스 계정의 템플릿 목록 조회
+    const userId = user.userId || user.id;
     const templates = await prisma.campaignTemplate.findMany({
       where: {
-        businessId: user.id
+        businessId: userId
       },
       orderBy: {
         createdAt: 'desc'
       }
     });
 
+    // 데이터 파싱 없이 그대로 반환 (클라이언트에서 파싱)
+    console.log('Found templates:', templates.length);
     return createSuccessResponse({ templates });
   } catch (error) {
     return handleApiError(error, { userId: user?.id });
@@ -47,12 +50,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 템플릿 생성
+    const userId = user.userId || user.id;
     const template = await prisma.campaignTemplate.create({
       data: {
         name,
         description: description || '',
         data: JSON.stringify(data), // 캠페인 폼 데이터를 JSON으로 저장
-        businessId: user.id
+        businessId: userId
       }
     });
 
@@ -85,10 +89,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 템플릿 소유권 확인
+    const userId = user.userId || user.id;
     const template = await prisma.campaignTemplate.findFirst({
       where: {
         id: templateId,
-        businessId: user.id
+        businessId: userId
       }
     });
 

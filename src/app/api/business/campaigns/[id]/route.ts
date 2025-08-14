@@ -14,8 +14,18 @@ async function authenticate(request: NextRequest) {
     console.error('JWT_SECRET is not configured');
     return null;
   }
-  const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value;
+  
+  // Authorization 헤더에서 토큰 추출
+  const authHeader = request.headers.get('authorization');
+  let token = null;
+  
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else {
+    // 쿠키에서 토큰 추출 (폴백)
+    const cookieStore = cookies();
+    token = cookieStore.get('auth-token')?.value;
+  }
 
   if (!token) {
     return null;

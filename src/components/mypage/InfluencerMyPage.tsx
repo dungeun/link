@@ -35,7 +35,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
   const { t } = useLanguage()
   
   // 캐싱된 데이터 사용
-  const { profileData, refreshProfile } = useUserData()
+  const { profileData, isLoading: profileLoading, error: profileError, refreshProfile } = useUserData()
   const { data: statsData, isLoading: loadingStats, refetch: refetchStats } = useInfluencerStats()
   const { data: savedCampaignsData, isLoading: loadingSavedCampaigns, refetch: refetchSavedCampaigns } = useSavedCampaigns()
   const { data: applicationsData, isLoading: loadingApplications } = useInfluencerApplications()
@@ -185,13 +185,27 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
       try {
         const safeProfile = profileData.profile || {}
         
+        // 안전한 날짜 처리
+        let safeBirthDate = ''
+        if (safeProfile.birthDate) {
+          try {
+            const date = new Date(safeProfile.birthDate)
+            // 유효한 날짜인지 확인
+            if (!isNaN(date.getTime())) {
+              safeBirthDate = date.toISOString().split('T')[0]
+            }
+          } catch (e) {
+            console.warn('Failed to parse birthDate:', e)
+          }
+        }
+        
         setProfileForm({
           name: profileData.name || user?.name || '',
           email: profileData.email || user?.email || '',
           bio: safeProfile.bio || '',
           phone: safeProfile.phone || '',
           realName: safeProfile.realName || '',
-          birthDate: safeProfile.birthDate ? new Date(safeProfile.birthDate).toISOString().split('T')[0] : '',
+          birthDate: safeBirthDate,
           nationality: safeProfile.nationality || '',
           address: safeProfile.address || '',
           gender: safeProfile.gender || '',
@@ -204,11 +218,29 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
         
         // addressData 안전 처리
         try {
-          setAddressData(
-            safeProfile.addressData ? (typeof safeProfile.addressData === 'string' ? JSON.parse(safeProfile.addressData) : safeProfile.addressData) as AddressData : null
-          )
+          if (safeProfile.addressData) {
+            let parsedAddressData = null
+            if (typeof safeProfile.addressData === 'string') {
+              try {
+                parsedAddressData = JSON.parse(safeProfile.addressData)
+              } catch (e) {
+                console.warn('Failed to parse addressData string:', e)
+              }
+            } else if (typeof safeProfile.addressData === 'object' && safeProfile.addressData !== null) {
+              parsedAddressData = safeProfile.addressData
+            }
+            
+            // addressData 구조 검증
+            if (parsedAddressData && typeof parsedAddressData === 'object') {
+              setAddressData(parsedAddressData as AddressData)
+            } else {
+              setAddressData(null)
+            }
+          } else {
+            setAddressData(null)
+          }
         } catch (e) {
-          console.warn('Failed to parse addressData:', e)
+          console.warn('Failed to process addressData:', e)
           setAddressData(null)
         }
         
@@ -216,6 +248,25 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
         setProfileImage(safeProfile.profileImage || null)
       } catch (error) {
         console.error('Error updating profile form:', error)
+        // 오류 발생 시 기본값으로 설정
+        setProfileForm({
+          name: user?.name || '',
+          email: user?.email || '',
+          bio: '',
+          phone: '',
+          realName: '',
+          birthDate: '',
+          nationality: '',
+          address: '',
+          gender: '',
+          instagram: '',
+          youtube: '',
+          tiktok: '',
+          naverBlog: '',
+          categories: []
+        })
+        setAddressData(null)
+        setProfileImage(null)
       }
     }
   }, [profileData, user])
@@ -341,6 +392,46 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
     { id: 'earnings', name: t('mypage.tab.earnings', '수익 관리'), icon: '💰' },
     { id: 'profile', name: t('mypage.tab.profile', '프로필 설정'), icon: '👤' }
   ]
+
+  // 프로필 로딩 오류 상태 표시
+  if (profileError) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+            <div>
+              <h3 className="text-sm font-medium text-red-800">프로필 로딩 오류</h3>
+              <p className="text-sm text-red-700 mt-1">{profileError}</p>
+              <button
+                onClick={refreshProfile}
+                className="mt-2 text-sm text-red-800 underline hover:text-red-900"
+              >
+                다시 시도
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 프로필 로딩 중 상태 표시
+  if (profileLoading && !profileData) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <Clock className="w-5 h-5 text-blue-500 mr-2 animate-spin" />
+            <div>
+              <h3 className="text-sm font-medium text-blue-800">프로필 로딩 중</h3>
+              <p className="text-sm text-blue-700 mt-1">프로필 정보를 불러오고 있습니다...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

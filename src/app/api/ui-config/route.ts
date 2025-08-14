@@ -4,37 +4,33 @@ import { prisma } from '@/lib/db/prisma';
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-// 번역 캐시
-const translationCache = new Map<string, any>();
-let cacheTimestamp = 0;
-const CACHE_TTL = 60 * 1000; // 1분 캐시
-
-// 번역 헬퍼 함수 (캐싱 포함)
+// 간소화된 번역 함수 - 캐시 제거하여 실시간 번역 보장
 async function getTranslation(key: string, language: string = 'ko'): Promise<string> {
   try {
-    // 캐시 확인
-    const now = Date.now();
-    if (now - cacheTimestamp > CACHE_TTL) {
-      translationCache.clear();
-      cacheTimestamp = now;
-    }
-    
-    const cacheKey = `${key}_${language}`;
-    if (translationCache.has(cacheKey)) {
-      return translationCache.get(cacheKey);
-    }
-    
     const translation = await prisma.languagePack.findUnique({
-      where: { key }
+      where: { key },
+      select: {
+        ko: true,
+        en: true,
+        jp: true
+      }
     });
     
-    let result = key;
-    if (translation) {
-      result = translation[language as keyof typeof translation] as string || translation.ko || key;
+    if (!translation) {
+      return key;
     }
     
-    translationCache.set(cacheKey, result);
-    return result;
+    // 언어별 필드 접근
+    switch (language) {
+      case 'ko':
+        return translation.ko || key;
+      case 'en':
+        return translation.en || translation.ko || key;
+      case 'jp':
+        return translation.jp || translation.ko || key;
+      default:
+        return translation.ko || key;
+    }
   } catch (error) {
     console.error(`Translation error for key ${key}:`, error);
     return key;
@@ -400,6 +396,84 @@ export async function GET(request: NextRequest) {
     };
     
     return NextResponse.json({ config: defaultConfig });
+  } finally {
+    try {
+      await prisma.$disconnect();
+    } catch (e) {
+      console.warn('Failed to disconnect Prisma:', e);
+    }
+  }
+}
+
+// POST /api/ui-config - UI 설정 업데이트 (관리자 전용)
+export async function POST(request: NextRequest) {
+  try {
+    // 관리자 권한 확인
+    const authHeader = request.headers.get('authorization');
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      // 간단한 검증 - 실제로는 authService 사용
+      const { authService } = await import('@/lib/auth/services');
+      const tokenData = await authService.validateToken(token);
+      
+      if (!tokenData || !tokenData.userId) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
+      
+      const user = await prisma.user.findUnique({
+        where: { id: tokenData.userId },
+        select: { type: true }
+      });
+      
+      if (!user || user.type !== 'ADMIN') {
+        return NextResponse.json(
+          { error: 'Admin access required' },
+          { status: 403 }
+        );
+      }
+    } else {
+      return NextResponse.json(
+        { error: 'Authorization required' },
+        { status: 401 }
+      );
+    }
+    
+    const body = await request.json();
+    const { config } = body;
+    
+    if (!config) {
+      return NextResponse.json(
+        { error: 'Config data required' },
+        { status: 400 }
+      );
+    }
+    
+    // UI 설정 저장 또는 업데이트
+    await prisma.siteConfig.upsert({
+      where: { key: 'ui-config' },
+      update: {
+        value: JSON.stringify(config),
+        updatedAt: new Date()
+      },
+      create: {
+        key: 'ui-config',
+        value: JSON.stringify(config)
+      }
+    });
+    
+    return NextResponse.json({ 
+      success: true,
+      message: 'UI configuration updated successfully'
+    });
+  } catch (error) {
+    console.error('UI config update error:', error);
+    return NextResponse.json(
+      { error: 'Failed to update UI configuration' },
+      { status: 500 }
+    );
   } finally {
     try {
       await prisma.$disconnect();

@@ -76,7 +76,7 @@ export function useTemplates(type: 'campaign' | 'application') {
   return useCachedData(
     async () => {
       const endpoint = type === 'campaign' 
-        ? '/api/business/campaign-templates'
+        ? '/api/business/templates'
         : '/api/application-templates'
         
       const response = await fetch(endpoint, {
@@ -86,8 +86,12 @@ export function useTemplates(type: 'campaign' | 'application') {
       })
       
       if (!response.ok) throw new Error('Failed to fetch templates')
-      const data = await response.json()
-      return data.templates
+      const result = await response.json()
+      // API 응답 구조에 따라 처리
+      if (result.success && result.data) {
+        return result.data.templates || []
+      }
+      return result.templates || []
     },
     {
       key: `${type}_templates_${user?.id}`,

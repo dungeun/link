@@ -12,12 +12,14 @@ export const runtime = 'nodejs'
 export async function POST(request: NextRequest) {
   const timer = new PerformanceTimer('api.auth.register.POST');
   
+  // 변수를 try 블록 밖으로 이동
+  let businessFileUrl: string | null = null
+  let businessFileName: string | null = null
+  let businessFileSize: number | null = null
+  
   try {
     const contentType = request.headers.get('content-type') || ''
     let userData: any = {}
-    let businessFileUrl = null
-    let businessFileName = null
-    let businessFileSize = null
 
     // FormData 처리 (파일 업로드가 있는 경우)
     if (contentType.includes('multipart/form-data')) {

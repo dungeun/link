@@ -115,8 +115,10 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const roi = totalSpent._sum.amount && totalRevenue._sum.budget 
-      ? Math.round((totalRevenue._sum.budget / totalSpent._sum.amount) * 100)
+    const spentAmount = totalSpent._sum?.amount || 0
+    const revenueAmount = totalRevenue._sum?.budget || 0
+    const roi = spentAmount > 0 && revenueAmount > 0
+      ? Math.round((revenueAmount / spentAmount) * 100)
       : 0
 
     // 성장률 계산

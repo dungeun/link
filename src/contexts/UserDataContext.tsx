@@ -68,9 +68,14 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     // 이미 데이터가 있고, 5분 이내에 fetch했다면 스킵
     const lastFetch = localStorage.getItem('lastProfileFetch')
     if (profileData && lastFetch) {
-      const timeDiff = Date.now() - parseInt(lastFetch)
-      if (timeDiff < 5 * 60 * 1000) { // 5분
-        return
+      try {
+        const timeDiff = Date.now() - parseInt(lastFetch)
+        if (timeDiff < 5 * 60 * 1000) { // 5분
+          return
+        }
+      } catch (e) {
+        // 파싱 오류 시 계속 진행
+        console.warn('Failed to parse lastProfileFetch:', e)
       }
     }
 
@@ -86,40 +91,73 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
 
       if (!endpoint) {
         setProfileData({ id: user.id, name: user.name, email: user.email, type: user.type })
+        setIsLoading(false)
         return
+      }
+
+      const token = localStorage.getItem('accessToken')
+      if (!token) {
+        throw new Error('No access token available')
       }
 
       const response = await fetch(endpoint, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000 // 10초 타임아웃
       })
+
+      if (response.status === 401) {
+        // 토큰 만료 시 에러 처리
+        localStorage.removeItem('accessToken')
+        throw new Error('Authentication expired')
+      }
 
       if (response.ok) {
         const data = await response.json()
+        
+        // 데이터 유효성 검증
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid profile data received')
+        }
+
         setProfileData(data)
         localStorage.setItem('lastProfileFetch', Date.now().toString())
         
         // 로컬 스토리지에도 캐시 (세션 간 공유용)
-        localStorage.setItem('cachedProfile', JSON.stringify(data))
+        try {
+          localStorage.setItem('cachedProfile', JSON.stringify(data))
+        } catch (e) {
+          console.warn('Failed to cache profile data:', e)
+        }
       } else {
-        throw new Error('Failed to fetch profile')
+        const errorText = await response.text()
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
       }
     } catch (err) {
       console.error('Error fetching profile:', err)
-      setError(err instanceof Error ? err.message : 'Failed to fetch profile')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch profile'
+      setError(errorMessage)
       
       // 에러 시 로컬 스토리지 캐시 사용
       const cached = localStorage.getItem('cachedProfile')
       if (cached) {
         try {
-          setProfileData(JSON.parse(cached))
-        } catch {}
+          const cachedData = JSON.parse(cached)
+          // 캐시된 데이터 유효성 검증
+          if (cachedData && typeof cachedData === 'object' && cachedData.id === user.id) {
+            setProfileData(cachedData)
+            console.info('Using cached profile data due to fetch error')
+          }
+        } catch (e) {
+          console.warn('Failed to parse cached profile data:', e)
+        }
       }
     } finally {
       setIsLoading(false)
     }
-  }, [user])
+  }, [user, profileData])
 
   // 프로필 데이터 업데이트 (로컬 상태만, API 호출 없음)
   const updateProfile = useCallback((updates: Partial<ProfileData>) => {

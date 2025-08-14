@@ -36,7 +36,9 @@ export function useAuth() {
 
   // 토큰 관리
   const getAccessToken = useCallback(() => {
-    return localStorage.getItem('accessToken');
+    if (typeof window === 'undefined') return null;
+    // Check both localStorage keys for compatibility
+    return localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
   }, []);
 
   const setAccessToken = useCallback((token: string) => {
@@ -203,10 +205,30 @@ export function useAuth() {
     router.push('/');
   }, [getAccessToken, clearTokens, router]);
 
-  // 초기화
+  // 초기화 - localStorage에서 사용자 정보 먼저 확인
   useEffect(() => {
-    getCurrentUser();
-  }, [getCurrentUser]);
+    // localStorage에서 빠르게 사용자 정보 로드 (hydration 문제 방지)
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
+      
+      if (savedUser && token) {
+        try {
+          const userData = JSON.parse(savedUser);
+          setAuthState({
+            user: userData,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (e) {
+          console.error('Failed to parse saved user:', e);
+        }
+      }
+      
+      // 그 다음 서버에서 최신 정보 확인
+      getCurrentUser();
+    }
+  }, []); // 의존성 배열을 비워서 처음 마운트 시에만 실행
 
   return {
     user: authState.user,

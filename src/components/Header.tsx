@@ -167,7 +167,7 @@ export default function Header({ variant = 'default' }: HeaderProps) {
                     href={menu.href} 
                     className="hover:opacity-80 transition font-medium text-white"
                   >
-                    {t(`menu.${menu.id}`, menu.label)}
+                    {menu.label}
                   </Link>
                 ))}
             </nav>

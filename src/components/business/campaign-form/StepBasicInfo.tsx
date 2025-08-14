@@ -9,6 +9,8 @@ interface StepBasicInfoProps {
     title: string
     description: string
     platform: string
+    budgetType?: string
+    budget?: number
   }
   setFormData: (data: any) => void
   platformIcons: {
@@ -133,6 +135,53 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
             </Button>
           </div>
         </div>
+
+        <div>
+          <Label>캠페인 유형</Label>
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <Button
+              type="button"
+              variant={formData.budgetType === 'FREE' ? 'default' : 'outline'}
+              className="h-auto py-4"
+              onClick={() => setFormData({...formData, budgetType: 'FREE', budget: 0})}
+            >
+              <div className="text-center">
+                <div className="font-semibold mb-1">무료 캠페인</div>
+                <div className="text-xs text-gray-600">제품/서비스만 제공</div>
+              </div>
+            </Button>
+            <Button
+              type="button"
+              variant={formData.budgetType === 'PAID' ? 'default' : 'outline'}
+              className="h-auto py-4"
+              onClick={() => setFormData({...formData, budgetType: 'PAID'})}
+            >
+              <div className="text-center">
+                <div className="font-semibold mb-1">유료 캠페인</div>
+                <div className="text-xs text-gray-600">제품+현금 보상</div>
+              </div>
+            </Button>
+          </div>
+        </div>
+
+        {formData.budgetType === 'PAID' && (
+          <div>
+            <Label htmlFor="budget">캠페인 예산 (인플루언서 보상금)</Label>
+            <Input
+              id="budget"
+              type="number"
+              value={formData.budget || ''}
+              onChange={(e) => setFormData({...formData, budget: Number(e.target.value) || 0})}
+              placeholder="예: 100000"
+              className="mt-1"
+              min="0"
+              step="10000"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              인플루언서에게 지급할 총 예산을 입력하세요. (VAT 포함)
+            </p>
+          </div>
+        )}
       </div>
     </>
   )

@@ -80,7 +80,7 @@ export async function GET(
             id: true
           }
         },
-        savedCampaigns: {
+        savedByUsers: {
           where: user ? {
             userId: user.id
           } : undefined,
@@ -202,7 +202,7 @@ export async function GET(
           }
         })),
         isLiked: campaign.campaignLikes.length > 0,
-        isSaved: campaign.savedCampaigns.length > 0,
+        isSaved: campaign.savedByUsers.length > 0,
         hasApplied,
         applicationStatus
       }
@@ -243,19 +243,72 @@ export async function PUT(
     const body = await request.json();
 
     // 권한 확인 (캠페인 소유자 또는 관리자)
-    // const campaign = await query('SELECT user_id FROM campaigns WHERE id = $1', [campaignId]);
-    // if (campaign[0].user_id !== user.id && user.type !== 'admin') {
-    //   return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
-    // }
+    const existingCampaign = await prisma.campaign.findUnique({
+      where: { id: campaignId },
+      select: { 
+        businessId: true,
+        status: true 
+      }
+    });
 
-    // Mock 응답
-    const updatedCampaign = {
-      id: campaignId,
-      ...body,
-      updated_at: new Date().toISOString()
+    if (!existingCampaign) {
+      return NextResponse.json(
+        { error: '캠페인을 찾을 수 없습니다.' },
+        { status: 404 }
+      );
+    }
+
+    // 비즈니스 소유자 또는 관리자만 수정 가능
+    if (existingCampaign.businessId !== user.id && user.type !== 'ADMIN') {
+      return NextResponse.json(
+        { error: '캠페인을 수정할 권한이 없습니다.' },
+        { status: 403 }
+      );
+    }
+
+    // 이미지 배열 처리
+    const processImageArray = (images: any) => {
+      if (!images) return null;
+      if (typeof images === 'string') return images;
+      return JSON.stringify(images);
     };
 
+    // 캠페인 업데이트
+    const updatedCampaign = await prisma.campaign.update({
+      where: { id: campaignId },
+      data: {
+        title: body.title,
+        description: body.description,
+        platform: body.platform,
+        budget: body.budget ? Number(body.budget) : null,
+        targetFollowers: body.targetFollowers ? Number(body.targetFollowers) : null,
+        maxApplicants: body.maxApplicants ? Number(body.maxApplicants) : null,
+        requirements: body.requirements,
+        hashtags: body.hashtags ? (Array.isArray(body.hashtags) ? JSON.stringify(body.hashtags) : body.hashtags) : null,
+        startDate: body.startDate ? new Date(body.startDate) : undefined,
+        endDate: body.endDate ? new Date(body.endDate) : undefined,
+        applicationStartDate: body.applicationStartDate ? new Date(body.applicationStartDate) : undefined,
+        applicationEndDate: body.applicationEndDate ? new Date(body.applicationEndDate) : undefined,
+        contentStartDate: body.contentStartDate ? new Date(body.contentStartDate) : undefined,
+        contentEndDate: body.contentEndDate ? new Date(body.contentEndDate) : undefined,
+        resultAnnouncementDate: body.resultAnnouncementDate ? new Date(body.resultAnnouncementDate) : undefined,
+        announcementDate: body.announcementDate ? new Date(body.announcementDate) : undefined,
+        provisionDetails: body.provisionDetails,
+        campaignMission: body.campaignMission,
+        keywords: body.keywords,
+        additionalNotes: body.additionalNotes,
+        imageUrl: body.imageUrl,
+        headerImageUrl: body.headerImageUrl,
+        thumbnailImageUrl: body.thumbnailImageUrl,
+        detailImages: processImageArray(body.detailImages),
+        productImages: processImageArray(body.productImages),
+        status: body.status || existingCampaign.status,
+        updatedAt: new Date()
+      }
+    });
+
     return NextResponse.json({
+      success: true,
       message: '캠페인이 성공적으로 수정되었습니다.',
       campaign: updatedCampaign
     });

@@ -15,6 +15,7 @@ type FileType = typeof ALLOWED_FILE_TYPES[number];
 export async function POST(request: NextRequest) {
   const timer = new PerformanceTimer('api.upload.POST');
   let user: any = null;
+  let fileInfo = { name: 'unknown', size: 0 };
   
   try {
     const authResult = await withAuth(request);
@@ -23,13 +24,34 @@ export async function POST(request: NextRequest) {
     }
     user = authResult.user;
 
-    const formData = await request.formData();
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch (formDataError) {
+      console.error('FormData parsing error:', formDataError);
+      return createErrorResponse(
+        createApiError.validation('폼 데이터를 읽을 수 없습니다.')
+      );
+    }
+
     const file = formData.get('file') as File;
     const type = formData.get('type') as string;
 
-    if (!file) {
+    // 파일 정보 안전하게 추출
+    if (file && file.name && typeof file.size === 'number') {
+      fileInfo = { name: file.name, size: file.size };
+    }
+
+    console.log('Upload request received:', { 
+      userId: user?.id, 
+      type, 
+      fileInfo,
+      hasFile: !!file 
+    });
+
+    if (!file || !file.size) {
       return createErrorResponse(
-        createApiError.validation('파일이 없습니다.')
+        createApiError.validation('유효한 파일이 없습니다.')
       );
     }
 
@@ -86,6 +108,8 @@ export async function POST(request: NextRequest) {
     }
     
     // 파일 업로드 - 성능 측정 포함
+    console.log('Attempting file upload with service...')
+    
     const uploadedFile = await PerformanceTimer.measure(
       'uploadService.uploadFile',
       () => uploadService.uploadFile(
@@ -100,6 +124,13 @@ export async function POST(request: NextRequest) {
       { fileType: type, fileName: file.name, fileSize: file.size }
     );
     
+    console.log('Upload service completed successfully:', {
+      url: uploadedFile.url,
+      filename: uploadedFile.filename,
+      size: uploadedFile.size,
+      type: uploadedFile.type
+    });
+    
     timer.end();
     
     return createSuccessResponse(
@@ -108,10 +139,17 @@ export async function POST(request: NextRequest) {
       201
     );
   } catch (error) {
+    console.error('Upload error details:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      userId: user?.id,
+      fileInfo
+    });
+    
     return handleApiError(error, { 
       endpoint: 'upload', 
       userId: user?.id,
-      fileInfo: { name: 'unknown', size: 0 }
+      fileInfo
     });
   }
 }

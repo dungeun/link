@@ -53,6 +53,17 @@
   body {
     @apply bg-white text-gray-900;
   }
+  
+  /* 클릭 이벤트 보장 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* 모든 버튼과 링크가 클릭 가능하도록 보장 */
+  button, a, [role="button"], [role="link"] {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+  }
 }
 
 /* Animation keyframes for blob animation */
@@ -98,93 +109,67 @@
 }
 
 /* 모바일 반응형 개선 */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    @apply px-4;
   }
 }
 
-/* 야놀자 스타일 레이아웃 개선 */
-.campaign-grid {
-  display: grid;
-  gap: 1.5rem;
-}
-
-/* PC: 4열 */
-@media (min-width: 1024px) {
-  .campaign-grid {
-    grid-template-columns: repeat(4, 1fr);
-    max-width: 1200px;
-    margin: 0 auto;
+/* 공통 트랜지션 */
+@layer utilities {
+  .transition-default {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .transition-fast {
+    @apply transition-all duration-150 ease-in-out;
+  }
+  
+  .transition-slow {
+    @apply transition-all duration-300 ease-in-out;
   }
 }
 
-/* 태블릿: 3열 */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .campaign-grid {
-    grid-template-columns: repeat(3, 1fr);
+/* 스크롤바 스타일링 */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 
-/* 모바일: 2열 */
-@media (max-width: 767px) {
-  .campaign-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+/* Z-index 관리 */
+@layer utilities {
+  .z-dropdown {
+    z-index: 10;
+  }
+  
+  .z-modal {
+    z-index: 40;
+  }
+  
+  .z-overlay {
+    z-index: 30;
+  }
+  
+  .z-toast {
+    z-index: 50;
+  }
+  
+  .z-tooltip {
+    z-index: 60;
   }
 }
 
-/* 캠페인 카드 정사각형 비율 */
-.campaign-card {
-  aspect-ratio: 1 / 1;
-  position: relative;
-  overflow: hidden;
-  border-radius: 0.75rem;
+/* Prevent z-index conflicts */
+.fixed.inset-0:not([data-modal="true"]) {
+  pointer-events: none !important;
 }
 
-.campaign-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* 카테고리 아이콘 크기 조정 */
-.category-icon {
-  width: 60px;
-  height: 60px;
-}
-
-@media (max-width: 640px) {
-  .category-icon {
-    width: 48px;
-    height: 48px;
-  }
-}
-
-/* 섹션 간격 조정 (야놀자 기준) */
-.section-spacing {
-  padding-top: 3rem;
-  padding-bottom: 3rem;
-}
-
-@media (max-width: 640px) {
-  .section-spacing {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-  }
-}
-
-/* 모바일 인기 캠페인 세로 정렬 */
-.mobile-vertical-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-@media (min-width: 640px) {
-  .mobile-vertical-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
+.fixed.inset-0[data-modal="true"] {
+  pointer-events: auto !important;
 }

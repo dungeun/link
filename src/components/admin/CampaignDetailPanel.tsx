@@ -167,7 +167,8 @@ export default function CampaignDetailPanel({
     return new Date(dateString).toLocaleDateString('ko-KR')
   }
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | null | undefined) => {
+    if (amount == null) return '0원'
     return amount.toLocaleString('ko-KR') + '원'
   }
 
@@ -272,7 +273,7 @@ export default function CampaignDetailPanel({
                 </div>
                 <div>
                   <label className="text-gray-700 font-medium">타겟 팔로워</label>
-                  <p className="text-gray-600">{campaign.targetFollowers.toLocaleString()}명</p>
+                  <p className="text-gray-600">{campaign.targetFollowers ? campaign.targetFollowers.toLocaleString() : '0'}명</p>
                 </div>
                 <div>
                   <label className="text-gray-700 font-medium">결제 상태</label>
@@ -338,7 +339,7 @@ export default function CampaignDetailPanel({
                   </div>
                 )}
                 <p className="text-xs text-gray-500">
-                  예상 수수료: {formatCurrency(campaign.budget * (campaign.platformFeeRate || 0.2))}
+                  예상 수수료: {formatCurrency((campaign.budget || 0) * (campaign.platformFeeRate || 0.2))}
                 </p>
               </div>
 

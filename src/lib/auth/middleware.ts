@@ -45,8 +45,17 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
     // 3. JWT 토큰 검증
     const decoded = jwt.verify(token, AUTH_CONFIG.JWT_SECRET) as JWTPayload;
     
-    if (!decoded || !decoded.id || !decoded.type) {
+    // Handle both id and userId fields for compatibility
+    if (!decoded || (!decoded.id && !decoded.userId) || !decoded.type) {
       return { user: null, error: AUTH_ERRORS.INVALID_TOKEN };
+    }
+    
+    // Normalize the user object to always have both id and userId
+    if (!decoded.id && decoded.userId) {
+      decoded.id = decoded.userId;
+    }
+    if (!decoded.userId && decoded.id) {
+      decoded.userId = decoded.id;
     }
 
     return { user: decoded };

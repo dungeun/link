@@ -13,9 +13,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await verifyJWT(token);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let user;
+    try {
+      user = await verifyJWT(token);
+    } catch (jwtError: any) {
+      console.error('JWT verification error:', jwtError);
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    if (!user || user.type !== 'INFLUENCER') {
+      return NextResponse.json({ error: 'Not an influencer account' }, { status: 403 });
     }
 
     const profile = await prisma.user.findUnique({
@@ -29,40 +36,48 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    return NextResponse.json({
+    // 안전한 응답 데이터 구성
+    const responseData = {
       id: profile.id,
-      name: profile.name,
-      email: profile.email,
+      name: profile.name || '',
+      email: profile.email || '',
       type: profile.type,
+      profileCompleted: profile.profile?.profileCompleted || false,
       profile: profile.profile ? {
-        bio: profile.profile.bio,
-        profileImage: profile.profile.profileImage,
-        phone: profile.profile.phone,
-        realName: profile.profile.realName,
-        birthDate: profile.profile.birthDate,
-        birthYear: profile.profile.birthYear,
-        gender: profile.profile.gender,
-        nationality: profile.profile.nationality,
-        address: profile.profile.address,
-        addressData: profile.profile.addressData,
-        instagram: profile.profile.instagram,
-        instagramFollowers: profile.profile.instagramFollowers,
-        youtube: profile.profile.youtube,
-        youtubeSubscribers: profile.profile.youtubeSubscribers,
-        tiktok: profile.profile.tiktok,
-        tiktokFollowers: profile.profile.tiktokFollowers,
-        naverBlog: profile.profile.naverBlog,
-        followerCount: profile.profile.followerCount,
-        categories: profile.profile.categories,
-        averageEngagementRate: profile.profile.averageEngagementRate,
-        bankName: profile.profile.bankName,
-        bankAccountNumber: profile.profile.bankAccountNumber,
-        bankAccountHolder: profile.profile.bankAccountHolder
+        bio: profile.profile.bio || null,
+        profileImage: profile.profile.profileImage || null,
+        phone: profile.profile.phone || null,
+        realName: profile.profile.realName || null,
+        birthDate: profile.profile.birthDate || null,
+        birthYear: profile.profile.birthYear || null,
+        gender: profile.profile.gender || null,
+        nationality: profile.profile.nationality || null,
+        address: profile.profile.address || null,
+        addressData: profile.profile.addressData || null,
+        instagram: profile.profile.instagram || null,
+        instagramFollowers: profile.profile.instagramFollowers || 0,
+        youtube: profile.profile.youtube || null,
+        youtubeSubscribers: profile.profile.youtubeSubscribers || 0,
+        tiktok: profile.profile.tiktok || null,
+        tiktokFollowers: profile.profile.tiktokFollowers || 0,
+        naverBlog: profile.profile.naverBlog || null,
+        followerCount: profile.profile.followerCount || 0,
+        categories: profile.profile.categories || null,
+        averageEngagementRate: profile.profile.averageEngagementRate || 0,
+        bankName: profile.profile.bankName || null,
+        bankAccountNumber: profile.profile.bankAccountNumber || null,
+        bankAccountHolder: profile.profile.bankAccountHolder || null,
+        profileCompleted: profile.profile.profileCompleted || false
       } : null
-    });
+    };
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error('Error fetching profile:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
@@ -74,12 +89,26 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await verifyJWT(token);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let user;
+    try {
+      user = await verifyJWT(token);
+    } catch (jwtError: any) {
+      console.error('JWT verification error:', jwtError);
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const data = await request.json();
+    if (!user || user.type !== 'INFLUENCER') {
+      return NextResponse.json({ error: 'Not an influencer account' }, { status: 403 });
+    }
+
+    let data;
+    try {
+      data = await request.json();
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return NextResponse.json({ error: 'Invalid JSON data' }, { status: 400 });
+    }
+
     const {
       name,
       email,
@@ -105,6 +134,59 @@ export async function PUT(request: NextRequest) {
       bankAccountHolder
     } = data;
 
+    // 생년월일 안전 처리
+    let parsedBirthDate = undefined;
+    if (birthDate) {
+      try {
+        const date = new Date(birthDate);
+        if (!isNaN(date.getTime())) {
+          parsedBirthDate = date;
+        }
+      } catch (e) {
+        console.warn('Invalid birthDate format:', birthDate);
+      }
+    }
+
+    // 카테고리 안전 처리
+    let categoriesString = undefined;
+    if (categories) {
+      try {
+        if (Array.isArray(categories)) {
+          categoriesString = JSON.stringify(categories);
+        } else if (typeof categories === 'string') {
+          categoriesString = categories;
+        }
+      } catch (e) {
+        console.warn('Failed to process categories:', e);
+      }
+    }
+
+    // addressData 안전 처리
+    let processedAddressData = undefined;
+    if (addressData) {
+      try {
+        if (typeof addressData === 'object') {
+          processedAddressData = addressData;
+        } else if (typeof addressData === 'string') {
+          processedAddressData = JSON.parse(addressData);
+        }
+      } catch (e) {
+        console.warn('Failed to process addressData:', e);
+      }
+    }
+
+    // 프로필 완성 상태 체크
+    const checkProfileCompleted = (profileData: any) => {
+      const requiredFields = [
+        profileData.realName || realName,
+        profileData.birthYear || birthYear,
+        profileData.gender || gender,
+        profileData.phone || phone,
+        profileData.address || address
+      ];
+      return requiredFields.every(field => field !== null && field !== undefined && field !== '');
+    }
+
     // 사용자 정보 업데이트
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
@@ -114,48 +196,54 @@ export async function PUT(request: NextRequest) {
         profile: {
           upsert: {
             create: {
-              bio,
-              phone,
-              realName,
-              birthDate: birthDate ? new Date(birthDate) : undefined,
-              birthYear,
-              gender,
-              nationality,
-              address,
-              addressData,
-              profileImage,
-              instagram,
-              youtube,
-              tiktok,
-              facebook,
-              twitter,
-              naverBlog,
-              categories: categories ? JSON.stringify(categories) : undefined,
-              bankName,
-              bankAccountNumber,
-              bankAccountHolder
+              bio: bio || null,
+              phone: phone || null,
+              realName: realName || null,
+              birthDate: parsedBirthDate,
+              birthYear: birthYear || null,
+              gender: gender || null,
+              nationality: nationality || null,
+              address: address || null,
+              addressData: processedAddressData,
+              profileImage: profileImage || null,
+              instagram: instagram || null,
+              youtube: youtube || null,
+              tiktok: tiktok || null,
+              facebook: facebook || null,
+              twitter: twitter || null,
+              naverBlog: naverBlog || null,
+              categories: categoriesString,
+              bankName: bankName || null,
+              bankAccountNumber: bankAccountNumber || null,
+              bankAccountHolder: bankAccountHolder || null,
+              profileCompleted: checkProfileCompleted({
+                realName, birthYear, gender, phone, address
+              })
             },
             update: {
-              bio,
-              phone,
-              realName,
-              birthDate: birthDate ? new Date(birthDate) : undefined,
-              birthYear,
-              gender,
-              nationality,
-              address,
-              addressData,
-              profileImage,
-              instagram,
-              youtube,
-              tiktok,
-              facebook,
-              twitter,
-              naverBlog,
-              categories: categories ? JSON.stringify(categories) : undefined,
-              bankName,
-              bankAccountNumber,
-              bankAccountHolder
+              bio: bio || null,
+              phone: phone || null,
+              realName: realName || null,
+              birthDate: parsedBirthDate,
+              birthYear: birthYear || null,
+              gender: gender || null,
+              nationality: nationality || null,
+              address: address || null,
+              addressData: processedAddressData,
+              profileImage: profileImage || null,
+              instagram: instagram || null,
+              youtube: youtube || null,
+              tiktok: tiktok || null,
+              facebook: facebook || null,
+              twitter: twitter || null,
+              naverBlog: naverBlog || null,
+              categories: categoriesString,
+              bankName: bankName || null,
+              bankAccountNumber: bankAccountNumber || null,
+              bankAccountHolder: bankAccountHolder || null,
+              profileCompleted: checkProfileCompleted({
+                realName, birthYear, gender, phone, address
+              })
             }
           }
         }
@@ -169,15 +257,35 @@ export async function PUT(request: NextRequest) {
       message: '프로필이 업데이트되었습니다.',
       profile: {
         id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
+        name: updatedUser.name || '',
+        email: updatedUser.email || '',
         type: updatedUser.type,
         profile: updatedUser.profile
       }
     });
   } catch (error) {
     console.error('Error updating profile:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    
+    // 구체적인 오류 메시지 제공
+    if (error instanceof Error) {
+      if (error.message.includes('Unique constraint')) {
+        return NextResponse.json({ 
+          error: 'Duplicate data error',
+          message: '중복된 데이터가 있습니다.'
+        }, { status: 409 });
+      }
+      if (error.message.includes('Foreign key constraint')) {
+        return NextResponse.json({ 
+          error: 'Data reference error',
+          message: '데이터 참조 오류가 발생했습니다.'
+        }, { status: 400 });
+      }
+    }
+    
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      message: '프로필 업데이트 중 오류가 발생했습니다.'
+    }, { status: 500 });
   }
 }
 

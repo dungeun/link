@@ -172,11 +172,11 @@ export default function CampaignDetailPage() {
     if (profileData && user?.type === 'INFLUENCER') {
       setApplyForm(prev => ({
         ...prev,
-        name: profileData.name || '',
-        birthYear: profileData.profile?.birthYear || '',
-        gender: profileData.profile?.gender || '',
-        phone: profileData.profile?.phone || '',
-        address: profileData.profile?.address || ''
+        name: profileData.name || profileData.realName || '',
+        birthYear: profileData.birthYear || profileData.profile?.birthYear || '',
+        gender: profileData.gender || profileData.profile?.gender || '',
+        phone: profileData.phone || profileData.profile?.phone || '',
+        address: profileData.address || profileData.profile?.address || ''
       }))
     }
   }, [profileData, user])
@@ -308,6 +308,27 @@ export default function CampaignDetailPage() {
       toast({
         title: '권한 없음',
         description: '인플루언서만 캠페인에 지원할 수 있습니다.',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    // 프로필 정보 최종 체크
+    if (!applyForm.message.trim()) {
+      toast({
+        title: '오류',
+        description: '지원 메시지를 작성해주세요.',
+        variant: 'destructive'
+      })
+      return
+    }
+    
+    // 필수 정보가 비어있는지 체크
+    if (!applyForm.name || !applyForm.birthYear || 
+        !applyForm.gender || !applyForm.phone || !applyForm.address) {
+      toast({
+        title: '프로필 정보 필요',
+        description: '지원 폼의 모든 필수 정보를 입력해주세요.',
         variant: 'destructive'
       })
       return
@@ -850,7 +871,27 @@ export default function CampaignDetailPage() {
                       <Button 
                         className="w-full" 
                         size="lg"
-                        onClick={() => setShowApplyModal(true)}
+                        onClick={() => {
+                          // 프로필 정보 체크 - profileData 구조 확인
+                          console.log('Profile Data:', profileData);
+                          
+                          // birthYear, gender, phone, address가 profileData에 직접 있거나 profile 안에 있을 수 있음
+                          const hasRequiredInfo = 
+                            (profileData?.birthYear || profileData?.profile?.birthYear) && 
+                            (profileData?.gender || profileData?.profile?.gender) && 
+                            (profileData?.phone || profileData?.profile?.phone) && 
+                            (profileData?.address || profileData?.profile?.address);
+                          
+                          if (!hasRequiredInfo) {
+                            // 프로필 정보가 불완전한 경우
+                            if (confirm('프로필 정보를 먼저 완성해주세요. 프로필 수정 페이지로 이동하시겠습니까?')) {
+                              router.push('/mypage')
+                            }
+                          } else {
+                            // 프로필 정보가 완전한 경우
+                            setShowApplyModal(true)
+                          }
+                        }}
                         disabled={campaign.status !== 'ACTIVE' || daysLeft === 0}
                       >
                         캠페인 지원하기
@@ -1071,7 +1112,7 @@ export default function CampaignDetailPage() {
               required
             />
             <p className="text-sm text-gray-500">
-              캠페인 예산: ₩{campaign?.budget.toLocaleString()}
+              캠페인 예산: ₩{(campaign?.budget || 0).toLocaleString()}
             </p>
           </div>
         </div>
