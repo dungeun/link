@@ -13,9 +13,8 @@ export async function POST(request: NextRequest) {
   console.log('=== LOGIN API START ===')
   
   try {
-    // Request body 복제 후 사용
-    const requestClone = request.clone();
-    const body = await requestClone.json();
+    // Request body 파싱
+    const body = await request.json();
     console.log('Parsed request body:', body);
     
     const { email, password } = body
