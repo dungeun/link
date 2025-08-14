@@ -4,17 +4,22 @@ import { authenticateRequest } from '@/lib/auth/middleware'
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await authenticateRequest(request)
-    if (!userId) {
+    const authResult = await authenticateRequest(request)
+    if (!authResult.user) {
       return NextResponse.json({ error: '인증되지 않은 요청입니다.' }, { status: 401 })
     }
+    
+    const userId = authResult.user.userId || authResult.user.id
 
-    // 비즈니스 프로필 확인
-    const business = await prisma.business.findUnique({
-      where: { user_id: userId }
+    // 비즈니스 사용자 확인
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        businessProfile: true
+      }
     })
 
-    if (!business) {
+    if (!user || !user.businessProfile) {
       return NextResponse.json({ error: '비즈니스 프로필을 찾을 수 없습니다.' }, { status: 404 })
     }
 
@@ -27,8 +32,8 @@ export async function GET(request: NextRequest) {
     // 지난달 캠페인 수
     const lastMonthCampaigns = await prisma.campaign.count({
       where: {
-        business_id: business.id,
-        created_at: {
+        businessId: userId,
+        createdAt: {
           gte: lastMonth,
           lt: thisMonth
         }
@@ -38,8 +43,8 @@ export async function GET(request: NextRequest) {
     // 이번달 캠페인 수
     const thisMonthCampaigns = await prisma.campaign.count({
       where: {
-        business_id: business.id,
-        created_at: {
+        businessId: userId,
+        createdAt: {
           gte: thisMonth
         }
       }
@@ -48,9 +53,9 @@ export async function GET(request: NextRequest) {
     // 지난주 활성 캠페인 수
     const lastWeekActiveCampaigns = await prisma.campaign.count({
       where: {
-        business_id: business.id,
+        businessId: userId,
         status: 'ACTIVE',
-        created_at: {
+        createdAt: {
           lt: lastWeek
         }
       }
@@ -59,7 +64,7 @@ export async function GET(request: NextRequest) {
     // 이번주 활성 캠페인 수
     const thisWeekActiveCampaigns = await prisma.campaign.count({
       where: {
-        business_id: business.id,
+        businessId: userId,
         status: 'ACTIVE'
       }
     })
@@ -68,9 +73,9 @@ export async function GET(request: NextRequest) {
     const thisMonthApplications = await prisma.application.count({
       where: {
         campaign: {
-          business_id: business.id
+          businessId: userId
         },
-        created_at: {
+        createdAt: {
           gte: thisMonth
         }
       }
@@ -80,9 +85,9 @@ export async function GET(request: NextRequest) {
     const lastMonthApplications = await prisma.application.count({
       where: {
         campaign: {
-          business_id: business.id
+          businessId: userId
         },
-        created_at: {
+        createdAt: {
           gte: lastMonth,
           lt: thisMonth
         }
@@ -92,7 +97,7 @@ export async function GET(request: NextRequest) {
     // ROI 계산 (간단한 예시 - 실제로는 더 복잡한 계산 필요)
     const totalSpent = await prisma.payment.aggregate({
       where: {
-        business_id: business.id,
+        userId: userId,
         status: 'COMPLETED'
       },
       _sum: {
@@ -102,7 +107,7 @@ export async function GET(request: NextRequest) {
 
     const totalRevenue = await prisma.campaign.aggregate({
       where: {
-        business_id: business.id,
+        businessId: userId,
         status: 'COMPLETED'
       },
       _sum: {

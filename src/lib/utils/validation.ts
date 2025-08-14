@@ -149,6 +149,9 @@ export class ValidationHelper {
    * 사용자 친화적 오류 메시지 생성
    */
   static formatErrorMessages(errors: z.ZodError): string[] {
+    if (!errors || !errors.errors) {
+      return ['Validation error occurred'];
+    }
     return errors.errors.map((error) => {
       const field = error.path.join('.');
       return `${field}: ${error.message}`;

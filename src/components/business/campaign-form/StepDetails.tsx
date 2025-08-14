@@ -5,8 +5,6 @@ import { CalendarIcon } from 'lucide-react'
 
 interface StepDetailsProps {
   formData: {
-    budget: string
-    targetFollowers: string
     startDate: string
     endDate: string
     announcementDate: string
@@ -28,39 +26,14 @@ interface StepDetailsProps {
 export default function StepDetails({ formData, setFormData }: StepDetailsProps) {
   return (
     <>
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">캠페인 상세 정보</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">캠페인 일정 및 상세 정보</h2>
       <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="budget">예산 (원)</Label>
-            <Input
-              id="budget"
-              type="number"
-              value={formData.budget}
-              onChange={(e) => setFormData({...formData, budget: e.target.value})}
-              placeholder="1000000"
-              className="mt-1"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="targetFollowers">최소 팔로워 수</Label>
-            <Input
-              id="targetFollowers"
-              type="number"
-              value={formData.targetFollowers}
-              onChange={(e) => setFormData({...formData, targetFollowers: e.target.value})}
-              placeholder="10000"
-              className="mt-1"
-              required
-            />
-          </div>
-        </div>
-
+        {/* 캠페인 기간 */}
         <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-900 border-b pb-2">캠페인 기간</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="startDate">캠페인 시작일</Label>
+              <Label htmlFor="startDate">캠페인 시작일 *</Label>
               <div className="relative mt-1">
                 <Input
                   id="startDate"
@@ -74,7 +47,7 @@ export default function StepDetails({ formData, setFormData }: StepDetailsProps)
               </div>
             </div>
             <div>
-              <Label htmlFor="endDate">캠페인 종료일</Label>
+              <Label htmlFor="endDate">캠페인 종료일 *</Label>
               <div className="relative mt-1">
                 <Input
                   id="endDate"
@@ -88,49 +61,11 @@ export default function StepDetails({ formData, setFormData }: StepDetailsProps)
               </div>
             </div>
           </div>
-          <div>
-            <Label htmlFor="announcementDate">지원자 발표일</Label>
-            <div className="relative mt-1">
-              <Input
-                id="announcementDate"
-                type="date"
-                value={formData.announcementDate}
-                onChange={(e) => setFormData({...formData, announcementDate: e.target.value})}
-                min={new Date().toISOString().split('T')[0]}
-                max={formData.startDate || undefined}
-                required
-              />
-              <CalendarIcon className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
-            </div>
-            <p className="text-sm text-gray-500 mt-1">선정된 인플루언서를 발표할 날짜입니다. 캠페인 시작일 이전이어야 합니다.</p>
-          </div>
         </div>
 
-        <div>
-          <Label htmlFor="requirements">참여 조건 및 요구사항</Label>
-          <Textarea
-            id="requirements"
-            value={formData.requirements}
-            onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-            placeholder="인플루언서가 충족해야 할 조건이나 콘텐츠 제작 가이드라인을 작성해주세요."
-            className="mt-1 h-32"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="hashtags">해시태그 (공백으로 구분)</Label>
-          <Input
-            id="hashtags"
-            value={formData.hashtags}
-            onChange={(e) => setFormData({...formData, hashtags: e.target.value})}
-            placeholder="#뷰티 #스킨케어 #신제품"
-            className="mt-1"
-          />
-        </div>
-
-        {/* 캠페인 신청 기간 */}
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">캠페인 신청 기간</h3>
+        {/* 신청 및 발표 일정 */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-900 border-b pb-2">신청 및 발표 일정</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="applicationStartDate">신청 시작일</Label>
@@ -159,14 +94,30 @@ export default function StepDetails({ formData, setFormData }: StepDetailsProps)
               </div>
             </div>
           </div>
+          <div>
+            <Label htmlFor="announcementDate">지원자 발표일 *</Label>
+            <div className="relative mt-1">
+              <Input
+                id="announcementDate"
+                type="date"
+                value={formData.announcementDate}
+                onChange={(e) => setFormData({...formData, announcementDate: e.target.value})}
+                min={new Date().toISOString().split('T')[0]}
+                max={formData.startDate || undefined}
+                required
+              />
+              <CalendarIcon className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
+            <p className="text-sm text-gray-500 mt-1">선정된 인플루언서를 발표할 날짜입니다. 캠페인 시작일 이전이어야 합니다.</p>
+          </div>
         </div>
 
-        {/* 콘텐츠 등록 기간 */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">콘텐츠 등록 기간</h3>
+        {/* 콘텐츠 제작 일정 */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-900 border-b pb-2">콘텐츠 제작 일정</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="contentStartDate">등록 시작일</Label>
+              <Label htmlFor="contentStartDate">콘텐츠 등록 시작일</Label>
               <div className="relative mt-1">
                 <Input
                   id="contentStartDate"
@@ -179,7 +130,7 @@ export default function StepDetails({ formData, setFormData }: StepDetailsProps)
               </div>
             </div>
             <div>
-              <Label htmlFor="contentEndDate">등록 마감일</Label>
+              <Label htmlFor="contentEndDate">콘텐츠 등록 마감일</Label>
               <div className="relative mt-1">
                 <Input
                   id="contentEndDate"
@@ -192,27 +143,51 @@ export default function StepDetails({ formData, setFormData }: StepDetailsProps)
               </div>
             </div>
           </div>
-        </div>
-
-        {/* 캠페인 결과 발표일 */}
-        <div>
-          <Label htmlFor="resultAnnouncementDate">캠페인 결과 발표일</Label>
-          <div className="relative mt-1">
-            <Input
-              id="resultAnnouncementDate"
-              type="date"
-              value={formData.resultAnnouncementDate || ''}
-              onChange={(e) => setFormData({...formData, resultAnnouncementDate: e.target.value})}
-              min={formData.contentEndDate || formData.endDate || new Date().toISOString().split('T')[0]}
-            />
-            <CalendarIcon className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
+          <div>
+            <Label htmlFor="resultAnnouncementDate">최종 결과 발표일</Label>
+            <div className="relative mt-1">
+              <Input
+                id="resultAnnouncementDate"
+                type="date"
+                value={formData.resultAnnouncementDate || ''}
+                onChange={(e) => setFormData({...formData, resultAnnouncementDate: e.target.value})}
+                min={formData.contentEndDate || formData.endDate || new Date().toISOString().split('T')[0]}
+              />
+              <CalendarIcon className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
+            <p className="text-sm text-gray-500 mt-1">캠페인 최종 결과를 발표할 날짜입니다.</p>
           </div>
-          <p className="text-sm text-gray-500 mt-1">캠페인 최종 결과를 발표할 날짜입니다.</p>
         </div>
 
-        {/* 제공 내역 */}
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">캠페인 상세 정보</h3>
+        {/* 캠페인 요구사항 */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-900 border-b pb-2">캠페인 요구사항</h3>
+          <div>
+            <Label htmlFor="requirements">참여 조건 및 요구사항</Label>
+            <Textarea
+              id="requirements"
+              value={formData.requirements}
+              onChange={(e) => setFormData({...formData, requirements: e.target.value})}
+              placeholder="인플루언서가 충족해야 할 조건이나 콘텐츠 제작 가이드라인을 작성해주세요."
+              className="mt-1 h-32"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="hashtags">해시태그 (공백으로 구분)</Label>
+            <Input
+              id="hashtags"
+              value={formData.hashtags}
+              onChange={(e) => setFormData({...formData, hashtags: e.target.value})}
+              placeholder="#뷰티 #스킨케어 #신제품"
+              className="mt-1"
+            />
+          </div>
+        </div>
+
+        {/* 캠페인 상세 정보 */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-900 border-b pb-2">캠페인 상세 정보</h3>
           <div>
             <Label htmlFor="provisionDetails">제공 내역</Label>
             <Textarea
@@ -223,42 +198,39 @@ export default function StepDetails({ formData, setFormData }: StepDetailsProps)
               className="mt-1 h-24"
             />
           </div>
-        </div>
 
-        {/* 캠페인 미션 */}
-        <div>
-          <Label htmlFor="campaignMission">캠페인 미션</Label>
-          <Textarea
-            id="campaignMission"
-            value={formData.campaignMission || ''}
-            onChange={(e) => setFormData({...formData, campaignMission: e.target.value})}
-            placeholder="인플루언서가 수행해야 할 구체적인 미션을 작성해주세요."
-            className="mt-1 h-32"
-          />
-        </div>
+          <div>
+            <Label htmlFor="campaignMission">캠페인 미션</Label>
+            <Textarea
+              id="campaignMission"
+              value={formData.campaignMission || ''}
+              onChange={(e) => setFormData({...formData, campaignMission: e.target.value})}
+              placeholder="인플루언서가 수행해야 할 구체적인 미션을 작성해주세요."
+              className="mt-1 h-32"
+            />
+          </div>
 
-        {/* 키워드 */}
-        <div>
-          <Label htmlFor="keywords">키워드</Label>
-          <Input
-            id="keywords"
-            value={formData.keywords || ''}
-            onChange={(e) => setFormData({...formData, keywords: e.target.value})}
-            placeholder="캠페인 관련 키워드를 입력해주세요. (예: 뷰티, 스킨케어, 수분크림)"
-            className="mt-1"
-          />
-        </div>
+          <div>
+            <Label htmlFor="keywords">키워드</Label>
+            <Input
+              id="keywords"
+              value={formData.keywords || ''}
+              onChange={(e) => setFormData({...formData, keywords: e.target.value})}
+              placeholder="캠페인 관련 키워드를 입력해주세요. (예: 뷰티, 스킨케어, 수분크림)"
+              className="mt-1"
+            />
+          </div>
 
-        {/* 추가 안내사항 */}
-        <div>
-          <Label htmlFor="additionalNotes">추가 안내사항</Label>
-          <Textarea
-            id="additionalNotes"
-            value={formData.additionalNotes || ''}
-            onChange={(e) => setFormData({...formData, additionalNotes: e.target.value})}
-            placeholder="참여자에게 추가로 안내할 사항을 자유롭게 작성해주세요."
-            className="mt-1 h-24"
-          />
+          <div>
+            <Label htmlFor="additionalNotes">추가 안내사항</Label>
+            <Textarea
+              id="additionalNotes"
+              value={formData.additionalNotes || ''}
+              onChange={(e) => setFormData({...formData, additionalNotes: e.target.value})}
+              placeholder="참여자에게 추가로 안내할 사항을 자유롭게 작성해주세요."
+              className="mt-1 h-24"
+            />
+          </div>
         </div>
       </div>
     </>

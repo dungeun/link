@@ -105,20 +105,26 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // 지원서 데이터 형식 변환
-    const formattedApplications = applications.map(app => ({
-      id: app.id,
-      campaignId: app.campaignId,
-      campaignTitle: (app as any).campaign?.title,
-      influencerId: (app as any).influencer?.id,
-      influencerName: (app as any).influencer?.name,
-      influencerHandle: (app as any).influencer?.profile?.instagram || (app as any).influencer?.email.split('@')[0],
-      followers: (app as any).influencer?.profile?.instagramFollowers || 0,
-      engagementRate: (app as any).influencer?.profile?.averageEngagementRate || 0,
-      status: app.status.toLowerCase(),
-      message: app.message || '',
-      appliedAt: app.createdAt
-    }));
+    // 지원서 데이터 형식 변환 (undefined 안전 처리)
+    const formattedApplications = applications.map(app => {
+      const influencer = (app as any).influencer || {};
+      const campaign = (app as any).campaign || {};
+      const profile = influencer.profile || {};
+      
+      return {
+        id: app.id || '',
+        campaignId: app.campaignId || '',
+        campaignTitle: campaign.title || '알 수 없는 캠페인',
+        influencerId: influencer.id || '',
+        influencerName: influencer.name || '알 수 없는 인플루언서',
+        influencerHandle: profile.instagram || (influencer.email ? influencer.email.split('@')[0] : '미설정'),
+        followers: profile.instagramFollowers || 0,
+        engagementRate: profile.averageEngagementRate || 0,
+        status: (app.status || 'PENDING').toLowerCase(),
+        message: app.message || '',
+        appliedAt: app.createdAt || new Date()
+      };
+    });
 
     return NextResponse.json({
       applications: formattedApplications,

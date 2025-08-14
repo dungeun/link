@@ -12,16 +12,26 @@ interface ProfileData {
     bio?: string
     profileImage?: string
     phone?: string
+    realName?: string
+    birthDate?: string
     birthYear?: number
     gender?: string
+    nationality?: string
     address?: string
+    addressData?: any
     instagram?: string
     instagramFollowers?: number
     youtube?: string
     youtubeSubscribers?: number
     tiktok?: string
     tiktokFollowers?: number
+    naverBlog?: string
+    followerCount?: number
     categories?: string
+    averageEngagementRate?: number
+    bankName?: string
+    bankAccountNumber?: string
+    bankAccountHolder?: string
   }
   businessProfile?: {
     companyName: string

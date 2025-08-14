@@ -206,7 +206,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId,
           bio: '',
-          categories: []
+          categories: null
         }
       });
     }

@@ -107,13 +107,13 @@ export default function RankingSection({ section, localizedContent, t }: Ranking
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(count)].map((_, i) => (
             <div key={i} className="bg-gray-100 rounded-xl h-64 animate-pulse" />
           ))}
         </div>
       ) : campaigns.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {campaigns.map((campaign) => (
             <Link
               key={campaign.id}
@@ -130,7 +130,7 @@ export default function RankingSection({ section, localizedContent, t }: Ranking
               )}
 
               {/* 캠페인 이미지 */}
-              <div className="h-32 bg-gradient-to-br from-indigo-500 to-purple-600 relative">
+              <div className="aspect-square bg-gradient-to-br from-indigo-500 to-purple-600 relative">
                 {campaign.imageUrl && (
                   <img 
                     src={campaign.imageUrl} 

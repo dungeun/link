@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveImageLocally } from '@/lib/utils/image-upload';
-import { authenticateAdmin } from '@/lib/admin-auth';
+import { authenticateRequest } from '@/lib/auth/middleware';
 import { prisma } from '@/lib/db/prisma';
 
 export async function POST(request: NextRequest) {
   try {
-    // 인증 확인 (관리자 또는 인증된 사용자)
-    const user = await authenticateAdmin(request);
-    if (!user) {
+    // 인증 확인 (모든 인증된 사용자)
+    const authResult = await authenticateRequest(request);
+    if (!authResult.user) {
       return NextResponse.json(
         { error: '인증이 필요합니다.' },
         { status: 401 }
       );
     }
+    
+    const user = authResult.user;
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -49,7 +51,7 @@ export async function POST(request: NextRequest) {
     // DB에 파일 정보 저장
     const fileRecord = await prisma.file.create({
       data: {
-        userId: user.id,
+        userId: user.userId || user.id,
         filename: result.filePath?.split('/').pop() || file.name,
         originalName: file.name,
         mimetype: file.type,

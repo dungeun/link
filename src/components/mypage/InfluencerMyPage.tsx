@@ -8,6 +8,7 @@ import { useUserData } from '@/contexts/UserDataContext'
 import { 
   useInfluencerStats, 
   useLikedCampaigns,
+  useSavedCampaigns,
   useInfluencerApplications,
   useInfluencerWithdrawals
 } from '@/hooks/useSharedData'
@@ -36,7 +37,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
   // 캐싱된 데이터 사용
   const { profileData, refreshProfile } = useUserData()
   const { data: statsData, isLoading: loadingStats, refetch: refetchStats } = useInfluencerStats()
-  const { data: likedCampaignsData, isLoading: loadingSavedCampaigns, refetch: refetchLikedCampaigns } = useLikedCampaigns()
+  const { data: savedCampaignsData, isLoading: loadingSavedCampaigns, refetch: refetchSavedCampaigns } = useSavedCampaigns()
   const { data: applicationsData, isLoading: loadingApplications } = useInfluencerApplications()
   const { data: withdrawalsData, isLoading: loadingWithdrawals } = useInfluencerWithdrawals()
   
@@ -125,7 +126,7 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
   
   // 지원 목록과 관심 목록 상태 - 캐싱된 데이터 사용
   const applications = applicationsData || []
-  const savedCampaigns = likedCampaignsData?.campaigns || []
+  const savedCampaigns = savedCampaignsData?.campaigns || []
   
   // 내 캠페인 관련 상태
   const [myCampaigns, setMyCampaigns] = useState<any[]>([])
@@ -181,30 +182,41 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
   // 프로필 데이터로 폼 업데이트
   useEffect(() => {
     if (profileData) {
-      setProfileForm({
-        name: profileData.name || user.name || '',
-        email: profileData.email || user.email || '',
-        bio: profileData.profile?.bio || '',
-        phone: profileData.profile?.phone || '',
-        realName: profileData.profile?.realName || '',
-        birthDate: profileData.profile?.birthDate ? new Date(profileData.profile.birthDate).toISOString().split('T')[0] : '',
-        nationality: profileData.profile?.nationality || '',
-        address: profileData.profile?.address || '',
-        gender: profileData.profile?.gender || '',
-        instagram: profileData.profile?.instagram || '',
-        youtube: profileData.profile?.youtube || '',
-        tiktok: profileData.profile?.tiktok || '',
-        naverBlog: profileData.profile?.naverBlog || '',
-        categories: profileData.profile?.categories ? parseCategories(profileData.profile.categories) : []
-      })
-      
-      // addressData 업데이트
-      setAddressData(
-        profileData.profile?.addressData ? profileData.profile.addressData as AddressData : null
-      )
-      
-      // profileImage 업데이트  
-      setProfileImage(profileData.profile?.profileImage || null)
+      try {
+        const safeProfile = profileData.profile || {}
+        
+        setProfileForm({
+          name: profileData.name || user?.name || '',
+          email: profileData.email || user?.email || '',
+          bio: safeProfile.bio || '',
+          phone: safeProfile.phone || '',
+          realName: safeProfile.realName || '',
+          birthDate: safeProfile.birthDate ? new Date(safeProfile.birthDate).toISOString().split('T')[0] : '',
+          nationality: safeProfile.nationality || '',
+          address: safeProfile.address || '',
+          gender: safeProfile.gender || '',
+          instagram: safeProfile.instagram || '',
+          youtube: safeProfile.youtube || '',
+          tiktok: safeProfile.tiktok || '',
+          naverBlog: safeProfile.naverBlog || '',
+          categories: safeProfile.categories ? parseCategories(safeProfile.categories) : []
+        })
+        
+        // addressData 안전 처리
+        try {
+          setAddressData(
+            safeProfile.addressData ? (typeof safeProfile.addressData === 'string' ? JSON.parse(safeProfile.addressData) : safeProfile.addressData) as AddressData : null
+          )
+        } catch (e) {
+          console.warn('Failed to parse addressData:', e)
+          setAddressData(null)
+        }
+        
+        // profileImage 업데이트  
+        setProfileImage(safeProfile.profileImage || null)
+      } catch (error) {
+        console.error('Error updating profile form:', error)
+      }
     }
   }, [profileData, user])
   
@@ -984,14 +996,14 @@ export default function InfluencerMyPage({ user, activeTab, setActiveTab }: Infl
                               if (confirm('관심 목록에서 제거하시겠습니까?')) {
                                 try {
                                   const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token')
-                                  const response = await fetch(`/api/campaigns/${campaign.id}/like`, {
-                                    method: 'POST',
+                                  const response = await fetch(`/api/campaigns/${campaign.id}/save`, {
+                                    method: 'DELETE',
                                     headers: {
                                       'Authorization': `Bearer ${token}`
                                     }
                                   })
                                   if (response.ok) {
-                                    refetchLikedCampaigns()
+                                    refetchSavedCampaigns()
                                   }
                                 } catch (error) {
                                   console.error('관심 제거 오류:', error)

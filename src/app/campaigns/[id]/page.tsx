@@ -151,10 +151,10 @@ export default function CampaignDetailPage() {
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
   const [templateName, setTemplateName] = useState('')
 
-  // 캠페인 데이터 로드 시 좋아요 상태 설정
+  // 캠페인 데이터 로드 시 저장 상태 설정
   useEffect(() => {
     if (campaign) {
-      setIsLiked(campaign.isLiked || false)
+      setIsLiked(campaign.isSaved || false)
       setLikeCount(campaign._count?.likes || 0)
       
       // 디버깅용 로그
@@ -257,32 +257,31 @@ export default function CampaignDetailPage() {
     if (!user) {
       toast({
         title: '로그인 필요',
-        description: '좋아요를 누르려면 로그인이 필요합니다.',
+        description: '관심 캠페인에 추가하려면 로그인이 필요합니다.',
         variant: 'destructive'
       })
       return
     }
 
     try {
-      const response = await fetch(`/api/campaigns/${params.id}/like`, {
-        method: 'POST',
+      const response = await fetch(`/api/campaigns/${params.id}/save`, {
+        method: isLiked ? 'DELETE' : 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
         }
       })
 
-      if (!response.ok) throw new Error('Failed to toggle like')
+      if (!response.ok) throw new Error('Failed to toggle save')
 
       const data = await response.json()
-      setIsLiked(data.liked)
-      setLikeCount(prev => data.liked ? prev + 1 : prev - 1)
+      setIsLiked(data.saved !== false)
       
       // 캐시 무효화하여 관심 목록 갱신
-      invalidateCache(`liked_campaigns_${user?.id}`)
+      invalidateCache(`saved_campaigns_${user?.id}`)
       
       toast({
-        title: data.liked ? '관심 캠페인 추가' : '관심 캠페인 제거',
-        description: data.liked ? '마이페이지에서 확인할 수 있습니다.' : ''
+        title: data.saved !== false ? '관심 캠페인 추가' : '관심 캠페인 제거',
+        description: data.saved !== false ? '마이페이지에서 확인할 수 있습니다.' : ''
       })
     } catch (error) {
       console.error('Error toggling like:', error)

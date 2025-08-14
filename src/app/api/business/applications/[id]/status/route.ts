@@ -15,7 +15,15 @@ async function authenticate(request: NextRequest) {
     return null;
   }
   const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value;
+  let token = cookieStore.get('auth-token')?.value;
+
+  // 쿠키에서 토큰이 없으면 Authorization 헤더에서 확인
+  if (!token) {
+    const authHeader = request.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+  }
 
   if (!token) {
     return null;

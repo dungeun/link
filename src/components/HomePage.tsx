@@ -656,7 +656,7 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
                   href={`/campaigns/${campaign.id}`}
                   className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
                 >
-                  <div className="h-40 bg-gradient-to-br from-indigo-500 to-purple-600 relative">
+                  <div className="aspect-square bg-gradient-to-br from-indigo-500 to-purple-600 relative">
                     {campaign.imageUrl && (
                       <img 
                         src={campaign.imageUrl} 

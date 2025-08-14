@@ -76,23 +76,23 @@ export default function NewCampaignPage() {
     title: '',
     description: '',
     platform: '',
-    budget: '',
-    targetFollowers: '',
-    startDate: '',
-    endDate: '',
-    announcementDate: '',
+    // 캠페인 기간
+    startDate: '',  // 캠페인 시작일
+    endDate: '',    // 캠페인 종료일
+    // 신청 기간
+    applicationStartDate: '',  // 신청 시작일
+    applicationEndDate: '',    // 신청 마감일
+    // 발표 및 콘텐츠 일정
+    announcementDate: '',      // 지원자 발표일
+    contentStartDate: '',      // 콘텐츠 등록 시작일
+    contentEndDate: '',        // 콘텐츠 등록 마감일
+    resultAnnouncementDate: '', // 최종 결과 발표일
     requirements: '',
     hashtags: '',
     headerImageUrl: '',  // 상세페이지 헤더 배경 이미지
     thumbnailImageUrl: '',  // 썸네일 이미지
     youtubeUrl: '',
     maxApplicants: '',
-    // 새로운 필드들
-    applicationStartDate: '',
-    applicationEndDate: '',
-    contentStartDate: '',
-    contentEndDate: '',
-    resultAnnouncementDate: '',
     provisionDetails: '',
     campaignMission: '',
     keywords: '',
@@ -150,9 +150,10 @@ export default function NewCampaignPage() {
   // Question editor state
   const [showQuestionEditor, setShowQuestionEditor] = useState(false)
   
-  // Payment info
+  // Payment info - 예산 필드 제거로 결제 관련 기능 간소화
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('CARD')
-  const platformFee = formData.budget ? Number(formData.budget) * 0.1 : 0
+  const baseFee = 50000  // 기본 캠페인 등록비
+  const platformFee = baseFee * 0.1
   
   const saveTemplate = async () => {
     if (!templateName) {
@@ -245,8 +246,8 @@ export default function NewCampaignPage() {
         }
         break
       case 2:
-        if (!formData.budget || !formData.targetFollowers || !formData.startDate || !formData.endDate || !formData.announcementDate) {
-          setError('모든 필수 정보를 입력해주세요.')
+        if (!formData.startDate || !formData.endDate || !formData.announcementDate) {
+          setError('캠페인 기간과 발표일을 모두 입력해주세요.')
           return false
         }
         if (new Date(formData.startDate) > new Date(formData.endDate)) {
@@ -256,6 +257,52 @@ export default function NewCampaignPage() {
         if (new Date(formData.announcementDate) > new Date(formData.startDate)) {
           setError('발표일은 캠페인 시작일 이전이어야 합니다.')
           return false
+        }
+        
+        // 신청 기간 검증
+        if (formData.applicationStartDate && formData.applicationEndDate) {
+          if (new Date(formData.applicationStartDate) > new Date(formData.applicationEndDate)) {
+            setError('신청 마감일은 신청 시작일 이후여야 합니다.')
+            return false
+          }
+        }
+        if (formData.applicationEndDate) {
+          if (new Date(formData.applicationEndDate) > new Date(formData.endDate)) {
+            setError('신청 마감일은 캠페인 종료일 이전이어야 합니다.')
+            return false
+          }
+          if (new Date(formData.applicationEndDate) > new Date(formData.announcementDate)) {
+            setError('신청 마감일은 지원자 발표일 이전이어야 합니다.')
+            return false
+          }
+        }
+        
+        // 콘텐츠 등록 기간 검증
+        if (formData.contentStartDate && formData.contentEndDate) {
+          if (new Date(formData.contentStartDate) > new Date(formData.contentEndDate)) {
+            setError('콘텐츠 등록 마감일은 시작일 이후여야 합니다.')
+            return false
+          }
+          if (formData.announcementDate && new Date(formData.contentStartDate) < new Date(formData.announcementDate)) {
+            setError('콘텐츠 등록 시작일은 지원자 발표일 이후여야 합니다.')
+            return false
+          }
+          if (new Date(formData.contentEndDate) > new Date(formData.endDate)) {
+            setError('콘텐츠 등록 마감일은 캠페인 종료일 이전이어야 합니다.')
+            return false
+          }
+        }
+        
+        // 결과 발표일 검증
+        if (formData.resultAnnouncementDate) {
+          if (formData.contentEndDate && new Date(formData.resultAnnouncementDate) < new Date(formData.contentEndDate)) {
+            setError('결과 발표일은 콘텐츠 등록 마감일 이후여야 합니다.')
+            return false
+          }
+          if (new Date(formData.resultAnnouncementDate) < new Date(formData.endDate)) {
+            setError('결과 발표일은 캠페인 종료일 이후여야 합니다.')
+            return false
+          }
         }
         break
       case 3:
@@ -294,12 +341,10 @@ export default function NewCampaignPage() {
       // Create campaign
       const campaignData = {
         ...formData,
-        budget: Number(formData.budget),
-        targetFollowers: Number(formData.targetFollowers),
         maxApplicants: Number(formData.maxApplicants) || 100,
         productImages: productImages.filter(img => img !== ''),  // 빈 문자열 제거
         questions: dynamicQuestions.filter(q => q.enabled !== false),
-        // 새로운 필드들 (빈 문자열인 경우 null로 변환)
+        // 날짜 필드들 (빈 문자열인 경우 null로 변환)
         applicationStartDate: formData.applicationStartDate || null,
         applicationEndDate: formData.applicationEndDate || null,
         contentStartDate: formData.contentStartDate || null,
@@ -337,7 +382,7 @@ export default function NewCampaignPage() {
         // 계좌이체는 바로 결제 완료 처리
         const paymentData = {
           orderId: `campaign_${createdCampaignId}_${Date.now()}`,
-          amount: Number(formData.budget) + platformFee,
+          amount: baseFee + platformFee,
           orderName: `캠페인: ${formData.title}`,
           customerName: '비즈니스',
           campaignId: createdCampaignId,
@@ -381,7 +426,7 @@ export default function NewCampaignPage() {
         // 신용카드나 휴대폰 결제는 토스페이먼츠 사용
         const paymentData = {
           orderId: `campaign_${createdCampaignId}_${Date.now()}`,
-          amount: Number(formData.budget) + platformFee,
+          amount: baseFee + platformFee,
           orderName: `캠페인: ${formData.title}`,
           customerName: '비즈니스',
           successUrl: `${window.location.origin}/business/campaigns/${createdCampaignId}/payment/success`,
@@ -578,7 +623,7 @@ export default function NewCampaignPage() {
           {currentStep === 4 && (
             <>
               <StepPayment
-                budget={Number(formData.budget)}
+                budget={baseFee}
                 platformFee={platformFee}
               />
               

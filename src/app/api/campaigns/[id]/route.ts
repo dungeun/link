@@ -80,6 +80,14 @@ export async function GET(
             id: true
           }
         },
+        savedCampaigns: {
+          where: user ? {
+            userId: user.id
+          } : undefined,
+          select: {
+            id: true
+          }
+        },
         _count: {
           select: {
             applications: true,
@@ -194,6 +202,7 @@ export async function GET(
           }
         })),
         isLiked: campaign.campaignLikes.length > 0,
+        isSaved: campaign.savedCampaigns.length > 0,
         hasApplied,
         applicationStatus
       }

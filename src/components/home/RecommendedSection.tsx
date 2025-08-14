@@ -132,7 +132,7 @@ export default function RecommendedSection({ section, localizedContent, t }: Rec
               </div>
 
               {/* 캠페인 이미지 */}
-              <div className="h-48 bg-gradient-to-br from-indigo-500 to-purple-600 relative overflow-hidden">
+              <div className="aspect-square bg-gradient-to-br from-indigo-500 to-purple-600 relative overflow-hidden">
                 {campaign.imageUrl && (
                   <img 
                     src={campaign.imageUrl} 

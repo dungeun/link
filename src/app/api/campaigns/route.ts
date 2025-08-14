@@ -20,14 +20,16 @@ export async function GET(request: NextRequest) {
     // Validate pagination params using new validation utilities
     const paginationResult = await ValidationHelper.validate(
       {
-        page: searchParams.get('page'),
-        limit: searchParams.get('limit')
+        page: searchParams.get('page') || '1',
+        limit: searchParams.get('limit') || '20'
       },
       paginationSchema
     );
     
     if (!paginationResult.success) {
-      const errors = ValidationHelper.formatErrorMessages(paginationResult.errors!);
+      const errors = paginationResult.errors 
+        ? ValidationHelper.formatErrorMessages(paginationResult.errors)
+        : ['Invalid pagination parameters'];
       return createErrorResponse('Invalid pagination parameters', 400, errors);
     }
     
@@ -48,12 +50,14 @@ export async function GET(request: NextRequest) {
       .filter({ status, category, platform, sort, ranking, recommended, type })
       .build();
 
-    // 캐시된 응답 확인 또는 데이터 조회
-    const cachedData = await ResponseCache.getOrSet(
-      cacheKey,
-      async () => {
+    // 캐시된 응답 확인 또는 데이터 조회 (임시로 캐시 비활성화)
+    const cachedData = await (async () => {
+        try {
         // 필터 조건 구성
         const where: any = {};
+        
+        // 삭제된 캠페인 제외 (deletedAt이 null인 것만)
+        where.deletedAt = null;
         
         // 기본적으로 ACTIVE 상태인 캠페인만 표시 (관리자가 승인한 캠페인)
         if (status) {
@@ -64,12 +68,15 @@ export async function GET(request: NextRequest) {
         }
         
         if (category && category !== 'all') {
-          where.business = {
-            businessProfile: {
-              businessCategory: category
+          where.categories = {
+            some: {
+              category: {
+                slug: category
+              }
             }
           };
         }
+        // Note: When no category filter is applied, we include all campaigns (with and without categories)
         
         if (platform && platform !== 'all') {
           where.platform = platform.toUpperCase();
@@ -134,92 +141,141 @@ export async function GET(request: NextRequest) {
         let total: number = 0;
         
         try {
-          [campaigns, total] = await Promise.all([
+          const queryResults = await Promise.all([
             QueryPerformance.measure(
               'campaign.findMany',
               async () => {
-                // 먼저 캠페인 데이터만 조회
-                const campaignData = await prisma.campaign.findMany({
-                  where,
-                  select: {
-                    id: true,
-                    businessId: true,
-                    title: true,
-                    description: true,
-                    platform: true,
-                    budget: true,
-                    targetFollowers: true,
-                    startDate: true,
-                    endDate: true,
-                    requirements: true,
-                    hashtags: true,
-                    imageUrl: true,
-                    imageId: true,
-                    headerImageUrl: true,
-                    thumbnailImageUrl: true,
-                    productImages: true,
-                    status: true,
-                    isPaid: true,
-                    maxApplicants: true,
-                    rewardAmount: true,
-                    createdAt: true,
-                    updatedAt: true,
-                    _count: {
-                      select: {
-                        applications: true
+                try {
+                  // 먼저 캠페인 데이터만 조회
+                  const campaignData = await prisma.campaign.findMany({
+                    where,
+                    select: {
+                      id: true,
+                      businessId: true,
+                      title: true,
+                      description: true,
+                      platform: true,
+                      budget: true,
+                      targetFollowers: true,
+                      startDate: true,
+                      endDate: true,
+                      requirements: true,
+                      hashtags: true,
+                      imageUrl: true,
+                      imageId: true,
+                      headerImageUrl: true,
+                      thumbnailImageUrl: true,
+                      productImages: true,
+                      status: true,
+                      isPaid: true,
+                      maxApplicants: true,
+                      rewardAmount: true,
+                      createdAt: true,
+                      updatedAt: true,
+                      categories: {
+                        select: {
+                          category: {
+                            select: {
+                              id: true,
+                              name: true,
+                              slug: true
+                            }
+                          },
+                          isPrimary: true
+                        }
+                      },
+                      _count: {
+                        select: {
+                          applications: true
+                        }
                       }
-                    }
-                  },
-                  orderBy,
-                  skip: offset,
-                  take: limit
-                });
-                
-                // business 정보를 별도로 조회
-                const businessIds = campaignData.map(c => c.businessId);
-                const businesses = await prisma.user.findMany({
-                  where: { 
-                    id: { in: businessIds },
-                    type: 'BUSINESS'
-                  },
-                  select: {
-                    id: true,
-                    name: true,
-                    businessProfile: {
+                    },
+                    orderBy,
+                    skip: offset,
+                    take: limit
+                  });
+                  
+                  // 데이터 검증
+                  if (!Array.isArray(campaignData)) {
+                    console.warn('Campaign data is not an array:', typeof campaignData);
+                    return [];
+                  }
+                  
+                  // business 정보를 별도로 조회
+                  const businessIds = campaignData.map(c => c?.businessId).filter(Boolean);
+                  let businesses = [];
+                  
+                  if (businessIds.length > 0) {
+                    businesses = await prisma.user.findMany({
+                      where: { 
+                        id: { in: businessIds },
+                        type: 'BUSINESS'
+                      },
                       select: {
-                        companyName: true,
-                        businessCategory: true
+                        id: true,
+                        name: true,
+                        businessProfile: {
+                          select: {
+                            companyName: true,
+                            businessCategory: true
+                          }
+                        }
                       }
+                    });
+                  }
+                  
+                  // businesses 배열 검증
+                  if (!Array.isArray(businesses)) {
+                    businesses = [];
+                  }
+                  
+                  // 캠페인과 business 정보 결합
+                  return campaignData.map(campaign => ({
+                    ...campaign,
+                    business: businesses.find(b => b && b.id === campaign.businessId) || {
+                      id: campaign.businessId,
+                      name: 'Unknown',
+                      businessProfile: null
                     }
-                  }
-                });
-                
-                // 캠페인과 business 정보 결합
-                return campaignData.map(campaign => ({
-                  ...campaign,
-                  business: businesses.find(b => b.id === campaign.businessId) || {
-                    id: campaign.businessId,
-                    name: 'Unknown',
-                    businessProfile: null
-                  }
-                }));
+                  }));
+                } catch (innerError) {
+                  console.error('Inner campaign query error:', innerError);
+                  return [];
+                }
               },
               { filters: { status, category, platform, sort, ranking, recommended, type }, pagination: { page, limit } }
             ),
             QueryPerformance.measure(
               'campaign.count',
-              () => prisma.campaign.count({ where }),
+              async () => {
+                try {
+                  return await prisma.campaign.count({ where });
+                } catch (countError) {
+                  console.error('Campaign count error:', countError);
+                  return 0;
+                }
+              },
               { filters: { status, category, platform } }
             )
           ]);
+          
+          // 결과 할당 및 검증
+          campaigns = Array.isArray(queryResults[0]) ? queryResults[0] : [];
+          total = typeof queryResults[1] === 'number' ? queryResults[1] : 0;
+          
         } catch (queryError) {
           console.error('Database query error:', queryError);
           campaigns = [];
           total = 0;
         }
 
-        // 응답 데이터 포맷팅 (null 체크 추가)
-        const formattedCampaigns = Array.isArray(campaigns) ? campaigns.map((campaign, index) => {
+        // 디버깅용 로그
+        console.log('Campaigns type:', typeof campaigns, 'IsArray:', Array.isArray(campaigns));
+        console.log('Campaigns length:', campaigns?.length);
+        
+        // 안전한 배열 확인 및 응답 데이터 포맷팅
+        const safeCampaigns = Array.isArray(campaigns) ? campaigns : [];
+        const formattedCampaigns = safeCampaigns.map((campaign, index) => {
           // 마감일까지 남은 일수 계산
           const today = new Date();
           const endDate = new Date(campaign.endDate);
@@ -229,13 +285,14 @@ export async function GET(request: NextRequest) {
           return {
             id: campaign.id,
             title: campaign.title,
-            brand: campaign.business.businessProfile?.companyName || campaign.business.name,
-            brand_name: campaign.business.businessProfile?.companyName || campaign.business.name,
+            brand: campaign.business?.businessProfile?.companyName || campaign.business?.name || 'Unknown',
+            brand_name: campaign.business?.businessProfile?.companyName || campaign.business?.name || 'Unknown',
             description: campaign.description || '',
             budget: campaign.budget,
             deadline: Math.max(0, daysDiff), // 마감일까지 남은 일수
-            category: campaign.business.businessProfile?.businessCategory || 'other',
-            platforms: [campaign.platform.toLowerCase()],
+            category: campaign.categories?.find(c => c.isPrimary)?.category?.slug || campaign.categories?.[0]?.category?.slug || 'other',
+            categoryName: campaign.categories?.find(c => c.isPrimary)?.category?.name || campaign.categories?.[0]?.category?.name || 'Other',
+            platforms: [campaign.platform?.toLowerCase() || 'unknown'],
             required_followers: campaign.targetFollowers,
             location: '전국',
             view_count: 0,
@@ -248,19 +305,23 @@ export async function GET(request: NextRequest) {
             tags: (() => {
               if (!campaign.hashtags) return [];
               try {
-                if (campaign.hashtags.startsWith('[')) {
+                if (typeof campaign.hashtags === 'string' && campaign.hashtags.startsWith('[')) {
                   return JSON.parse(campaign.hashtags);
-                } else {
-                  return campaign.hashtags.split(' ').filter(tag => tag.startsWith('#'));
+                } else if (typeof campaign.hashtags === 'string') {
+                  return campaign.hashtags.split(' ').filter(tag => tag && tag.startsWith('#'));
                 }
+                return [];
               } catch (e) {
                 console.warn('Failed to parse hashtags:', campaign.hashtags);
-                return campaign.hashtags.split(' ').filter(tag => tag.startsWith('#'));
+                if (typeof campaign.hashtags === 'string') {
+                  return campaign.hashtags.split(' ').filter(tag => tag && tag.startsWith('#'));
+                }
+                return [];
               }
             })(),
-            status: campaign.status.toLowerCase(),
-            created_at: campaign.createdAt.toISOString(),
-            createdAt: campaign.createdAt.toISOString(),
+            status: campaign.status?.toLowerCase() || 'unknown',
+            created_at: campaign.createdAt?.toISOString() || new Date().toISOString(),
+            createdAt: campaign.createdAt?.toISOString() || new Date().toISOString(),
             start_date: campaign.startDate,
             end_date: campaign.endDate,
             requirements: campaign.requirements || '',
@@ -268,35 +329,51 @@ export async function GET(request: NextRequest) {
             // 랭킹 정보 추가 (랭킹 요청인 경우)
             ...(ranking && { rank: index + 1 })
           };
-        }) : [];
+        });
         
         // 카테고리별 통계를 위한 별도 쿼리 (성능 측정 포함)
         let categoryStats: Record<string, number> = {};
         try {
           const campaignsByCategory = await QueryPerformance.measure(
-            'businessProfile.groupBy',
-            () => prisma.businessProfile.groupBy({
-              by: ['businessCategory'],
-              _count: {
-                userId: true
-              },
-              where: {
-                user: {
-                  campaigns: {
-                    some: {
-                      status: 'ACTIVE'
-                    }
+            'category.groupBy',
+            async () => {
+              const stats = await prisma.campaignCategory.groupBy({
+                by: ['categoryId'],
+                _count: {
+                  campaignId: true
+                },
+                where: {
+                  campaign: {
+                    status: 'ACTIVE'
                   }
                 }
-              }
-            }),
+              });
+              
+              // 카테고리 정보 조회
+              const categoryIds = stats.map(s => s.categoryId);
+              const categories = await prisma.category.findMany({
+                where: {
+                  id: { in: categoryIds }
+                },
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true
+                }
+              });
+              
+              return stats.map(stat => ({
+                ...stat,
+                category: categories.find(c => c.id === stat.categoryId)
+              }));
+            },
             { purpose: 'category_stats' }
           );
           
           if (campaignsByCategory && Array.isArray(campaignsByCategory)) {
             campaignsByCategory.forEach(stat => {
-              const category = stat.businessCategory || 'other';
-              categoryStats[category] = stat._count.userId;
+              const categorySlug = stat.category?.slug || 'other';
+              categoryStats[categorySlug] = stat._count.campaignId;
             });
           }
         } catch (statsError) {
@@ -314,20 +391,37 @@ export async function GET(request: NextRequest) {
           },
           categoryStats
         };
-      },
-      CachePresets.CAMPAIGN_LIST.ttl // 5분 캐시
-    );
+        } catch (innerError) {
+          console.error('Cache function error:', innerError);
+          // 에러 발생 시 빈 데이터 반환
+          return {
+            campaigns: [],
+            pagination: {
+              page,
+              limit,
+              total: 0,
+              totalPages: 0
+            },
+            categoryStats: {}
+          };
+        }
+    })();
 
     const response = NextResponse.json(cachedData);
     
-    // 성능 최적화를 위한 캐시 헤더 추가
-    ResponseCache.addCacheHeaders(response, CachePresets.CAMPAIGN_LIST.ttl, CachePresets.CAMPAIGN_LIST.swr);
+    // 성능 최적화를 위한 캐시 헤더 추가 (임시 비활성화)
+    // ResponseCache.addCacheHeaders(response, CachePresets.CAMPAIGN_LIST.ttl, CachePresets.CAMPAIGN_LIST.swr);
     
     // 성능 측정 종료
     timer.end();
     
     return response;
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Campaigns API Error Details:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name
+    });
     return handleApiError(error, { endpoint: 'campaigns', method: 'GET' });
   }
 }

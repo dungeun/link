@@ -19,8 +19,6 @@ export async function POST(request: NextRequest) {
       description,
       platform,
       platforms,
-      budget,
-      targetFollowers,
       maxApplicants,
       rewardAmount,
       startDate,
@@ -53,8 +51,6 @@ export async function POST(request: NextRequest) {
     if (!title) missingFields.push('제목(title)');
     if (!description) missingFields.push('설명(description)');
     if (!platform && (!platforms || platforms.length === 0)) missingFields.push('플랫폼(platform)');
-    if (!budget) missingFields.push('예산(budget)');
-    if (!targetFollowers) missingFields.push('목표 팔로워수(targetFollowers)');
     // maxApplicants와 rewardAmount는 선택적으로 처리
     if (!startDate) missingFields.push('시작일(startDate)');
     if (!endDate) missingFields.push('종료일(endDate)');
@@ -93,8 +89,6 @@ export async function POST(request: NextRequest) {
         description,
         platform: platform || (platforms && platforms[0]) || 'INSTAGRAM',
         platforms: platforms ? JSON.stringify(platforms) : null,
-        budget,
-        targetFollowers,
         maxApplicants: maxApplicants || 100,
         rewardAmount: rewardAmount || 0,
         startDate: startDateObj,
@@ -165,16 +159,20 @@ export async function GET(request: NextRequest) {
     const formattedCampaigns = campaigns.map(campaign => ({
       id: campaign.id,
       title: campaign.title,
-      description: (campaign as any).description,
-      platform: (campaign as any).category,
-      budget: campaign.budget,
-      targetFollowers: (campaign as any).targetFollowers,
+      description: campaign.description,
+      platform: campaign.platform,
+      platforms: campaign.platforms ? JSON.parse(campaign.platforms as string) : [campaign.platform],
+      maxApplications: campaign.maxApplicants,
+      rewardAmount: campaign.rewardAmount,
       startDate: campaign.startDate,
       endDate: campaign.endDate,
-      status: campaign.status.toLowerCase(),
+      deadline: campaign.endDate, // 프론트엔드 호환성
+      status: campaign.status,
       isPaid: campaign.isPaid,
       applications: campaign._count.applications,
-      imageUrl: campaign.imageUrl,
+      viewCount: 0, // 조회수는 추후 구현
+      category: 'business', // 기본 카테고리
+      imageUrl: campaign.thumbnailImageUrl || campaign.imageUrl,
       createdAt: campaign.createdAt
     }));
 

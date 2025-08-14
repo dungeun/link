@@ -1,6 +1,7 @@
 // 완전 무료 웹크롤링 서비스 - API 키 없이 작동
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { newYouTubeScraperService } from './youtube-scraper-new.service';
 
 export interface SocialStats {
   followers: number;
@@ -217,47 +218,187 @@ export class FreeSocialScraperService {
     }
   }
 
-  // YouTube 크롤링
+  // YouTube 크롤링 - 새로운 정확한 버전 사용
   async getYouTubeStats(channelName: string): Promise<SocialStats | null> {
+    console.log(`YouTube: Using new accurate scraper for ${channelName}`);
+    const result = await newYouTubeScraperService.getYouTubeStats(channelName);
+    
+    if (result) {
+      return {
+        followers: result.followers,
+        platform: 'youtube',
+        username: channelName,
+        lastUpdated: new Date(),
+        error: result.error
+      };
+    }
+    
+    return null;
+  }
+
+  // 기존 YouTube 크롤링 방법 (백업용)
+  async getYouTubeStatsOld(channelName: string): Promise<SocialStats | null> {
     try {
       await this.delay(Math.random() * 2000 + 1000);
 
       let searchName = channelName.replace('@', '').trim();
+      console.log(`YouTube: Attempting to get stats for ${searchName}`);
       
-      // 방법 1: YouTube 채널 페이지 직접 크롤링
+      // 방법 1: YouTube 채널 페이지 직접 크롤링 - 우선순위 조정
+      // URL 인코딩으로 한국어 채널명 지원
+      const encodedSearchName = encodeURIComponent(searchName);
+      const encodedChannelName = encodeURIComponent(channelName);
+      
       const urls = [
-        `https://www.youtube.com/@${searchName}`,
+        `https://www.youtube.com/@${searchName}`, // 최신 @ 형식 우선
+        `https://www.youtube.com/@${encodedSearchName}`, // URL 인코딩된 버전
+        `https://www.youtube.com/@${channelName}`, // 원본 이름도 시도
+        `https://www.youtube.com/@${encodedChannelName}`, // 원본의 URL 인코딩 버전
         `https://www.youtube.com/c/${searchName}`,
+        `https://www.youtube.com/c/${encodedSearchName}`,
         `https://www.youtube.com/channel/${searchName}`,
         `https://www.youtube.com/user/${searchName}`
       ];
 
       for (const url of urls) {
         try {
+          console.log(`YouTube: Trying URL ${url}`);
           const response = await axios.get(url, {
             headers: {
               'User-Agent': this.getRandomUserAgent(),
               'Accept-Language': 'en-US,en;q=0.9',
-              'Accept': 'text/html,application/xhtml+xml'
+              'Accept': 'text/html,application/xhtml+xml',
+              'Cache-Control': 'no-cache'
             },
-            timeout: 15000
+            timeout: 20000,
+            maxRedirects: 5
           });
 
           const html = response.data;
+          console.log(`YouTube: Got response from ${url}, parsing...`);
           
-          // 여러 패턴으로 구독자 수 찾기
+          // 매우 정확한 구독자 수 찾기 패턴들 (조회수와 혼동 방지)
           const patterns = [
-            /"subscriberCountText":\s*\{\s*"simpleText":\s*"([\d,\.]+[KMB]?)[^"]*"\}/,
+            // 최고 우선순위: 명시적 구독자 필드들
+            /"subscriberCountText":\s*\{\s*"simpleText":\s*"([\d,\.]+[KMB]?)[^"]*subscribers?[^"]*"\s*\}/i,
+            /"subscriberCountText":\s*\{\s*"runs":\s*\[\s*\{\s*"text":\s*"([\d,\.]+[KMB]?)"/,
             /"subscriberCount":\s*"(\d+)"/,
-            /subscribers?":\s*"?([\d,\.]+[KMB]?)/i,
-            /([\d,\.]+[KMB]?)\s*subscribers/i
+            /"subscribers_count":"(\d+)"/,
+            
+            // 한국어 구독자 (명시적)
+            /구독자\s*([\d,\.]+[만억KMB]?)/,
+            /([\d,\.]+[만억KMB]?)\s*구독자/,
+            
+            // 엄격한 영어 패턴 (반드시 subscribers 단어 포함)
+            /(\d{1,3}(?:,\d{3})*)\s*subscribers/i,
+            /([\d,\.]+[KMB]?)\s*subscribers/i,
+            
+            // 마지막 수단: JSON에서 subscribers 텍스트와 함께
+            /"text":"([\d,\.]+[KMB]?)\s*subscribers?"/i
           ];
 
+          // 구독자 수 후보들을 모두 수집해서 가장 적절한 것 선택
+          const candidateSubscribers = [];
+          
           for (const pattern of patterns) {
             const match = html.match(pattern);
+            if (match && match[1]) {
+              const subscriberText = match[1];
+              const subscribers = this.parseFollowerCount(subscriberText);
+              console.log(`YouTube: Pattern ${pattern.source} matched: "${subscriberText}" → ${subscribers} subscribers for ${searchName}`);
+              
+              if (subscribers > 0) {
+                candidateSubscribers.push({
+                  text: subscriberText,
+                  count: subscribers,
+                  pattern: pattern.source
+                });
+              }
+            }
+          }
+          
+          // 후보가 있으면 가장 작은 값을 선택 (조회수는 보통 구독자보다 훨씬 크므로)
+          if (candidateSubscribers.length > 0) {
+            // 모든 후보를 크기 순으로 정렬
+            candidateSubscribers.sort((a, b) => a.count - b.count);
+            console.log(`YouTube: All candidates for ${searchName}:`, candidateSubscribers.map(c => `${c.text}(${c.count})`).join(', '));
+            
+            // 가장 작은 값 선택 (구독자 수가 조회수보다 작기 때문)
+            const selected = candidateSubscribers[0];
+            console.log(`YouTube: Selected smallest value: ${selected.text} → ${selected.count} for ${searchName}`);
+            
+            return {
+              followers: selected.count,
+              platform: 'youtube',
+              username: channelName,
+              lastUpdated: new Date()
+            };
+          }
+          
+          // JSON-LD 구조화된 데이터에서 찾기
+          const jsonLdMatch = html.match(/<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/g);
+          if (jsonLdMatch) {
+            for (const jsonScript of jsonLdMatch) {
+              try {
+                const jsonContent = jsonScript.replace(/<script[^>]*>|<\/script>/g, '');
+                const jsonData = JSON.parse(jsonContent);
+                
+                if (jsonData.interactionStatistic) {
+                  const subscribeStat = jsonData.interactionStatistic.find(
+                    (stat: any) => stat.interactionType?.includes('SubscribeAction')
+                  );
+                  if (subscribeStat?.userInteractionCount) {
+                    const subscribers = parseInt(subscribeStat.userInteractionCount, 10);
+                    console.log(`YouTube: Found ${subscribers} subscribers in JSON-LD`);
+                    return {
+                      followers: subscribers,
+                      platform: 'youtube',
+                      username: channelName,
+                      lastUpdated: new Date()
+                    };
+                  }
+                }
+              } catch (e) {
+                // JSON 파싱 실패 무시
+              }
+            }
+          }
+          
+        } catch (e: any) {
+          console.log(`YouTube: Failed to access ${url}: ${e.message}`);
+        }
+      }
+
+      // 방법 2: Social Blade - 개선된 버전
+      try {
+        console.log(`YouTube: Trying Social Blade for ${searchName}`);
+        const socialBladeUrl = `https://socialblade.com/youtube/c/${searchName}`;
+        const response = await axios.get(socialBladeUrl, {
+          headers: {
+            'User-Agent': this.getRandomUserAgent(),
+            'Accept': 'text/html,application/xhtml+xml',
+            'Referer': 'https://socialblade.com/'
+          },
+          timeout: 15000
+        });
+
+        const $ = cheerio.load(response.data);
+        
+        // Social Blade에서 구독자 수 찾기
+        const selectors = [
+          '#youtube-subscribers-raw',
+          '.YouTubeUserTopInfo span[style*="color"]',
+          '#youtube-stats-header-subscribers',
+          '.youtube-channel-statistics-header span'
+        ];
+        
+        for (const selector of selectors) {
+          const subscriberElement = $(selector).text().trim();
+          if (subscriberElement) {
+            const match = subscriberElement.match(/([\d,]+)/);
             if (match) {
-              const subscribers = this.parseFollowerCount(match[1]);
-              console.log(`YouTube: Found ${subscribers} subscribers for ${searchName}`);
+              const subscribers = parseInt(match[1].replace(/,/g, ''), 10);
+              console.log(`YouTube: Social Blade found ${subscribers} subscribers`);
               return {
                 followers: subscribers,
                 platform: 'youtube',
@@ -266,42 +407,30 @@ export class FreeSocialScraperService {
               };
             }
           }
-        } catch (e) {
-          // 이 URL은 실패, 다음 시도
         }
+      } catch (e: any) {
+        console.log(`YouTube: Social Blade scraping failed: ${e.message}`);
       }
 
-      // 방법 2: Social Blade (YouTube 통계 사이트)
-      try {
-        const socialBladeUrl = `https://socialblade.com/youtube/channel/${searchName}`;
-        const response = await axios.get(socialBladeUrl, {
-          headers: {
-            'User-Agent': this.getRandomUserAgent()
-          },
-          timeout: 10000
-        });
+      // 방법 3: 최소값 반환 (크롤링 실패시)
+      console.log(`YouTube: All scraping methods failed for ${searchName}, returning minimal value`);
+      return {
+        followers: 1, // 최소 1명
+        platform: 'youtube',
+        username: channelName,
+        lastUpdated: new Date(),
+        error: 'Scraping failed - showing minimum value'
+      };
 
-        const $ = cheerio.load(response.data);
-        const subscriberElement = $('#youtube-subscribers-raw').text() || 
-                                 $('.youtube-channel-statistics-header').find('span').eq(1).text();
-        
-        const match = subscriberElement.match(/([\d,]+)/);
-        if (match) {
-          return {
-            followers: parseInt(match[1].replace(/,/g, ''), 10),
-            platform: 'youtube',
-            username: channelName,
-            lastUpdated: new Date()
-          };
-        }
-      } catch (e) {
-        console.log('Social Blade scraping failed');
-      }
-
-      return null;
     } catch (error: any) {
       console.error('YouTube scraping error:', error.message);
-      return null;
+      return {
+        followers: 1,
+        platform: 'youtube',
+        username: channelName,
+        lastUpdated: new Date(),
+        error: error.message
+      };
     }
   }
 

@@ -123,6 +123,32 @@ export function useLikedCampaigns(page = 1, limit = 20) {
   )
 }
 
+// 저장된(관심) 캠페인 목록 캐싱
+export function useSavedCampaigns(page = 1, limit = 20) {
+  const { user } = useAuth()
+  
+  return useCachedData(
+    async () => {
+      const response = await fetch(
+        `/api/mypage/saved-campaigns?page=${page}&limit=${limit}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
+          }
+        }
+      )
+      
+      if (!response.ok) throw new Error('Failed to fetch saved campaigns')
+      return response.json()
+    },
+    {
+      key: `saved_campaigns_${user?.id}_${page}_${limit}`,
+      ttl: 5 * 60 * 1000, // 5분
+      staleWhileRevalidate: true
+    }
+  )
+}
+
 // 캠페인 목록 캐싱 (필터 포함)
 export function useCampaignList(filters: any = {}) {
   const filterKey = JSON.stringify(filters)
