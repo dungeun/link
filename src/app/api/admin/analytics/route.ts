@@ -276,9 +276,7 @@ export async function GET(request: NextRequest) {
 
       revenueByMonth.push({
         month: monthStart.toLocaleDateString('ko-KR', { month: 'short' }),
-        revenue: revenue._sum.amount || 0,
-        settlements: settlements._sum.totalAmount || 0,
-        profit: (revenue._sum.amount || 0) - (settlements._sum.totalAmount || 0)
+        amount: revenue._sum.amount || 0
       })
     }
 

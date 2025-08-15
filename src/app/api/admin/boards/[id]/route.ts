@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { verifyAuth } from '@/lib/auth-middleware'
+import { verifyAuth } from '@/lib/auth-utils'
 
 export async function DELETE(
   request: NextRequest,

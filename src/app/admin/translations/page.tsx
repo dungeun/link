@@ -63,7 +63,7 @@ export default function TranslationManagementPage() {
           // 카테고리별 카운트 계산
           const categoryMap = new Map<string, number>()
           data.forEach((item: Record<string, unknown>) => {
-            if (item.category) {
+            if (item.category && typeof item.category === 'string') {
               categoryMap.set(item.category, (categoryMap.get(item.category) || 0) + 1)
             }
           })
@@ -136,7 +136,7 @@ export default function TranslationManagementPage() {
       if (selectedCategory === 'all') {
         setTranslations(allTranslations)
       } else {
-        const filtered = allTranslations.filter((item: Record<string, unknown>) => item.category === selectedCategory)
+        const filtered = allTranslations.filter((item: any) => item.category === selectedCategory)
         setTranslations(filtered)
       }
     }
@@ -622,7 +622,7 @@ export default function TranslationManagementPage() {
                       <div className="flex items-center justify-between mb-2">
                         <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                           일본어
-                          {item.isAutoTranslated.ja && (
+                          {item.isAutoTranslated.jp && (
                             <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
                               자동번역
                             </span>
@@ -639,7 +639,7 @@ export default function TranslationManagementPage() {
                       {editingId === item.id && editingField === 'jp' ? (
                         <div className="space-y-2">
                           <textarea
-                            value={editForm.ja}
+                            value={editForm.jp}
                             onChange={(e) => setEditForm({ ...editForm, jp: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             rows={3}
@@ -664,7 +664,7 @@ export default function TranslationManagementPage() {
                         </div>
                       ) : (
                         <div className="p-3 bg-green-50 rounded-lg text-sm text-gray-900 min-h-[44px] flex items-center">
-                          {item.ja || <span className="text-gray-400">번역이 필요합니다</span>}
+                          {item.jp || <span className="text-gray-400">번역이 필요합니다</span>}
                         </div>
                       )}
                     </div>
@@ -672,12 +672,12 @@ export default function TranslationManagementPage() {
                     {/* 번역 상태 요약 */}
                     <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                       <div className="flex gap-2">
-                        {!item.isAutoTranslated.en && !item.isAutoTranslated.ja && item.en && item.ja && (
+                        {!item.isAutoTranslated.en && !item.isAutoTranslated.jp && item.en && item.jp && (
                           <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
                             수동 검수 완료
                           </span>
                         )}
-                        {(!item.en || !item.ja) && (
+                        {(!item.en || !item.jp) && (
                           <span className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded">
                             번역 미완료
                           </span>
@@ -840,7 +840,7 @@ export default function TranslationManagementPage() {
                             languagePackSetup: {
                               ...apiSettings.languagePackSetup,
                               isConfigured: true,
-                              configuredAt: new Date().toISOString()
+                              configuredAt: null
                             }
                           });
                           // 여기에 실제 저장 로직 추가

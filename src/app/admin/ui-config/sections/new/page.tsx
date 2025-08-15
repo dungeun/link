@@ -281,7 +281,7 @@ export default function NewSectionPage() {
             style={{ 
               backgroundColor: formData.backgroundColor, 
               color: formData.textColor,
-              textAlign: formData.layout as 'center' | 'left' | 'right' | 'split'
+              textAlign: formData.layout === 'split' ? 'center' : formData.layout as 'center' | 'left' | 'right'
             }}
           >
             <h3 className="text-2xl font-bold mb-2">{formData.title || '제목이 여기 표시됩니다'}</h3>

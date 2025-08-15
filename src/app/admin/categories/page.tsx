@@ -19,7 +19,7 @@ interface Category {
   menuOrder?: number
   parentId?: string
   parent?: { id: string; name: string; level: number }
-  children: { id: string; name: string; level: number; isActive: boolean }[]
+  children: Category[]
   categoryPage?: { id: string; isPublished: boolean }
   campaignCount: number
 }
