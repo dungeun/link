@@ -402,7 +402,7 @@ export function FooterConfigDB() {
 
         {sections.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            푸터 섹션이 없습니다. 위의 "섹션 추가" 버튼을 클릭하여 섹션을 추가하세요.
+            푸터 섹션이 없습니다. 위의 &quot;섹션 추가&quot; 버튼을 클릭하여 섹션을 추가하세요.
           </div>
         )}
       </div>

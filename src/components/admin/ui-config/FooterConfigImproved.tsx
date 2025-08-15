@@ -376,7 +376,7 @@ export function FooterConfigImproved() {
 
         {(!config.footer.columns || config.footer.columns.length === 0) && (
           <div className="text-center py-8 text-gray-500">
-            푸터 컬럼이 없습니다. 위의 "컬럼 추가" 버튼을 클릭하여 컬럼을 추가하세요.
+            푸터 컬럼이 없습니다. 위의 &quot;컬럼 추가&quot; 버튼을 클릭하여 컬럼을 추가하세요.
           </div>
         )}
       </div>

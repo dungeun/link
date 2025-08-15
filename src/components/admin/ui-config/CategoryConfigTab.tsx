@@ -290,7 +290,7 @@ function MainCategoryItem({ category, onReload }: { category: Category; onReload
               ))
             ) : (
               <p className="text-gray-500 text-sm text-center py-4">
-                중분류가 없습니다. 위의 "중분류 추가" 버튼을 클릭하여 추가하세요.
+                중분류가 없습니다. 위의 &quot;중분류 추가&quot; 버튼을 클릭하여 추가하세요.
               </p>
             )}
           </div>

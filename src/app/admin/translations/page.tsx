@@ -1073,10 +1073,10 @@ export default function TranslationManagementPage() {
                   </li>
                   <li>프로젝트를 선택하거나 새 프로젝트를 생성합니다.</li>
                   <li>
-                    <strong>API 및 서비스 → 라이브러리</strong>에서 "Cloud Translation API"를 검색하고 활성화합니다.
+                    <strong>API 및 서비스 → 라이브러리</strong>에서 &quot;Cloud Translation API&quot;를 검색하고 활성화합니다.
                   </li>
                   <li>
-                    <strong>API 및 서비스 → 사용자 인증 정보</strong>에서 "사용자 인증 정보 만들기 → API 키"를 선택합니다.
+                    <strong>API 및 서비스 → 사용자 인증 정보</strong>에서 &quot;사용자 인증 정보 만들기 → API 키&quot;를 선택합니다.
                   </li>
                   <li>생성된 API 키를 위의 입력란에 붙여넣고 테스트 버튼을 클릭합니다.</li>
                   <li>설정을 저장하면 자동 번역 기능을 사용할 수 있습니다.</li>

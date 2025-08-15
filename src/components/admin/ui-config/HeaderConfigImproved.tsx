@@ -243,7 +243,7 @@ export function HeaderConfigImproved() {
 
         {config.header.menus.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            메뉴가 없습니다. 위의 "메뉴 추가" 버튼을 클릭하여 메뉴를 추가하세요.
+            메뉴가 없습니다. 위의 &quot;메뉴 추가&quot; 버튼을 클릭하여 메뉴를 추가하세요.
           </div>
         )}
       </div>

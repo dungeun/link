@@ -111,6 +111,7 @@ function MyPageContent() {
   const { data: statsData, isLoading: statsLoading } = useInfluencerStats()
   const { data: applicationsData, isLoading: applicationsLoading } = useInfluencerApplications()
   const { data: withdrawalsData, isLoading: withdrawalsLoading } = useInfluencerWithdrawals()
+  const { data: savedCampaignsData, isLoading: loadingSavedCampaigns } = useLikedCampaigns()
 
   // SNS 연결 새로고침 함수
   const refreshSNSConnections = async () => {
@@ -940,7 +941,6 @@ function MyPageContent() {
 
   // 관심목록 탭 렌더링  
   const renderFavoritesTab = () => {
-    const { data: savedCampaignsData, isLoading: loadingSavedCampaigns } = useLikedCampaigns()
     const savedCampaigns = savedCampaignsData?.campaigns || []
 
     return (
