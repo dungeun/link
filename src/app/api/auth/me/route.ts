@@ -69,10 +69,10 @@ export async function GET(request: NextRequest) {
 
     console.log('Auth Me - Success, returning user:', user.type)
     return NextResponse.json({ user })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Get user error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to get user' },
+      { error: error instanceof Error ? error.message : 'Failed to get user' },
       { status: 500 }
     )
   }

@@ -24,10 +24,17 @@ yarn-error.log*
 
 # local env files
 .env
+.env.*
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
+.env.vercel
+.env.coolify
+!.env.example
 
 # turbo
 .turbo
@@ -101,3 +108,5 @@ apps/*/pnpm-lock.yaml
 
 # Keep only the important files
 !.gitkeep.env.production
+.env*
+.env-backups/

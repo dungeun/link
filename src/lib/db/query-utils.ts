@@ -101,7 +101,7 @@ export function getCampaignWithRelations(includeApplications: boolean = false) {
  * Batch fetch campaigns with pagination
  */
 export async function fetchCampaignsPaginated(
-  prisma: any,
+  prisma: PrismaClient,
   options: {
     where?: Prisma.CampaignWhereInput;
     orderBy?: Prisma.CampaignOrderByWithRelationInput;
@@ -154,12 +154,12 @@ export function getUserWithProfile() {
  * Batch update multiple records efficiently
  */
 export async function batchUpdate<T>(
-  prisma: any,
+  prisma: PrismaClient,
   model: string,
-  updates: Array<{ id: string; data: any }>
+  updates: Array<{ id: string; data: Record<string, unknown> }>
 ) {
   const operations = updates.map(update =>
-    (prisma[model] as any).update({
+    (prisma as unknown as Record<string, { update: Function }>)[model].update({
       where: { id: update.id },
       data: update.data
     })
@@ -172,13 +172,13 @@ export async function batchUpdate<T>(
  * Soft delete with cascade
  */
 export async function softDelete(
-  prisma: any,
+  prisma: PrismaClient,
   model: string,
   id: string,
   cascadeModels?: string[]
 ) {
   const operations = [
-    (prisma[model] as any).update({
+    (prisma as unknown as Record<string, { update: Function }>)[model].update({
       where: { id },
       data: {
         status: 'DELETED',
@@ -190,7 +190,7 @@ export async function softDelete(
   if (cascadeModels) {
     cascadeModels.forEach(cascadeModel => {
       operations.push(
-        (prisma[cascadeModel] as any).updateMany({
+        (prisma as unknown as Record<string, { updateMany: Function }>)[cascadeModel].updateMany({
           where: { [`${model}Id`]: id },
           data: {
             status: 'DELETED',
@@ -208,7 +208,7 @@ export async function softDelete(
  * Optimized aggregation queries
  */
 export async function getAggregatedStats(
-  prisma: any,
+  prisma: PrismaClient,
   dateRange: { start: Date; end: Date }
 ) {
   const [

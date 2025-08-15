@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
@@ -134,7 +134,23 @@ export function SectionOrderTab() {
   }, [config]);
   
   useEffect(() => {
-    const sectionOrder = config.mainPage?.sectionOrder || [];
+    let sectionOrder = config.mainPage?.sectionOrder || [];
+    
+    // 섹션 순서가 비어있으면 기본 섹션 추가
+    if (sectionOrder.length === 0) {
+      const defaultSectionOrder = [
+        { id: 'hero', type: 'hero' as const, order: 1, visible: true },
+        { id: 'category', type: 'category' as const, order: 2, visible: true },
+        { id: 'quicklinks', type: 'quicklinks' as const, order: 3, visible: true },
+        { id: 'promo', type: 'promo' as const, order: 4, visible: true },
+        { id: 'ranking', type: 'ranking' as const, order: 5, visible: true },
+        { id: 'recommended', type: 'recommended' as const, order: 6, visible: true }
+      ];
+      
+      // Store 업데이트
+      updateSectionOrder(defaultSectionOrder);
+      sectionOrder = defaultSectionOrder;
+    }
     
     const convertedSections = sectionOrder.map(section => ({
       id: section.id,
@@ -217,7 +233,7 @@ export function SectionOrderTab() {
     })
   );
 
-  const handleDragEnd = async (event: any) => {
+  const handleDragEnd = async (event: { active: { id: string }; over: { id: string } | null }) => {
     const { active, over } = event;
 
     if (active.id !== over.id) {
@@ -249,6 +265,15 @@ export function SectionOrderTab() {
       
       updateSectionOrder(sectionOrder);
       
+      // 업데이트된 config 생성
+      const updatedConfig = {
+        ...config,
+        mainPage: {
+          ...config.mainPage,
+          sectionOrder: sectionOrder
+        }
+      };
+      
       // API 호출하여 즉시 저장
       try {
         const response = await fetch('/api/admin/ui-config', {
@@ -257,7 +282,7 @@ export function SectionOrderTab() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ config })
+          body: JSON.stringify({ config: updatedConfig })
         });
         
         if (response.ok) {
@@ -293,6 +318,15 @@ export function SectionOrderTab() {
     
     updateSectionOrder(sectionOrder);
     
+    // 업데이트된 config 생성
+    const updatedConfig = {
+      ...config,
+      mainPage: {
+        ...config.mainPage,
+        sectionOrder: sectionOrder
+      }
+    };
+    
     // API 호출하여 즉시 저장
     try {
       const response = await fetch('/api/admin/ui-config', {
@@ -301,7 +335,7 @@ export function SectionOrderTab() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ config })
+        body: JSON.stringify({ config: updatedConfig })
       });
       
       if (response.ok) {
@@ -332,7 +366,7 @@ export function SectionOrderTab() {
     // 커스텀 섹션은 중복 제거하여 유지
     const existingCustomSections = config.mainPage?.customSections || [];
     const seenCustomIds = new Set<string>();
-    const cleanedCustomSections = existingCustomSections.filter((section: any) => {
+    const cleanedCustomSections = existingCustomSections.filter((section: { id: string; name: string }) => {
       if (seenCustomIds.has(section.id)) {
         return false;
       }

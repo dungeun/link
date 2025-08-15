@@ -22,7 +22,7 @@ async function authenticate(request: NextRequest) {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string; type: string; name: string };
     return decoded;
   } catch (error) {
     return null;
@@ -95,7 +95,7 @@ export async function GET(
       applications: userDetail.type === 'INFLUENCER' ? userDetail.applications?.length || 0 : undefined,
       phone: userDetail.profile?.phone || '미등록',
       address: userDetail.type === 'BUSINESS' ? userDetail.businessProfile?.businessAddress : 
-        (userDetail.profile as any)?.address || '미등록',
+        (userDetail.profile as { address?: string } | null)?.address || '미등록',
       profile: userDetail.profile ? {
         bio: userDetail.profile.bio,
         instagram: userDetail.profile.instagram,
@@ -156,7 +156,7 @@ export async function PUT(
     const { name, status, type, phone, verified, statusReason } = body;
 
     // 사용자 기본 정보 업데이트
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     
     if (name !== undefined) {
       updateData.name = name;

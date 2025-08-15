@@ -44,7 +44,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      posts: posts.map((post: any) => ({
+      posts: posts.map((post: { id: string; board_id: string; title: string; content: string; view_count: number; status: string; author_id: string; author_name: string; comment_count: string | number; like_count: string | number; created_at: Date; updated_at: Date }) => ({
         id: post.id,
         boardId: post.board_id,
         title: post.title,

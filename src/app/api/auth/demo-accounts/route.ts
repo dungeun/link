@@ -6,10 +6,9 @@ export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   try {
-    // 새로운 데모 계정 반환
+    // 실제 시드 데이터에서 계정 가져오기
     const influencer = await prisma.user.findFirst({
       where: {
-        email: 'influencer@example.com',
         type: 'INFLUENCER',
         status: 'ACTIVE'
       },
@@ -17,13 +16,20 @@ export async function GET(request: NextRequest) {
         id: true,
         email: true,
         name: true,
-        type: true
+        type: true,
+        profile: {
+          select: {
+            bio: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     })
 
     const business = await prisma.user.findFirst({
       where: {
-        email: 'business@company.com',
         type: 'BUSINESS',
         status: 'ACTIVE'
       },
@@ -31,13 +37,21 @@ export async function GET(request: NextRequest) {
         id: true,
         email: true,
         name: true,
-        type: true
+        type: true,
+        profile: {
+          select: {
+            bio: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     })
 
     const admin = await prisma.user.findFirst({
       where: {
-        email: 'admin@linkpick.co.kr',
+        email: 'admin@demo.com', // 시드 데이터의 실제 관리자 이메일
         type: 'ADMIN',
         status: 'ACTIVE'
       },
@@ -45,52 +59,72 @@ export async function GET(request: NextRequest) {
         id: true,
         email: true,
         name: true,
-        type: true
+        type: true,
+        profile: {
+          select: {
+            bio: true
+          }
+        }
       }
     })
 
     return NextResponse.json({
       influencer: influencer ? {
         email: influencer.email,
-        name: influencer.name,
+        name: influencer.name || '데모 인플루언서',
         type: 'influencer',
-        password: 'influencer2024' // 실제 데모 비밀번호
+        password: 'password123' // 시드 데이터의 인플루언서 비밀번호
       } : {
-        email: 'influencer@example.com',
+        email: '뷰티구루민지@demo.com',
         name: '데모 인플루언서',
         type: 'influencer',
-        password: 'influencer2024'
+        password: 'password123'
       },
       business: business ? {
         email: business.email,
-        name: business.name,
+        name: business.name || '데모 비즈니스',
         type: 'business',
-        password: 'business2024' // 실제 데모 비밀번호
+        password: 'password123' // 시드 데이터의 업체 비밀번호
       } : {
-        email: 'business@company.com',
+        email: 'CJ제일제당@demo.com',
         name: '데모 비즈니스',
         type: 'business',
-        password: 'business2024'
+        password: 'password123'
       },
       admin: admin ? {
         email: admin.email,
-        name: admin.name,
+        name: admin.name || 'LinkPick 관리자',
         type: 'admin',
-        password: 'admin2024' // 실제 데모 비밀번호
+        password: 'admin123!' // 시드 데이터의 관리자 비밀번호
       } : {
-        email: 'admin@linkpick.co.kr',
-        name: '데모 관리자',
+        email: 'admin@demo.com',
+        name: 'LinkPick 관리자',
         type: 'admin',
-        password: 'admin2024'
+        password: 'admin123!'
       }
     })
   } catch (error) {
-    // 에러는 로그로만 기록, 사용자에게는 일반적인 메시지
-    return NextResponse.json(
-      { error: '데모 계정 정보를 가져오는데 실패했습니다.' },
-      { status: 500 }
-    )
-  } finally {
-    await prisma.$disconnect()
+    console.error('Failed to fetch demo accounts:', error)
+    // 에러 발생 시 기본값 반환
+    return NextResponse.json({
+      influencer: {
+        email: '뷰티구루민지@demo.com',
+        name: '데모 인플루언서',
+        type: 'influencer',
+        password: 'password123'
+      },
+      business: {
+        email: 'CJ제일제당@demo.com',
+        name: '데모 비즈니스',
+        type: 'business',
+        password: 'password123'
+      },
+      admin: {
+        email: 'admin@demo.com',
+        name: 'LinkPick 관리자',
+        type: 'admin',
+        password: 'admin123!'
+      }
+    })
   }
 }

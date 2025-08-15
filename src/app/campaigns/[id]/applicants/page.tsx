@@ -155,7 +155,7 @@ export default function CampaignApplicantsPage() {
         if (response.ok) {
           const data = await response.json();
           // API 응답을 현재 UI 형식에 맞게 변환
-          const formattedApplicants = data.applications.map((app: any) => ({
+          const formattedApplicants = data.applications.map((app: Record<string, unknown>) => ({
             id: app.id,
             name: app.influencer.name,
             email: app.influencer.email,
@@ -427,7 +427,7 @@ export default function CampaignApplicantsPage() {
             <div className="flex gap-3">
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">모든 상태</option>
@@ -438,7 +438,7 @@ export default function CampaignApplicantsPage() {
 
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as 'date' | 'followers' | 'rating' | 'engagement')}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="date">지원일순</option>

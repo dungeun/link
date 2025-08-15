@@ -15,7 +15,7 @@ interface SocialStats {
 }
 
 export class SocialScraperService {
-  private browser: any = null;
+  private browser: puppeteer.Browser | null = null;
 
   async initialize() {
     if (!this.browser) {

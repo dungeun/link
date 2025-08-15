@@ -33,69 +33,91 @@ export async function GET(
       campaignId
     });
 
-    // DB에서 캠페인 상세 정보 조회
-    const campaign = await prisma.campaign.findUnique({
-      where: {
-        id: campaignId
-      },
-      include: {
-        business: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            businessProfile: {
-              select: {
-                companyName: true,
-                businessCategory: true,
-                businessAddress: true
-              }
-            }
-          }
-        },
-        applications: {
-          select: {
-            id: true,
-            status: true,
-            influencer: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                profile: {
-                  select: {
-                    profileImage: true,
-                    instagramFollowers: true
-                  }
+    // 캠페인 기본 정보와 사용자별 상호작용을 병렬로 조회
+    const [campaign, userInteractions] = await Promise.all([
+      // 캠페인 기본 정보
+      prisma.campaign.findUnique({
+        where: { id: campaignId },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          platform: true,
+          budget: true,
+          targetFollowers: true,
+          maxApplicants: true,
+          startDate: true,
+          endDate: true,
+          requirements: true,
+          hashtags: true,
+          imageUrl: true,
+          headerImageUrl: true,
+          thumbnailImageUrl: true,
+          detailImages: true,
+          productImages: true,
+          status: true,
+          createdAt: true,
+          applicationStartDate: true,
+          applicationEndDate: true,
+          contentStartDate: true,
+          contentEndDate: true,
+          resultAnnouncementDate: true,
+          provisionDetails: true,
+          campaignMission: true,
+          keywords: true,
+          additionalNotes: true,
+          announcementDate: true,
+          business: {
+            select: {
+              id: true,
+              name: true,
+              businessProfile: {
+                select: {
+                  companyName: true,
+                  businessCategory: true
                 }
               }
             }
-          }
-        },
-        campaignLikes: {
-          where: user ? {
-            userId: user.id
-          } : undefined,
-          select: {
-            id: true
-          }
-        },
-        savedByUsers: {
-          where: user ? {
-            userId: user.id
-          } : undefined,
-          select: {
-            id: true
-          }
-        },
-        _count: {
-          select: {
-            applications: true,
-            campaignLikes: true
+          },
+          _count: {
+            select: {
+              applications: true,
+              campaignLikes: true
+            }
           }
         }
-      }
-    });
+      }),
+      
+      // 사용자별 상호작용 정보 (로그인한 경우만)
+      user ? Promise.all([
+        // 지원 상태 확인
+        user.type === 'INFLUENCER' ? prisma.campaignApplication.findFirst({
+          where: {
+            campaignId: campaignId,
+            influencerId: user.id
+          },
+          select: { status: true }
+        }) : Promise.resolve(null),
+        
+        // 좋아요 상태 확인
+        prisma.campaignLike.findFirst({
+          where: {
+            campaignId: campaignId,
+            userId: user.id
+          },
+          select: { id: true }
+        }),
+        
+        // 저장 상태 확인
+        prisma.savedCampaign.findFirst({
+          where: {
+            campaignId: campaignId,
+            userId: user.id
+          },
+          select: { id: true }
+        })
+      ]) : Promise.resolve([null, null, null])
+    ]);
 
     if (!campaign) {
       return NextResponse.json(
@@ -104,34 +126,12 @@ export async function GET(
       );
     }
 
-    // 사용자가 이미 지원했는지 확인
-    let hasApplied = false;
-    let applicationStatus = null;
-    
-    if (user && user.type === 'INFLUENCER') {
-      const existingApplication = await prisma.campaignApplication.findFirst({
-        where: {
-          campaignId: campaignId,
-          influencerId: user.id
-        },
-        select: {
-          status: true
-        }
-      });
-      
-      console.log('Application check:', {
-        campaignId,
-        userId: user.id,
-        userType: user.type,
-        existingApplication,
-        hasApplied: !!existingApplication
-      });
-      
-      if (existingApplication) {
-        hasApplied = true;
-        applicationStatus = existingApplication.status;
-      }
-    }
+    // 사용자 상호작용 정보 추출
+    const [applicationData, likeData, savedData] = userInteractions || [null, null, null];
+    const hasApplied = !!applicationData;
+    const applicationStatus = applicationData?.status || null;
+    const isLiked = !!likeData;
+    const isSaved = !!savedData;
 
     // 응답 데이터 포맷팅
     const formattedCampaign = {
@@ -192,17 +192,9 @@ export async function GET(
           applications: campaign._count.applications,
           likes: campaign._count.campaignLikes
         },
-        applications: campaign.applications.map(app => ({
-          id: app.id,
-          status: app.status,
-          influencer: {
-            id: app.influencer.id,
-            name: app.influencer.name,
-            profileImage: app.influencer.profile?.profileImage || null
-          }
-        })),
-        isLiked: campaign.campaignLikes.length > 0,
-        isSaved: campaign.savedByUsers.length > 0,
+        applications: [], // 지원자 목록은 별도 API에서 제공
+        isLiked,
+        isSaved,
         hasApplied,
         applicationStatus
       }
@@ -267,7 +259,7 @@ export async function PUT(
     }
 
     // 이미지 배열 처리
-    const processImageArray = (images: any) => {
+    const processImageArray = (images: unknown) => {
       if (!images) return null;
       if (typeof images === 'string') return images;
       return JSON.stringify(images);

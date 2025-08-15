@@ -56,7 +56,7 @@ export class SocialScraperLiteService {
             lastUpdated: new Date()
           };
         }
-      } catch (apiError: any) {
+      } catch (apiError) {
         console.log(`Instagram API failed for ${cleanUsername}, trying HTML parsing...`);
       }
 
@@ -111,9 +111,9 @@ export class SocialScraperLiteService {
       }
 
       return null;
-    } catch (error: any) {
-      console.error('Instagram scraping error:', error.message);
-      if (error.code === 'ECONNABORTED') {
+    } catch (error) {
+      console.error('Instagram scraping error:', error instanceof Error ? error.message : 'Unknown error');
+      if (error instanceof Error && (error as Error & { code?: string }).code === 'ECONNABORTED') {
         return {
           followers: -3,
           platform: 'instagram',
@@ -178,8 +178,8 @@ export class SocialScraperLiteService {
       }
 
       return null;
-    } catch (error: any) {
-      console.error('YouTube scraping error:', error.message);
+    } catch (error) {
+      console.error('YouTube scraping error:', error instanceof Error ? error.message : 'Unknown error');
       return null;
     }
   }
@@ -243,7 +243,7 @@ export class SocialScraperLiteService {
       }
 
       return null;
-    } catch (error: any) {
+    } catch (error) {
       console.error('TikTok scraping error:', error.message);
       return null;
     }
@@ -313,7 +313,7 @@ export class SocialScraperLiteService {
       }
 
       return null;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Naver Blog scraping error:', error.message);
       return null;
     }

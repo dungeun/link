@@ -59,7 +59,7 @@ interface CampaignTemplate {
   id: string
   name: string
   description?: string
-  data: any
+  data: Record<string, unknown>
   isDefault?: boolean
   createdAt?: string
   updatedAt?: string

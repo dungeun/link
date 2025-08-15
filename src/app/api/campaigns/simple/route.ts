@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     console.log('Simple API called with:', { status, limit, category, platform });
     
     // 필터 조건 구성
-    const where: any = { status: status.toUpperCase() };
+    const where: Record<string, unknown> = { status: status.toUpperCase() };
     
     if (platform && platform !== 'all') {
       where.platform = platform.toUpperCase();

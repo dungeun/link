@@ -58,7 +58,7 @@ async function validateImageDimensions(file: File): Promise<{ valid: boolean; er
 // POST /api/upload - 파일 업로드
 export async function POST(request: NextRequest) {
   const timer = new PerformanceTimer('api.upload.POST');
-  let user: any = null;
+  let user: { id: string; email: string; type: string } | null = null;
   
   try {
     const authResult = await withAuth(request);

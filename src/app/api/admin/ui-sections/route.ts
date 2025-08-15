@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
     const { sectionId, type, title, subtitle, content, order, visible } = body;
 
     // 번역 처리 (한글이 기본)
-    let translations: any = {};
+    let translations: Record<string, { title?: string; subtitle?: string; content?: Record<string, unknown> }> = {};
     
     if (title || subtitle || content) {
       // 영어 번역
-      const enTranslations: any = {};
+      const enTranslations: Record<string, unknown> = {};
       if (title) enTranslations.title = await translateText(title, 'ko', 'en');
       if (subtitle) enTranslations.subtitle = await translateText(subtitle, 'ko', 'en');
       
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       translations.en = enTranslations;
 
       // 일본어 번역
-      const jpTranslations: any = {};
+      const jpTranslations: Record<string, unknown> = {};
       if (title) jpTranslations.title = await translateText(title, 'ko', 'ja');
       if (subtitle) jpTranslations.subtitle = await translateText(subtitle, 'ko', 'ja');
       
@@ -107,7 +107,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // 자동 번역 처리
-    let translations = existingSection.translations as any || {};
+    let translations = (existingSection.translations as Record<string, { title?: string; subtitle?: string; content?: Record<string, unknown> }>) || {};
     
     if (autoTranslate && (title || subtitle || content)) {
       // 영어 번역
@@ -185,15 +185,15 @@ export async function DELETE(request: NextRequest) {
 }
 
 // content 내부의 텍스트 번역 헬퍼 함수
-async function translateContentTexts(content: any, from: string, to: string): Promise<any> {
+async function translateContentTexts(content: Record<string, unknown>, from: string, to: string): Promise<Record<string, unknown>> {
   if (!content) return {};
 
-  const result: any = {};
+  const result: Record<string, unknown> = {};
 
   // 히어로 슬라이드 번역
   if (content.slides && Array.isArray(content.slides)) {
-    result.slides = await Promise.all(content.slides.map(async (slide: any) => {
-      const translatedSlide: any = {
+    result.slides = await Promise.all(content.slides.map(async (slide: Record<string, unknown>) => {
+      const translatedSlide: Record<string, unknown> = {
         ...slide
       };
       
@@ -220,8 +220,8 @@ async function translateContentTexts(content: any, from: string, to: string): Pr
 
   // 카테고리 번역
   if (content.categories && Array.isArray(content.categories)) {
-    result.categories = await Promise.all(content.categories.map(async (cat: any) => {
-      const translatedCat: any = {
+    result.categories = await Promise.all(content.categories.map(async (cat: Record<string, unknown>) => {
+      const translatedCat: Record<string, unknown> = {
         ...cat
       };
       
@@ -238,8 +238,8 @@ async function translateContentTexts(content: any, from: string, to: string): Pr
 
   // 링크 번역
   if (content.links && Array.isArray(content.links)) {
-    result.links = await Promise.all(content.links.map(async (link: any) => {
-      const translatedLink: any = {
+    result.links = await Promise.all(content.links.map(async (link: Record<string, unknown>) => {
+      const translatedLink: Record<string, unknown> = {
         ...link
       };
       

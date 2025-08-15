@@ -172,7 +172,7 @@ export async function PUT(
         )
       }
 
-      const updateData: any = {}
+      const updateData: Record<string, unknown> = {}
       if (en !== undefined) updateData.en = en
       if (ja !== undefined) updateData.ja = ja
 

@@ -117,7 +117,7 @@ export async function PUT(
     }
 
     // 상태별 업데이트 데이터 구성
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status: status.toUpperCase()
     }
 

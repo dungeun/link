@@ -5,7 +5,7 @@ import { createErrorResponse, createSuccessResponse, handleApiError } from '@/li
 
 // GET /api/business/templates - 템플릿 목록 조회
 export async function GET(request: NextRequest) {
-  let user: any = null;
+  let user: { id: string; userId?: string; email: string; name: string; type: string } | null = null;
   try {
     const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
     if ('error' in authResult) {
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/business/templates - 새 템플릿 생성
 export async function POST(request: NextRequest) {
-  let user: any = null;
+  let user: { id: string; userId?: string; email: string; name: string; type: string } | null = null;
   try {
     const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
     if ('error' in authResult) {
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 
 // DELETE /api/business/templates/[id] - 템플릿 삭제
 export async function DELETE(request: NextRequest) {
-  let user: any = null;
+  let user: { id: string; userId?: string; email: string; name: string; type: string } | null = null;
   try {
     const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
     if ('error' in authResult) {

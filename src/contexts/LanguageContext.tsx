@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { getDefaultTranslation } from '@/lib/translations/default-translations';
+import { logger } from '@/lib/utils/structured-logger';
 
 type Language = 'ko' | 'en' | 'jp';
 
@@ -83,18 +85,18 @@ export function LanguageProvider({ children, initialLanguagePacks = {} }: Langua
       const response = await fetch('/api/language-packs');
       if (response.ok) {
         const packs: LanguagePack[] = await response.json();
-        console.log(`Loaded ${packs.length} language packs from API`);
+        logger.debug(`Loaded ${packs.length} language packs from API`, { module: 'LanguageContext' });
         const packMap = packs.reduce((acc, pack) => {
           acc[pack.key] = pack;
           return acc;
         }, {} as Record<string, LanguagePack>);
-        console.log(`Language pack keys loaded:`, Object.keys(packMap).filter(k => k.startsWith('menu.')));
+        logger.debug('Language pack keys loaded', { module: 'LanguageContext', metadata: { menuKeys: Object.keys(packMap).filter(k => k.startsWith('menu.')) } });
         setLanguagePacks(packMap);
       } else {
-        console.error('Failed to load language packs: HTTP', response.status);
+        logger.error('Failed to load language packs', new Error(`HTTP ${response.status}`), { module: 'LanguageContext' });
       }
     } catch (error) {
-      console.error('Failed to load language packs:', error);
+      logger.error('Failed to load language packs', error as Error, { module: 'LanguageContext' });
     } finally {
       setIsLoading(false);
     }
@@ -127,17 +129,17 @@ export function LanguageProvider({ children, initialLanguagePacks = {} }: Langua
   const t = useCallback((key: string, fallback?: string): string => {
     const pack = languagePacks[key];
     if (!pack) {
-      // 언어팩이 없으면 fallback 또는 key 반환
-      console.log(`Translation missing for key: ${key}, available keys: ${Object.keys(languagePacks).length}`);
+      // 언어팩이 없으면 기본 번역 사용
+      const defaultTranslation = getDefaultTranslation(key, currentLanguage);
+      if (defaultTranslation !== key) {
+        return defaultTranslation;
+      }
+      // 기본 번역도 없으면 fallback 또는 key 반환
       return fallback || key;
     }
     
     // 현재 언어에 맞는 텍스트 반환
-    const result = pack[currentLanguage] || pack.ko || fallback || key;
-    if (key.startsWith('menu.')) {
-      console.log(`Translation for ${key}: ${result} (lang: ${currentLanguage})`);
-    }
-    return result;
+    return pack[currentLanguage] || pack.ko || fallback || key;
   }, [languagePacks, currentLanguage]);
 
   // 동적 텍스트 번역 (API 호출)
@@ -166,7 +168,7 @@ export function LanguageProvider({ children, initialLanguagePacks = {} }: Langua
         }
       }
     } catch (error) {
-      console.error('Dynamic translation failed:', error);
+      logger.error('Dynamic translation failed', error as Error, { module: 'LanguageContext' });
     }
 
     return text; // 번역 실패 시 원본 반환
@@ -198,7 +200,7 @@ export function useLanguage() {
 
 // 캠페인 데이터의 번역된 필드 가져오기
 export function getTranslatedField(
-  data: any,
+  data: { translations?: Record<string, string>; [key: string]: unknown },
   fieldName: string,
   language: Language = 'ko'
 ): string {

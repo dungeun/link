@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   
   try {
     const contentType = request.headers.get('content-type') || ''
-    let userData: any = {}
+    let userData: Record<string, unknown> = {}
 
     // FormData 처리 (파일 업로드가 있는 경우)
     if (contentType.includes('multipart/form-data')) {
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
     });
 
     return response
-  } catch (error: any) {
+  } catch (error) {
     return handleApiError(error, { 
       endpoint: 'auth/register',
       method: 'POST',

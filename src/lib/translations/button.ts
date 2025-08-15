@@ -1,0 +1,78 @@
+// button 카테고리 언어팩
+// 생성일: 2025-08-15T19:22:30.942Z
+// 6개 항목
+
+export const BUTTON_TRANSLATIONS = [
+  {
+    "id": "cme7f21pc000hunh3sgm704dt",
+    "key": "button.cancel",
+    "ko": "취소",
+    "en": "Cancel",
+    "category": "button",
+    "description": "취소 버튼",
+    "isEditable": true,
+    "createdAt": "2025-08-11T17:58:35.808Z",
+    "updatedAt": "2025-08-11T17:58:35.808Z",
+    "jp": "キャンセル"
+  },
+  {
+    "id": "cme7f21s4000junh3dcryan2a",
+    "key": "button.delete",
+    "ko": "삭제",
+    "en": "Delete",
+    "category": "button",
+    "description": "삭제 버튼",
+    "isEditable": true,
+    "createdAt": "2025-08-11T17:58:35.909Z",
+    "updatedAt": "2025-08-11T17:58:35.909Z",
+    "jp": "削除"
+  },
+  {
+    "id": "cme7f21qq000iunh3p28n3ii0",
+    "key": "button.edit",
+    "ko": "수정",
+    "en": "Edit",
+    "category": "button",
+    "description": "수정 버튼",
+    "isEditable": true,
+    "createdAt": "2025-08-11T17:58:35.858Z",
+    "updatedAt": "2025-08-11T17:58:35.858Z",
+    "jp": "編集"
+  },
+  {
+    "id": "cme7f21uw000lunh348fky4no",
+    "key": "button.refresh",
+    "ko": "새로고침",
+    "en": "Refresh",
+    "category": "button",
+    "description": "새로고침 버튼",
+    "isEditable": true,
+    "createdAt": "2025-08-11T17:58:36.008Z",
+    "updatedAt": "2025-08-11T17:58:36.008Z",
+    "jp": "更新"
+  },
+  {
+    "id": "cme7f21ny000gunh3lqg6vvav",
+    "key": "button.save",
+    "ko": "저장",
+    "en": "Save",
+    "category": "button",
+    "description": "저장 버튼",
+    "isEditable": true,
+    "createdAt": "2025-08-11T17:58:35.758Z",
+    "updatedAt": "2025-08-11T17:58:35.758Z",
+    "jp": "保存"
+  },
+  {
+    "id": "cme7f21ti000kunh3sspi6vh0",
+    "key": "button.search",
+    "ko": "검색",
+    "en": "Search",
+    "category": "button",
+    "description": "검색 버튼",
+    "isEditable": true,
+    "createdAt": "2025-08-11T17:58:35.958Z",
+    "updatedAt": "2025-08-11T17:58:35.958Z",
+    "jp": "検索"
+  }
+];

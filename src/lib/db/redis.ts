@@ -10,11 +10,11 @@ class MockRedis {
     return null;
   }
   
-  async set(key: string, value: any, ...args: any[]): Promise<string> {
+  async set(key: string, value: string | Buffer | number, ...args: unknown[]): Promise<string> {
     return 'OK';
   }
   
-  async setex(key: string, seconds: number, value: any): Promise<string> {
+  async setex(key: string, seconds: number, value: string | Buffer | number): Promise<string> {
     return 'OK';
   }
   
@@ -34,7 +34,7 @@ class MockRedis {
     return 0;
   }
   
-  async hset(key: string, field: string, value: any): Promise<number> {
+  async hset(key: string, field: string, value: string | Buffer | number): Promise<number> {
     return 0;
   }
   
@@ -56,7 +56,7 @@ const createRedisClient = () => {
   // Disable Redis if explicitly disabled
   if (process.env.DISABLE_REDIS === 'true') {
     console.log('Redis is disabled - using mock Redis client');
-    return new MockRedis() as any;
+    return new MockRedis() as unknown as Redis;
   }
 
   try {
@@ -101,7 +101,7 @@ const createRedisClient = () => {
   } catch (error) {
     console.error('Failed to create Redis client:', error);
     console.log('Falling back to mock Redis client');
-    return new MockRedis() as any;
+    return new MockRedis() as unknown as Redis;
   }
 };
 

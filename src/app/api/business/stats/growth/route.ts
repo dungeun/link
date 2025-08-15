@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
           lt: thisMonth
         }
       }
-    })
+    }).catch(() => 0)
 
     // 이번달 캠페인 수
     const thisMonthCampaigns = await prisma.campaign.count({
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
           gte: thisMonth
         }
       }
-    })
+    }).catch(() => 0)
 
     // 지난주 활성 캠페인 수
     const lastWeekActiveCampaigns = await prisma.campaign.count({
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
           lt: lastWeek
         }
       }
-    })
+    }).catch(() => 0)
 
     // 이번주 활성 캠페인 수
     const thisWeekActiveCampaigns = await prisma.campaign.count({
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
         businessId: userId,
         status: 'ACTIVE'
       }
-    })
+    }).catch(() => 0)
 
     // 이번달 지원자 수
     const thisMonthApplications = await prisma.application.count({
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
           gte: thisMonth
         }
       }
-    })
+    }).catch(() => 0)
 
     // 지난달 지원자 수
     const lastMonthApplications = await prisma.application.count({
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
           lt: thisMonth
         }
       }
-    })
+    }).catch(() => 0)
 
     // ROI 계산 (간단한 예시 - 실제로는 더 복잡한 계산 필요)
     const totalSpent = await prisma.payment.aggregate({
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
       _sum: {
         amount: true
       }
-    })
+    }).catch(() => ({ _sum: { amount: null } }))
 
     const totalRevenue = await prisma.campaign.aggregate({
       where: {
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
       _sum: {
         budget: true
       }
-    })
+    }).catch(() => ({ _sum: { budget: null } }))
 
     const spentAmount = totalSpent._sum?.amount || 0
     const revenueAmount = totalRevenue._sum?.budget || 0

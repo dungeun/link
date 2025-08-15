@@ -53,7 +53,7 @@ export async function authenticateAdmin(request: NextRequest): Promise<AuthUser 
 
   try {
     const jwtSecret = getJWTSecret();
-    const decoded = jwt.verify(token, jwtSecret) as any;
+    const decoded = jwt.verify(token, jwtSecret) as AuthUser & { userId?: string };
     logger.debug('[Admin Auth] JWT verified successfully:', { type: decoded.type, email: decoded.email });
     
     // userId 필드가 있으면 id로 변환

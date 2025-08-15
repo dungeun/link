@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       path: '/'
     })
     
-    // Also clear any other auth-related cookies
+    // Also clear other auth-related cookies
     response.cookies.set('accessToken', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     })
 
     return response
-  } catch (error: any) {
+  } catch (error) {
     console.error('Logout error:', error)
     return NextResponse.json(
       { error: error.message || 'Logout failed' },

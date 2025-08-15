@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { logger } from '@/lib/utils/structured-logger';
 
 export interface MenuItem {
   id: string;
@@ -144,9 +145,23 @@ export interface UIConfig {
   };
 }
 
+interface WebsiteSettings {
+  siteName?: string;
+  siteDescription?: string;
+  siteUrl?: string;
+  contactEmail?: string;
+  socialMedia?: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    youtube?: string;
+  };
+  [key: string]: unknown;
+}
+
 interface UIConfigStore {
   config: UIConfig;
-  websiteSettings: any;
+  websiteSettings: WebsiteSettings;
   updateHeaderMenus: (menus: MenuItem[]) => void;
   updateFooterColumns: (columns: FooterColumn[]) => void;
   updateLogo: (logo: UIConfig['header']['logo']) => void;
@@ -162,7 +177,7 @@ interface UIConfigStore {
   updateCustomSection: (id: string, section: Partial<CustomSection>) => void;
   removeCustomSection: (id: string) => void;
   updateSectionOrder: (order: SectionOrder[]) => void;
-  updateWebsiteSettings: (settings: any) => void;
+  updateWebsiteSettings: (settings: WebsiteSettings) => void;
   loadSettingsFromAPI: (language?: string) => Promise<void>;
   resetToDefault: () => void;
   setConfig: (config: UIConfig) => void;
@@ -174,10 +189,10 @@ const defaultConfig: UIConfig = {
       text: 'LinkPick',
     },
     menus: [
-      { id: '1', label: 'menu.campaigns', href: '/campaigns', order: 1, visible: true },
-      { id: '2', label: 'menu.influencers', href: '/influencers', order: 2, visible: true },
-      { id: '3', label: 'menu.community', href: '/community', order: 3, visible: true },
-      { id: '4', label: 'menu.pricing', href: '/pricing', order: 4, visible: true },
+      { id: '1', label: 'header.menu.campaigns', href: '/campaigns', order: 1, visible: true },
+      { id: '2', label: 'header.menu.influencers', href: '/influencers', order: 2, visible: true },
+      { id: '3', label: 'header.menu.community', href: '/community', order: 3, visible: true },
+      { id: '4', label: 'header.menu.pricing', href: '/pricing', order: 4, visible: true },
     ],
     ctaButton: {
       text: 'menu.get_started',
@@ -493,17 +508,17 @@ export const useUIConfigStore = create<UIConfigStore>()(
       loadSettingsFromAPI: async (language?: string) => {
         try {
           // UI config 로드 (공개 API 사용)
-          console.log('Loading UI config from API...');
+          logger.debug('Loading UI config from API', { module: 'UIConfigStore' });
           const langParam = language ? `?lang=${language}` : '';
           const uiConfigResponse = await fetch(`/api/ui-config${langParam}`)
           if (uiConfigResponse.ok) {
             const uiData = await uiConfigResponse.json()
-            console.log('UI config loaded:', uiData.config);
+            logger.debug('UI config loaded', { module: 'UIConfigStore', metadata: { config: uiData.config } });
             if (uiData.config) {
               set({ config: uiData.config })
             }
           } else {
-            console.error('Failed to load UI config:', uiConfigResponse.status);
+            logger.error('Failed to load UI config', new Error(`HTTP ${uiConfigResponse.status}`), { module: 'UIConfigStore' });
           }
           
           // 일반 설정 로드
@@ -523,7 +538,7 @@ export const useUIConfigStore = create<UIConfigStore>()(
             set({ websiteSettings: data.settings?.website || null })
           }
         } catch (error) {
-          console.error('Failed to load settings:', error)
+          logger.error('Failed to load settings', error as Error, { module: 'UIConfigStore' })
         }
       },
       resetToDefault: () => set({ config: defaultConfig }),

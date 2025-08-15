@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit
 
     // 필터 조건 구성
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     
     if (status && status !== 'all') {
       where.status = status.toUpperCase()

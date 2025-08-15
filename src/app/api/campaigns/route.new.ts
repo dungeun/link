@@ -57,7 +57,7 @@ const campaignCreateSchema = z.object({
 export const GET = ApiPatterns.list(async (req: NextRequest, context: ApiContext) => {
   const { page, limit, platform, status, search } = context.validated.query || {};
 
-  const where: any = {
+  const where: Record<string, unknown> = {
     ...(platform && { platform }),
     ...(status && { status: status.toUpperCase() }),
     ...(search && {

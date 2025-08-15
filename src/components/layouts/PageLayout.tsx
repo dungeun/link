@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, memo } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -10,7 +10,7 @@ interface PageLayoutProps {
   showFooter?: boolean
 }
 
-export default function PageLayout({ 
+function PageLayout({ 
   children, 
   headerVariant = 'default',
   showFooter = true 
@@ -25,3 +25,6 @@ export default function PageLayout({
     </div>
   )
 }
+
+// React.memo로 성능 최적화
+export default memo(PageLayout)

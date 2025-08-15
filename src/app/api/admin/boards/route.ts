@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      boards: boards.map((board: any) => ({
+      boards: boards.map((board: { id: string; name: string; description: string; category: string; status: string; visibility: string; post_count: string | number; last_post_at: Date; created_at: Date; updated_at: Date }) => ({
         id: board.id,
         name: board.name,
         description: board.description,

@@ -46,11 +46,11 @@ export async function POST(req: NextRequest) {
       });
     }
     
-  } catch (error: any) {
+  } catch (error) {
     console.error('YouTube scraping test error:', error);
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       stats: null
     }, { status: 500 });
   }

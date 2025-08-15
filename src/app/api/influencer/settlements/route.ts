@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // 필터 조건
-    const where: any = {
+    const where: Record<string, unknown> = {
       influencerId: user.id
     };
     

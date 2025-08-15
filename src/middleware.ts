@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyJWTEdge, getTokenFromHeader } from '@/lib/auth/jwt-edge';
-import { logger, createApiLogger, createPerformanceLogger } from '@/lib/logger';
-import { addSecurityHeaders, addApiSecurityHeaders, securityCheck } from './middleware.security';
+import { logger, createApiLogger, createPerformanceLogger } from '@/lib/logger/edge-logger';
+import { 
+  addSecurityHeaders, 
+  addApiSecurityHeaders, 
+  advancedSecurityCheck
+} from './middleware.security.improved';
+import { logSecurityEvent } from '@/lib/logger/edge-logger';
 
 // 인증이 필요없는 public 경로들
 const publicPaths = [
@@ -45,6 +50,8 @@ const protectedPagePaths = [
   '/admin',
   '/business',
   '/influencer',
+  '/mypage',
+  '/dashboard',
   '/campaigns/create',
 ];
 
@@ -62,14 +69,17 @@ export async function middleware(request: NextRequest) {
     logger.debug({ path: pathname, method: request.method }, 'Middleware: Request received');
   }
 
-  // 보안 체크
-  const securityResult = securityCheck(request);
+  // 고급 보안 체크
+  const securityResult = await advancedSecurityCheck(request);
   if (!securityResult.allowed) {
-    logger.warn({ 
+    logSecurityEvent('request_blocked', {
       reason: securityResult.reason,
       ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
-      userAgent: request.headers.get('user-agent')
-    }, 'Security: Request blocked');
+      userAgent: request.headers.get('user-agent'),
+      path: pathname,
+      action: securityResult.action
+    }, 'high');
+    
     if (perfLogger) perfLogger.end({ status: 403, blocked: true });
     return new NextResponse('Forbidden', { status: 403 });
   }
@@ -79,17 +89,22 @@ export async function middleware(request: NextRequest) {
 
   // Public 페이지는 인증 체크 스킵
   if (publicPagePaths.some(path => pathname === path || pathname.startsWith(path + '/'))) {
-    return addSecurityHeaders(response);
+    return await addSecurityHeaders(response, request);
+  }
+  
+  // 캠페인 상세 페이지 (/campaigns/[id])도 public으로 처리
+  if (pathname.match(/^\/campaigns\/[^\/]+$/)) {
+    return await addSecurityHeaders(response, request);
   }
 
   // Public API는 인증 체크 스킵
   if (publicPaths.some(path => pathname.startsWith(path))) {
-    return pathname.startsWith('/api/') ? addApiSecurityHeaders(response) : addSecurityHeaders(response);
+    return pathname.startsWith('/api/') ? await addApiSecurityHeaders(response, request) : await addSecurityHeaders(response, request);
   }
 
   // 기타 API 라우트는 각 라우트에서 인증 처리
   if (pathname.startsWith('/api/')) {
-    return addApiSecurityHeaders(response);
+    return await addApiSecurityHeaders(response, request);
   }
 
   // 페이지 라우트 보호
@@ -118,7 +133,11 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/', request.url));
       }
       
-      if (pathname.startsWith('/influencer') && payload.type !== 'INFLUENCER') {
+      // 인플루언서 프로필 페이지는 비즈니스 사용자도 볼 수 있도록 허용
+      if (pathname.startsWith('/influencer') && 
+          payload.type !== 'INFLUENCER' && 
+          payload.type !== 'BUSINESS' && 
+          payload.type !== 'ADMIN') {
         return NextResponse.redirect(new URL('/', request.url));
       }
       
@@ -135,7 +154,7 @@ export async function middleware(request: NextRequest) {
   }
   
   // 모든 응답에 보안 헤더 추가
-  return addSecurityHeaders(response);
+  return await addSecurityHeaders(response, request);
 }
 
 export const config = {

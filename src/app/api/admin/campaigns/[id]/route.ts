@@ -79,7 +79,7 @@ export async function GET(
       createdAt: campaign.createdAt.toISOString().split('T')[0],
       updatedAt: campaign.updatedAt.toISOString().split('T')[0],
       reviewedAt: null, // Campaign doesn't have reviewedAt field
-      platformFeeRate: (campaign as any).platformFeeRate || 0.2
+      platformFeeRate: 'platformFeeRate' in campaign && typeof campaign.platformFeeRate === 'number' ? campaign.platformFeeRate : 0.2
     }
 
     return NextResponse.json({

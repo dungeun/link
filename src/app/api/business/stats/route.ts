@@ -22,7 +22,7 @@ async function authenticate(request: NextRequest) {
       
       return null;
     }
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId?: string; id?: string; type?: string; email?: string };
     return decoded;
   } catch (error) {
     
@@ -49,24 +49,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 비즈니스 정보 조회
+    // 비즈니스 정보 조회 - 기본 정보만
     const business = await prisma.user.findUnique({
       where: { id: user.userId || user.id },
-      include: {
-        campaigns: {
-          include: {
-            applications: {
-              include: {
-                influencer: {
-                  include: {
-                    profile: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      select: { id: true, name: true }
     });
 
     if (!business) {
@@ -76,57 +62,120 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 통계 계산
-    const campaigns = business.campaigns || [];
-    const totalCampaigns = campaigns.length;
-    const activeCampaigns = campaigns.filter(c => c.status === 'ACTIVE').length;
-    
-    // 모든 지원자 수
-    const totalApplications = campaigns.reduce((sum, campaign) => {
-      return sum + (campaign.applications?.length || 0);
-    }, 0);
+    const businessId = business.id;
 
-    // 총 지출 (완료된 캠페인의 예산 합계)
-    const totalSpent = campaigns
-      .filter(c => c.status === 'COMPLETED')
-      .reduce((sum, campaign) => sum + campaign.budget, 0);
+    // 통계 계산을 위한 최적화된 쿼리들 - 병렬 실행
+    const [
+      campaignStats,
+      totalApplicationsCount,
+      totalSpentAmount,
+      recentCampaignsData,
+      recentApplicationsData
+    ] = await Promise.all([
+      // 캠페인 기본 통계
+      prisma.campaign.aggregate({
+        where: { businessId },
+        _count: { id: true }
+      }),
+      
+      // 총 지원자 수
+      prisma.campaignApplication.count({
+        where: {
+          campaign: { businessId }
+        }
+      }),
+      
+      // 총 지출 (완료된 캠페인의 예산 합계)
+      prisma.campaign.aggregate({
+        where: { 
+          businessId,
+          status: 'COMPLETED'
+        },
+        _sum: { budget: true }
+      }),
+      
+      // 최근 캠페인 목록 (최대 5개) - 지원자 수 포함
+      prisma.campaign.findMany({
+        where: { businessId },
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          budget: true,
+          endDate: true,
+          createdAt: true,
+          _count: {
+            select: { applications: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5
+      }),
+      
+      // 최근 지원자 목록 (최대 5개)
+      prisma.campaignApplication.findMany({
+        where: {
+          campaign: { businessId }
+        },
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+          campaign: {
+            select: { title: true }
+          },
+          influencer: {
+            select: {
+              name: true,
+              profile: {
+                select: { followerCount: true }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5
+      })
+    ]);
 
-    // 최근 캠페인 목록 (최대 5개)
-    const recentCampaigns = campaigns
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, 5)
-      .map(campaign => ({
-        id: campaign.id,
-        title: campaign.title,
-        status: campaign.status.toLowerCase(),
-        applications: campaign.applications?.length || 0,
-        maxApplications: 100, // TODO: 실제 최대 지원자 수 필드 추가
-        budget: `₩${campaign.budget.toLocaleString()}`,
-        deadline: campaign.endDate < new Date() ? '완료' : getDeadlineText(campaign.endDate),
-        category: (campaign as any).category // TODO: 카테고리 필드 추가
-      }));
+    // 활성 캠페인 수 별도 조회
+    const activeCampaignsCount = await prisma.campaign.count({
+      where: { 
+        businessId,
+        status: 'ACTIVE'
+      }
+    });
 
-    // 최근 지원자 목록
-    const recentApplications = campaigns
-      .flatMap(campaign => 
-        campaign.applications?.map(app => ({
-          ...app,
-          campaignTitle: campaign.title
-        })) || []
-      )
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, 5)
-      .map(app => ({
-        id: app.id,
-        campaignTitle: app.campaignTitle,
-        influencerName: app.influencer.name,
-        followers: app.influencer.profile?.followerCount 
-          ? `${(app.influencer.profile.followerCount / 1000).toFixed(0)}K`
-          : '0',
-        engagementRate: '4.2%', // TODO: 실제 참여율 계산
-        appliedAt: getRelativeTime(app.createdAt),
-        status: app.status
-      }));
+    // 통계 데이터 포맷팅
+    const totalCampaigns = campaignStats._count.id;
+    const activeCampaigns = activeCampaignsCount;
+    const totalApplications = totalApplicationsCount;
+    const totalSpent = totalSpentAmount._sum.budget || 0;
+
+    // 최근 캠페인 포맷팅
+    const recentCampaigns = recentCampaignsData.map(campaign => ({
+      id: campaign.id,
+      title: campaign.title,
+      status: campaign.status.toLowerCase(),
+      applications: campaign._count.applications,
+      maxApplications: 100, // TODO: 실제 최대 지원자 수 필드 추가
+      budget: `₩${campaign.budget.toLocaleString()}`,
+      deadline: campaign.endDate < new Date() ? '완료' : getDeadlineText(campaign.endDate),
+      category: 'general' // TODO: 카테고리 필드 추가
+    }));
+
+    // 최근 지원자 포맷팅
+    const recentApplications = recentApplicationsData.map(app => ({
+      id: app.id,
+      campaignTitle: app.campaign.title,
+      influencerName: app.influencer.name,
+      followers: app.influencer.profile?.followerCount 
+        ? `${(app.influencer.profile.followerCount / 1000).toFixed(0)}K`
+        : '0',
+      engagementRate: '4.2%', // TODO: 실제 참여율 계산
+      appliedAt: getRelativeTime(app.createdAt),
+      status: app.status
+    }));
 
     return NextResponse.json({
       stats: {

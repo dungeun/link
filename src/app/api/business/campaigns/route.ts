@@ -5,7 +5,7 @@ import { createErrorResponse, createSuccessResponse, createApiError, handleApiEr
 
 // POST /api/business/campaigns - 새 캠페인 생성
 export async function POST(request: NextRequest) {
-  let user: any = null;
+  let user: { id: string; email: string; type: string } | null = null;
   try {
     const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
     if ('error' in authResult) {
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
 
 // GET /api/business/campaigns - 비즈니스 계정의 캠페인 목록 조회
 export async function GET(request: NextRequest) {
-  let user: any = null;
+  let user: { id: string; email: string; type: string } | null = null;
   try {
     const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
     if ('error' in authResult) {

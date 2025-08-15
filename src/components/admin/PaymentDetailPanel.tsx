@@ -29,7 +29,7 @@ interface PaymentDetail {
   requestDate: string
   processedDate?: string
   description: string
-  metadata?: any
+  metadata?: Record<string, unknown>
   receipt?: string
   refundedAmount?: number
   failReason?: string

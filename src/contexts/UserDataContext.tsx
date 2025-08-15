@@ -18,7 +18,7 @@ interface ProfileData {
     gender?: string
     nationality?: string
     address?: string
-    addressData?: any
+    addressData?: Record<string, unknown>
     instagram?: string
     instagramFollowers?: number
     youtube?: string

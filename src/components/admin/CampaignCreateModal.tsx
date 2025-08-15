@@ -152,7 +152,7 @@ export default function CampaignCreateModal({ isOpen, onClose, onSuccess }: Camp
                       <textarea
                         required
                         rows={3}
-                        value={(formData as any).description}
+                        value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />

@@ -14,7 +14,7 @@ type FileType = typeof ALLOWED_FILE_TYPES[number];
 // POST /api/upload - 파일 업로드
 export async function POST(request: NextRequest) {
   const timer = new PerformanceTimer('api.upload.POST');
-  let user: any = null;
+  let user: { id: string; email: string; name: string; type: string } | null = null;
   let fileInfo = { name: 'unknown', size: 0 };
   
   try {

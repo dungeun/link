@@ -9,15 +9,15 @@ export interface ApiError {
   code: string;
   message: string;
   status: number;
-  context?: any;
+  context?: Record<string, unknown>;
 }
 
 export class APIError extends Error {
   code: string;
   status: number;
-  context?: any;
+  context?: Record<string, unknown>;
 
-  constructor(message: string, code: string = 'INTERNAL_ERROR', status: number = 500, context?: any) {
+  constructor(message: string, code: string = 'INTERNAL_ERROR', status: number = 500, context?: Record<string, unknown>) {
     super(message);
     this.name = 'APIError';
     this.code = code;
@@ -54,7 +54,7 @@ export const API_ERRORS = {
  */
 export function createErrorResponse(
   error: ApiError | APIError | Error | string,
-  context?: any
+  context?: Record<string, unknown>
 ): NextResponse {
   let apiError: ApiError;
 
@@ -125,35 +125,35 @@ export function createSuccessResponse<T>(
  * API 에러 생성 헬퍼 함수들
  */
 export const createApiError = {
-  unauthorized: (message?: string, context?: any) => 
+  unauthorized: (message?: string, context?: Record<string, unknown>) => 
     new APIError(message || API_ERRORS.UNAUTHORIZED.message, API_ERRORS.UNAUTHORIZED.code, API_ERRORS.UNAUTHORIZED.status, context),
   
-  forbidden: (message?: string, context?: any) => 
+  forbidden: (message?: string, context?: Record<string, unknown>) => 
     new APIError(message || API_ERRORS.FORBIDDEN.message, API_ERRORS.FORBIDDEN.code, API_ERRORS.FORBIDDEN.status, context),
   
-  badRequest: (message?: string, context?: any) => 
+  badRequest: (message?: string, context?: Record<string, unknown>) => 
     new APIError(message || API_ERRORS.BAD_REQUEST.message, API_ERRORS.BAD_REQUEST.code, API_ERRORS.BAD_REQUEST.status, context),
   
-  validation: (message?: string, context?: any) => 
+  validation: (message?: string, context?: Record<string, unknown>) => 
     new APIError(message || API_ERRORS.VALIDATION_ERROR.message, API_ERRORS.VALIDATION_ERROR.code, API_ERRORS.VALIDATION_ERROR.status, context),
   
-  notFound: (message?: string, context?: any) => 
+  notFound: (message?: string, context?: Record<string, unknown>) => 
     new APIError(message || API_ERRORS.NOT_FOUND.message, API_ERRORS.NOT_FOUND.code, API_ERRORS.NOT_FOUND.status, context),
   
-  alreadyExists: (message?: string, context?: any) => 
+  alreadyExists: (message?: string, context?: Record<string, unknown>) => 
     new APIError(message || API_ERRORS.ALREADY_EXISTS.message, API_ERRORS.ALREADY_EXISTS.code, API_ERRORS.ALREADY_EXISTS.status, context),
   
-  internal: (message?: string, context?: any) => 
+  internal: (message?: string, context?: Record<string, unknown>) => 
     new APIError(message || API_ERRORS.INTERNAL_ERROR.message, API_ERRORS.INTERNAL_ERROR.code, API_ERRORS.INTERNAL_ERROR.status, context),
   
-  database: (message?: string, context?: any) => 
+  database: (message?: string, context?: Record<string, unknown>) => 
     new APIError(message || API_ERRORS.DATABASE_ERROR.message, API_ERRORS.DATABASE_ERROR.code, API_ERRORS.DATABASE_ERROR.status, context),
 };
 
 /**
  * try-catch 블록을 위한 에러 핸들러
  */
-export function handleApiError(error: unknown, context?: any): NextResponse {
+export function handleApiError(error: unknown, context?: Record<string, unknown>): NextResponse {
   if (error instanceof APIError) {
     return createErrorResponse(error);
   }

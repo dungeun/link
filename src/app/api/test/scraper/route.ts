@@ -51,12 +51,12 @@ export async function GET(req: NextRequest) {
       });
     }
     
-  } catch (error: any) {
+  } catch (error) {
     console.error('Scraper test error:', error);
     return NextResponse.json(
       { 
         error: 'Scraping failed',
-        message: error.message,
+        message: error instanceof Error ? error.message : 'Unknown error',
         platform: req.nextUrl.searchParams.get('platform'),
         username: req.nextUrl.searchParams.get('username')
       },
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { instagram, youtube, tiktok, naverBlog } = body;
     
-    const accounts: any = {};
+    const accounts: Record<string, string> = {};
     if (instagram) accounts.instagram = instagram;
     if (youtube) accounts.youtube = youtube;
     if (tiktok) accounts.tiktok = tiktok;
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     // 결과 요약
     const summary = {
       total: 0,
-      platforms: [] as any[]
+      platforms: [] as Array<{ platform: string; username: string; followers: number; success: boolean }>
     };
     
     for (const [platform, stats] of Object.entries(results)) {
@@ -97,8 +97,8 @@ export async function POST(req: NextRequest) {
         summary.total += stats.followers;
         summary.platforms.push({
           platform,
-          username: (stats as any).username,
-          followers: (stats as any).followers,
+          username: (stats as { username: string; followers: number }).username,
+          followers: (stats as { username: string; followers: number }).followers,
           success: true
         });
       } else {
@@ -118,12 +118,12 @@ export async function POST(req: NextRequest) {
       message: `Scraped ${summary.platforms.filter(p => p.success).length} out of ${summary.platforms.length} platforms`
     });
     
-  } catch (error: any) {
+  } catch (error) {
     console.error('Batch scraper test error:', error);
     return NextResponse.json(
       { 
         error: 'Batch scraping failed',
-        message: error.message
+        message: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

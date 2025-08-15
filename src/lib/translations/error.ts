@@ -1,0 +1,114 @@
+// error 카테고리 언어팩
+// 생성일: 2025-08-15T19:22:30.944Z
+// 9개 항목
+
+export const ERROR_TRANSLATIONS = [
+  {
+    "id": "cme7f4qtx00078uifis3ah9lj",
+    "key": "error.campaigns_fetch_failed",
+    "ko": "캠페인 데이터를 가져오는데 실패했습니다.",
+    "en": "Failed to fetch campaign data.",
+    "category": "error",
+    "description": "캠페인 데이터 가져오기 실패",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:41.685Z",
+    "updatedAt": "2025-08-11T18:00:41.685Z",
+    "jp": "キャンペーンデータの取得に失敗しました。"
+  },
+  {
+    "id": "cme7f4wzl0015532olzknrt40",
+    "key": "error.data_loading_failed",
+    "ko": "데이터 로딩 실패",
+    "en": "Data loading failed",
+    "category": "error",
+    "description": "데이터 로딩 실패",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:49.666Z",
+    "updatedAt": "2025-08-11T18:00:49.666Z",
+    "jp": "データ読み込み失敗"
+  },
+  {
+    "id": "cme7f4qvb00088uifh0990324",
+    "key": "error.data_loading_failed_title",
+    "ko": "데이터 로딩 실패",
+    "en": "Data Loading Failed",
+    "category": "error",
+    "description": "데이터 로딩 실패 제목",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:41.735Z",
+    "updatedAt": "2025-08-11T18:00:41.735Z",
+    "jp": "データ読み込み失敗"
+  },
+  {
+    "id": "cme7f4wsn0011532oaf2rj2nc",
+    "key": "error.fetch_campaigns_failed",
+    "ko": "캠페인 데이터를 가져오는데 실패했습니다.",
+    "en": "Failed to fetch campaign data.",
+    "category": "error",
+    "description": "캠페인 데이터 로딩 실패",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:49.416Z",
+    "updatedAt": "2025-08-11T18:00:49.416Z",
+    "jp": "キャンペーンデータの取得に失敗しました。"
+  },
+  {
+    "id": "cme7f4wxn0014532o6g1s5o5j",
+    "key": "error.like_failed",
+    "ko": "좋아요 처리 중 오류가 발생했습니다.",
+    "en": "An error occurred while processing the like.",
+    "category": "error",
+    "description": "좋아요 처리 오류",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:49.596Z",
+    "updatedAt": "2025-08-11T18:00:49.596Z",
+    "jp": "いいね処理中にエラーが発生しました。"
+  },
+  {
+    "id": "cme7f4qzh000b8uifk8iw6cw3",
+    "key": "error.like_processing_failed",
+    "ko": "좋아요 처리 중 오류가 발생했습니다.",
+    "en": "An error occurred while processing the like.",
+    "category": "error",
+    "description": "좋아요 처리 오류",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:41.885Z",
+    "updatedAt": "2025-08-11T18:00:41.885Z",
+    "jp": "いいね処理中にエラーが発生しました。"
+  },
+  {
+    "id": "cme7f4wvz0013532o3kox6hda",
+    "key": "error.login_required",
+    "ko": "로그인이 필요합니다.",
+    "en": "Login is required.",
+    "category": "error",
+    "description": "로그인 필요 메시지",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:49.535Z",
+    "updatedAt": "2025-08-11T18:00:49.535Z",
+    "jp": "ログインが必要です。"
+  },
+  {
+    "id": "cme7f4wub0012532ouynussdn",
+    "key": "error.unknown_error",
+    "ko": "알 수 없는 오류가 발생했습니다.",
+    "en": "An unknown error occurred.",
+    "category": "error",
+    "description": "알 수 없는 오류",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:49.476Z",
+    "updatedAt": "2025-08-11T18:00:49.476Z",
+    "jp": "不明なエラーが発生しました。"
+  },
+  {
+    "id": "cme7f4qwp00098uif3l2vka47",
+    "key": "error.unknown_error_occurred",
+    "ko": "알 수 없는 오류가 발생했습니다.",
+    "en": "An unknown error occurred.",
+    "category": "error",
+    "description": "알 수 없는 오류 메시지",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:41.785Z",
+    "updatedAt": "2025-08-11T18:00:41.785Z",
+    "jp": "不明なエラーが発生しました。"
+  }
+];

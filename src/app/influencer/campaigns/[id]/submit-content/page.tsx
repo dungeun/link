@@ -39,7 +39,7 @@ export default function SubmitContentPage({ params }: SubmitContentPageProps) {
         if (response.ok) {
           const data = await response.json()
           const application = data.applications.find(
-            (app: any) => app.campaignId === params.id && app.status === 'APPROVED'
+            (app: { campaignId: string; status: string; id: string }) => app.campaignId === params.id && app.status === 'APPROVED'
           )
           if (application) {
             setApplicationId(application.id)

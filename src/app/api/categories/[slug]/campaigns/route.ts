@@ -30,7 +30,7 @@ export async function GET(
     }
 
     // 검색 및 정렬 조건 설정
-    const whereConditions: any = {
+    const whereConditions: Record<string, unknown> = {
       categories: {
         some: {
           categoryId: category.id
@@ -47,7 +47,7 @@ export async function GET(
     }
 
     // 정렬 조건 설정
-    let orderBy: any = { createdAt: 'desc' } // 기본값: 최신 순
+    let orderBy: Record<string, 'asc' | 'desc'> = { createdAt: 'desc' } // 기본값: 최신 순
 
     switch (sort) {
       case 'budget_high':

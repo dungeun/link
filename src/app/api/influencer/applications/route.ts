@@ -22,14 +22,21 @@ export async function GET(request: NextRequest) {
       )
     }
     
-    // 내 지원 목록 조회
+    // 내 지원 목록 조회 - 최적화된 단일 쿼리
     const applications = await prisma.campaignApplication.findMany({
       where: {
         influencerId: user.id
       },
       include: {
         campaign: {
-          include: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            startDate: true,
+            endDate: true,
+            budget: true,
+            platform: true,
             business: {
               select: {
                 id: true,
@@ -48,7 +55,11 @@ export async function GET(request: NextRequest) {
             createdAt: true,
             reviewedAt: true,
             feedback: true
-          }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 1 // 가장 최근 컨텐츠만 가져오기
         }
       },
       orderBy: {

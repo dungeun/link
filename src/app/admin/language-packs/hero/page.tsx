@@ -235,7 +235,7 @@ export default function HeroLanguagePacksPage() {
               {['all', 'ko', 'en', 'jp'].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab as any)}
+                  onClick={() => setActiveTab(tab as 'all' | 'ko' | 'en' | 'jp')}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     activeTab === tab
                       ? 'bg-blue-100 text-blue-600'

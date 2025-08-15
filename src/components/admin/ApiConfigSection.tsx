@@ -11,7 +11,7 @@ interface ApiConfig {
   endpoint?: string | null
   region?: string | null
   bucket?: string | null
-  additionalConfig?: any
+  additionalConfig?: Record<string, unknown>
   isEnabled: boolean
 }
 
@@ -73,8 +73,8 @@ export function ApiConfigSection() {
   const [saving, setSaving] = useState<string | null>(null)
   const [testing, setTesting] = useState<string | null>(null)
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({})
-  const [newService, setNewService] = useState('')
   const [editingConfigs, setEditingConfigs] = useState<Record<string, ApiConfig>>({})
+  const [changedServices, setChangedServices] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     loadApiConfigs()
@@ -137,6 +137,12 @@ export function ApiConfigSection() {
         }
         
         setConfigs(newConfigs)
+        
+        // 변경 상태 초기화
+        const updated = new Set(changedServices)
+        updated.delete(service)
+        setChangedServices(updated)
+        
         alert('API 설정이 저장되었습니다.')
       } else {
         throw new Error('Failed to save')
@@ -177,41 +183,32 @@ export function ApiConfigSection() {
   const handleTest = async (service: string) => {
     setTesting(service)
     try {
-      // API 테스트 로직 구현
-      // 각 서비스별로 간단한 테스트 API 호출
-      alert(`${service} API 연결 테스트 성공!`)
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token')
+      const response = await fetch(`/api/admin/api-config/test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify({ service })
+      })
+
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        alert(`✅ ${getServiceInfo(service)?.label} API 연결 테스트 성공!\n\n${data.message || '정상적으로 연결되었습니다.'}`)
+      } else {
+        alert(`❌ ${getServiceInfo(service)?.label} API 연결 테스트 실패\n\n${data.error || '연결에 실패했습니다.'}`)
+      }
     } catch (error) {
-      alert(`${service} API 연결 테스트 실패`)
+      alert(`❌ ${getServiceInfo(service)?.label} API 연결 테스트 실패\n\n네트워크 오류가 발생했습니다.`)
     } finally {
       setTesting(null)
     }
   }
 
-  const handleAddService = () => {
-    if (!newService) {
-      alert('서비스를 선택해주세요.')
-      return
-    }
 
-    if (editingConfigs[newService]) {
-      alert('이미 설정된 서비스입니다.')
-      return
-    }
-
-    const newConfig: ApiConfig = {
-      service: newService,
-      isEnabled: false
-    }
-
-    setEditingConfigs({
-      ...editingConfigs,
-      [newService]: newConfig
-    })
-
-    setNewService('')
-  }
-
-  const updateConfig = (service: string, field: string, value: any) => {
+  const updateConfig = (service: string, field: string, value: string | boolean | Record<string, unknown>) => {
     setEditingConfigs({
       ...editingConfigs,
       [service]: {
@@ -219,6 +216,28 @@ export function ApiConfigSection() {
         [field]: value
       }
     })
+    
+    // 원본과 비교하여 변경 여부 확인
+    const original = configs.find(c => c.service === service)
+    const updated = new Set(changedServices)
+    
+    if (original) {
+      const isChanged = JSON.stringify(original) !== JSON.stringify({
+        ...editingConfigs[service],
+        [field]: value
+      })
+      
+      if (isChanged) {
+        updated.add(service)
+      } else {
+        updated.delete(service)
+      }
+    } else {
+      // 새로 추가된 서비스는 항상 변경된 것으로 표시
+      updated.add(service)
+    }
+    
+    setChangedServices(updated)
   }
 
   const getServiceInfo = (service: string) => {
@@ -235,94 +254,97 @@ export function ApiConfigSection() {
 
   return (
     <div className="space-y-6">
-      {/* 새 API 추가 */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">새 API 서비스 추가</h3>
-        <div className="space-y-4">
-          <select
-            value={newService}
-            onChange={(e) => setNewService(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">연동할 서비스를 선택하세요...</option>
-            {API_SERVICES.filter(s => !editingConfigs[s.value]).map(service => (
-              <option key={service.value} value={service.value}>
-                {service.label} - {service.description}
-              </option>
-            ))}
-          </select>
-          {newService && (
-            <div className="text-sm text-gray-600">
-              {API_SERVICES.find(s => s.value === newService)?.description}
-            </div>
-          )}
-          <button
-            onClick={handleAddService}
-            disabled={!newService}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            서비스 추가
-          </button>
-        </div>
-      </div>
-
-      {/* API 설정 목록 */}
-      <div className="space-y-4">
-        {Object.entries(editingConfigs).map(([service, config]) => {
-          const serviceInfo = getServiceInfo(service)
-          if (!serviceInfo) return null
+      {/* 전체 API 서비스 목록 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {API_SERVICES.map((serviceInfo) => {
+          const service = serviceInfo.value
+          const config = editingConfigs[service]
+          const isConfigured = !!config
 
           return (
-            <div key={service} className="bg-white p-6 rounded-lg shadow">
+            <div key={service} className={`bg-white p-6 rounded-lg shadow border-2 transition-all ${
+              isConfigured 
+                ? 'border-blue-200 hover:border-blue-400' 
+                : 'border-gray-100 hover:border-gray-300 opacity-75'
+            }`}>
               <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     {serviceInfo.label}
+                    {isConfigured && (
+                      <>
+                        {changedServices.has(service) && (
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">
+                            변경됨
+                          </span>
+                        )}
+                        {config.isEnabled && (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                            활성화
+                          </span>
+                        )}
+                      </>
+                    )}
+                    {!isConfigured && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-full font-medium">
+                        미설정
+                      </span>
+                    )}
                   </h3>
-                  <p className="text-sm text-gray-500">{serviceInfo.description}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={config.isEnabled}
-                      onChange={(e) => updateConfig(service, 'isEnabled', e.target.checked)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">활성화</span>
-                  </label>
-                  {serviceInfo.testable && (
-                    <button
-                      onClick={() => handleTest(service)}
-                      disabled={testing === service}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex items-center gap-1 text-sm"
-                    >
-                      <TestTube className="w-4 h-4" />
-                      {testing === service ? '테스트 중...' : '테스트'}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleSave(service)}
-                    disabled={saving === service}
-                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1 text-sm"
-                  >
-                    <Save className="w-4 h-4" />
-                    {saving === service ? '저장 중...' : '저장'}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(service)}
-                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 flex items-center gap-1 text-sm"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    삭제
-                  </button>
+                  <p className="text-sm text-gray-500 mt-1">{serviceInfo.description}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {serviceInfo.fields.includes('apiKey') && (
-                  <div>
+              {!isConfigured ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-4">이 서비스를 사용하려면 설정이 필요합니다</p>
+                  <button
+                    onClick={() => {
+                      const newConfig: ApiConfig = {
+                        service: service,
+                        isEnabled: false
+                      }
+                      setEditingConfigs({
+                        ...editingConfigs,
+                        [service]: newConfig
+                      })
+                      setChangedServices(new Set([...changedServices, service]))
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                  >
+                    <Plus className="w-4 h-4 inline mr-2" />
+                    설정 시작
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 mb-4">
+                    <label className="flex items-center cursor-pointer">
+                      <span className="mr-2 text-sm font-medium text-gray-700">서비스 상태:</span>
+                      <input
+                        type="checkbox"
+                        checked={config.isEnabled}
+                        onChange={(e) => updateConfig(service, 'isEnabled', e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className="relative">
+                        <div className={`block w-10 h-6 rounded-full transition-colors ${config.isEnabled ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+                        <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${config.isEnabled ? 'translate-x-4' : ''}`}></div>
+                      </div>
+                      <span className="ml-2 text-sm text-gray-600">
+                        {config.isEnabled ? '활성화' : '비활성화'}
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="space-y-4">
+                    {serviceInfo.fields.includes('apiKey') && (
+                      <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       API Key
                     </label>
@@ -340,7 +362,8 @@ export function ApiConfigSection() {
                           ...showSecrets,
                           [`${service}_key`]: !showSecrets[`${service}_key`]
                         })}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        title={showSecrets[`${service}_key`] ? '값 숨기기' : '값 보기'}
                       >
                         {showSecrets[`${service}_key`] ? (
                           <EyeOff className="w-5 h-5" />
@@ -349,11 +372,11 @@ export function ApiConfigSection() {
                         )}
                       </button>
                     </div>
-                  </div>
-                )}
+                      </div>
+                    )}
 
-                {serviceInfo.fields.includes('apiSecret') && (
-                  <div>
+                    {serviceInfo.fields.includes('apiSecret') && (
+                      <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       API Secret
                     </label>
@@ -371,7 +394,8 @@ export function ApiConfigSection() {
                           ...showSecrets,
                           [`${service}_secret`]: !showSecrets[`${service}_secret`]
                         })}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        title={showSecrets[`${service}_secret`] ? '값 숨기기' : '값 보기'}
                       >
                         {showSecrets[`${service}_secret`] ? (
                           <EyeOff className="w-5 h-5" />
@@ -380,11 +404,11 @@ export function ApiConfigSection() {
                         )}
                       </button>
                     </div>
-                  </div>
-                )}
+                      </div>
+                    )}
 
-                {serviceInfo.fields.includes('endpoint') && (
-                  <div>
+                    {serviceInfo.fields.includes('endpoint') && (
+                      <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Endpoint URL
                     </label>
@@ -395,11 +419,11 @@ export function ApiConfigSection() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="https://api.example.com"
                     />
-                  </div>
-                )}
+                      </div>
+                    )}
 
-                {serviceInfo.fields.includes('region') && (
-                  <div>
+                    {serviceInfo.fields.includes('region') && (
+                      <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Region
                     </label>
@@ -410,11 +434,11 @@ export function ApiConfigSection() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="ap-northeast-2"
                     />
-                  </div>
-                )}
+                      </div>
+                    )}
 
-                {serviceInfo.fields.includes('bucket') && (
-                  <div>
+                    {serviceInfo.fields.includes('bucket') && (
+                      <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Bucket Name
                     </label>
@@ -425,11 +449,11 @@ export function ApiConfigSection() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="my-bucket"
                     />
-                  </div>
-                )}
+                      </div>
+                    )}
 
-                {serviceInfo.fields.includes('additionalConfig') && (
-                  <div className="md:col-span-2">
+                    {serviceInfo.fields.includes('additionalConfig') && (
+                      <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       추가 설정 (JSON)
                     </label>
@@ -447,19 +471,53 @@ export function ApiConfigSection() {
                       rows={4}
                       placeholder="{}"
                     />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+
+                  <div className="flex items-center gap-2 mt-6 pt-4 border-t">
+                    {serviceInfo.testable && (
+                      <button
+                        onClick={() => handleTest(service)}
+                        disabled={testing === service || !config.apiKey}
+                        className="flex-1 px-3 py-2 bg-purple-50 text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-100 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+                        title={!config.apiKey ? 'API Key를 먼저 입력해주세요' : '연결 테스트'}
+                      >
+                        <TestTube className="w-4 h-4" />
+                        {testing === service ? '테스트 중...' : '테스트'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleSave(service)}
+                      disabled={saving === service || !changedServices.has(service)}
+                      className={`flex-1 px-3 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+                        changedServices.has(service) 
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400' 
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                      title={!changedServices.has(service) ? '변경사항이 없습니다' : '설정 저장'}
+                    >
+                      <Save className="w-4 h-4" />
+                      {saving === service ? '저장 중...' : '저장'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('이 설정을 초기화하시겠습니까?')) {
+                          handleDelete(service)
+                        }
+                      }}
+                      className="px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 flex items-center gap-1 text-sm font-medium transition-colors"
+                      title="설정 초기화"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )
         })}
       </div>
-
-      {Object.keys(editingConfigs).length === 0 && (
-        <div className="bg-white p-8 rounded-lg shadow text-center text-gray-500">
-          설정된 API가 없습니다. 위에서 새 API를 추가해주세요.
-        </div>
-      )}
     </div>
   )
 }

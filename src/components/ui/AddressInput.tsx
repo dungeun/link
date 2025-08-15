@@ -6,7 +6,12 @@ declare global {
   interface Window {
     daum: {
       Postcode: new (options: {
-        oncomplete: (data: any) => void
+        oncomplete: (data: {
+          zonecode: string;
+          roadAddress: string;
+          jibunAddress: string;
+          buildingName?: string;
+        }) => void
         onclose?: (state: string) => void
         width?: string | number
         height?: string | number
@@ -46,15 +51,82 @@ interface AddressInputProps {
 export default function AddressInput({ nationality, value, onChange, disabled = false }: AddressInputProps) {
   const [isPostcodeOpen, setIsPostcodeOpen] = useState(false)
   const [isKoreanAddress, setIsKoreanAddress] = useState(nationality === '대한민국')
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false)
 
   useEffect(() => {
     setIsKoreanAddress(nationality === '대한민국')
   }, [nationality])
 
+  // 카카오 우편번호 서비스 스크립트 로드
+  useEffect(() => {
+    // 한국 주소가 아니면 스크립트 로드 필요 없음
+    if (!isKoreanAddress) {
+      setIsScriptLoaded(true)
+      return
+    }
+
+    // 이미 로드되어 있으면 스킵
+    if (window.daum && window.daum.Postcode) {
+      setIsScriptLoaded(true)
+      return
+    }
+
+    // 스크립트가 이미 DOM에 있는지 확인
+    const existingScript = document.getElementById('daum-postcode-script')
+    if (existingScript) {
+      // 기존 스크립트가 있지만 로드되지 않았으면 대기
+      let attempts = 0
+      const maxAttempts = 50 // 5초 대기
+      const checkLoaded = () => {
+        attempts++
+        if (window.daum && window.daum.Postcode) {
+          setIsScriptLoaded(true)
+        } else if (attempts < maxAttempts) {
+          setTimeout(checkLoaded, 100)
+        } else {
+          console.error('카카오 우편번호 서비스 로드 타임아웃')
+          setIsScriptLoaded(false)
+        }
+      }
+      checkLoaded()
+      return
+    }
+
+    const script = document.createElement('script')
+    script.id = 'daum-postcode-script'
+    script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
+    script.async = true
+    
+    script.onload = () => {
+      // 스크립트 로드 후 잠시 대기 (API 초기화 시간)
+      setTimeout(() => {
+        if (window.daum && window.daum.Postcode) {
+          setIsScriptLoaded(true)
+        } else {
+          console.error('카카오 우편번호 API 초기화 실패')
+          setIsScriptLoaded(false)
+        }
+      }, 100)
+    }
+    
+    script.onerror = () => {
+      console.error('카카오 우편번호 서비스 로드 실패')
+      setIsScriptLoaded(false)
+    }
+    
+    document.head.appendChild(script)
+
+    // 클린업 함수는 제거 (전역 스크립트이므로)
+  }, [isKoreanAddress])
+
   // 카카오 우편번호 검색
   const handleKakaoPostcode = () => {
-    if (!window.daum) {
-      alert('우편번호 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
+    if (!window.daum || !window.daum.Postcode) {
+      if (!isScriptLoaded) {
+        alert('우편번호 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
+      } else {
+        alert('우편번호 검색 서비스를 사용할 수 없습니다.')
+      }
       return
     }
 
@@ -130,10 +202,10 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
           <button
             type="button"
             onClick={handleKakaoPostcode}
-            disabled={disabled}
+            disabled={disabled || !isScriptLoaded}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
-            우편번호 찾기
+            {!isScriptLoaded ? '로딩 중...' : '우편번호 찾기'}
           </button>
         </div>
         

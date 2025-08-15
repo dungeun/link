@@ -1,17 +1,40 @@
 'use client'
 
 import { useState } from 'react'
-import { CreditCard, Globe, Truck, Upload, Check } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
+
+interface BankingData {
+  accountType: 'domestic' | 'international';
+  domestic: {
+    bankName: string;
+    accountNumber: string;
+    accountHolder: string;
+  };
+  international: {
+    englishName: string;
+    englishAddress: {
+      street: string;
+      city: string;
+      state: string;
+      postalCode: string;
+      country: string;
+    };
+    accountNumber: string;
+    internationalCode: string;
+    bankEnglishName: string;
+    swiftCode: string;
+    branchCode: string;
+  };
+}
 
 interface BankingInfoProps {
   userId: string
-  initialData?: any
-  onSave: (data: any) => void
+  initialData?: Partial<BankingData>
+  onSave: (data: BankingData) => void
 }
 
 export default function BankingInfo({ userId, initialData, onSave }: BankingInfoProps) {
   const [accountType, setAccountType] = useState<'domestic' | 'international'>(initialData?.accountType || 'domestic')
-  const [activeTab, setActiveTab] = useState<'account' | 'shipping'>('account')
   const [data, setData] = useState({
     accountType: initialData?.accountType || 'domestic',
     domestic: {
@@ -33,19 +56,8 @@ export default function BankingInfo({ userId, initialData, onSave }: BankingInfo
       bankEnglishName: initialData?.international?.bankEnglishName || '',
       swiftCode: initialData?.international?.swiftCode || '',
       branchCode: initialData?.international?.branchCode || ''
-    },
-    shipping: {
-      recipientName: initialData?.shipping?.recipientName || '',
-      phoneNumber: initialData?.shipping?.phoneNumber || '',
-      address: initialData?.shipping?.address || '',
-      detailAddress: initialData?.shipping?.detailAddress || '',
-      postalCode: initialData?.shipping?.postalCode || '',
-      deliveryNote: initialData?.shipping?.deliveryNote || '',
-      imageUrl: initialData?.shipping?.imageUrl || null
     }
   })
-
-  const [shippingImage, setShippingImage] = useState<File | null>(null)
 
   const handleDomesticChange = (field: string, value: string) => {
     setData(prev => ({
@@ -80,23 +92,6 @@ export default function BankingInfo({ userId, initialData, onSave }: BankingInfo
     }
   }
 
-  const handleShippingChange = (field: string, value: string) => {
-    setData(prev => ({
-      ...prev,
-      shipping: {
-        ...prev.shipping,
-        [field]: value
-      }
-    }))
-  }
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setShippingImage(file)
-      // TODO: 이미지 업로드 API 호출
-    }
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,38 +103,17 @@ export default function BankingInfo({ userId, initialData, onSave }: BankingInfo
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* 탭 네비게이션 */}
-      <div className="border-b border-gray-200">
-        <nav className="flex -mb-px">
-          <button
-            onClick={() => setActiveTab('account')}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition ${
-              activeTab === 'account'
-                ? 'border-indigo-600 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <CreditCard className="w-4 h-4 inline mr-2" />
-            출금 계좌
-          </button>
-          <button
-            onClick={() => setActiveTab('shipping')}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition ${
-              activeTab === 'shipping'
-                ? 'border-indigo-600 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <Truck className="w-4 h-4 inline mr-2" />
-            배송 주소
-          </button>
-        </nav>
+      {/* 헤더 */}
+      <div className="border-b border-gray-200 px-6 py-4">
+        <h3 className="text-lg font-medium text-gray-900 flex items-center">
+          <CreditCard className="w-5 h-5 mr-2" />
+          출금 계좌 관리
+        </h3>
       </div>
 
       <form onSubmit={handleSubmit} className="p-6">
-        {/* 계좌 정보 탭 */}
-        {activeTab === 'account' && (
-          <div className="space-y-6">
+        {/* 계좌 정보 */}
+        <div className="space-y-6">
             {/* 계좌 유형 선택 */}
             <div className="bg-gray-50 p-4 rounded-lg">
               <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -337,116 +311,8 @@ export default function BankingInfo({ userId, initialData, onSave }: BankingInfo
             </div>
               </div>
             )}
-          </div>
-        )}
+        </div>
 
-        {/* 배송 주소 */}
-        {activeTab === 'shipping' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  수령인명
-                </label>
-                <input
-                  type="text"
-                  value={data.shipping.recipientName}
-                  onChange={(e) => handleShippingChange('recipientName', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  연락처
-                </label>
-                <input
-                  type="tel"
-                  value={data.shipping.phoneNumber}
-                  onChange={(e) => handleShippingChange('phoneNumber', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  placeholder="010-0000-0000"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                주소
-              </label>
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={data.shipping.postalCode}
-                    onChange={(e) => handleShippingChange('postalCode', e.target.value)}
-                    className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    placeholder="우편번호"
-                  />
-                  <button
-                    type="button"
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-                  >
-                    주소 검색
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  value={data.shipping.address}
-                  onChange={(e) => handleShippingChange('address', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  placeholder="기본 주소"
-                />
-                <input
-                  type="text"
-                  value={data.shipping.detailAddress}
-                  onChange={(e) => handleShippingChange('detailAddress', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  placeholder="상세 주소"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                배송 메모
-              </label>
-              <textarea
-                value={data.shipping.deliveryNote}
-                onChange={(e) => handleShippingChange('deliveryNote', e.target.value)}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                placeholder="부재시 경비실에 맡겨주세요"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                주소 이미지 첨부
-              </label>
-              <div className="flex items-center gap-4">
-                <label className="cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                  <div className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center gap-2">
-                    <Upload className="w-4 h-4" />
-                    이미지 선택
-                  </div>
-                </label>
-                {shippingImage && (
-                  <div className="flex items-center gap-2 text-sm text-green-600">
-                    <Check className="w-4 h-4" />
-                    {shippingImage.name}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* 저장 버튼 */}
         <div className="mt-6 flex justify-end">

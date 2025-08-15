@@ -3,24 +3,26 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/textarea'
 import { CalendarIcon } from 'lucide-react'
 
+interface FormData {
+  startDate: string
+  endDate: string
+  announcementDate: string
+  requirements: string
+  hashtags: string
+  applicationStartDate?: string
+  applicationEndDate?: string
+  contentStartDate?: string
+  contentEndDate?: string
+  resultAnnouncementDate?: string
+  provisionDetails?: string
+  campaignMission?: string
+  keywords?: string
+  additionalNotes?: string
+}
+
 interface StepDetailsProps {
-  formData: {
-    startDate: string
-    endDate: string
-    announcementDate: string
-    requirements: string
-    hashtags: string
-    applicationStartDate?: string
-    applicationEndDate?: string
-    contentStartDate?: string
-    contentEndDate?: string
-    resultAnnouncementDate?: string
-    provisionDetails?: string
-    campaignMission?: string
-    keywords?: string
-    additionalNotes?: string
-  }
-  setFormData: (data: any) => void
+  formData: FormData
+  setFormData: (data: FormData) => void
 }
 
 export default function StepDetails({ formData, setFormData }: StepDetailsProps) {

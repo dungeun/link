@@ -7,34 +7,62 @@ import { HeaderConfigDB } from '@/components/admin/ui-config/HeaderConfigDB';
 import { FooterConfigDB } from '@/components/admin/ui-config/FooterConfigDB';
 import { SectionsConfigTab } from '@/components/admin/ui-config/SectionsConfigTab';
 import { SectionOrderTab } from '@/components/admin/ui-config/SectionOrderTab';
-import { CategoryConfigTab } from '@/components/admin/ui-config/CategoryConfigTab';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function UIConfigPage() {
   const { config, resetToDefault } = useUIConfigStore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   
   // URL 파라미터에서 탭 읽기
   const tabParam = searchParams.get('tab');
-  const initialTab = (tabParam as 'header' | 'footer' | 'sections' | 'section-order' | 'categories') || 'header';
-  const [activeTab, setActiveTab] = useState<'header' | 'footer' | 'sections' | 'section-order' | 'categories'>(initialTab);
+  const initialTab = (tabParam as 'header' | 'footer' | 'sections' | 'section-order') || 'header';
+  const [activeTab, setActiveTab] = useState<'header' | 'footer' | 'sections' | 'section-order'>(initialTab);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+
+  // 인증 및 권한 확인
+  useEffect(() => {
+    if (!authLoading) {
+      if (!isAuthenticated || user?.type !== 'ADMIN') {
+        router.push('/login');
+        return;
+      }
+    }
+  }, [user, isAuthenticated, authLoading, router]);
 
   // URL 파라미터 변경 시 탭 업데이트
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['header', 'footer', 'sections', 'section-order', 'categories'].includes(tab)) {
-      setActiveTab(tab as any);
+    if (tab && ['header', 'footer', 'sections', 'section-order'].includes(tab)) {
+      setActiveTab(tab as 'header' | 'footer' | 'sections' | 'section-order');
     }
   }, [searchParams]);
 
-  const handleTabChange = (tab: 'header' | 'footer' | 'sections' | 'section-order' | 'categories') => {
+  const handleTabChange = (tab: 'header' | 'footer' | 'sections' | 'section-order') => {
     setActiveTab(tab);
     router.push(`/admin/ui-config?tab=${tab}`);
   };
+
+  // 인증 로딩 중
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 권한 없음
+  if (!isAuthenticated || user?.type !== 'ADMIN') {
+    return null;
+  }
 
   return (
     <div>
@@ -85,23 +113,12 @@ export default function UIConfigPage() {
         >
           {t('admin.ui.tab.sectionOrder', '섹션 순서')}
         </button>
-        <button
-          onClick={() => handleTabChange('categories')}
-          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            activeTab === 'categories'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          {t('admin.ui.tab.categories', '카테고리')}
-        </button>
       </div>
 
       {activeTab === 'header' && <HeaderConfigDB />}
       {activeTab === 'footer' && <FooterConfigDB />}
       {activeTab === 'sections' && <SectionsConfigTab />}
       {activeTab === 'section-order' && <SectionOrderTab />}
-      {activeTab === 'categories' && <CategoryConfigTab />}
 
       {/* DB 연동 안내 */}
       {activeTab !== 'section-order' && (

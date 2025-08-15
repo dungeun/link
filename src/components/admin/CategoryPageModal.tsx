@@ -23,13 +23,13 @@ export default function CategoryPageModal({
 }: CategoryPageModalProps) {
   const [formData, setFormData] = useState({
     title: '',
-    content: {} as any,
+    content: {} as Record<string, unknown>,
     layout: 'grid',
-    heroSection: {} as any,
-    featuredSection: {} as any,
-    filterOptions: {} as any,
-    customSections: {} as any,
-    seoSettings: {} as any,
+    heroSection: {} as Record<string, unknown>,
+    featuredSection: {} as Record<string, unknown>,
+    filterOptions: {} as Record<string, unknown>,
+    customSections: {} as Record<string, unknown>,
+    seoSettings: {} as Record<string, unknown>,
     isPublished: false
   })
   const [loading, setLoading] = useState(false)

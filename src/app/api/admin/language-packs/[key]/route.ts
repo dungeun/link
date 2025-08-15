@@ -30,7 +30,7 @@ export async function GET(
       key: languagePack.key,
       ko: languagePack.ko,
       en: languagePack.en,
-      ja: languagePack.ja,
+      jp: languagePack.jp,
       category: languagePack.category,
       description: languagePack.description,
       isEditable: languagePack.isEditable
@@ -58,7 +58,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { ko, en, ja, autoTranslate } = body
+    const { ko, en, jp, autoTranslate } = body
 
     // 기존 언어팩 확인
     const existingPack = await prisma.languagePack.findUnique({
@@ -80,7 +80,7 @@ export async function PUT(
       )
     }
 
-    let updateData: any = {}
+    let updateData: Record<string, unknown> = {}
 
     // 한국어가 변경되고 자동 번역이 요청된 경우
     if (ko && autoTranslate) {
@@ -90,18 +90,18 @@ export async function PUT(
         updateData.en = await translateText(ko, 'ko', 'en')
         
         // 한국어 → 일본어 번역
-        updateData.ja = await translateText(ko, 'ko', 'ja')
+        updateData.jp = await translateText(ko, 'ko', 'ja')
       } catch (translationError) {
         console.error('Translation error:', translationError)
         // 번역 실패 시 제공된 값 사용
         if (en) updateData.en = en
-        if (ja) updateData.ja = ja
+        if (jp) updateData.jp = jp
       }
     } else {
       // 자동 번역 없이 제공된 값만 업데이트
       if (ko) updateData.ko = ko
       if (en) updateData.en = en
-      if (ja) updateData.ja = ja
+      if (jp) updateData.jp = jp
     }
 
     // 언어팩 업데이트
@@ -120,7 +120,7 @@ export async function PUT(
       key: updatedPack.key,
       ko: updatedPack.ko,
       en: updatedPack.en,
-      ja: updatedPack.ja
+      jp: updatedPack.jp
     })
 
   } catch (error) {

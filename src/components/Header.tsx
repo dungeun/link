@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { ChevronDown, User as UserIcon, LogOut, Settings, Menu, X, Bell } from 'lucide-react'
@@ -10,19 +10,20 @@ import LanguageSelector from './LanguageSelector'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
 import Image from 'next/image'
+import { logger } from '@/lib/utils/structured-logger'
 
 interface HeaderProps {
   variant?: 'default' | 'transparent'
 }
 
-export default function Header({ variant = 'default' }: HeaderProps) {
+function Header({ variant = 'default' }: HeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
-  const [notifications, setNotifications] = useState<any[]>([])
+  const [notifications, setNotifications] = useState<Array<{ id: string; title: string; message: string; read: boolean }>>([])
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const notificationRef = useRef<HTMLDivElement>(null)
@@ -31,51 +32,49 @@ export default function Header({ variant = 'default' }: HeaderProps) {
   const { t, currentLanguage } = useLanguage()
   const { settings: siteSettings } = useSiteSettings()
   
-  const isTransparent = variant === 'transparent'
+  const isTransparent = useMemo(() => variant === 'transparent', [variant])
   
-  // 사용자 타입 확인
-  const userType = user?.type?.toUpperCase()
-  const isInfluencer = !user || userType === 'INFLUENCER' || userType === 'USER'
-  const isBusiness = userType === 'BUSINESS'
-  const isAdmin = userType === 'ADMIN'
+  // 사용자 타입 확인 - 메모이제이션 적용
+  const userType = useMemo(() => user?.type?.toUpperCase(), [user?.type])
+  const isInfluencer = useMemo(() => !user || userType === 'INFLUENCER' || userType === 'USER', [user, userType])
+  const isBusiness = useMemo(() => userType === 'BUSINESS', [userType])
+  const isAdmin = useMemo(() => userType === 'ADMIN', [userType])
 
+  // Scroll 이벤트 처리
   useEffect(() => {
+    if (!isTransparent) return;
+    
     const handleScroll = () => {
       setScrolled(window.scrollY > 20)
     }
     
-    if (isTransparent) {
-      window.addEventListener('scroll', handleScroll)
-    }
-    
-    // 프로필 이미지 로드
-    if (user) {
-      // localStorage에서 프로필 이미지 가져오기
-      const savedProfile = localStorage.getItem('userProfile')
-      if (savedProfile) {
-        try {
-          const profile = JSON.parse(savedProfile)
-          setProfileImage(profile.avatar || null)
-        } catch (e) {
-          console.error('Failed to parse profile:', e)
-        }
-      }
-    }
-    
-    // UI 설정 로드
-    console.log('Header: Loading UI settings with language:', currentLanguage);
-    loadSettingsFromAPI(currentLanguage)
-    
+    window.addEventListener('scroll', handleScroll)
     return () => {
-      if (isTransparent) {
-        window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [isTransparent])
+  
+  // 프로필 이미지 로드
+  useEffect(() => {
+    if (!user) return;
+    
+    const savedProfile = localStorage.getItem('userProfile')
+    if (savedProfile) {
+      try {
+        const profile = JSON.parse(savedProfile)
+        setProfileImage(profile.avatar || null)
+      } catch (e) {
+        logger.error('Failed to parse profile', e as Error, { module: 'Header' })
       }
     }
-  }, [isTransparent, user, loadSettingsFromAPI, currentLanguage])
-
-  // 언어 변경 시 UI 설정 재로드
+  }, [user])
+  
+  // UI 설정 로드 (언어 변경 시에만)
   useEffect(() => {
-    console.log('Header: Language changed to', currentLanguage, '- reloading UI config...');
+    logger.debug('Loading UI settings', { 
+      module: 'Header', 
+      metadata: { language: currentLanguage } 
+    });
     loadSettingsFromAPI(currentLanguage)
   }, [currentLanguage, loadSettingsFromAPI])
 
@@ -107,15 +106,18 @@ export default function Header({ variant = 'default' }: HeaderProps) {
     }
   }, [isAuthenticated])
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout()
-  }
+  }, [logout])
 
-  const isActive = (path: string) => pathname === path
+  const isActive = useCallback((path: string) => pathname === path, [pathname])
 
 
-  // 사용자 타입별 대시보드 링크
-  const dashboardLink = isAdmin ? '/admin' : isBusiness ? '/business/dashboard' : '/mypage'
+  // 사용자 타입별 대시보드 링크 - 메모이제이션 적용
+  const dashboardLink = useMemo(() => 
+    isAdmin ? '/admin' : isBusiness ? '/business/dashboard' : '/dashboard',
+    [isAdmin, isBusiness]
+  )
 
   return (
     <header 
@@ -151,7 +153,7 @@ export default function Header({ variant = 'default' }: HeaderProps) {
                 </div>
               ) : (
                 <h1 className="text-lg sm:text-xl lg:text-3xl font-black text-white truncate">
-                  {siteSettings.general.siteName || config.header.logo.text}
+                  {siteSettings.general.siteName || 'LinkPick'}
                 </h1>
               )}
             </Link>
@@ -457,3 +459,6 @@ export default function Header({ variant = 'default' }: HeaderProps) {
     </header>
   )
 }
+
+// React.memo로 성능 최적화
+export default memo(Header)

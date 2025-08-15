@@ -30,7 +30,7 @@ async function authenticate(request: NextRequest) {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; userId?: string; email: string; type: string; name: string };
     return decoded;
   } catch (error) {
     return null;
@@ -107,8 +107,8 @@ export async function GET(request: NextRequest) {
 
     // 지원서 데이터 형식 변환 (undefined 안전 처리)
     const formattedApplications = applications.map(app => {
-      const influencer = (app as any).influencer || {};
-      const campaign = (app as any).campaign || {};
+      const influencer = app.influencer || {};
+      const campaign = app.campaign || {};
       const profile = influencer.profile || {};
       
       return {

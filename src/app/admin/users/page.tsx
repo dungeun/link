@@ -136,7 +136,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  const handleUpdateUser = async (updatedData: any) => {
+  const handleUpdateUser = async (updatedData: Partial<User>) => {
     if (!selectedUser) return
     
     setIsUpdating(true)

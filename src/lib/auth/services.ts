@@ -174,7 +174,7 @@ class AuthServiceClass {
 
   async refreshToken(token: string): Promise<{ token: string; refreshToken: string }> {
     try {
-      const decoded = jwt.verify(token, REFRESH_SECRET) as any
+      const decoded = jwt.verify(token, REFRESH_SECRET) as { userId: string }
       
       const newToken = jwt.sign(
         { userId: decoded.userId },
@@ -194,7 +194,7 @@ class AuthServiceClass {
     }
   }
 
-  async verifyToken(token: string): Promise<any> {
+  async verifyToken(token: string): Promise<{ userId: string; email: string; type: string }> {
     try {
       return jwt.verify(token, JWT_SECRET)
     } catch (error) {
@@ -217,7 +217,7 @@ class AuthServiceClass {
     logger.log('Logging out session:', sessionId)
   }
 
-  async validateToken(token: string): Promise<any> {
+  async validateToken(token: string): Promise<{ userId: string; email: string; type: string } | null> {
     try {
       const decoded = jwt.verify(token, JWT_SECRET)
       return decoded
@@ -249,7 +249,7 @@ class AuthServiceClass {
     }
   }
 
-  async refreshSession(refreshToken: string): Promise<any> {
+  async refreshSession(refreshToken: string): Promise<{ accessToken: string; refreshToken: string; user: User }> {
     const result = await this.refreshToken(refreshToken)
     return {
       accessToken: result.token,

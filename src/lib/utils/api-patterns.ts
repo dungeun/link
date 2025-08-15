@@ -12,12 +12,21 @@ import { handleApiError, createSuccessResponse } from './api-error';
 import { requireAuth } from '@/lib/auth-middleware';
 import { z } from 'zod';
 
+// User 타입 정의
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  type?: string;
+  userId?: string;
+}
+
 // API 핸들러 옵션
 interface ApiHandlerOptions {
   requireAuth?: boolean | string[]; // true for any auth, array for specific roles
   cache?: {
     ttl: number;
-    keyBuilder?: (req: NextRequest, params?: any) => string;
+    keyBuilder?: (req: NextRequest, params?: Record<string, unknown>) => string;
   };
   validation?: {
     body?: z.ZodSchema;
@@ -30,12 +39,23 @@ interface ApiHandlerOptions {
   };
 }
 
+// API 컨텍스트 인터페이스
+export interface ApiContext {
+  user: User | null;
+  params: Record<string, unknown>;
+  validated: {
+    body?: unknown;
+    query?: unknown;
+    params?: unknown;
+  };
+}
+
 // API 핸들러 래퍼
 export function createApiHandler(
   handler: (req: NextRequest, context: ApiContext) => Promise<NextResponse>,
   options: ApiHandlerOptions = {}
 ) {
-  return async (req: NextRequest, params?: any) => {
+  return async (req: NextRequest, params?: Record<string, unknown>) => {
     const timer = new PerformanceTimer(`api.${handler.name}`);
     
     try {
@@ -54,7 +74,7 @@ export function createApiHandler(
           return authResult;
         }
         
-        context.user = authResult;
+        context.user = authResult as User;
       }
 
       // 2. 입력 유효성 검사
@@ -97,30 +117,23 @@ export function createApiHandler(
       return handleApiError(error, {
         endpoint: handler.name,
         method: req.method,
-        userId: context?.user?.id
+        userId: (context as ApiContext | undefined)?.user?.id
       });
     }
-  };
-}
-
-// API 컨텍스트 인터페이스
-export interface ApiContext {
-  user: any;
-  params: Record<string, any>;
-  validated: {
-    body?: any;
-    query?: any;
-    params?: any;
   };
 }
 
 // 입력 유효성 검사 헬퍼
 async function validateApiInputs(
   req: NextRequest,
-  params: any,
+  params: Record<string, unknown> | undefined,
   validation: NonNullable<ApiHandlerOptions['validation']>
 ) {
-  const results: any = {};
+  const results: {
+    body?: unknown;
+    query?: unknown;
+    params?: unknown;
+  } = {};
   const errors: string[] = [];
 
   // Body 유효성 검사
@@ -176,7 +189,7 @@ async function validateApiInputs(
 }
 
 // 기본 캐시 키 생성
-function generateDefaultCacheKey(req: NextRequest, params?: any): string {
+function generateDefaultCacheKey(req: NextRequest, params?: Record<string, unknown>): string {
   const url = new URL(req.url);
   const builder = CacheKeyBuilder.create()
     .add('path', url.pathname);
@@ -202,7 +215,7 @@ export const ApiPatterns = {
   /**
    * CRUD 리스트 조회 패턴
    */
-  list: (handler: (req: NextRequest, context: ApiContext) => Promise<any>) =>
+  list: <T>(handler: (req: NextRequest, context: ApiContext) => Promise<T>) =>
     createApiHandler(
       async (req, context) => {
         const data = await handler(req, context);
@@ -226,8 +239,8 @@ export const ApiPatterns = {
   /**
    * 인증이 필요한 리소스 조회 패턴
    */
-  protectedGet: (
-    handler: (req: NextRequest, context: ApiContext) => Promise<any>,
+  protectedGet: <T>(
+    handler: (req: NextRequest, context: ApiContext) => Promise<T>,
     roles?: string[]
   ) =>
     createApiHandler(
@@ -253,8 +266,8 @@ export const ApiPatterns = {
   /**
    * 리소스 생성 패턴
    */
-  create: (
-    handler: (req: NextRequest, context: ApiContext) => Promise<any>,
+  create: <T>(
+    handler: (req: NextRequest, context: ApiContext) => Promise<T>,
     validation?: z.ZodSchema,
     roles?: string[]
   ) =>
@@ -272,8 +285,8 @@ export const ApiPatterns = {
   /**
    * 리소스 업데이트 패턴
    */
-  update: (
-    handler: (req: NextRequest, context: ApiContext) => Promise<any>,
+  update: <T>(
+    handler: (req: NextRequest, context: ApiContext) => Promise<T>,
     validation?: z.ZodSchema,
     roles?: string[]
   ) =>

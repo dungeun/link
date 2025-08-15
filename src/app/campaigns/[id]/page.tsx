@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -132,6 +132,11 @@ export default function CampaignDetailPage() {
   // 캐싱된 데이터 사용
   const { profileData } = useUserData()
   const { data: campaign, isLoading: loading, refetch: refetchCampaign } = useCampaignData(params.id as string)
+  
+  // 템플릿 로딩 상태
+  const [shouldLoadTemplates, setShouldLoadTemplates] = useState(false)
+  
+  // 템플릿은 모달이 열릴 때만 로드하도록 지연
   const { data: templates = [], refetch: refetchTemplates } = useTemplates('application')
   
   const [isLiked, setIsLiked] = useState(false)
@@ -157,13 +162,7 @@ export default function CampaignDetailPage() {
       setIsLiked(campaign.isSaved || false)
       setLikeCount(campaign._count?.likes || 0)
       
-      // 디버깅용 로그
-      console.log('Campaign data:', {
-        hasApplied: campaign.hasApplied,
-        applicationStatus: campaign.applicationStatus,
-        campaignId: campaign.id,
-        userId: user?.id
-      })
+      // Debug logs removed for production performance
     }
   }, [campaign, user])
 
@@ -313,22 +312,24 @@ export default function CampaignDetailPage() {
       return
     }
 
-    // 프로필 정보 최종 체크
+    // 프로필 완성 상태 최종 체크
+    if (!profileData?.profileCompleted) {
+      toast({
+        title: '프로필 완성 필요',
+        description: '프로필을 먼저 완성해주세요.',
+        variant: 'destructive'
+      })
+      setShowApplyModal(false)
+      if (confirm('프로필 정보를 먼저 완성해주세요. 프로필 수정 페이지로 이동하시겠습니까?')) {
+        router.push('/mypage')
+      }
+      return
+    }
+
     if (!applyForm.message.trim()) {
       toast({
         title: '오류',
         description: '지원 메시지를 작성해주세요.',
-        variant: 'destructive'
-      })
-      return
-    }
-    
-    // 필수 정보가 비어있는지 체크
-    if (!applyForm.name || !applyForm.birthYear || 
-        !applyForm.gender || !applyForm.phone || !applyForm.address) {
-      toast({
-        title: '프로필 정보 필요',
-        description: '지원 폼의 모든 필수 정보를 입력해주세요.',
         variant: 'destructive'
       })
       return
@@ -455,6 +456,17 @@ export default function CampaignDetailPage() {
     }
   }
 
+  // Always call hooks - use default values when campaign is not available
+  const daysLeft = useMemo(() => {
+    if (!campaign) return 0
+    return calculateDaysLeft(campaign.endDate)
+  }, [campaign?.endDate])
+  
+  const applicationProgress = useMemo(() => {
+    if (!campaign) return 0
+    return ((campaign._count?.applications || 0) / (campaign.maxApplicants || 1)) * 100
+  }, [campaign?._count?.applications, campaign?.maxApplicants])
+
   if (loading) {
     return (
       <PageLayout>
@@ -481,9 +493,6 @@ export default function CampaignDetailPage() {
     )
   }
 
-  const daysLeft = calculateDaysLeft(campaign.endDate)
-  const applicationProgress = ((campaign._count?.applications || 0) / (campaign.maxApplicants || 1)) * 100
-
   return (
     <PageLayout>
       <div className="min-h-screen bg-gray-50">
@@ -495,6 +504,9 @@ export default function CampaignDetailPage() {
             alt={campaign.title}
             fill
             className="object-cover opacity-80"
+            priority={true}
+            quality={85}
+            sizes="100vw"
           />
         ) : campaign.thumbnailImageUrl ? (
           <Image
@@ -502,6 +514,9 @@ export default function CampaignDetailPage() {
             alt={campaign.title}
             fill
             className="object-cover opacity-80"
+            priority={true}
+            quality={85}
+            sizes="100vw"
           />
         ) : campaign.imageUrl ? (
           <Image
@@ -509,6 +524,9 @@ export default function CampaignDetailPage() {
             alt={campaign.title}
             fill
             className="object-cover opacity-80"
+            priority={true}
+            quality={85}
+            sizes="100vw"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600" />
@@ -849,14 +867,7 @@ export default function CampaignDetailPage() {
               <div className="mt-6 space-y-3">
                 {user?.type === 'INFLUENCER' && (
                   <>
-                    {/* 디버깅용 로그 */}
-                    {process.env.NODE_ENV === 'development' && console.log('Application Status Debug:', {
-                      userId: user?.id,
-                      campaignId: params.id,
-                      hasApplied: campaign.hasApplied,
-                      applicationStatus: campaign.applicationStatus,
-                      rawCampaignData: campaign
-                    })}
+                    {/* Debug logs removed for production performance */}
                     
                     {campaign.hasApplied === true ? (
                       <div className="text-center">
@@ -872,17 +883,8 @@ export default function CampaignDetailPage() {
                         className="w-full" 
                         size="lg"
                         onClick={() => {
-                          // 프로필 정보 체크 - profileData 구조 확인
-                          console.log('Profile Data:', profileData);
-                          
-                          // birthYear, gender, phone, address가 profileData에 직접 있거나 profile 안에 있을 수 있음
-                          const hasRequiredInfo = 
-                            (profileData?.birthYear || profileData?.profile?.birthYear) && 
-                            (profileData?.gender || profileData?.profile?.gender) && 
-                            (profileData?.phone || profileData?.profile?.phone) && 
-                            (profileData?.address || profileData?.profile?.address);
-                          
-                          if (!hasRequiredInfo) {
+                          // 프로필 완성 상태 체크 (DB의 profileCompleted 플래그 사용)
+                          if (!profileData?.profileCompleted) {
                             // 프로필 정보가 불완전한 경우
                             if (confirm('프로필 정보를 먼저 완성해주세요. 프로필 수정 페이지로 이동하시겠습니까?')) {
                               router.push('/mypage')

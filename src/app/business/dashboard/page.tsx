@@ -15,7 +15,7 @@ function BusinessDashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { t } = useLanguage()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ id: string; type: string; name: string; email: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'campaigns')
   
@@ -138,7 +138,8 @@ function BusinessDashboardContent() {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab)
-    router.push(`/business/dashboard?tab=${tab}`)
+    // URL 업데이트를 위해 replace 사용 (페이지 리로드 방지)
+    window.history.replaceState(null, '', `/business/dashboard?tab=${tab}`)
   }
 
   return (

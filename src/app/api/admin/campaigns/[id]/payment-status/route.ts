@@ -30,7 +30,7 @@ async function authenticate(request: NextRequest) {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId?: string; id?: string; type?: string; email?: string }
     return decoded
   } catch (error) {
     return null

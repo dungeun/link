@@ -15,7 +15,7 @@ interface LanguagePackData {
   key: string;
   ko: string;
   en: string;
-  ja: string;
+  jp: string;
 }
 
 export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableMenuItemProps) {
@@ -53,7 +53,13 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
         
         if (response.ok) {
           const data = await response.json();
-          setLanguageData(data);
+          // 응답 데이터 구조에 맞게 처리
+          setLanguageData({
+            key: data.key || menu.label,
+            ko: data.ko || '',
+            en: data.en || '',
+            jp: data.jp || ''
+          });
         }
       } catch (error) {
         console.error('언어팩 데이터 로드 실패:', error);
@@ -96,7 +102,13 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
       }
 
       const updatedData = await response.json();
-      setLanguageData(updatedData);
+      // 응답 데이터 구조에 맞게 처리
+      setLanguageData({
+        key: updatedData.key || menu.label,
+        ko: updatedData.ko || editedName,
+        en: updatedData.en || editedName,
+        jp: updatedData.jp || editedName
+      });
       setIsEditing(false);
       
       alert('메뉴 이름이 업데이트되었습니다.');
@@ -106,8 +118,22 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
     }
   };
 
-  const isCustomMenu = menu.label.startsWith('header.menu.custom_');
-  const displayName = languageData?.ko || menu.label;
+  // 메뉴 이름 표시 로직 개선
+  const getDisplayName = () => {
+    // 언어팩 데이터가 있으면 한국어 번역 사용
+    if (languageData?.ko) {
+      return languageData.ko;
+    }
+    // 언어팩 키가 아닌 일반 텍스트인 경우 그대로 표시
+    if (!menu.label.includes('.')) {
+      return menu.label;
+    }
+    // 언어팩 키인데 데이터가 없으면 키의 마지막 부분만 표시
+    const parts = menu.label.split('.');
+    return parts[parts.length - 1];
+  };
+  
+  const displayName = getDisplayName();
 
   return (
     <div
@@ -158,25 +184,23 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
           ) : (
             <div className="flex items-center space-x-2">
               <span className="font-medium">{displayName}</span>
-              {isCustomMenu && (
-                <button
-                  onClick={() => {
-                    setIsEditing(true);
-                    setEditedName(displayName);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                  title="이름 편집"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  setIsEditing(true);
+                  setEditedName(displayName);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+                title="이름 편집"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
             </div>
           )}
           {languageData && (
             <div className="text-xs text-gray-500 mt-1">
-              EN: {languageData.en} | JA: {languageData.ja}
+              EN: {languageData.en} | JP: {languageData.jp}
             </div>
           )}
         </div>

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // 검색 조건 구성
-    const where: any = {
+    const where: Record<string, unknown> = {
       deletedAt: null // 삭제되지 않은 캠페인만 조회
     };
     

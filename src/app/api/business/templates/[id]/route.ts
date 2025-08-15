@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  let user: any = null;
+  let user: { id: string; email: string; type: string } | null = null;
   try {
     const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
     if ('error' in authResult) {
@@ -47,7 +47,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  let user: any = null;
+  let user: { id: string; email: string; type: string } | null = null;
   try {
     const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
     if ('error' in authResult) {

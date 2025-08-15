@@ -1,0 +1,174 @@
+// footer 카테고리 UI 텍스트
+// 생성일: 2025-08-15T19:30:41.856Z
+// 14개 항목
+
+export const FOOTER_UI_TEXTS = [
+  {
+    "id": "cme7f4d100004womvt6vynisp",
+    "key": "footer.company.about",
+    "ko": "회사소개",
+    "en": "About Us",
+    "category": "footer",
+    "description": "푸터 - 회사 소개 링크",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:23.796Z",
+    "updatedAt": "2025-08-15T19:22:11.893Z",
+    "jp": "会社紹介"
+  },
+  {
+    "id": "cmed7syyv00074kt7dkr3p7gv",
+    "key": "footer.company.careers",
+    "ko": "채용",
+    "en": "Careers",
+    "category": "footer",
+    "description": null,
+    "isEditable": true,
+    "createdAt": "2025-08-15T19:22:12.104Z",
+    "updatedAt": "2025-08-15T19:22:12.104Z",
+    "jp": "採用"
+  },
+  {
+    "id": "cme7f4d2d0005womvrkyxgj0f",
+    "key": "footer.company.contact",
+    "ko": "문의하기",
+    "en": "Contact",
+    "category": "footer",
+    "description": "푸터 - 문의하기 링크",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:23.846Z",
+    "updatedAt": "2025-08-15T19:22:11.993Z",
+    "jp": "お問い合わせ"
+  },
+  {
+    "id": "cme7f4czl0003womv7lw3mfb6",
+    "key": "footer.company.title",
+    "ko": "회사",
+    "en": "Company",
+    "category": "footer",
+    "description": "푸터 - 회사 섹션 제목",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:23.746Z",
+    "updatedAt": "2025-08-15T19:22:11.793Z",
+    "jp": "会社"
+  },
+  {
+    "id": "cme7f3r7q0012c33rftfloyxe",
+    "key": "footer.copyright",
+    "ko": "© 2024 LinkPick. All rights reserved.",
+    "en": "© 2024 LinkPick. All rights reserved.",
+    "category": "footer",
+    "description": "푸터 - 저작권 표시",
+    "isEditable": true,
+    "createdAt": "2025-08-11T17:59:55.526Z",
+    "updatedAt": "2025-08-15T19:22:13.032Z",
+    "jp": "© 2024 LinkPick. All rights reserved."
+  },
+  {
+    "id": "cmed7synh00064kt7sysb7xqz",
+    "key": "footer.description",
+    "ko": "브랜드와 인플루언서를 연결하는 스마트한 마케팅 플랫폼",
+    "en": "Smart marketing platform connecting brands and influencers",
+    "category": "footer",
+    "description": null,
+    "isEditable": true,
+    "createdAt": "2025-08-15T19:22:11.693Z",
+    "updatedAt": "2025-08-15T19:22:11.693Z",
+    "jp": "ブランドとインフルエンサーをつなぐスマートマーケティングプラットフォーム"
+  },
+  {
+    "id": "cmed7szil000b4kt7c9zykg30",
+    "key": "footer.info.businessNo",
+    "ko": "사업자등록번호",
+    "en": "Business Registration No.",
+    "category": "footer",
+    "description": null,
+    "isEditable": true,
+    "createdAt": "2025-08-15T19:22:12.814Z",
+    "updatedAt": "2025-08-15T19:22:12.814Z",
+    "jp": "事業者登録番号"
+  },
+  {
+    "id": "cmed7szft000a4kt753bmfgl3",
+    "key": "footer.info.ceo",
+    "ko": "대표",
+    "en": "CEO",
+    "category": "footer",
+    "description": null,
+    "isEditable": true,
+    "createdAt": "2025-08-15T19:22:12.713Z",
+    "updatedAt": "2025-08-15T19:22:12.713Z",
+    "jp": "代表"
+  },
+  {
+    "id": "cmed7szlo000c4kt7x1pmgoa4",
+    "key": "footer.info.telecom",
+    "ko": "통신판매업",
+    "en": "E-commerce Permit",
+    "category": "footer",
+    "description": null,
+    "isEditable": true,
+    "createdAt": "2025-08-15T19:22:12.925Z",
+    "updatedAt": "2025-08-15T19:22:12.925Z",
+    "jp": "通信販売業"
+  },
+  {
+    "id": "cme7f4d7d0008womv54otmkg4",
+    "key": "footer.legal.privacy",
+    "ko": "개인정보처리방침",
+    "en": "Privacy Policy",
+    "category": "footer",
+    "description": "푸터 - 개인정보처리방침 링크",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:24.026Z",
+    "updatedAt": "2025-08-15T19:22:12.402Z",
+    "jp": "プライバシーポリシー"
+  },
+  {
+    "id": "cme7f4d5z0007womve9kswcvm",
+    "key": "footer.legal.terms",
+    "ko": "이용약관",
+    "en": "Terms of Service",
+    "category": "footer",
+    "description": "푸터 - 이용약관 링크",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:23.976Z",
+    "updatedAt": "2025-08-15T19:22:12.304Z",
+    "jp": "利用規約"
+  },
+  {
+    "id": "cme7f4d420006womvrru2axl7",
+    "key": "footer.legal.title",
+    "ko": "법적 고지",
+    "en": "Legal",
+    "category": "footer",
+    "description": "푸터 - 법적 정보 섹션 제목",
+    "isEditable": true,
+    "createdAt": "2025-08-11T18:00:23.906Z",
+    "updatedAt": "2025-08-15T19:22:12.203Z",
+    "jp": "法的通知"
+  },
+  {
+    "id": "cmed7szcr00094kt7ush9wju1",
+    "key": "footer.support.hours",
+    "ko": "평일 09:00~18:00 (주말/공휴일 휴무)",
+    "en": "Weekdays 09:00~18:00 (Closed on weekends/holidays)",
+    "category": "footer",
+    "description": null,
+    "isEditable": true,
+    "createdAt": "2025-08-15T19:22:12.603Z",
+    "updatedAt": "2025-08-15T19:22:12.603Z",
+    "jp": "平日 09:00~18:00（週末・祝日休み）"
+  },
+  {
+    "id": "cmed7sz9z00084kt7lsjqwonm",
+    "key": "footer.support.title",
+    "ko": "고객지원",
+    "en": "Support",
+    "category": "footer",
+    "description": null,
+    "isEditable": true,
+    "createdAt": "2025-08-15T19:22:12.503Z",
+    "updatedAt": "2025-08-15T19:22:12.503Z",
+    "jp": "サポート"
+  }
+];

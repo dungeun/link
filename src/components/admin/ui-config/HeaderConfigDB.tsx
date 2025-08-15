@@ -36,11 +36,16 @@ export function HeaderConfigDB() {
   const loadMenus = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/ui-menus?type=header');
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
+      const response = await fetch('/api/admin/ui-menus?type=header', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      });
       
       if (response.ok) {
         const data = await response.json();
-        const formattedMenus = data.menus.map((menu: any) => ({
+        const formattedMenus = data.menus.map((menu: Record<string, unknown>) => ({
           id: menu.id,
           label: menu.content?.label || menu.sectionId,
           name: menu.content?.name || '',
@@ -49,6 +54,8 @@ export function HeaderConfigDB() {
           visible: menu.visible,
           order: menu.order
         }));
+        // Admin UI에서도 order 필드로 정렬하여 UI Config API와 일치시킴
+        formattedMenus.sort((a, b) => a.order - b.order);
         setMenus(formattedMenus);
       }
     } catch (error) {
@@ -62,7 +69,7 @@ export function HeaderConfigDB() {
     loadMenus();
   }, []);
 
-  const handleDragEnd = async (event: any) => {
+  const handleDragEnd = async (event: { active: { id: string }; over: { id: string } }) => {
     const { active, over } = event;
 
     if (active.id !== over.id) {

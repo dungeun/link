@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type');
     const visible = searchParams.get('visible');
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (sectionId) where.sectionId = sectionId;
     if (type) where.type = type;
     if (visible !== null) where.visible = visible === 'true';

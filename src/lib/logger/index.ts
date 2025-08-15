@@ -17,6 +17,17 @@ const getLogLevel = () => {
   return process.env.LOG_LEVEL || 'info';
 };
 
+// 로그 이벤트 타입
+interface LogEvent {
+  level: {
+    label: string;
+    value: number;
+  };
+  messages: unknown[];
+  bindings?: unknown[];
+  timestamp: number;
+}
+
 // 기본 로거 설정
 const createLogger = (): Logger => {
   // 브라우저용 로거
@@ -26,7 +37,7 @@ const createLogger = (): Logger => {
       browser: {
         transmit: {
           level: 'error',
-          send: (level, logEvent) => {
+          send: (level: { label: string; value: number }, logEvent: LogEvent) => {
             // 프로덕션에서만 에러를 서버로 전송
             if (isProduction && level.label === 'error') {
               fetch('/api/logs', {
@@ -62,7 +73,7 @@ const createLogger = (): Logger => {
 export const logger = createLogger();
 
 // 컨텍스트별 로거 생성
-export const createContextLogger = (context: Record<string, any>) => {
+export const createContextLogger = (context: Record<string, unknown>) => {
   return logger.child(context);
 };
 
@@ -82,7 +93,7 @@ export const createApiLogger = (req: Request, userId?: string) => {
 export const logError = (
   error: Error | unknown,
   context?: string,
-  additionalData?: Record<string, any>
+  additionalData?: Record<string, unknown>
 ) => {
   const errorObj = error instanceof Error
     ? {
@@ -105,7 +116,7 @@ export const createPerformanceLogger = (operation: string) => {
   const perfLogger = logger.child({ operation });
 
   return {
-    end: (metadata?: Record<string, any>) => {
+    end: (metadata?: Record<string, unknown>) => {
       const duration = Date.now() - startTime;
       perfLogger.info({
         duration,
@@ -118,7 +129,7 @@ export const createPerformanceLogger = (operation: string) => {
 // 데이터베이스 쿼리 로거
 export const logDbQuery = (
   query: string,
-  params?: any[],
+  params?: unknown[],
   duration?: number
 ) => {
   const dbLogger = logger.child({ component: 'database' });
@@ -142,7 +153,7 @@ export const logDbQuery = (
 export const logUserActivity = (
   userId: string,
   action: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ) => {
   logger.info({
     userId,
@@ -156,7 +167,7 @@ export const logUserActivity = (
 export const logSecurityEvent = (
   event: string,
   userId?: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ) => {
   logger.warn({
     securityEvent: event,
@@ -168,11 +179,11 @@ export const logSecurityEvent = (
 
 // 레거시 console 호환성 (마이그레이션용)
 export const legacyLogger = {
-  log: (...args: any[]) => logger.info(args.join(' ')),
-  error: (...args: any[]) => logger.error(args.join(' ')),
-  warn: (...args: any[]) => logger.warn(args.join(' ')),
-  debug: (...args: any[]) => logger.debug(args.join(' ')),
-  info: (...args: any[]) => logger.info(args.join(' ')),
+  log: (...args: unknown[]) => logger.info(args.map(arg => String(arg)).join(' ')),
+  error: (...args: unknown[]) => logger.error(args.map(arg => String(arg)).join(' ')),
+  warn: (...args: unknown[]) => logger.warn(args.map(arg => String(arg)).join(' ')),
+  debug: (...args: unknown[]) => logger.debug(args.map(arg => String(arg)).join(' ')),
+  info: (...args: unknown[]) => logger.info(args.map(arg => String(arg)).join(' ')),
 };
 
 // 전역 에러 핸들러는 Next.js에서 자동 처리하므로 제거

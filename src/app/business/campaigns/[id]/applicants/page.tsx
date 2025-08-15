@@ -40,19 +40,12 @@ export default function ApplicantsPage() {
   const router = useRouter()
   const [applicants, setApplicants] = useState<Applicant[]>([])
   const [loading, setLoading] = useState(true)
-  const [campaign, setCampaign] = useState<any>(null)
+  const [campaign, setCampaign] = useState<{ id: string; title: string; description: string; status: string; budget: number } | null>(null)
   const [selectedStatus, setSelectedStatus] = useState('all')
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const user = AuthService.getCurrentUser()
-      if (!user || (user.type !== 'BUSINESS' && user.type !== 'ADMIN')) {
-        router.push('/login')
-        return
-      }
-      fetchData()
-    }
-    checkAuth()
+    // Middleware에서 이미 인증을 체크하므로 바로 데이터 로드
+    fetchData()
   }, [params.id])
 
   const fetchData = async () => {

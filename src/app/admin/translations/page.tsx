@@ -62,7 +62,7 @@ export default function TranslationManagementPage() {
           
           // 카테고리별 카운트 계산
           const categoryMap = new Map<string, number>()
-          data.forEach((item: any) => {
+          data.forEach((item: Record<string, unknown>) => {
             if (item.category) {
               categoryMap.set(item.category, (categoryMap.get(item.category) || 0) + 1)
             }
@@ -83,7 +83,7 @@ export default function TranslationManagementPage() {
           if (selectedCategory === 'all') {
             setTranslations(data)
           } else {
-            const filtered = data.filter((item: any) => item.category === selectedCategory)
+            const filtered = data.filter((item: Record<string, unknown>) => item.category === selectedCategory)
             setTranslations(filtered)
           }
         } else {
@@ -136,7 +136,7 @@ export default function TranslationManagementPage() {
       if (selectedCategory === 'all') {
         setTranslations(allTranslations)
       } else {
-        const filtered = allTranslations.filter((item: any) => item.category === selectedCategory)
+        const filtered = allTranslations.filter((item: Record<string, unknown>) => item.category === selectedCategory)
         setTranslations(filtered)
       }
     }
@@ -273,7 +273,7 @@ export default function TranslationManagementPage() {
         if (result.success) {
           // Google Translate 결과를 데이터베이스에 저장
           const translations = result.translations
-          let updateData: any = {}
+          let updateData: Record<string, unknown> = {}
           
           if (translations.en && !translations.en.error) {
             updateData.en = translations.en.text
@@ -321,7 +321,7 @@ export default function TranslationManagementPage() {
   // 수동 편집 저장 - 개별 필드
   const saveEditField = async (id: string, field: 'en' | 'jp') => {
     try {
-      const updateData: any = { type: selectedType }
+      const updateData: Record<string, unknown> = { type: selectedType }
       updateData[field] = editForm[field]
       
       const response = await adminApi.put(`/api/admin/translations/${id}`, updateData)

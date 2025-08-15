@@ -121,7 +121,12 @@ export async function GET(request: NextRequest) {
     })
 
     // 월별 사용자 증가 (최근 6개월)
-    const usersByMonth: any[] = []
+    interface UsersByMonth {
+      month: string;
+      influencers: number;
+      businesses: number;
+    }
+    const usersByMonth: UsersByMonth[] = []
     for (let i = 5; i >= 0; i--) {
       const monthStart = new Date()
       monthStart.setMonth(monthStart.getMonth() - i)
@@ -186,7 +191,12 @@ export async function GET(request: NextRequest) {
     })
 
     // 월별 캠페인 및 매출 (최근 6개월)
-    const campaignsByMonth: any[] = []
+    interface CampaignsByMonth {
+      month: string;
+      count: number;
+      revenue: number;
+    }
+    const campaignsByMonth: CampaignsByMonth[] = []
     for (let i = 5; i >= 0; i--) {
       const monthStart = new Date()
       monthStart.setMonth(monthStart.getMonth() - i)
@@ -225,7 +235,11 @@ export async function GET(request: NextRequest) {
     }
 
     // 매출 통계
-    const revenueByMonth: any[] = []
+    interface RevenueByMonth {
+      month: string;
+      amount: number;
+    }
+    const revenueByMonth: RevenueByMonth[] = []
     for (let i = 5; i >= 0; i--) {
       const monthStart = new Date()
       monthStart.setMonth(monthStart.getMonth() - i)

@@ -1,53 +1,95 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { withAuth } from '@/lib/auth/middleware'
+import { verifyAuth } from '@/lib/auth-middleware'
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
-
-// DELETE /api/admin/posts/[id] - 게시물 삭제
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const authResult = await withAuth(request)
-    if ('error' in authResult) {
-      return authResult.error
+    const auth = await verifyAuth(request)
+    if (!auth || auth.user.type !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
-    const { user } = authResult
-    
-    // 관리자 권한 확인
-    if (user.type !== 'ADMIN') {
+
+    const postId = params.id
+
+    // Prisma의 안전한 트랜잭션 사용 - SQL 인젝션 방지
+    const result = await prisma.$transaction(async (tx) => {
+      // 댓글 삭제
+      await tx.comment.deleteMany({
+        where: { postId: postId }
+      })
+
+      // 좋아요 삭제
+      await tx.postLike.deleteMany({
+        where: { postId: postId }
+      })
+
+      // 첨부파일 삭제
+      await tx.attachment.deleteMany({
+        where: { postId: postId }
+      })
+
+      // 게시물 삭제
+      const deletedPost = await tx.post.delete({
+        where: { id: postId }
+      })
+
+      return deletedPost
+    })
+
+    return NextResponse.json({ 
+      message: 'Post deleted successfully',
+      id: result.id 
+    })
+
+  } catch (error) {
+    console.error('Error deleting post:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete post' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const auth = await verifyAuth(request)
+    if (!auth || auth.user.type !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const postId = params.id
+
+    // 입력 검증
+    if (!body.title || !body.content) {
       return NextResponse.json(
-        { success: false, error: '관리자 권한이 필요합니다' },
-        { status: 403 }
+        { error: 'Title and content are required' },
+        { status: 400 }
       )
     }
 
-    // 게시물과 관련 데이터 삭제
-    await prisma.$transaction([
-      // 댓글 삭제
-      prisma.$executeRaw`DELETE FROM comments WHERE post_id = ${params.id}`,
-      // 좋아요 삭제
-      prisma.$executeRaw`DELETE FROM likes WHERE post_id = ${params.id}`,
-      // 첨부파일 삭제
-      prisma.$executeRaw`DELETE FROM attachments WHERE post_id = ${params.id}`,
-      // 게시물 삭제
-      prisma.post.delete({
-        where: { id: params.id }
-      })
-    ])
-
-    return NextResponse.json({
-      success: true,
-      message: '게시물이 삭제되었습니다'
+    const updatedPost = await prisma.post.update({
+      where: { id: postId },
+      data: {
+        title: body.title,
+        content: body.content,
+        status: body.status,
+        updatedAt: new Date()
+      }
     })
+
+    return NextResponse.json(updatedPost)
+
   } catch (error) {
-    console.error('Failed to delete post:', error)
+    console.error('Error updating post:', error)
     return NextResponse.json(
-      { success: false, error: '게시물 삭제 중 오류가 발생했습니다' },
+      { error: 'Failed to update post' },
       { status: 500 }
     )
   }

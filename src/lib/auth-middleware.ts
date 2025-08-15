@@ -21,7 +21,12 @@ export async function authenticateJWT(request: NextRequest): Promise<AuthUser | 
 
   try {
     const jwtSecret = getJWTSecret();
-    const decoded = jwt.verify(token, jwtSecret) as any;
+    const decoded = jwt.verify(token, jwtSecret) as jwt.JwtPayload & {
+      id: string;
+      email: string;
+      name: string;
+      type: 'ADMIN' | 'BUSINESS' | 'INFLUENCER';
+    };
     return {
       id: decoded.id,
       email: decoded.email,
@@ -86,7 +91,7 @@ export function createAuthResponse<T>(
 export function createErrorResponse(
   message: string,
   status: number = 500,
-  details?: any
+  details?: unknown
 ): NextResponse {
   return NextResponse.json(
     {

@@ -165,7 +165,7 @@ export default function CategoryCampaignsPage() {
 
       if (response.ok) {
         const data = await response.json()
-        const likedCampaignIds = data.campaigns.map((c: any) => c.id)
+        const likedCampaignIds = data.campaigns.map((c: { id: string }) => c.id)
         setFavorites(likedCampaignIds)
       }
     } catch (error) {

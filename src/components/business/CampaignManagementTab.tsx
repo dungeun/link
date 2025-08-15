@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo } from 'react'
 import Link from 'next/link'
 import { apiGet } from '@/lib/api/client'
 import { Plus, Search, Filter, Eye, Edit, Users, TrendingUp, Trash2 } from 'lucide-react'
@@ -18,7 +18,7 @@ interface Campaign {
   platforms: string[]
 }
 
-export default function CampaignManagementTab() {
+function CampaignManagementTab() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -30,11 +30,8 @@ export default function CampaignManagementTab() {
     totalBudget: 0
   })
 
-  useEffect(() => {
-    fetchCampaigns()
-  }, [])
-
-  const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
+  // 캠페인 삭제 핸들러 - 메모이제이션
+  const handleDeleteCampaign = useCallback(async (campaignId: string, campaignTitle: string) => {
     if (!confirm(`"${campaignTitle}" 캠페인을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
       return
     }
@@ -58,9 +55,10 @@ export default function CampaignManagementTab() {
       console.error('캠페인 삭제 중 오류:', error)
       alert('캠페인 삭제 중 오류가 발생했습니다.')
     }
-  }
+  }, [])
 
-  const fetchCampaigns = async () => {
+  // 캠페인 데이터 조회 - 메모이제이션
+  const fetchCampaigns = useCallback(async () => {
     try {
       setLoading(true)
       console.log('[CampaignManagementTab] Fetching campaigns...')
@@ -89,15 +87,22 @@ export default function CampaignManagementTab() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const filteredCampaigns = campaigns.filter(campaign => {
+  // 컴포넌트 마운트시 데이터 조회
+  useEffect(() => {
+    fetchCampaigns()
+  }, [fetchCampaigns])
+
+  // 캠페인 필터링 - 메모이제이션
+  const filteredCampaigns = useMemo(() => campaigns.filter(campaign => {
     const matchesSearch = campaign.title.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = filterStatus === 'all' || campaign.status === filterStatus
     return matchesSearch && matchesStatus
-  })
+  }), [campaigns, searchTerm, filterStatus])
 
-  const getStatusBadge = (status: string) => {
+  // 상태 배지 생성 - 메모이제이션
+  const getStatusBadge = useCallback((status: string) => {
     const statusConfig = {
       DRAFT: { color: 'bg-gray-100 text-gray-700', text: '초안' },
       ACTIVE: { color: 'bg-green-100 text-green-700', text: '진행중' },
@@ -111,9 +116,10 @@ export default function CampaignManagementTab() {
         {config.text}
       </span>
     )
-  }
+  }, [])
 
-  const getDeadlineText = (deadline: string) => {
+  // 마감 시간 텍스트 계산 - 메모이제이션
+  const getDeadlineText = useCallback((deadline: string) => {
     const now = new Date()
     const deadlineDate = new Date(deadline)
     const diffTime = deadlineDate.getTime() - now.getTime()
@@ -124,7 +130,7 @@ export default function CampaignManagementTab() {
     if (diffDays === 1) return '내일 마감'
     if (diffDays <= 7) return `${diffDays}일 남음`
     return new Date(deadline).toLocaleDateString()
-  }
+  }, [])
 
   if (loading) {
     return (
@@ -313,3 +319,6 @@ export default function CampaignManagementTab() {
     </div>
   )
 }
+
+// React.memo로 성능 최적화
+export default memo(CampaignManagementTab)

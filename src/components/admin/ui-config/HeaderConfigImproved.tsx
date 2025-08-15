@@ -1,6 +1,6 @@
 'use client';
 
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useState } from 'react';
 import { useUIConfigStore } from '@/lib/stores/ui-config.store';
@@ -20,7 +20,7 @@ export function HeaderConfigImproved() {
     })
   );
 
-  const handleHeaderDragEnd = (event: any) => {
+  const handleHeaderDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (active.id !== over.id) {

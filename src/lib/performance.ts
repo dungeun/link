@@ -121,10 +121,10 @@ class PerformanceMonitor {
 export const performanceMonitor = new PerformanceMonitor();
 
 // Performance decorators for methods
-export function measurePerformance(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+export function measurePerformance(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
-  descriptor.value = async function (...args: any[]) {
+  descriptor.value = async function (...args: unknown[]) {
     const name = `${target.constructor.name}.${propertyKey}`;
     return performanceMonitor.measure(name, () => originalMethod.apply(this, args));
   };

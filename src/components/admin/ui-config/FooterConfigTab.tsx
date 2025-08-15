@@ -16,7 +16,7 @@ export function FooterConfigTab() {
     })
   );
 
-  const handleFooterDragEnd = (event: any) => {
+  const handleFooterDragEnd = (event: { active: { id: string }; over: { id: string } }) => {
     const { active, over } = event;
 
     if (active.id !== over.id) {

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Navigation Debug</title>
+</head>
+<body>
+    <h1>Navigation Debug Test</h1>
+    <button onclick="testNavigation()">Test Navigation to /admin/users</button>
+    <button onclick="testWindowLocation()">Test window.location</button>
+    
+    <script>
+        function testNavigation() {
+            console.log('Testing navigation...');
+            window.location.href = 'http://localhost:3001/admin/users';
+        }
+        
+        function testWindowLocation() {
+            console.log('Testing window.location...');
+            window.location.href = 'http://localhost:3001/admin';
+        }
+        
+        console.log('Debug page loaded');
+    </script>
+</body>
+</html>

@@ -320,7 +320,7 @@ export default function EditCampaignPage() {
                   <button
                     key={status.value}
                     type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, status: status.value as any }))}
+                    onClick={() => setFormData(prev => ({ ...prev, status: status.value as 'draft' | 'active' | 'paused' | 'completed' }))}
                     className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                       formData.status === status.value
                         ? status.color
@@ -359,7 +359,7 @@ export default function EditCampaignPage() {
                   캠페인 설명 <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  value={(formData as any).description}
+                  value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -463,7 +463,7 @@ export default function EditCampaignPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">타겟 성별</label>
                   <select
                     value={formData.targetGender}
-                    onChange={(e) => setFormData(prev => ({ ...prev, targetGender: e.target.value as any }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, targetGender: e.target.value as 'all' | 'male' | 'female' }))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="all">전체</option>
@@ -688,7 +688,7 @@ export default function EditCampaignPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">지급 방식</label>
                   <select
                     value={formData.paymentType}
-                    onChange={(e) => setFormData(prev => ({ ...prev, paymentType: e.target.value as any }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, paymentType: e.target.value as 'fixed' | 'performance' }))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="fixed">고정 금액</option>

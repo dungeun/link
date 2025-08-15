@@ -32,7 +32,7 @@ async function authenticate(request: NextRequest) {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; userId?: string; email: string; type: string; name: string };
     return decoded;
   } catch (error) {
     return null;
@@ -209,11 +209,11 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     // 수정 가능한 필드만 업데이트
     if (body.title !== undefined) updateData.title = body.title;
-    if ((body as any).description !== undefined) (updateData as any).description = (body as any).description;
+    if (body.description !== undefined) updateData.description = body.description;
     if (body.requirements !== undefined) updateData.requirements = body.requirements;
     if (body.budget !== undefined) updateData.budget = body.budget;
     if (body.targetFollowers !== undefined) updateData.targetFollowers = body.targetFollowers;

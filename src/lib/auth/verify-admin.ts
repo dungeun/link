@@ -23,7 +23,7 @@ export async function verifyAdmin(request: NextRequest) {
       return null
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as any
+    const decoded = jwt.verify(token, JWT_SECRET) as { type?: string; [key: string]: unknown }
     
     // 관리자 권한 확인
     const userType = decoded.type?.toLowerCase()

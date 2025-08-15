@@ -6,12 +6,22 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useAuth } from '@/hooks/useAuth'
 
+interface Template {
+  id: string;
+  name: string;
+  content: string;
+  category?: string;
+  isPublic: boolean;
+  useCount: number;
+  userId: string;
+}
+
 export default function TemplatesPage() {
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
-  const [templates, setTemplates] = useState<any[]>([])
+  const [templates, setTemplates] = useState<Template[]>([])
   const [loading, setLoading] = useState(true)
-  const [editingTemplate, setEditingTemplate] = useState<any>(null)
+  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     content: '',
@@ -85,7 +95,7 @@ export default function TemplatesPage() {
     }
   }
 
-  const handleEdit = (template: any) => {
+  const handleEdit = (template: Template) => {
     setEditingTemplate(template)
     setFormData({
       name: template.name,

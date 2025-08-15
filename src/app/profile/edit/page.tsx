@@ -199,7 +199,7 @@ export default function ProfileEditPage() {
     setBankAccounts(bankAccounts.filter(account => account.id !== id));
   };
 
-  const updateBankAccount = (id: string, field: keyof BankAccount, value: any) => {
+  const updateBankAccount = (id: string, field: keyof BankAccount, value: string | boolean) => {
     setBankAccounts(bankAccounts.map(account => 
       account.id === id ? { ...account, [field]: value } : account
     ));
@@ -389,7 +389,7 @@ export default function ProfileEditPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">성별</label>
                   <select
                     value={profileData.gender}
-                    onChange={(e) => setProfileData({ ...profileData, gender: e.target.value as any })}
+                    onChange={(e) => setProfileData({ ...profileData, gender: e.target.value as 'male' | 'female' | 'other' | '' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">선택하지 않음</option>

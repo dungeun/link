@@ -28,7 +28,7 @@ export default function CategoryEditPanel({
   onSave 
 }: CategoryEditPanelProps) {
   const [loading, setLoading] = useState(false)
-  const [campaign, setCampaign] = useState<any>(null)
+  const [campaign, setCampaign] = useState<{ id: string; title: string; mainCategory?: string; subCategory?: string } | null>(null)
   const [selectedMainCategory, setSelectedMainCategory] = useState('')
   const [selectedSubCategory, setSelectedSubCategory] = useState('')
 

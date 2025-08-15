@@ -32,14 +32,14 @@ export async function apiGet(url: string) {
   return apiClient(url, { method: 'GET' })
 }
 
-export async function apiPost(url: string, data?: any) {
+export async function apiPost(url: string, data?: unknown) {
   return apiClient(url, {
     method: 'POST',
     body: data ? JSON.stringify(data) : undefined
   })
 }
 
-export async function apiPut(url: string, data?: any) {
+export async function apiPut(url: string, data?: unknown) {
   return apiClient(url, {
     method: 'PUT',
     body: data ? JSON.stringify(data) : undefined

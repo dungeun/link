@@ -1,12 +1,28 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo } from 'react'
 import { Check, User } from 'lucide-react'
+
+interface ApplicationFormData {
+  name: string
+  phone: string
+  email: string
+  instagram: string
+  youtube: string
+  tiktok: string
+  address: string
+  detailAddress: string
+  postalCode: string
+  message: string
+  proposedPrice: string
+  campaignId: string
+  userId: string
+}
 
 interface ApplicationFormProps {
   campaignId: string
   userId: string
-  onSubmit: (data: any) => void
+  onSubmit: (data: ApplicationFormData) => void
 }
 
 interface ProfileData {
@@ -21,7 +37,7 @@ interface ProfileData {
   postalCode: string
 }
 
-export default function ApplicationForm({ campaignId, userId, onSubmit }: ApplicationFormProps) {
+function ApplicationForm({ campaignId, userId, onSubmit }: ApplicationFormProps) {
   const [useProfile, setUseProfile] = useState(false)
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
   const [formData, setFormData] = useState({
@@ -38,12 +54,8 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
     proposedPrice: ''
   })
 
-  // 프로필 데이터 로드
-  useEffect(() => {
-    loadProfileData()
-  }, [userId])
-
-  const loadProfileData = async () => {
+  // 프로필 데이터 로드 함수 - 메모이제이션
+  const loadProfileData = useCallback(async () => {
     try {
       const response = await fetch(`/api/profile/${userId}`)
       if (response.ok) {
@@ -53,10 +65,15 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
     } catch (error) {
       console.error('Failed to load profile:', error)
     }
-  }
+  }, [userId])
 
-  // 프로필 사용 체크박스 변경
-  const handleUseProfileChange = (checked: boolean) => {
+  // 프로필 데이터 로드
+  useEffect(() => {
+    loadProfileData()
+  }, [loadProfileData])
+
+  // 프로필 사용 체크박스 변경 - 메모이제이션
+  const handleUseProfileChange = useCallback((checked: boolean) => {
     setUseProfile(checked)
     
     if (checked && profileData) {
@@ -88,28 +105,36 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
         postalCode: ''
       }))
     }
-  }
+  }, [profileData])
 
-  const handleInputChange = (field: string, value: string) => {
+  // 입력 변경 핸들러 - 메모이제이션
+  const handleInputChange = useCallback((field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
-  }
+  }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // 폼 제출 핸들러 - 메모이제이션
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     onSubmit({
       ...formData,
       campaignId,
       useProfileData: useProfile
     })
-  }
+  }, [formData, campaignId, useProfile, onSubmit])
+
+  // 프로필 데이터 가용성 체크 - 메모이제이션
+  const hasProfileData = useMemo(() => !!profileData, [profileData])
+
+  // 프로필 비활성화 상태 체크 - 메모이제이션
+  const isProfileDisabled = useMemo(() => useProfile, [useProfile])
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* 프로필 정보 사용 체크박스 */}
-      {profileData && (
+      {hasProfileData && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
@@ -148,7 +173,7 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
               onChange={(e) => handleInputChange('name', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               required
-              disabled={useProfile}
+              disabled={isProfileDisabled}
             />
           </div>
 
@@ -163,7 +188,7 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               placeholder="010-0000-0000"
               required
-              disabled={useProfile}
+              disabled={isProfileDisabled}
             />
           </div>
 
@@ -177,7 +202,7 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
               onChange={(e) => handleInputChange('email', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               required
-              disabled={useProfile}
+              disabled={isProfileDisabled}
             />
           </div>
         </div>
@@ -198,7 +223,7 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
               onChange={(e) => handleInputChange('instagram', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               placeholder="@username"
-              disabled={useProfile}
+              disabled={isProfileDisabled}
             />
           </div>
 
@@ -212,7 +237,7 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
               onChange={(e) => handleInputChange('youtube', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               placeholder="채널명"
-              disabled={useProfile}
+              disabled={isProfileDisabled}
             />
           </div>
 
@@ -226,7 +251,7 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
               onChange={(e) => handleInputChange('tiktok', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               placeholder="@username"
-              disabled={useProfile}
+              disabled={isProfileDisabled}
             />
           </div>
         </div>
@@ -244,12 +269,12 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
               onChange={(e) => handleInputChange('postalCode', e.target.value)}
               className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               placeholder="우편번호"
-              disabled={useProfile}
+              disabled={isProfileDisabled}
             />
             <button
               type="button"
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-              disabled={useProfile}
+              disabled={isProfileDisabled}
             >
               주소 검색
             </button>
@@ -304,7 +329,7 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
       </div>
 
       {/* 알림 메시지 */}
-      {!profileData && (
+      {!hasProfileData && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-sm text-yellow-800">
             💡 마이페이지에서 프로필 정보를 미리 등록하면 캠페인 신청이 더 빠르고 편리해집니다!
@@ -331,3 +356,6 @@ export default function ApplicationForm({ campaignId, userId, onSubmit }: Applic
     </form>
   )
 }
+
+// React.memo로 성능 최적화
+export default memo(ApplicationForm)

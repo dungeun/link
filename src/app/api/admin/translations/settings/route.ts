@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
           break
       }
       return acc
-    }, {} as any)
+    }, {} as { apiKey?: string; defaultSourceLang?: string; defaultTargetLangs?: string[]; autoTranslateOnCreate?: boolean })
 
     // 기본값 설정
     const result = {

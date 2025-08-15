@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo } from 'react'
 
 interface Campaign {
   id: string
@@ -20,25 +20,63 @@ interface Campaign {
   recommendedReason?: string
 }
 
-interface RecommendedSectionProps {
-  section: any
-  localizedContent: any
-  t: (key: string, fallback?: string) => string
+interface SectionSettings {
+  count?: number;
+  algorithm?: string;
 }
 
-export default function RecommendedSection({ section, localizedContent, t }: RecommendedSectionProps) {
+interface Section {
+  title?: string;
+  subtitle?: string;
+  settings?: SectionSettings;
+}
+
+interface LocalizedContent {
+  title?: string;
+  subtitle?: string;
+}
+
+interface RecommendedSectionProps {
+  section: Section;
+  localizedContent: LocalizedContent;
+  t: (key: string, fallback?: string) => string;
+}
+
+function RecommendedSection({ section, localizedContent, t }: RecommendedSectionProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   
-  // 섹션 설정에서 개수와 알고리즘 가져오기
-  const count = section.settings?.count || 4
-  const algorithm = section.settings?.algorithm || 'personalized'
+  // 섹션 설정에서 개수와 알고리즘 가져오기 - 메모이제이션
+  const count = useMemo(() => section.settings?.count || 4, [section.settings?.count])
+  const algorithm = useMemo(() => section.settings?.algorithm || 'personalized', [section.settings?.algorithm])
 
-  // 제목과 부제목 (다국어 지원)
-  const title = localizedContent?.title || section.title || '추천 캠페인'
-  const subtitle = localizedContent?.subtitle || section.subtitle || '당신을 위한 맞춤 추천'
+  // 제목과 부제목 (다국어 지원) - 메모이제이션
+  const title = useMemo(() => localizedContent?.title || section.title || '추천 캠페인', [localizedContent?.title, section.title])
+  const subtitle = useMemo(() => localizedContent?.subtitle || section.subtitle || '당신을 위한 맞춤 추천', [localizedContent?.subtitle, section.subtitle])
 
-  const loadRecommendedCampaigns = async () => {
+  // 추천 이유 생성 - 메모이제이션
+  const getRecommendedReason = useCallback((campaign: Campaign, algo: string) => {
+    switch (algo) {
+      case 'personalized':
+        return '관심 카테고리 기반 추천'
+      case 'trending':
+        return '인기 급상승 캠페인'
+      case 'new':
+        return '새로운 캠페인'
+      default:
+        return '맞춤 추천'
+    }
+  }, [])
+
+  // 추천 뱃지 아이콘 - 메모이제이션
+  const getRecommendedIcon = useCallback((reason?: string) => {
+    if (reason?.includes('관심')) return '🎯'
+    if (reason?.includes('급상승')) return '🔥'
+    if (reason?.includes('새로운')) return '✨'
+    return '💎'
+  }, [])
+
+  const loadRecommendedCampaigns = useCallback(async () => {
     try {
       setLoading(true)
       // 추천 알고리즘에 따라 API 호출
@@ -63,33 +101,11 @@ export default function RecommendedSection({ section, localizedContent, t }: Rec
     } finally {
       setLoading(false)
     }
-  }
-
-  // 추천 이유 생성
-  const getRecommendedReason = (campaign: Campaign, algo: string) => {
-    switch (algo) {
-      case 'personalized':
-        return '관심 카테고리 기반 추천'
-      case 'trending':
-        return '인기 급상승 캠페인'
-      case 'new':
-        return '새로운 캠페인'
-      default:
-        return '맞춤 추천'
-    }
-  }
-
-  // 추천 뱃지 아이콘
-  const getRecommendedIcon = (reason?: string) => {
-    if (reason?.includes('관심')) return '🎯'
-    if (reason?.includes('급상승')) return '🔥'
-    if (reason?.includes('새로운')) return '✨'
-    return '💎'
-  }
+  }, [algorithm, count, getRecommendedReason])
 
   useEffect(() => {
     loadRecommendedCampaigns()
-  }, [algorithm, count])
+  }, [loadRecommendedCampaigns])
 
   if (!section.visible) return null
 
@@ -98,36 +114,37 @@ export default function RecommendedSection({ section, localizedContent, t }: Rec
       {/* 섹션 헤더 */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-          <p className="text-gray-600 mt-1">{subtitle}</p>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">{title}</h2>
+          <p className="text-sm md:text-base text-gray-600 mt-1">{subtitle}</p>
         </div>
         <Link 
           href="/campaigns?recommended=true"
-          className="text-blue-600 hover:text-blue-700 font-medium"
+          className="text-blue-600 hover:text-blue-700 font-medium text-sm md:text-base"
         >
           전체보기 →
         </Link>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {[...Array(count)].map((_, i) => (
             <div key={i} className="bg-gray-100 rounded-xl h-80 animate-pulse" />
           ))}
         </div>
       ) : campaigns.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {campaigns.map((campaign) => (
             <Link
               key={campaign.id}
               href={`/campaigns/${campaign.id}`}
-              className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow relative group"
+              className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow relative group cursor-pointer"
+              style={{ pointerEvents: 'auto' }}
             >
               {/* 추천 뱃지 */}
-              <div className="absolute top-3 left-3 z-10">
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+              <div className="absolute top-2 left-2 z-10">
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-1.5 py-0.5 rounded-full text-xs font-medium flex items-center gap-1">
                   <span>{getRecommendedIcon(campaign.recommendedReason)}</span>
-                  <span>추천</span>
+                  <span className="hidden md:inline">추천</span>
                 </div>
               </div>
 
@@ -140,8 +157,8 @@ export default function RecommendedSection({ section, localizedContent, t }: Rec
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 )}
-                <div className="absolute top-3 right-3">
-                  <span className="bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-medium">
+                <div className="absolute top-2 right-2">
+                  <span className="bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-xs font-medium">
                     D-{campaign.deadline}
                   </span>
                 </div>
@@ -151,63 +168,63 @@ export default function RecommendedSection({ section, localizedContent, t }: Rec
               </div>
 
               {/* 캠페인 정보 */}
-              <div className="p-4">
-                {/* 추천 이유 */}
+              <div className="p-2 md:p-4">
+                {/* 추천 이유 - 모바일에서는 더 작게 */}
                 <div className="mb-2">
-                  <span className="text-xs text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded">
+                  <span className="text-xs text-purple-600 font-medium bg-purple-50 px-1.5 py-0.5 rounded leading-tight">
                     {campaign.recommendedReason}
                   </span>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-1">{campaign.brand}</p>
-                <h3 className="font-semibold text-gray-900 mb-3 line-clamp-2">
+                <p className="text-xs text-gray-600 mb-1 truncate">{campaign.brand}</p>
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-xs md:text-sm leading-tight">
                   {campaign.title}
                 </h3>
                 
-                {/* 캠페인 설명 */}
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                {/* 캠페인 설명 - 모바일에서는 숨김 */}
+                <p className="hidden md:block text-sm text-gray-600 mb-3 line-clamp-2">
                   {campaign.description}
                 </p>
 
-                {/* 플랫폼 태그 */}
+                {/* 플랫폼 태그 - 모바일에서는 최대 2개만 */}
                 {campaign.platforms && campaign.platforms.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {campaign.platforms.slice(0, 3).map((platform, index) => (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {campaign.platforms.slice(0, 2).map((platform, index) => (
                       <span 
                         key={index}
-                        className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                        className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded"
                       >
                         {platform}
                       </span>
                     ))}
-                    {campaign.platforms.length > 3 && (
-                      <span className="text-xs text-gray-500">+{campaign.platforms.length - 3}</span>
+                    {campaign.platforms.length > 2 && (
+                      <span className="text-xs text-gray-500">+{campaign.platforms.length - 2}</span>
                     )}
                   </div>
                 )}
                 
                 {/* 통계 정보 */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">
-                      {campaign.applicants}/{campaign.maxApplicants}명 지원
+                    <span className="text-xs text-gray-500">
+                      {campaign.applicants}/{campaign.maxApplicants}명
                     </span>
-                    <span className="text-sm font-medium text-blue-600">
+                    <span className="text-xs font-medium text-blue-600">
                       {campaign.budget}
                     </span>
                   </div>
                   
                   {/* 진행률 표시 */}
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div 
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full transition-all duration-300"
                       style={{ 
                         width: `${Math.min((campaign.applicants / campaign.maxApplicants) * 100, 100)}%` 
                       }}
                     />
                   </div>
                   
-                  <div className="text-xs text-gray-500">
+                  <div className="hidden md:block text-xs text-gray-500">
                     진행률 {Math.round((campaign.applicants / campaign.maxApplicants) * 100)}%
                   </div>
                 </div>
@@ -233,3 +250,6 @@ export default function RecommendedSection({ section, localizedContent, t }: Rec
     </div>
   )
 }
+
+// React.memo로 성능 최적화
+export default memo(RecommendedSection)

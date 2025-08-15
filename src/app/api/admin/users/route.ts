@@ -28,7 +28,7 @@ async function authenticate(request: NextRequest) {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string; type: string; name: string };
     return decoded;
   } catch (error) {
     console.error('Token verification failed:', error);
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // 쿼리 조건 구성
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     
     if (type && type !== 'all') {
       where.type = type.toUpperCase();
@@ -117,13 +117,13 @@ export async function GET(request: NextRequest) {
       status: user.status?.toLowerCase() || 'active',
       createdAt: user.createdAt.toISOString().split('T')[0],
       lastLogin: user.lastLogin ? user.lastLogin.toISOString().split('T')[0] : '미접속',
-      verified: (user as any).emailVerified,
+      verified: (user as { emailVerified?: boolean }).emailVerified,
       campaigns: user.type === 'BUSINESS' ? user.campaigns.length : 0,
       followers: user.type === 'INFLUENCER' ? user.profile?.followerCount || 0 : undefined,
       phone: user.profile?.phone || user.businessProfile?.businessAddress ? 
         user.profile?.phone || '미등록' : undefined,
       address: user.type === 'BUSINESS' ? user.businessProfile?.businessAddress : 
-        (user.profile as any)?.address || '미등록'
+        (user.profile as { address?: string })?.address || '미등록'
     }));
 
     // 전체 통계 가져오기 (필터와 관계없이)
@@ -191,7 +191,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // 업데이트할 데이터
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     
     if (status !== undefined) {
       updateData.status = status.toUpperCase();

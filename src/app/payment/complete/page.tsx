@@ -10,7 +10,7 @@ function PaymentCompleteContent() {
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [paymentInfo, setPaymentInfo] = useState<any>(null)
+  const [paymentInfo, setPaymentInfo] = useState<{ orderId: string; amount: number } | null>(null)
 
   const paymentKey = searchParams.get('paymentKey')
   const orderId = searchParams.get('orderId')

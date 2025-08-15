@@ -58,14 +58,14 @@ export const adminApi = {
   get: (url: string, options?: RequestInit) => 
     adminFetch(url, { ...options, method: 'GET' }),
   
-  post: (url: string, data?: any, options?: RequestInit) => 
+  post: (url: string, data?: unknown, options?: RequestInit) => 
     adminFetch(url, { 
       ...options, 
       method: 'POST', 
       body: data ? JSON.stringify(data) : undefined 
     }),
   
-  put: (url: string, data?: any, options?: RequestInit) => 
+  put: (url: string, data?: unknown, options?: RequestInit) => 
     adminFetch(url, { 
       ...options, 
       method: 'PUT', 
@@ -75,7 +75,7 @@ export const adminApi = {
   delete: (url: string, options?: RequestInit) => 
     adminFetch(url, { ...options, method: 'DELETE' }),
   
-  patch: (url: string, data?: any, options?: RequestInit) => 
+  patch: (url: string, data?: unknown, options?: RequestInit) => 
     adminFetch(url, { 
       ...options, 
       method: 'PATCH', 

@@ -4,7 +4,7 @@
 import { settlementService } from '@/lib/services/settlement.service';
 
 // node-cron을 동적으로 import (설치 안 되어있을 경우 대비)
-let cron: any;
+let cron: typeof import('node-cron') | undefined;
 try {
   cron = require('node-cron');
 } catch (error) {
@@ -12,7 +12,7 @@ try {
 }
 
 export class SettlementScheduler {
-  private tasks: Map<string, any> = new Map();
+  private tasks: Map<string, ReturnType<typeof import('node-cron').schedule> | undefined> = new Map();
   private isRunning: boolean = false;
 
   /**
@@ -231,7 +231,7 @@ export class SettlementScheduler {
   /**
    * 정산 결과 로깅
    */
-  private async logSettlementResult(type: string, result: any) {
+  private async logSettlementResult(type: string, result: { processed: number; failed: number; results?: unknown[] }) {
     // 추후 DB에 로그 저장 구현
     // 현재는 콘솔 로그만
     const logData = {
@@ -248,7 +248,7 @@ export class SettlementScheduler {
   /**
    * 관리자 알림 전송
    */
-  private async notifyAdmins(type: string, stats: any) {
+  private async notifyAdmins(type: string, stats: Record<string, unknown>) {
     // 추후 이메일 또는 알림 시스템 구현
     console.log(`📧 관리자 알림 (${type}):`, stats);
   }
@@ -256,7 +256,7 @@ export class SettlementScheduler {
   /**
    * 월간 리포트 저장
    */
-  private async saveMonthlyReport(stats: any, result: any) {
+  private async saveMonthlyReport(stats: Record<string, unknown>, result: { processed: number; failed: number }) {
     // 추후 DB에 월간 리포트 저장 구현
     const report = {
       period: new Date().toISOString().slice(0, 7), // YYYY-MM

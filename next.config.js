@@ -1,100 +1,77 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Vercel 배포를 위한 설정 (standalone 모드 비활성화)
-  // output: 'standalone', // Vercel에서는 자동 처리
-  compress: true,
-  poweredByHeader: false,
-  generateEtags: true,
+  reactStrictMode: true,
+  swcMinify: true,
   
-  // 로그 레벨 설정 (프로덕션에서 로그 줄임)
-  logging: {
-    fetches: {
-      fullUrl: false,
-    },
-  },
+  // Transpile 문제가 있는 패키지들
+  transpilePackages: ['undici', 'cheerio'],
   
-  // 개발 서버 메모리 최적화
-  ...(process.env.NODE_ENV === 'development' && {
-    onDemandEntries: {
-      maxInactiveAge: 15 * 1000, // 15초로 단축
-      pagesBufferLength: 1, // 버퍼 크기 최소화
-    },
-    // 메모리 최적화
-    webpack: (config, { dev, isServer }) => {
-      if (dev && !isServer) {
-        config.watchOptions = {
-          poll: 1000,
-          aggregateTimeout: 300,
-          ignored: ['**/node_modules', '**/.git', '**/.next'],
-        };
-        config.cache = false; // 캐시 비활성화로 메모리 절약
-      }
-      return config;
-    },
-  }),
-  
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  
-  // 환경 변수 런타임 설정
-  publicRuntimeConfig: {
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
-    socketUrl: process.env.NEXT_PUBLIC_SOCKET_URL || '',
-  },
-
   // 이미지 도메인 설정
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-      },
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'ui-avatars.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'loremflickr.com',
-      }
-    ],
-    // 로컬 이미지는 별도 설정 불필요 (public 폴더)
     domains: [
-      'localhost'
+      'localhost',
+      'images.unsplash.com',
+      'res.cloudinary.com',
+      'lh3.googleusercontent.com',
     ],
+  },
+
+  // Webpack 설정
+  webpack: (config, { isServer }) => {
+    // Node.js 모듈 폴리필 설정
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        dns: false,
+        child_process: false,
+        'node:crypto': false,
+      };
+    }
+
+    return config;
   },
 
   // 실험적 기능
   experimental: {
-    // Server Actions 활성화 (필요시)
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
+    // Server Components 최적화
     serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
   },
 
-  // 리다이렉트 설정
-  async redirects() {
+  // 환경 변수
+  env: {
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  },
+
+  // CSP 설정 - Kakao Postcode API 허용
+  async headers() {
     return [
       {
-        source: '/dashboard/my-campaigns',
-        destination: '/mypage?tab=campaigns',
-        permanent: true,
-      },
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://t1.daumcdn.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https:; frame-src 'self' https:;"
+          }
+        ]
+      }
     ]
   },
-};
+
+  // TypeScript 및 ESLint 설정
+  typescript: {
+    // 빌드 시 타입 에러 무시 (개발 중에만 사용)
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    // 빌드 시 ESLint 에러 무시 (개발 중에만 사용)
+    ignoreDuringBuilds: false,
+  },
+
+  // 출력 설정
+  output: 'standalone',
+}
 
 module.exports = nextConfig;

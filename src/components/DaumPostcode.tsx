@@ -4,7 +4,23 @@ import { useEffect, useRef } from 'react'
 
 declare global {
   interface Window {
-    daum: any
+    daum: {
+      Postcode: new (options: {
+        oncomplete: (data: {
+          address: string;
+          addressType: string;
+          bname: string;
+          buildingName: string;
+        }) => void;
+        onclose?: () => void;
+        width: string;
+        height: string;
+        animation?: boolean;
+        autoMapping?: boolean;
+      }) => {
+        embed: (element: HTMLElement) => void;
+      };
+    };
   }
 }
 
@@ -50,7 +66,12 @@ export default function DaumPostcode({ onComplete, onClose }: DaumPostcodeProps)
   const initPostcode = () => {
     if (window.daum && window.daum.Postcode && containerRef.current) {
       new window.daum.Postcode({
-        oncomplete: function(data: any) {
+        oncomplete: function(data: {
+          address: string;
+          addressType: string;
+          bname: string;
+          buildingName: string;
+        }) {
           let fullAddress = data.address
           let extraAddress = ''
 

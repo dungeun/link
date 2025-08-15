@@ -24,7 +24,7 @@ class CacheService {
   }
 
   // 캐시 설정
-  async set(key: string, value: any, ttl: number = CACHE_TTL.MEDIUM): Promise<boolean> {
+  async set(key: string, value: unknown, ttl: number = CACHE_TTL.MEDIUM): Promise<boolean> {
     if (!this.redis) return false
 
     try {

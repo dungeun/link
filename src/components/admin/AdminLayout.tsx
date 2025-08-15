@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
@@ -34,7 +34,8 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
     }
   }, [authLoading, isAuthenticated, user, router])
 
-  const menuItems = [
+  // 메뉴 아이템 정의 - 메모이제이션
+  const menuItems = useMemo(() => [
     {
       title: t('admin.menu.dashboard', '대시보드'),
       href: '/admin',
@@ -153,12 +154,30 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
         </svg>
       )
     }
-  ]
+  ], [t])
 
-  const handleLogout = () => {
+  // 로그아웃 핸들러 - 메모이제이션
+  const handleLogout = useCallback(() => {
     logout()
     router.push('/login')
-  }
+  }, [logout, router])
+
+  // 현재 페이지 제목 계산 - 메모이제이션
+  const currentPageTitle = useMemo(() => 
+    menuItems.find(item => item.href === pathname)?.title || '관리자 대시보드',
+    [menuItems, pathname]
+  )
+
+  // 현재 날짜 표시 - 메모이제이션
+  const currentDate = useMemo(() => 
+    new Date().toLocaleDateString('ko-KR', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      weekday: 'long'
+    }),
+    []
+  )
 
   if (isLoading) {
     return (
@@ -175,11 +194,11 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* PC 1920px 최적화 - 최소 너비 설정 */}
-      <div className="min-w-[1920px] w-full">
+      {/* 반응형 레이아웃으로 변경 */}
+      <div className="w-full">
 
-        {/* 사이드바 - PC 전용 확장 */}
-        <div className="fixed inset-y-0 left-0 z-40 w-80 bg-gray-900 shadow-xl">
+        {/* 사이드바 - 반응형 사이즈 */}
+        <div className="fixed inset-y-0 left-0 z-40 w-64 lg:w-80 bg-gray-900 shadow-xl">
           <div className="flex flex-col h-full">
             {/* 로고 - 더 큰 공간 */}
             <div className="flex items-center justify-between px-8 py-6 border-b border-gray-800">
@@ -193,10 +212,10 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
               {menuItems.map((item) => {
                 const isActive = pathname === item.href
                 return (
-                  <Link
+                  <a
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center px-6 py-4 rounded-xl transition-colors text-base font-medium ${
+                    className={`flex items-center w-full px-6 py-4 rounded-xl transition-colors text-base font-medium no-underline ${
                       isActive
                         ? 'bg-blue-600 text-white shadow-lg'
                         : 'text-gray-300 hover:bg-gray-800 hover:text-white'
@@ -204,7 +223,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                   >
                     <span className="w-6 h-6 mr-4">{item.icon}</span>
                     <span>{item.title}</span>
-                  </Link>
+                  </a>
                 )
               })}
             </nav>
@@ -237,37 +256,29 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           </div>
         </div>
 
-        {/* 메인 콘텐츠 - 1920px에 맞춘 여백 */}
-        <div className="ml-80">
+        {/* 메인 콘텐츠 - 반응형 여백 */}
+        <div className="ml-64 lg:ml-80">
           {/* 상단 헤더바 */}
           <div className="sticky top-0 z-30 bg-white border-b border-gray-200 px-8 py-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {menuItems.find(item => item.href === pathname)?.title || '관리자 대시보드'}
+                  {currentPageTitle}
                 </h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  {new Date().toLocaleDateString('ko-KR', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    weekday: 'long'
-                  })}
+                  {currentDate}
                 </p>
               </div>
               <div className="flex items-center space-x-4">
                 <AdminLanguageSelector />
-                <div className="text-sm text-gray-600">
-                  화면 해상도: 1920px 최적화
-                </div>
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               </div>
             </div>
           </div>
 
-          {/* 페이지 콘텐츠 - 1920px 전체 활용 */}
-          <main className="p-8 max-w-none">
-            <div className="w-full max-w-[1600px] mx-auto">
+          {/* 페이지 콘텐츠 - 반응형 최적화 */}
+          <main className="p-4 lg:p-8 max-w-none">
+            <div className="w-full max-w-[1400px] xl:max-w-[1600px] mx-auto">
               {children}
             </div>
           </main>
@@ -278,11 +289,17 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   )
 }
 
+// AdminLayoutContent 컴포넌트 성능 최적화
+const AdminLayoutContentMemo = memo(AdminLayoutContent)
+
 // AdminLayout을 AdminLanguageProvider로 감싸서 export
-export default function AdminLayout({ children }: AdminLayoutProps) {
+function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <AdminLanguageProvider>
-      <AdminLayoutContent>{children}</AdminLayoutContent>
+      <AdminLayoutContentMemo>{children}</AdminLayoutContentMemo>
     </AdminLanguageProvider>
   )
 }
+
+// React.memo로 성능 최적화
+export default memo(AdminLayout)

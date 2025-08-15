@@ -37,7 +37,7 @@ export function SortableFooterColumn({ column, onUpdate, onDelete, onAddLink }: 
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const handleLinkDragEnd = (event: any) => {
+  const handleLinkDragEnd = (event: { active: { id: string }; over: { id: string } }) => {
     const { active, over } = event;
 
     if (active.id !== over.id) {
@@ -53,7 +53,7 @@ export function SortableFooterColumn({ column, onUpdate, onDelete, onAddLink }: 
     }
   };
 
-  const handleLinkUpdate = (linkId: string, updates: any) => {
+  const handleLinkUpdate = (linkId: string, updates: Partial<typeof column.links[0]>) => {
     const newLinks = column.links.map((link) =>
       link.id === linkId ? { ...link, ...updates } : link
     );

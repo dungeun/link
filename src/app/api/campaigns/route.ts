@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     const cachedData = await (async () => {
         try {
         // 필터 조건 구성
-        const where: any = {};
+        const where: Record<string, unknown> = {};
         
         // 삭제된 캠페인 제외 (deletedAt이 null인 것만)
         where.deletedAt = null;
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         }
 
         // 정렬 옵션 구성
-        let orderBy: any[] = [
+        let orderBy: Record<string, string | Record<string, string>>[] = [
           { status: 'desc' }, // ACTIVE 캠페인을 먼저
           { createdAt: 'desc' }
         ];
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
         }
 
         // DB에서 캠페인 데이터 조회 (성능 측정 포함)
-        let campaigns: any[] = [];
+        let campaigns: unknown[] = [];
         let total: number = 0;
         
         try {
@@ -275,7 +275,7 @@ export async function GET(request: NextRequest) {
         
         // 안전한 배열 확인 및 응답 데이터 포맷팅
         const safeCampaigns = Array.isArray(campaigns) ? campaigns : [];
-        const formattedCampaigns = safeCampaigns.map((campaign, index) => {
+        const formattedCampaigns = safeCampaigns.map((campaign, index: number) => {
           // 마감일까지 남은 일수 계산
           const today = new Date();
           const endDate = new Date(campaign.endDate);
@@ -331,53 +331,50 @@ export async function GET(request: NextRequest) {
           };
         });
         
-        // 카테고리별 통계를 위한 별도 쿼리 (성능 측정 포함)
+        // 카테고리별 통계를 위한 단일 쿼리 최적화 (N+1 문제 해결)
         let categoryStats: Record<string, number> = {};
         try {
           const campaignsByCategory = await QueryPerformance.measure(
             'category.groupBy',
             async () => {
-              const stats = await prisma.campaignCategory.groupBy({
-                by: ['categoryId'],
-                _count: {
-                  campaignId: true
-                },
-                where: {
-                  campaign: {
-                    status: 'ACTIVE'
-                  }
-                }
-              });
+              // JOIN을 사용한 단일 쿼리로 카테고리와 통계를 한 번에 조회
+              const rawStats = await prisma.$queryRaw<Array<{
+                categoryId: string;
+                slug: string;
+                name: string;
+                campaignCount: bigint;
+              }>>`
+                SELECT 
+                  cc."categoryId",
+                  c.slug,
+                  c.name,
+                  COUNT(cc."campaignId")::bigint as "campaignCount"
+                FROM "campaign_categories" cc
+                JOIN "categories" c ON cc."categoryId" = c.id
+                JOIN "campaigns" camp ON cc."campaignId" = camp.id
+                WHERE camp.status = 'ACTIVE' AND camp."deletedAt" IS NULL
+                GROUP BY cc."categoryId", c.slug, c.name
+                ORDER BY "campaignCount" DESC
+              `;
               
-              // 카테고리 정보 조회
-              const categoryIds = stats.map(s => s.categoryId);
-              const categories = await prisma.category.findMany({
-                where: {
-                  id: { in: categoryIds }
-                },
-                select: {
-                  id: true,
-                  slug: true,
-                  name: true
-                }
-              });
-              
-              return stats.map(stat => ({
-                ...stat,
-                category: categories.find(c => c.id === stat.categoryId)
+              // BigInt를 number로 변환
+              return rawStats.map(stat => ({
+                categoryId: stat.categoryId,
+                slug: stat.slug,
+                name: stat.name,
+                count: Number(stat.campaignCount)
               }));
             },
-            { purpose: 'category_stats' }
+            { purpose: 'category_stats_optimized' }
           );
           
           if (campaignsByCategory && Array.isArray(campaignsByCategory)) {
             campaignsByCategory.forEach(stat => {
-              const categorySlug = stat.category?.slug || 'other';
-              categoryStats[categorySlug] = stat._count.campaignId;
+              categoryStats[stat.slug] = stat.count;
             });
           }
         } catch (statsError) {
-          console.warn('Failed to fetch category stats:', statsError);
+          console.warn('Failed to fetch optimized category stats:', statsError);
           categoryStats = {};
         }
 
@@ -416,11 +413,11 @@ export async function GET(request: NextRequest) {
     timer.end();
     
     return response;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Campaigns API Error Details:', {
-      message: error?.message,
-      stack: error?.stack,
-      name: error?.name
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : typeof error
     });
     return handleApiError(error, { endpoint: 'campaigns', method: 'GET' });
   }
@@ -429,7 +426,7 @@ export async function GET(request: NextRequest) {
 // POST /api/campaigns - 새 캠페인 생성
 export async function POST(request: NextRequest) {
   const timer = new PerformanceTimer('api.campaigns.POST');
-  let user: any = null;
+  let user: { id: string; [key: string]: unknown } | null = null;
   
   try {
     // Authenticate user

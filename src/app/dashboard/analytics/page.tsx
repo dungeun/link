@@ -337,7 +337,7 @@ export default function AdminAnalyticsPage() {
                 <span className="text-2xl">{getInsightIcon(insight.type)}</span>
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900 mb-2">{insight.title}</h4>
-                  <p className="text-sm text-gray-600 mb-3">{(insight as any).description}</p>
+                  <p className="text-sm text-gray-600 mb-3">{insight.description}</p>
                   <div className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
                     <strong>추천:</strong> {insight.action}
                   </div>

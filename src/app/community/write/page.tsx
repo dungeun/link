@@ -8,7 +8,7 @@ import { AuthService } from '@/lib/auth'
 
 export default function WritePostPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ id: string; type: string; name: string; email: string } | null>(null)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [category, setCategory] = useState('free')

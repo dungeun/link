@@ -32,7 +32,7 @@ export class SettlementService {
    * 완료된 캠페인 중 아직 정산되지 않은 항목들
    */
   async findSettlementTargets(influencerId?: string) {
-    const where: any = {
+    const where: Record<string, unknown> = {
       status: 'APPROVED',
       campaign: {
         status: 'COMPLETED'
@@ -113,7 +113,7 @@ export class SettlementService {
         const campaign = application.campaign;
         const summary = this.calculateSettlementAmount(
           campaign.rewardAmount || campaign.budget,
-          (campaign as any).platformFeeRate
+          (campaign as { platformFeeRate?: number }).platformFeeRate
         );
 
         totalAmount += summary.netAmount;
@@ -309,7 +309,7 @@ export class SettlementService {
    * 정산 통계 조회
    */
   async getSettlementStatistics(startDate?: Date, endDate?: Date) {
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     
     if (startDate || endDate) {
       where.createdAt = {};
@@ -408,7 +408,7 @@ export class SettlementService {
       const campaign = application.campaign;
       const summary = this.calculateSettlementAmount(
         campaign.rewardAmount || campaign.budget,
-        (campaign as any).platformFeeRate
+        (campaign as { platformFeeRate?: number }).platformFeeRate
       );
       totalAmount += summary.netAmount;
     }

@@ -11,7 +11,7 @@ import { Plus, Search, Filter, ChevronRight, Edit, Trash2, Users } from 'lucide-
 
 export default function BusinessCampaignsPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ id: string; type: string; name: string; email: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
@@ -201,7 +201,7 @@ export default function BusinessCampaignsPage() {
                             : '완료'}
                         </span>
                       </div>
-                      <p className="text-gray-600 mb-4">{(campaign as any).description}</p>
+                      <p className="text-gray-600 mb-4">{campaign.description}</p>
                       
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                         <div>
@@ -214,7 +214,7 @@ export default function BusinessCampaignsPage() {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">플랫폼</p>
-                          <p className="font-medium text-gray-900">{(campaign as any).category}</p>
+                          <p className="font-medium text-gray-900">{campaign.platform || campaign.category || 'N/A'}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">마감일</p>

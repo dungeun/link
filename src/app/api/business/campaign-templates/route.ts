@@ -211,7 +211,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // 템플릿 업데이트
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (name !== undefined) updateData.name = name
     if (description !== undefined) updateData.description = description
     if (data !== undefined) updateData.data = data

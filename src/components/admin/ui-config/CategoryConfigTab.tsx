@@ -334,9 +334,9 @@ export function CategoryConfigTab() {
         // 대분류 카테고리만 필터링하고 children 포함
         const mainCategories = data.categories
           .filter((cat: Category) => cat.level === 1)
-          .map((cat: any) => ({
+          .map((cat: Category) => ({
             ...cat,
-            children: data.categories.filter((child: any) => child.parentId === cat.id)
+            children: data.categories.filter((child: Category) => child.parentId === cat.id)
           }))
           .sort((a: Category, b: Category) => (a.menuOrder || 999) - (b.menuOrder || 999))
         setCategories(mainCategories)

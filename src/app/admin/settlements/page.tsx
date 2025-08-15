@@ -118,7 +118,7 @@ export default function AdminSettlementsPage() {
 
   const handleStatusChange = (settlementId: string, newStatus: string) => {
     setSettlements(prev => prev.map(settlement => 
-      settlement.id === settlementId ? { ...settlement, status: newStatus as any } : settlement
+      settlement.id === settlementId ? { ...settlement, status: newStatus as 'pending' | 'approved' | 'completed' | 'rejected' } : settlement
     ))
   }
 

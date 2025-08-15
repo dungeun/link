@@ -205,7 +205,7 @@ export default function PricingPage() {
                 
                 <div className="p-8">
                   <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-gray-600 mb-6">{(plan as any).description}</p>
+                  <p className="text-gray-600 mb-6">{plan.description}</p>
                   
                   <div className="mb-6">
                     {plan.monthlyPrice === 'custom' ? (
@@ -288,7 +288,7 @@ export default function PricingPage() {
                 
                 <div className="p-8">
                   <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-gray-600 mb-6">{(plan as any).description}</p>
+                  <p className="text-gray-600 mb-6">{plan.description}</p>
                   
                   <div className="mb-6">
                     <div className="text-4xl font-bold">

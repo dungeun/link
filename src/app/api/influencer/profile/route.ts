@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     let user;
     try {
       user = await verifyJWT(token);
-    } catch (jwtError: any) {
+    } catch (jwtError) {
       console.error('JWT verification error:', jwtError);
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
@@ -92,7 +92,7 @@ export async function PUT(request: NextRequest) {
     let user;
     try {
       user = await verifyJWT(token);
-    } catch (jwtError: any) {
+    } catch (jwtError) {
       console.error('JWT verification error:', jwtError);
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
@@ -176,7 +176,13 @@ export async function PUT(request: NextRequest) {
     }
 
     // 프로필 완성 상태 체크
-    const checkProfileCompleted = (profileData: any) => {
+    const checkProfileCompleted = (profileData: { 
+      realName?: string; 
+      birthYear?: number; 
+      gender?: string; 
+      phone?: string; 
+      address?: string; 
+    }) => {
       const requiredFields = [
         profileData.realName || realName,
         profileData.birthYear || birthYear,

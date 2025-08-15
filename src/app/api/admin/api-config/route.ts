@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     let result
     if (existing) {
       // 업데이트 - 빈 값이 아닌 경우만 업데이트
-      const updateData: any = { isEnabled }
+      const updateData: Record<string, unknown> = { isEnabled }
       
       if (apiKey && apiKey !== maskApiKey(existing.apiKey || '')) {
         updateData.apiKey = apiKey

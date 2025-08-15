@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { HTMLSanitizer } from '@/lib/utils/html-sanitizer'
+import { logger } from '@/lib/logger/structured-logger'
 
 export default function PrivacyPage() {
   const [content, setContent] = useState<string>('')
@@ -23,7 +25,7 @@ export default function PrivacyPage() {
         setLastUpdated(data.lastUpdated || new Date().toISOString().split('T')[0])
       }
     } catch (error) {
-      console.error('Failed to load privacy policy:', error)
+      logger.error('Failed to load privacy policy', error as Error)
     } finally {
       setLoading(false)
     }
@@ -47,7 +49,7 @@ export default function PrivacyPage() {
             ) : content ? (
               <div 
                 className="prose prose-gray max-w-none"
-                dangerouslySetInnerHTML={{ __html: content }}
+                dangerouslySetInnerHTML={{ __html: HTMLSanitizer.sanitize(content) }}
               />
             ) : (
               <div className="text-gray-600">

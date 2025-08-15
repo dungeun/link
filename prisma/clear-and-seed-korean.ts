@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import * as dotenv from 'dotenv'
-import * as bcrypt from 'bcryptjs'
+import bcrypt from 'bcryptjs'
 
 dotenv.config({ path: '.env.local' })
 

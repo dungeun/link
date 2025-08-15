@@ -22,7 +22,7 @@ export interface ErrorResponse {
     type: ErrorType;
     message: string;
     code?: string;
-    details?: any;
+    details?: unknown;
     timestamp: string;
     requestId?: string;
   };
@@ -32,7 +32,7 @@ export class AppError extends Error {
   public readonly type: ErrorType;
   public readonly statusCode: number;
   public readonly code?: string;
-  public readonly details?: any;
+  public readonly details?: unknown;
   public readonly isOperational: boolean;
 
   constructor(
@@ -40,7 +40,7 @@ export class AppError extends Error {
     message: string,
     statusCode: number = 500,
     code?: string,
-    details?: any,
+    details?: unknown,
     isOperational: boolean = true
   ) {
     super(message);
@@ -56,7 +56,7 @@ export class AppError extends Error {
   }
 }
 
-function filterErrorMessage(error: any): string {
+function filterErrorMessage(error: unknown): string {
   if (config.isProduction) {
     if (error instanceof AppError) {
       return error.message;
@@ -86,10 +86,10 @@ function filterErrorMessage(error: any): string {
     return '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
   }
   
-  return error.message || '알 수 없는 오류가 발생했습니다.';
+  return (error as Error).message || '알 수 없는 오류가 발생했습니다.';
 }
 
-function determineErrorType(error: any): ErrorType {
+function determineErrorType(error: unknown): ErrorType {
   if (error instanceof AppError) {
     return error.type;
   }
@@ -113,14 +113,14 @@ function determineErrorType(error: any): ErrorType {
     return ErrorType.VALIDATION;
   }
   
-  if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+  if ((error as Error).name === 'JsonWebTokenError' || (error as Error).name === 'TokenExpiredError') {
     return ErrorType.AUTHENTICATION;
   }
   
   return ErrorType.INTERNAL;
 }
 
-function determineStatusCode(error: any): number {
+function determineStatusCode(error: unknown): number {
   if (error instanceof AppError) {
     return error.statusCode;
   }
@@ -148,7 +148,7 @@ function determineStatusCode(error: any): number {
   }
 }
 
-function getErrorDetails(error: any): any {
+function getErrorDetails(error: unknown): unknown {
   if (config.isProduction) {
     return undefined;
   }
@@ -174,13 +174,13 @@ function getErrorDetails(error: any): any {
   }
   
   return {
-    name: error.name,
-    stack: error.stack,
+    name: (error as Error).name,
+    stack: (error as Error).stack,
   };
 }
 
 export function handleError(
-  error: any,
+  error: unknown,
   requestId?: string
 ): NextResponse<ErrorResponse> {
   const errorType = determineErrorType(error);
@@ -196,7 +196,7 @@ export function handleError(
     logger.warn('Client Error', {
       type: errorType,
       statusCode,
-      message: error.message,
+      message: (error as Error).message,
       requestId,
     });
   }
@@ -231,7 +231,7 @@ export function createSuccessResponse<T>(
   );
 }
 
-export function wrapAsync<T extends (...args: any[]) => Promise<NextResponse>>(
+export function wrapAsync<T extends (...args: unknown[]) => Promise<NextResponse>>(
   handler: T
 ): T {
   return (async (...args) => {
@@ -243,10 +243,10 @@ export function wrapAsync<T extends (...args: any[]) => Promise<NextResponse>>(
   }) as T;
 }
 
-export function apiHandler<T = any>(
-  handler: (req: Request, context?: any) => Promise<NextResponse<T>>
+export function apiHandler<T = unknown>(
+  handler: (req: Request, context?: unknown) => Promise<NextResponse<T>>
 ) {
-  return async (req: Request, context?: any) => {
+  return async (req: Request, context?: unknown) => {
     const requestId = req.headers.get('x-request-id') || 
                      Math.random().toString(36).substring(7);
     
@@ -272,7 +272,7 @@ export function apiHandler<T = any>(
 }
 
 export const Errors = {
-  validation: (message: string, details?: any) =>
+  validation: (message: string, details?: unknown) =>
     new AppError(ErrorType.VALIDATION, message, 400, 'VALIDATION_ERROR', details),
   
   unauthorized: (message: string = '인증이 필요합니다.') =>

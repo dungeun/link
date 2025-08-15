@@ -211,7 +211,7 @@ export default function SNSConnection({ onFollowersUpdate }: SNSConnectionProps)
         if (data.updated && data.updated.length > 0) {
           setSnsAccounts(prev => {
             const updated = [...prev]
-            data.updated.forEach((update: any) => {
+            data.updated.forEach((update: { platform: string; followers: number; todayVisitors?: number; lastUpdated: string }) => {
               const index = updated.findIndex(acc => acc.platform === update.platform)
               if (index !== -1) {
                 updated[index] = {
@@ -227,7 +227,7 @@ export default function SNSConnection({ onFollowersUpdate }: SNSConnectionProps)
 
           // 총 팔로워 수 재계산
           const newTotal = snsAccounts.reduce((sum, acc) => {
-            const update = data.updated.find((u: any) => u.platform === acc.platform)
+            const update = data.updated.find((u: { platform: string; followers: number; todayVisitors?: number }) => u.platform === acc.platform)
             return sum + (update ? update.followers : acc.followers || 0)
           }, 0)
           
@@ -238,7 +238,7 @@ export default function SNSConnection({ onFollowersUpdate }: SNSConnectionProps)
         }
 
         if (data.updated && data.updated.length > 0) {
-          const successCount = data.updated.filter((u: any) => u.followers > 0).length
+          const successCount = data.updated.filter((u: { followers: number }) => u.followers > 0).length
           if (successCount > 0) {
             alert(`${successCount}개 계정의 팔로워 수가 업데이트되었습니다!`)
           } else {
@@ -398,8 +398,22 @@ export default function SNSConnection({ onFollowersUpdate }: SNSConnectionProps)
 
       {/* 연동 모달 */}
       {showConnectModal && selectedPlatform && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4" 
+          style={{ zIndex: 9999 }}
+          onClick={(e) => {
+            // 배경 클릭시 모달 닫기
+            if (e.target === e.currentTarget) {
+              setShowConnectModal(false)
+              setSelectedPlatform(null)
+              setUsername('')
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-bold mb-4">
               {platformInfo[selectedPlatform as keyof typeof platformInfo]?.name} 계정 연동
             </h3>
@@ -412,8 +426,19 @@ export default function SNSConnection({ onFollowersUpdate }: SNSConnectionProps)
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && username.trim() && !connecting) {
+                    handleConnect()
+                  }
+                  if (e.key === 'Escape') {
+                    setShowConnectModal(false)
+                    setSelectedPlatform(null)
+                    setUsername('')
+                  }
+                }}
                 placeholder={platformInfo[selectedPlatform as keyof typeof platformInfo]?.placeholder}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                autoFocus
               />
             </div>
 
@@ -424,14 +449,14 @@ export default function SNSConnection({ onFollowersUpdate }: SNSConnectionProps)
                   setSelectedPlatform(null)
                   setUsername('')
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 취소
               </button>
               <button
                 onClick={handleConnect}
                 disabled={connecting || !username.trim()}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {connecting ? '연동 중...' : '연동하기'}
               </button>

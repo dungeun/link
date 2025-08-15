@@ -39,7 +39,7 @@ export async function verifyAuth(req: NextRequest): Promise<AuthResult> {
     }
 
     // JWT 토큰 검증
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId?: string; id?: string; email: string; name: string; type?: string; userType?: string };
     
     return {
       isAuthenticated: true,
@@ -50,7 +50,7 @@ export async function verifyAuth(req: NextRequest): Promise<AuthResult> {
         type: decoded.type || decoded.userType
       }
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Auth verification error:', error.message);
     return {
       isAuthenticated: false,

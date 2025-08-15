@@ -20,7 +20,7 @@ export function getTokenFromHeader(request: NextRequest): string | null {
 /**
  * Edge Runtime에서 JWT 검증
  */
-export async function verifyJWTEdge<T = any>(token: string): Promise<T | null> {
+export async function verifyJWTEdge<T = unknown>(token: string): Promise<T | null> {
   try {
     // Edge Runtime에서는 jose 라이브러리 사용
     const { jwtVerify } = await import('jose');

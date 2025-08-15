@@ -84,7 +84,7 @@ export default function AdminCampaignsPage() {
 
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesStatus = selectedStatus === 'all' || campaign.status === selectedStatus
-    const matchesCategory = selectedCategory === 'all' || (campaign as any).category === selectedCategory
+    const matchesCategory = selectedCategory === 'all' || campaign.category === selectedCategory
     const matchesSearch = campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          campaign.brand.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesStatus && matchesCategory && matchesSearch

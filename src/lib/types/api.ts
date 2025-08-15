@@ -3,13 +3,13 @@
  */
 
 // 공통 응답 인터페이스
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: {
     code: string;
     message: string;
-    context?: any;
+    context?: Record<string, unknown>;
   };
   message?: string;
 }
@@ -32,7 +32,7 @@ export interface AuthResponse {
     name: string;
     type: 'ADMIN' | 'BUSINESS' | 'INFLUENCER';
     verified?: boolean;
-    profile?: any;
+    profile?: Record<string, unknown>;
   };
   token: string;
   accessToken?: string;
@@ -122,8 +122,8 @@ export interface Application {
   rejectedAt?: Date;
   completedAt?: Date;
   message?: string;
-  portfolio?: any;
-  socialStats?: any;
+  portfolio?: Record<string, unknown>;
+  socialStats?: Record<string, unknown>;
 }
 
 // 결제 관련 타입
@@ -137,7 +137,7 @@ export interface Payment {
   status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
   paymentMethod: 'CARD' | 'TRANSFER' | 'VIRTUAL_ACCOUNT' | 'MOBILE_PHONE';
   approvedAt?: Date;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
 }
 
@@ -163,14 +163,14 @@ export interface ListOptions {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   search?: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
 }
 
 // 상태 업데이트 요청
 export interface StatusUpdateRequest {
   status: string;
   reason?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 // 파일 업로드 응답

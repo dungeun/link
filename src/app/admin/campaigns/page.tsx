@@ -877,7 +877,7 @@ export default function AdminCampaignsPage() {
                     </span>
                   </td>
                   <td className="px-3 py-3 text-right">
-                    <div className="text-sm font-medium text-gray-900">₩{((campaign as any).budget / 10000).toFixed(0)}만</div>
+                    <div className="text-sm font-medium text-gray-900">₩{(campaign.budget / 10000).toFixed(0)}만</div>
                   </td>
                   <td className="px-3 py-3 text-center">
                     <div className="text-xs text-gray-600">

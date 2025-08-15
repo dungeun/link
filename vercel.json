@@ -1,41 +1,13 @@
 {
-  "framework": "nextjs",
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "installCommand": "npm install --include=dev",
+  "framework": "nextjs",
   "env": {
-    "NODE_ENV": "production",
-    "NEXT_TELEMETRY_DISABLED": "1"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production",
-      "NEXT_TELEMETRY_DISABLED": "1"
-    }
-  },
-  "functions": {
-    "src/app/api/admin/settlements/scheduler/route.ts": {
-      "maxDuration": 60
-    },
-    "src/app/api/upload/route.ts": {
-      "maxDuration": 30
-    },
-    "src/app/api/admin/translations/auto/route.ts": {
-      "maxDuration": 30
-    }
+    "NODE_ENV": "production"
   },
   "headers": [
     {
       "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
       "headers": [
         {
           "key": "X-Content-Type-Options",
@@ -52,17 +24,9 @@
       ]
     }
   ],
-  "rewrites": [
-    {
-      "source": "/uploads/:path*",
-      "destination": "/api/files/:path*"
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
     }
-  ],
-  "redirects": [
-    {
-      "source": "/dashboard/my-campaigns",
-      "destination": "/mypage?tab=campaigns",
-      "permanent": true
-    }
-  ]
+  }
 }

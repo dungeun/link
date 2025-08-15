@@ -58,10 +58,10 @@ export async function GET(request: NextRequest) {
       success: true,
       data: withdrawalInfo
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Get withdrawal account error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to get withdrawal account' },
+      { error: error instanceof Error ? error.message : 'Failed to get withdrawal account' },
       { status: 500 }
     )
   }
@@ -151,10 +151,10 @@ export async function POST(request: NextRequest) {
         accountHolder: withdrawalInfo.accountHolder
       }
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Save withdrawal account error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to save withdrawal account' },
+      { error: error instanceof Error ? error.message : 'Failed to save withdrawal account' },
       { status: 500 }
     )
   }
@@ -192,10 +192,10 @@ export async function DELETE(request: NextRequest) {
       success: true,
       message: 'Withdrawal account deleted successfully'
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Delete withdrawal account error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to delete withdrawal account' },
+      { error: error instanceof Error ? error.message : 'Failed to delete withdrawal account' },
       { status: 500 }
     )
   }

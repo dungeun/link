@@ -55,7 +55,7 @@ export async function PUT(
     }
 
     // 자동 번역 처리 (선택사항)
-    let translations = existingSection.translations as any || {};
+    let translations = (existingSection.translations as Record<string, unknown>) || {};
     
     if (autoTranslate) {
       try {
@@ -65,7 +65,7 @@ export async function PUT(
           translations.jp = translations.jp || {};
           
           // 영어 번역
-          translations.en.slides = await Promise.all(content.slides.map(async (slide: any) => ({
+          translations.en.slides = await Promise.all(content.slides.map(async (slide: { title?: string; subtitle?: string; tag?: string; [key: string]: unknown }) => ({
             ...slide,
             title: slide.title ? await translateText(slide.title, 'en').catch(() => slide.title) : slide.title,
             subtitle: slide.subtitle ? await translateText(slide.subtitle, 'en').catch(() => slide.subtitle) : slide.subtitle,
@@ -73,7 +73,7 @@ export async function PUT(
           })));
 
           // 일본어 번역
-          translations.jp.slides = await Promise.all(content.slides.map(async (slide: any) => ({
+          translations.jp.slides = await Promise.all(content.slides.map(async (slide: { title?: string; subtitle?: string; tag?: string; [key: string]: unknown }) => ({
             ...slide,
             title: slide.title ? await translateText(slide.title, 'ja').catch(() => slide.title) : slide.title,
             subtitle: slide.subtitle ? await translateText(slide.subtitle, 'ja').catch(() => slide.subtitle) : slide.subtitle,
@@ -86,13 +86,13 @@ export async function PUT(
           translations.en = translations.en || {};
           translations.jp = translations.jp || {};
           
-          translations.en.categories = await Promise.all(content.categories.map(async (cat: any) => ({
+          translations.en.categories = await Promise.all(content.categories.map(async (cat: { name?: string; badge?: string; [key: string]: unknown }) => ({
             ...cat,
             name: cat.name ? await translateText(cat.name, 'en').catch(() => cat.name) : cat.name,
             badge: cat.badge ? await translateText(cat.badge, 'en').catch(() => cat.badge) : cat.badge
           })));
 
-          translations.jp.categories = await Promise.all(content.categories.map(async (cat: any) => ({
+          translations.jp.categories = await Promise.all(content.categories.map(async (cat: { name?: string; badge?: string; [key: string]: unknown }) => ({
             ...cat,
             name: cat.name ? await translateText(cat.name, 'ja').catch(() => cat.name) : cat.name,
             badge: cat.badge ? await translateText(cat.badge, 'ja').catch(() => cat.badge) : cat.badge
@@ -104,12 +104,12 @@ export async function PUT(
           translations.en = translations.en || {};
           translations.jp = translations.jp || {};
           
-          translations.en.links = await Promise.all(content.links.map(async (link: any) => ({
+          translations.en.links = await Promise.all(content.links.map(async (link: { title?: string; [key: string]: unknown }) => ({
             ...link,
             title: link.title ? await translateTagText(link.title, 'en').catch(() => link.title) : link.title
           })));
 
-          translations.jp.links = await Promise.all(content.links.map(async (link: any) => ({
+          translations.jp.links = await Promise.all(content.links.map(async (link: { title?: string; [key: string]: unknown }) => ({
             ...link,
             title: link.title ? await translateTagText(link.title, 'ja').catch(() => link.title) : link.title
           })));

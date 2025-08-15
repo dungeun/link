@@ -148,7 +148,7 @@ export default function AdminReportsPage() {
           report.id === reportId 
             ? { 
                 ...report, 
-                status: newStatus as any, 
+                status: newStatus as 'pending' | 'investigating' | 'resolved' | 'dismissed', 
                 assignedTo,
                 updatedAt: new Date().toISOString().split('T')[0] 
               }

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const sort = searchParams.get('sort') || 'latest'
     const skip = (page - 1) * limit
 
-    const where: any = {
+    const where: Record<string, unknown> = {
       status: 'PUBLISHED'
     }
 
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 정렬 옵션 설정
-    let orderBy: any = [
+    let orderBy: Record<string, string>[] = [
       { isPinned: 'desc' },
       { createdAt: 'desc' }
     ]

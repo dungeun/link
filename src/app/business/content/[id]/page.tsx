@@ -10,10 +10,10 @@ import Footer from '@/components/Footer'
 export default function BusinessContentPage() {
   const router = useRouter()
   const params = useParams()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ type?: string; [key: string]: unknown } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [application, setApplication] = useState<any>(null)
-  const [content, setContent] = useState<any>(null)
+  const [application, setApplication] = useState<{ hasContent?: boolean; influencerName?: string; campaignTitle?: string; [key: string]: unknown } | null>(null)
+  const [content, setContent] = useState<{ status?: string; campaignTitle?: string; influencerName?: string; createdAt?: string; platform?: string; url?: string; description?: string; media?: Array<{ id: string; url: string; filename: string }>; [key: string]: unknown } | null>(null)
   const [feedback, setFeedback] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -223,7 +223,7 @@ export default function BusinessContentPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">업로드된 이미지</label>
                   <div className="grid grid-cols-2 gap-4">
-                    {content.media.map((media: any) => (
+                    {content.media.map((media) => (
                       <div key={media.id} className="border rounded-lg overflow-hidden">
                         <img 
                           src={media.url} 

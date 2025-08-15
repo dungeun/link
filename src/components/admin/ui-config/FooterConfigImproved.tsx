@@ -210,7 +210,7 @@ export function FooterConfigImproved() {
     }
   };
 
-  const handleUpdateItem = (columnIndex: number, itemIndex: number, updates: any) => {
+  const handleUpdateItem = (columnIndex: number, itemIndex: number, updates: Partial<{ label: string; href: string }>) => {
     const updatedColumns = [...config.footer.columns];
     updatedColumns[columnIndex].items[itemIndex] = {
       ...updatedColumns[columnIndex].items[itemIndex],

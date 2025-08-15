@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const translations: Record<string, any> = {}
+      const translations: Record<string, unknown> = {}
 
     // 각 대상 언어별로 번역 수행 (테스트 모드에서는 모킹)
     for (const targetLang of targetLanguages) {
@@ -239,7 +239,7 @@ export async function PUT(request: NextRequest) {
 
     const results: Array<{
       original: string
-      translations: Record<string, any>
+      translations: Record<string, unknown>
     }> = []
 
     // 각 텍스트에 대해 번역 수행
@@ -248,7 +248,7 @@ export async function PUT(request: NextRequest) {
         continue
       }
 
-      const translations: Record<string, any> = {}
+      const translations: Record<string, unknown> = {}
 
       for (const targetLang of targetLanguages) {
         try {

@@ -29,7 +29,21 @@ interface DynamicQuestionsProps {
 
 declare global {
   interface Window {
-    daum: any
+    daum: {
+      Postcode: new (options: {
+        oncomplete: (data: {
+          zonecode: string;
+          roadAddress: string;
+          jibunAddress: string;
+          buildingName?: string;
+        }) => void;
+        onclose?: () => void;
+        width?: string;
+        height?: string;
+      }) => {
+        open: () => void;
+      };
+    };
   }
 }
 
@@ -103,7 +117,12 @@ export default function DynamicQuestions({ questions, setQuestions }: DynamicQue
     }
 
     new window.daum.Postcode({
-      oncomplete: function(data: any) {
+      oncomplete: function(data: {
+        zonecode: string;
+        roadAddress: string;
+        jibunAddress: string;
+        buildingName?: string;
+      }) {
         updateQuestion(questionId, {
           addressData: {
             postcode: data.zonecode,

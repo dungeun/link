@@ -12,7 +12,14 @@ interface StepBasicInfoProps {
     budgetType?: string
     budget?: number
   }
-  setFormData: (data: any) => void
+  setFormData: (data: {
+    title: string
+    description: string
+    platform: string
+    budgetType?: string
+    budget?: number
+    [key: string]: unknown
+  }) => void
   platformIcons: {
     INSTAGRAM: React.ReactNode
     YOUTUBE: React.ReactNode

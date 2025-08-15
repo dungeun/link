@@ -35,7 +35,7 @@ export function FooterConfigDB() {
       
       if (response.ok) {
         const data = await response.json();
-        const formattedSections = data.menus.map((menu: any) => ({
+        const formattedSections = data.menus.map((menu: { id: string; content?: { title?: string; titleKey?: string; links?: unknown[] }; sectionId: string; order: number; visible: boolean }) => ({
           id: menu.id,
           title: menu.content?.title || '',
           titleKey: menu.content?.titleKey || menu.sectionId,

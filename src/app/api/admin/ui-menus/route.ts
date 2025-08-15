@@ -44,22 +44,35 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { type, name, href, icon, autoTranslate = true } = body;
 
-    // 언어팩 키 생성
-    const menuKey = `${type}.menu.${name.toLowerCase().replace(/\s+/g, '_')}`;
+    // 언어팩 키 생성 (고유성 보장)
+    const timestamp = Date.now();
+    const safeName = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    const menuKey = `${type}.menu.custom_${safeName}_${timestamp}`;
 
-    // 번역 처리
-    let translations: any = {};
+    // 번역 처리 (Google Translate API가 없으면 기본값 사용)
+    let translations: Record<string, unknown> = {};
     if (autoTranslate) {
       try {
-        const [enTranslation, jpTranslation] = await Promise.all([
-          translateText(name, 'en').catch(() => name),
-          translateText(name, 'ja').catch(() => name)
-        ]);
+        // Google Translate API가 설정되어 있지 않으면 기본값 사용
+        const hasGoogleTranslate = process.env.GOOGLE_TRANSLATE_API_KEY && process.env.GOOGLE_TRANSLATE_API_KEY.trim() !== '';
+        
+        if (hasGoogleTranslate) {
+          const [enTranslation, jpTranslation] = await Promise.all([
+            translateText(name, 'en').catch(() => name),
+            translateText(name, 'ja').catch(() => name)
+          ]);
 
-        translations = {
-          en: { name: enTranslation },
-          jp: { name: jpTranslation }
-        };
+          translations = {
+            en: { name: enTranslation },
+            jp: { name: jpTranslation }
+          };
+        } else {
+          // API 키가 없으면 간단한 변환 사용
+          translations = {
+            en: { name: name }, // 실제 프로덕션에서는 API 키 설정 필요
+            jp: { name: name }  // 실제 프로덕션에서는 API 키 설정 필요
+          };
+        }
       } catch (error) {
         console.warn('Translation failed, using original text:', error);
         translations = {
@@ -67,6 +80,12 @@ export async function POST(req: NextRequest) {
           jp: { name: name }
         };
       }
+    } else {
+      // 자동 번역을 사용하지 않으면 원본 텍스트 사용
+      translations = {
+        en: { name: name },
+        jp: { name: name }
+      };
     }
 
     // 메뉴 데이터 생성
@@ -98,9 +117,17 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // 언어팩에도 추가
-    await prisma.languagePack.create({
-      data: {
+    // 언어팩에도 추가 (있으면 업데이트, 없으면 생성)
+    await prisma.languagePack.upsert({
+      where: { key: menuKey },
+      update: {
+        ko: name,
+        en: translations.en?.name || name,
+        jp: translations.jp?.name || name,
+        category: type,
+        description: `${type === 'header' ? '헤더' : '푸터'} 메뉴`
+      },
+      create: {
         key: menuKey,
         ko: name,
         en: translations.en?.name || name,
@@ -146,20 +173,28 @@ export async function PUT(req: NextRequest) {
     }
 
     // 컨텐츠 업데이트
-    const updatedContent: any = menu.content || {};
+    const updatedContent: Record<string, unknown> = (menu.content as Record<string, unknown>) || {};
     if (name !== undefined) updatedContent.name = name;
     if (href !== undefined) updatedContent.href = href;
     if (icon !== undefined) updatedContent.icon = icon;
     if (visible !== undefined) updatedContent.visible = visible;
 
     // 번역 업데이트
-    let updatedTranslations = menu.translations as any || {};
+    let updatedTranslations = (menu.translations as Record<string, unknown>) || {};
     if (autoTranslate && name) {
       try {
-        const [enTranslation, jpTranslation] = await Promise.all([
-          translateText(name, 'en').catch(() => name),
-          translateText(name, 'ja').catch(() => name)
-        ]);
+        // Google Translate API가 설정되어 있지 않으면 기본값 사용
+        const hasGoogleTranslate = process.env.GOOGLE_TRANSLATE_API_KEY && process.env.GOOGLE_TRANSLATE_API_KEY.trim() !== '';
+        
+        let enTranslation = name;
+        let jpTranslation = name;
+        
+        if (hasGoogleTranslate) {
+          [enTranslation, jpTranslation] = await Promise.all([
+            translateText(name, 'en').catch(() => name),
+            translateText(name, 'ja').catch(() => name)
+          ]);
+        }
 
         updatedTranslations = {
           ...updatedTranslations,
@@ -168,7 +203,7 @@ export async function PUT(req: NextRequest) {
         };
 
         // 언어팩도 업데이트
-        const menuKey = (menu.content as any)?.label || menu.sectionId;
+        const menuKey = (menu.content as Record<string, unknown>)?.label as string || menu.sectionId;
         await prisma.languagePack.updateMany({
           where: { key: menuKey },
           data: {
@@ -241,7 +276,7 @@ export async function DELETE(req: NextRequest) {
     });
 
     // 언어팩에서도 삭제 (커스텀 메뉴인 경우)
-    const menuKey = (menu.content as any)?.label || menu.sectionId;
+    const menuKey = (menu.content as Record<string, unknown>)?.label as string || menu.sectionId;
     if (menuKey.includes('custom_')) {
       await prisma.languagePack.deleteMany({
         where: { key: menuKey }

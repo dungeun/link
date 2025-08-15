@@ -128,7 +128,16 @@ export async function GET(request: NextRequest) {
             criteria: 'popular' as const,
             count: 5,
             showBadge: true,
-          }
+          },
+          customSections: [],
+          sectionOrder: [
+            { id: 'hero', type: 'hero', order: 1, visible: true },
+            { id: 'category', type: 'category', order: 2, visible: true },
+            { id: 'quicklinks', type: 'quicklinks', order: 3, visible: true },
+            { id: 'promo', type: 'promo', order: 4, visible: true },
+            { id: 'ranking', type: 'ranking', order: 5, visible: true },
+            { id: 'recommended', type: 'recommended', order: 6, visible: true }
+          ]
         }
       };
       
@@ -155,7 +164,7 @@ export async function POST(request: NextRequest) {
     if (config.mainPage?.sectionOrder) {
       // sectionOrder에서 중복 제거
       const seenIds = new Set<string>();
-      const cleanedSectionOrder = config.mainPage.sectionOrder.filter((section: any) => {
+      const cleanedSectionOrder = config.mainPage.sectionOrder.filter((section: Record<string, unknown>) => {
         if (seenIds.has(section.id)) {
           console.log(`Removing duplicate section ID: ${section.id}`);
           return false;
@@ -169,7 +178,7 @@ export async function POST(request: NextRequest) {
     if (config.mainPage?.customSections) {
       // customSections에서 중복 제거
       const seenCustomIds = new Set<string>();
-      const cleanedCustomSections = config.mainPage.customSections.filter((section: any) => {
+      const cleanedCustomSections = config.mainPage.customSections.filter((section: Record<string, unknown>) => {
         if (seenCustomIds.has(section.id)) {
           console.log(`Removing duplicate custom section ID: ${section.id}`);
           return false;

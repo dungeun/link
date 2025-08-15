@@ -9,7 +9,7 @@ interface PerformanceMetric {
   name: string;
   duration: number;
   timestamp: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // 메트릭 저장소
@@ -73,9 +73,9 @@ const metricsStore = new MetricsStore();
 export class PerformanceTimer {
   private startTime: number;
   private name: string;
-  private metadata?: Record<string, any>;
+  private metadata?: Record<string, unknown>;
 
-  constructor(name: string, metadata?: Record<string, any>) {
+  constructor(name: string, metadata?: Record<string, unknown>) {
     this.name = name;
     this.metadata = metadata;
     this.startTime = performance.now();
@@ -105,9 +105,9 @@ export class PerformanceTimer {
   /**
    * 정적 메서드로 간편하게 사용
    */
-  static measure<T>(name: string, fn: () => T, metadata?: Record<string, any>): T;
-  static measure<T>(name: string, fn: () => Promise<T>, metadata?: Record<string, any>): Promise<T>;
-  static measure<T>(name: string, fn: () => T | Promise<T>, metadata?: Record<string, any>): T | Promise<T> {
+  static measure<T>(name: string, fn: () => T, metadata?: Record<string, unknown>): T;
+  static measure<T>(name: string, fn: () => Promise<T>, metadata?: Record<string, unknown>): Promise<T>;
+  static measure<T>(name: string, fn: () => T | Promise<T>, metadata?: Record<string, unknown>): T | Promise<T> {
     const timer = new PerformanceTimer(name, metadata);
     
     try {
@@ -129,12 +129,12 @@ export class PerformanceTimer {
 /**
  * 데코레이터로 함수 성능 측정
  */
-export function measure(name?: string, metadata?: Record<string, any>) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+export function measure(name?: string, metadata?: Record<string, unknown>) {
+  return function (target: object, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
     const metricName = name || `${target.constructor.name}.${propertyName}`;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       return PerformanceTimer.measure(
         metricName,
         () => method.apply(this, args),
@@ -150,7 +150,7 @@ export function measure(name?: string, metadata?: Record<string, any>) {
  * API 라우트 성능 측정 미들웨어
  */
 export function withPerformanceTracking(handler: Function, name: string) {
-  return async function (request: any, context?: any) {
+  return async function (request: Request, context?: unknown) {
     const timer = new PerformanceTimer(`api.${name}`, {
       method: request.method,
       url: request.url
@@ -180,7 +180,7 @@ export class QueryPerformance {
   static async measure<T>(
     queryName: string,
     query: () => Promise<T>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<T> {
     return PerformanceTimer.measure(
       `db.${queryName}`,
@@ -192,16 +192,17 @@ export class QueryPerformance {
   /**
    * Prisma 쿼리 래퍼
    */
-  static wrapPrismaQuery<T>(
-    prismaClient: any,
-    modelName: string,
+  static wrapPrismaQuery<T extends Record<string, Record<string, Function>>>(
+    prismaClient: T,
+    modelName: keyof T,
     operation: string
   ) {
-    const originalMethod = prismaClient[modelName][operation];
+    const model = prismaClient[modelName];
+    const originalMethod = model[operation];
     
-    prismaClient[modelName][operation] = async function (...args: any[]) {
+    model[operation] = async function (...args: unknown[]) {
       return QueryPerformance.measure(
-        `${modelName}.${operation}`,
+        `${String(modelName)}.${operation}`,
         () => originalMethod.apply(this, args),
         { argsCount: args.length }
       );
@@ -326,13 +327,13 @@ export class PerformanceReport {
     type: 'slow_query' | 'high_memory' | 'frequent_errors';
     message: string;
     severity: 'low' | 'medium' | 'high';
-    data?: any;
+    data?: unknown;
   }> {
     const alerts: Array<{
       type: 'slow_query' | 'high_memory' | 'frequent_errors';
       message: string;
       severity: 'low' | 'medium' | 'high';
-      data?: any;
+      data?: unknown;
     }> = [];
 
     // 느린 쿼리 확인

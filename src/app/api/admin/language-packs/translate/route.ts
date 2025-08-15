@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     for (const item of items) {
       try {
-        const translations: any = {
+        const translations: Record<string, string> = {
           original: item.text,
           [sourceLanguage]: item.text
         };

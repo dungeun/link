@@ -21,7 +21,7 @@ export async function POST(
     let user;
     try {
       user = await verifyJWT(token);
-    } catch (jwtError: any) {
+    } catch (jwtError) {
       console.error('JWT verification error:', jwtError);
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
@@ -129,8 +129,10 @@ export async function POST(
         type: 'APPLICATION',
         title: '새로운 캠페인 지원',
         message: `${user.name || user.email}님이 "${campaign.title}" 캠페인에 지원했습니다.`,
-        relatedId: application.id,
-        relatedType: 'application'
+        metadata: JSON.stringify({
+          applicationId: application.id,
+          relatedType: 'application'
+        })
       }
     })
 
@@ -139,7 +141,7 @@ export async function POST(
       applicationId: application.id,
       message: 'Successfully applied to campaign'
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Campaign apply error:', error)
     console.error('Error details:', {
       message: error.message,

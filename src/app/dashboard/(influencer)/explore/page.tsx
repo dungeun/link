@@ -135,7 +135,7 @@ export default function ExploreCampaignsPage() {
 
         if (response.ok) {
           const data = await response.json()
-          const formattedCampaigns: Campaign[] = data.campaigns.map((campaign: any) => ({
+          const formattedCampaigns: Campaign[] = data.campaigns.map((campaign: Record<string, unknown>) => ({
             id: campaign.id,
             title: campaign.title,
             brand: campaign.brand_name,
@@ -186,19 +186,19 @@ export default function ExploreCampaignsPage() {
       filtered = filtered.filter(campaign =>
         campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         campaign.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (campaign as any).description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        campaign.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         campaign.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
     // 카테고리 필터
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(campaign => (campaign as any).category === selectedCategory);
+      filtered = filtered.filter(campaign => campaign.category === selectedCategory);
     }
 
     // 플랫폼 필터
     if (selectedPlatform !== 'all') {
-      filtered = filtered.filter(campaign => (campaign as any).category.includes(selectedPlatform));
+      filtered = filtered.filter(campaign => campaign.platform.includes(selectedPlatform));
     }
 
     // 예산 필터
@@ -380,7 +380,7 @@ export default function ExploreCampaignsPage() {
 
               {/* 설명 */}
               <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                {(campaign as any).description}
+                {campaign.description}
               </p>
 
               {/* 태그 */}

@@ -8,17 +8,23 @@ export const runtime = 'nodejs'
 // GET /api/admin/dashboard - 관리자 대시보드 통계
 export async function GET(request: NextRequest) {
   try {
-    console.log('[Dashboard API] Headers:', Object.fromEntries(request.headers.entries()));
-    console.log('[Dashboard API] Authorization header:', request.headers.get('authorization'));
+    // 개발 환경에서 디버깅을 위한 간단한 체크
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Dashboard API] Request received');
+      console.log('[Dashboard API] Authorization:', request.headers.get('authorization')?.substring(0, 50) + '...');
+    }
     
     // 공통 인증 함수 사용
     const authResult = await requireAdminAuth(request);
     if (authResult.error) {
-      console.log('[Dashboard API] Auth error:', authResult.error);
+      console.log('[Dashboard API] Auth failed:', authResult.error);
       return authResult.error;
     }
     const { user } = authResult;
-    console.log('[Dashboard API] Authenticated user:', user);
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Dashboard API] Authenticated user:', user.email, user.type);
+    }
 
     // 통계 데이터 조회
     const [

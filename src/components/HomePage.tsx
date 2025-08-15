@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { AuthService, User } from '@/lib/auth'
 import { useUIConfigStore } from '@/lib/stores/ui-config.store'
@@ -12,9 +12,18 @@ import { logger } from '@/lib/logger'
 import RankingSection from '@/components/home/RankingSection'
 import RecommendedSection from '@/components/home/RecommendedSection'
 
-interface Campaign {
-  id: string
-  title: string
+import { 
+  BaseCampaign, 
+  UISection, 
+  LanguagePack, 
+  LanguageCode, 
+  UISectionContent,
+  HeroSlide,
+  QuickLink,
+  JsonValue
+} from '@/types/global'
+
+interface Campaign extends Omit<BaseCampaign, 'startDate' | 'endDate' | 'createdAt' | 'updatedAt'> {
   brand: string
   applicants: number
   maxApplicants: number
@@ -28,36 +37,39 @@ interface Campaign {
 }
 
 interface HomePageProps {
-  initialSections: any[]
-  initialLanguage?: string
-  initialLanguagePacks?: Record<string, any>
+  initialSections: UISection[]
+  initialLanguage?: LanguageCode
+  initialLanguagePacks?: Record<string, LanguagePack>
 }
 
-export default function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePacks = {} }: HomePageProps) {
+function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePacks = {} }: HomePageProps) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [currentSlide, setCurrentSlide] = useState(0)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
-  const [sections, setSections] = useState<any[]>(initialSections || [])
+  const [sections, setSections] = useState<UISection[]>(initialSections || [])
   const [sectionsLoading, setSectionsLoading] = useState(false)
-  const [currentLang, setCurrentLang] = useState(initialLanguage)
-  const [langPacks, setLangPacks] = useState(initialLanguagePacks)
+  const [currentLang, setCurrentLang] = useState<LanguageCode>(initialLanguage)
+  const [langPacks, setLangPacks] = useState<Record<string, LanguagePack>>(initialLanguagePacks)
   
   // 언어팩 사용
   const { t: contextT, currentLanguage } = useLanguage()
   
   // 초기 렌더링을 위한 번역 함수 - contextT가 없을 때 fallback
-  const t = (key: string, fallback?: string) => {
+  const t = (key: string, fallback?: string): string => {
     if (contextT) {
       return contextT(key, fallback)
     }
     // 초기 언어팩 데이터 사용
     const pack = langPacks[key]
     if (pack) {
-      const lang = currentLang === 'ja' ? 'jp' : currentLang
-      return pack[lang] || fallback || key
+      const lang: keyof LanguagePack = currentLang === 'ja' ? 'jp' : currentLang
+      const translation = pack[lang]
+      if (typeof translation === 'string') {
+        return translation
+      }
     }
     return fallback || key
   }
@@ -65,35 +77,56 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
   // UI 설정 가져오기 (폴백용)
   const { config, loadSettingsFromAPI } = useUIConfigStore()
   
-  // 폴백용 설정들
-  const bannerSlides = config.mainPage?.heroSlides?.filter(slide => slide.visible) || []
-  const menuCategories = config.mainPage?.categoryMenus?.filter(menu => menu.visible) || []
-  const sectionOrder = config.mainPage?.sectionOrder || []
-  const customSectionOrders = (config.mainPage?.customSections || [])
-    .filter(section => section.visible)
-    .map((section) => ({
-      id: section.id,
-      type: 'custom' as const,
-      order: section.order || 999,
-      visible: section.visible,
-    }))
+  // 폴백용 설정들 - 메모이제이션 적용
+  const bannerSlides = useMemo(() => 
+    config.mainPage?.heroSlides?.filter(slide => slide.visible) || [], 
+    [config.mainPage?.heroSlides]
+  )
   
-  const allSections = [...sectionOrder]
-  customSectionOrders.forEach(customOrder => {
-    const existingIndex = allSections.findIndex(s => s.id === customOrder.id)
-    if (existingIndex > -1) {
-      allSections[existingIndex] = customOrder
-    } else {
-      allSections.push(customOrder)
-    }
-  })
+  const menuCategories = useMemo(() => 
+    config.mainPage?.categoryMenus?.filter(menu => menu.visible) || [], 
+    [config.mainPage?.categoryMenus]
+  )
   
-  const visibleSections = allSections
-    .filter(s => s.visible)
-    .sort((a, b) => a.order - b.order)
+  const sectionOrder = useMemo(() => 
+    config.mainPage?.sectionOrder || [], 
+    [config.mainPage?.sectionOrder]
+  )
   
-  // 카테고리별 기본 픽토그램
-  const defaultCategoryIcons: Record<string, React.ReactNode> = {
+  const customSectionOrders = useMemo(() => 
+    (config.mainPage?.customSections || [])
+      .filter(section => section.visible)
+      .map((section) => ({
+        id: section.id,
+        type: 'custom' as const,
+        order: section.order || 999,
+        visible: section.visible,
+      })),
+    [config.mainPage?.customSections]
+  )
+  
+  const allSections = useMemo(() => {
+    const sections = [...sectionOrder]
+    customSectionOrders.forEach(customOrder => {
+      const existingIndex = sections.findIndex(s => s.id === customOrder.id)
+      if (existingIndex > -1) {
+        sections[existingIndex] = customOrder
+      } else {
+        sections.push(customOrder)
+      }
+    })
+    return sections
+  }, [sectionOrder, customSectionOrders])
+  
+  const visibleSections = useMemo(() => 
+    allSections
+      .filter(s => s.visible)
+      .sort((a, b) => a.order - b.order),
+    [allSections]
+  )
+  
+  // 카테고리별 기본 픽토그램 - 메모이제이션 적용
+  const defaultCategoryIcons = useMemo(() => ({
     beauty: (
       <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -156,9 +189,9 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
       </svg>
     ),
-  }
+  }), [])
 
-  const loadCampaigns = async () => {
+  const loadCampaigns = useCallback(async () => {
     try {
       const response = await fetch('/api/campaigns?status=active&limit=10')
       const data = await response.json()
@@ -171,10 +204,10 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   // 언어 변경 시 섹션 데이터 재로드 
-  const loadSections = async (lang: string) => {
+  const loadSections = useCallback(async (lang: string) => {
     try {
       setSectionsLoading(true)
       console.log('Loading sections for language:', lang)
@@ -207,7 +240,7 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
     } finally {
       setSectionsLoading(false)
     }
-  }
+  }, [initialSections])
 
   useEffect(() => {
     // UI 설정 로드 (폴백용)
@@ -247,15 +280,15 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
     }
   }, [sections])
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     if (searchTerm.trim()) {
       router.push(`/campaigns?search=${encodeURIComponent(searchTerm)}`)
     }
-  }
+  }, [searchTerm, router])
 
   // 언어별 콘텐츠 가져오기 - 초기 렌더링 시에는 currentLang 사용
-  const getLocalizedContent = (section: any) => {
+  const getLocalizedContent = useCallback((section: UISection): UISectionContent => {
     const lang = currentLanguage || currentLang
     if (lang === 'ko' || !section.translations) {
       return section.content
@@ -269,7 +302,7 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
     }
     
     return section.content
-  }
+  }, [currentLanguage, currentLang])
 
   return (
     <>
@@ -277,18 +310,18 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
       <div className="min-h-screen bg-white">
 
       <main className="container mx-auto px-6 py-8">
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-4 bg-gray-100 rounded">
-            <p>Sections loaded: {sections.length}</p>
-            <p>Loading: {sectionsLoading ? 'Yes' : 'No'}</p>
-            <p>Language: {currentLanguage}</p>
-          </div>
-        )}
         
-        {/* DB 섹션 렌더링 (있으면) */}
+        {/* DB 섹션 렌더링 (있으면) - visibleSections 순서 적용 */}
         {sections.length > 0 ? (
-          sections.map((section) => {
+          // visibleSections 순서대로 sections를 정렬하여 렌더링
+          visibleSections
+            .map(orderedSection => {
+              // 해당 타입의 실제 섹션 데이터를 찾기
+              const dbSection = sections.find(s => s.type === orderedSection.id)
+              return dbSection ? { ...dbSection, order: orderedSection.order } : null
+            })
+            .filter(section => section !== null)
+            .map((section) => {
             const localizedContent = getLocalizedContent(section)
             
             switch (section.type) {
@@ -300,7 +333,7 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
                         className="flex transition-transform duration-500 ease-out"
                         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                       >
-                        {localizedContent.slides.map((slide: any, slideIndex: number) => (
+                        {(localizedContent.slides as HeroSlide[]).map((slide: HeroSlide, slideIndex: number) => (
                           <div key={slide.id} className="min-w-full">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               {/* 현재 슬라이드 */}
@@ -377,8 +410,9 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
                               {localizedContent.slides.length > 1 && (
                                 <div className="hidden lg:block w-full">
                                   {(() => {
-                                    const nextIndex = (slideIndex + 1) % localizedContent.slides.length
-                                    const nextSlide = localizedContent.slides[nextIndex]
+                                    const slides = localizedContent.slides as HeroSlide[]
+                                    const nextIndex = (slideIndex + 1) % slides.length
+                                    const nextSlide = slides[nextIndex]
                                     
                                     return (
                                       <div className="h-full">
@@ -415,9 +449,9 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
                     </div>
                     
                     {/* 슬라이드 인디케이터 */}
-                    {localizedContent.slides.length > 1 && (
+                    {(localizedContent.slides as HeroSlide[]).length > 1 && (
                       <div className="flex justify-center gap-2 mt-4">
-                        {localizedContent.slides.map((_: any, index: number) => (
+                        {(localizedContent.slides as HeroSlide[]).map((_: HeroSlide, index: number) => (
                           <button
                             key={index}
                             onClick={() => setCurrentSlide(index)}
@@ -437,39 +471,90 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
               case 'category':
                 return localizedContent?.categories ? (
                   <div key={section.id} className="mb-12">
-                    <div className="overflow-x-auto px-4">
-                      <div className="flex gap-6 pb-4 justify-center pt-6 pb-2">
-                        {localizedContent.categories.map((category: any) => (
+                    {/* 데스크톱: 가로 스크롤, 모바일: 그리드 */}
+                    <div className="px-4">
+                      {/* 모바일: 그리드 레이아웃 */}
+                      <div className="grid grid-cols-4 gap-3 sm:hidden">
+                        {(localizedContent.categories as Array<{
+                          id: string;
+                          categoryId: string;
+                          name: string;
+                          icon?: string;
+                          badge?: string;
+                        }>).map((category) => (
                           <Link
                             key={category.id}
                             href={`/campaigns?category=${category.categoryId}`}
-                            className="flex flex-col items-center gap-2 min-w-[80px] group"
+                            className="flex flex-col items-center gap-1.5 group"
                           >
-                            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative mt-2">
+                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative">
                               {category.icon ? (
                                 category.icon.startsWith('http') ? (
-                                  <img src={category.icon} alt={category.name} className="w-8 h-8 object-contain" />
+                                  <img src={category.icon} alt={category.name} className="w-6 h-6 object-contain" />
                                 ) : (
-                                  <span className="text-2xl">{category.icon}</span>
+                                  <span className="text-lg">{category.icon}</span>
                                 )
                               ) : (
                                 defaultCategoryIcons[category.categoryId] || (
-                                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                   </svg>
                                 )
                               )}
                               {category.badge && (
-                                <span className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0.5 bg-red-500 text-white rounded-full font-bold min-w-[18px] text-center leading-none">
+                                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 bg-red-500 text-white rounded-full font-bold min-w-[14px] text-center leading-none">
                                   {category.badge}
                                 </span>
                               )}
                             </div>
-                            <span className="text-sm text-gray-700 text-center">
+                            <span className="text-xs text-gray-700 text-center leading-tight">
                               {category.name}
                             </span>
                           </Link>
                         ))}
+                      </div>
+
+                      {/* 태블릿/데스크톱: 가로 스크롤 */}
+                      <div className="hidden sm:block overflow-x-auto">
+                        <div className="flex gap-3 lg:gap-2 pb-4 justify-center pt-4 pb-2 min-w-max">
+                          {(localizedContent.categories as Array<{
+                            id: string;
+                            categoryId: string;
+                            name: string;
+                            icon?: string;
+                            badge?: string;
+                          }>).map((category) => (
+                            <Link
+                              key={category.id}
+                              href={`/campaigns?category=${category.categoryId}`}
+                              className="flex flex-col items-center gap-2 min-w-[60px] lg:min-w-[70px] group"
+                            >
+                              <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative">
+                                {category.icon ? (
+                                  category.icon.startsWith('http') ? (
+                                    <img src={category.icon} alt={category.name} className="w-7 h-7 lg:w-8 lg:h-8 object-contain" />
+                                  ) : (
+                                    <span className="text-xl lg:text-2xl">{category.icon}</span>
+                                  )
+                                ) : (
+                                  defaultCategoryIcons[category.categoryId] || (
+                                    <svg className="w-7 h-7 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                  )
+                                )}
+                                {category.badge && (
+                                  <span className="absolute -top-1.5 -right-1.5 text-[9px] lg:text-[10px] px-1.5 py-0.5 bg-red-500 text-white rounded-full font-bold min-w-[16px] lg:min-w-[18px] text-center leading-none">
+                                    {category.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-sm text-gray-700 text-center">
+                                {category.name}
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -477,25 +562,52 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
 
               case 'quicklinks':
                 return localizedContent?.links ? (
-                  <div key={section.id} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-                    {localizedContent.links.map((link: any) => (
-                      <Link 
-                        key={link.id}
-                        href={link.link} 
-                        className="bg-gray-100 rounded-xl p-5 flex items-center justify-center gap-3 hover:bg-blue-50 transition-colors group"
-                      >
-                        {link.icon && (
-                          link.icon.startsWith('http') ? (
-                            <img src={link.icon} alt={link.title} className="w-8 h-8 object-contain" />
-                          ) : (
-                            <span className="text-2xl">{link.icon}</span>
-                          )
-                        )}
-                        <span className="font-medium text-gray-800 group-hover:text-blue-600">
-                          {link.title}
-                        </span>
-                      </Link>
-                    ))}
+                  <div key={section.id} className="mb-12">
+                    {/* 데스크톱: 3단 그리드 */}
+                    <div className="hidden md:grid md:grid-cols-3 gap-4">
+                      {(localizedContent.links as QuickLink[]).map((link: QuickLink) => (
+                        <Link 
+                          key={link.id}
+                          href={link.link} 
+                          className="bg-gray-100 rounded-xl p-5 flex items-center justify-center gap-3 hover:bg-blue-50 transition-colors group"
+                        >
+                          {link.icon && (
+                            link.icon.startsWith('http') ? (
+                              <img src={link.icon} alt={link.title} className="w-8 h-8 object-contain" />
+                            ) : (
+                              <span className="text-2xl">{link.icon}</span>
+                            )
+                          )}
+                          <span className="font-medium text-gray-800 group-hover:text-blue-600">
+                            {link.title}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                    
+                    {/* 모바일: 1개씩 슬라이드 */}
+                    <div className="md:hidden">
+                      <div className="flex overflow-x-auto scrollbar-hide gap-4 pb-4 px-4">
+                        {(localizedContent.links as QuickLink[]).map((link: QuickLink) => (
+                          <Link 
+                            key={link.id}
+                            href={link.link} 
+                            className="bg-gray-100 rounded-xl p-5 flex items-center justify-center gap-3 hover:bg-blue-50 transition-colors group w-[calc(100vw-2rem)] max-w-[320px] flex-shrink-0"
+                          >
+                            {link.icon && (
+                              link.icon.startsWith('http') ? (
+                                <img src={link.icon} alt={link.title} className="w-8 h-8 object-contain" />
+                              ) : (
+                                <span className="text-2xl">{link.icon}</span>
+                              )
+                            )}
+                            <span className="font-medium text-gray-800 group-hover:text-blue-600">
+                              {link.title}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 ) : null
 
@@ -643,18 +755,19 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-gray-100 rounded-xl h-64 animate-pulse" />
               ))}
             </div>
           ) : campaigns.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {campaigns.slice(0, 8).map((campaign) => (
-                <Link 
-                  key={campaign.id} 
-                  href={`/campaigns/${campaign.id}`}
-                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
+                <div
+                  key={campaign.id}
+                  onClick={() => window.location.href = `/campaigns/${campaign.id}`}
+                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
+                  style={{ pointerEvents: 'auto' }}
                 >
                   <div className="aspect-square bg-gradient-to-br from-indigo-500 to-purple-600 relative">
                     {campaign.imageUrl && (
@@ -670,21 +783,21 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
                       </span>
                     </div>
                   </div>
-                  <div className="p-4">
-                    <p className="text-sm text-gray-600 mb-1">{campaign.brand}</p>
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                  <div className="p-3 md:p-4">
+                    <p className="text-xs md:text-sm text-gray-600 mb-1">{campaign.brand}</p>
+                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-sm md:text-base">
                       {campaign.title}
                     </h3>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">
+                      <span className="text-xs md:text-sm text-gray-500">
                         {campaign.applicants}/{campaign.maxApplicants}명
                       </span>
-                      <span className="text-sm font-medium text-blue-600">
+                      <span className="text-xs md:text-sm font-medium text-blue-600">
                         {campaign.budget}
                       </span>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           ) : (
@@ -699,3 +812,6 @@ export default function HomePage({ initialSections, initialLanguage = 'ko', init
     </>
   )
 }
+
+// React.memo로 성능 최적화
+export default memo(HomePage)

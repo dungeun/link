@@ -193,7 +193,7 @@ export default function AdminSettingsPage() {
     }
   }
 
-  const handleInputChange = (section: keyof SystemSettings, field: string, value: any) => {
+  const handleInputChange = (section: keyof SystemSettings, field: string, value: unknown) => {
     setSettings(prev => ({
       ...prev,
       [section]: {

@@ -12,7 +12,7 @@ interface StepMediaProps {
     thumbnailImageUrl: string
     youtubeUrl: string
   }
-  setFormData: (data: any) => void
+  setFormData: (data: { headerImageUrl: string; thumbnailImageUrl: string; youtubeUrl: string }) => void
   productImages: string[]
   setProductImages: (images: string[]) => void
 }

@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       if (new Date(campaign.endDate) < new Date()) return true;
       
       // 콘텐츠가 승인되었으면
-      if (app.contents && app.contents.some((content: any) => content.status === 'APPROVED')) return true;
+      if (app.contents && Array.isArray(app.contents) && app.contents.some((content: { status: string }) => content.status === 'APPROVED')) return true;
       
       return false;
     });
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
     // 활동 중인 캠페인 데이터
     const activeCampaignData = activeCampaigns.map(app => {
       const hasSubmittedContent = app.contents && app.contents.length > 0;
-      const hasPendingContent = app.contents?.some((content: any) => content.status === 'PENDING_REVIEW');
+      const hasPendingContent = app.contents && Array.isArray(app.contents) && app.contents.some((content: { status: string }) => content.status === 'PENDING_REVIEW');
       
       let campaignStatus = 'pending';
       if (hasSubmittedContent && hasPendingContent) {
@@ -121,7 +121,9 @@ export async function GET(request: NextRequest) {
 
     // 최근 수익 내역
     const recentEarnings = completedCampaigns.slice(0, 5).map(app => {
-      const approvedContent = app.contents?.find((content: any) => content.status === 'APPROVED');
+      const approvedContent = app.contents && Array.isArray(app.contents) ? 
+        app.contents.find((content: { status: string; reviewedAt?: Date }) => content.status === 'APPROVED') : 
+        null;
       return {
         id: app.id,
         campaignTitle: app.campaign.title,

@@ -212,7 +212,7 @@ export async function POST(req: NextRequest) {
     }
 
     // SNS 계정 업데이트
-    const updateData: any = {};
+    const updateData: Record<string, string | null> = {};
     
     if (disconnect) {
       // 연동 해제
@@ -243,7 +243,7 @@ export async function POST(req: NextRequest) {
       todayVisitors = result.todayVisitors || 0;
       
       // 팔로워 수를 DB에 저장
-      const followerUpdateData: any = {};
+      const followerUpdateData: Record<string, number | Date> = {};
       switch(platform) {
         case 'instagram':
           followerUpdateData.instagramFollowers = followers;
@@ -336,14 +336,20 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const results = [];
-    const updateData: any = {};
+    const results: Array<{
+      platform: string;
+      username: string;
+      followers: number;
+      todayVisitors?: number;
+      lastUpdated: Date;
+    }> = [];
+    const updateData: Record<string, number | Date> = {};
 
     // 특정 플랫폼만 업데이트하거나 전체 업데이트
     const platformsToUpdate = platform ? [platform] : ['instagram', 'youtube', 'tiktok', 'naverBlog'];
 
     for (const plat of platformsToUpdate) {
-      const username = (profile as any)[plat];
+      const username = (profile as Record<string, unknown>)[plat] as string;
       if (username) {
         const result = await fetchFollowerCount(plat, username);
         const followers = result.followers;

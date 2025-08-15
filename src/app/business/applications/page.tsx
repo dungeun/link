@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast'
 export default function BusinessApplicationsPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ id: string; type: string; name: string; email: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
@@ -90,7 +90,7 @@ export default function BusinessApplicationsPage() {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || '상태 변경 실패')
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Status change error:', error)
       toast({
         title: '오류',

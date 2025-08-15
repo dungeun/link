@@ -10,7 +10,7 @@ export interface CacheConfig {
 }
 
 // API 핸들러에 캐싱 기능을 추가하는 HOF
-export function withCache<T = any>(
+export function withCache<T = unknown>(
   handler: (req: NextRequest) => Promise<NextResponse>,
   config: CacheConfig
 ) {
@@ -57,7 +57,7 @@ export function withCache<T = any>(
 }
 
 // 조건부 캐싱을 위한 래퍼
-export function withConditionalCache<T = any>(
+export function withConditionalCache<T = unknown>(
   handler: (req: NextRequest) => Promise<NextResponse>,
   config: CacheConfig & {
     condition?: (req: NextRequest) => boolean
@@ -74,7 +74,7 @@ export function withConditionalCache<T = any>(
 }
 
 // 사용자별 캐싱을 위한 래퍼
-export function withUserCache<T = any>(
+export function withUserCache<T = unknown>(
   handler: (req: NextRequest) => Promise<NextResponse>,
   config: Omit<CacheConfig, 'key'> & {
     keyPrefix: string

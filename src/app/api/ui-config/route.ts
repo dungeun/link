@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -76,14 +78,55 @@ export async function GET(request: NextRequest) {
       // 기본 카테고리 메뉴 유지
     }
 
-    // 헤더 메뉴용 카테고리 추가 (상위 3개만)
-    const headerCategoryMenus = categoryMenus.slice(0, 3).map((cat, index) => ({
-      id: `header-cat-${cat.id}`,
-      label: cat.name,
-      href: cat.href,
-      order: 10 + index, // 기본 메뉴 뒤에 배치
-      visible: true
-    }));
+    // Admin UI에서 관리하는 헤더 메뉴 가져오기
+    let adminHeaderMenus = [];
+    try {
+      const adminMenus = await prisma.uISection.findMany({
+        where: {
+          type: 'header',
+          visible: true
+        },
+        orderBy: { order: 'asc' }
+      });
+
+      for (const menu of adminMenus) {
+        const content = typeof menu.content === 'string' 
+          ? JSON.parse(menu.content) 
+          : menu.content || {};
+        
+        // 번역 키가 있으면 번역하고, 없으면 그대로 사용
+        let label = content.label || menu.sectionId || 'Unknown';
+        let displayText = label;
+        
+        // 언어팩 키인 경우 번역 가져오기
+        if (label.includes('.') && !label.includes('http')) {
+          const translation = await getTranslation(label, language);
+          displayText = translation !== label ? translation : (content.name || label);
+        } else if (content.name) {
+          // name 필드가 있으면 그것을 사용
+          displayText = content.name;
+        }
+
+        const adminMenu = {
+          id: `admin-${menu.id}`,
+          label: displayText,  // 번역된 텍스트 사용
+          languageKey: label,   // 원본 언어 키 보존
+          href: content.href || '#',
+          order: menu.order || 999,
+          visible: menu.visible
+        };
+
+        adminHeaderMenus.push(adminMenu);
+      }
+    } catch (error) {
+      console.warn('[UI Config] Failed to fetch admin header menus:', error);
+    }
+
+    // 카테고리 메뉴는 이제 Admin UI에서 관리하므로 자동 추가 제거
+    // Admin UI에서 관리하는 메뉴만 사용
+    const allHeaderMenus = adminHeaderMenus.sort((a, b) => a.order - b.order);
+
+    // 로그 출력 줄임 (무한루프 방지)
 
     // 기본 설정 먼저 준비 (번역 적용)
     const defaultConfig = {
@@ -92,13 +135,7 @@ export async function GET(request: NextRequest) {
             text: 'LinkPick',
             imageUrl: null
           },
-          menus: [
-            { id: 'menu-1', label: await getTranslation('header.menu.campaigns', language), href: '/campaigns', order: 1, visible: true },
-            { id: 'menu-2', label: await getTranslation('header.menu.influencers', language), href: '/influencers', order: 2, visible: true },
-            { id: 'menu-3', label: await getTranslation('header.menu.community', language), href: '/community', order: 3, visible: true },
-            { id: 'menu-4', label: await getTranslation('header.menu.pricing', language), href: '/pricing', order: 4, visible: true },
-            ...headerCategoryMenus,
-          ],
+          menus: allHeaderMenus,
           ctaButton: {
             text: await getTranslation('header.cta.start', language),
             href: '/register',
@@ -234,36 +271,69 @@ export async function GET(request: NextRequest) {
         }
       };
 
-    // 데이터베이스에서 UI 설정 조회 시도
+    // 데이터베이스에서 UI 설정 조회 시도 - Admin 메뉴 병합 필요
     try {
       const uiConfig = await prisma.siteConfig.findFirst({
         where: { key: 'ui-config' },
       });
 
       if (uiConfig) {
-        return NextResponse.json({ config: JSON.parse(uiConfig.value) });
+        const savedConfig = JSON.parse(uiConfig.value);
+        
+        // 저장된 설정의 헤더 메뉴를 Admin 메뉴로 교체
+        if (savedConfig.header) {
+          savedConfig.header.menus = allHeaderMenus;
+        }
+        
+        return NextResponse.json({ config: savedConfig });
       }
     } catch (dbError) {
-      console.warn('Database connection failed, using default config:', dbError);
+      console.warn('[UI Config] Database connection failed, using default config:', dbError);
     }
 
     // 기본 설정 반환
     return NextResponse.json({ config: defaultConfig });
   } catch (error) {
-    console.error('UI config 조회 오류:', error);
+    console.error('[UI Config] UI config 조회 오류:', error);
+    console.log('[UI Config] Falling back to error handling with admin menus...');
     
-    // Fallback to default config defined above
+    // Fallback to default config - try to load admin menus even in error case
+    let fallbackAdminMenus = [];
+    try {
+      const adminMenus = await prisma.uISection.findMany({
+        where: {
+          type: 'header',
+          visible: true
+        },
+        orderBy: { order: 'asc' }
+      });
+
+      fallbackAdminMenus = adminMenus.map(menu => {
+        const content = typeof menu.content === 'string' 
+          ? JSON.parse(menu.content) 
+          : menu.content || {};
+        
+        return {
+          id: `fallback-admin-${menu.id}`,
+          label: content.label || menu.sectionId || 'Unknown',
+          href: content.href || '#',
+          order: menu.order || 999,
+          visible: menu.visible
+        };
+      });
+    } catch (dbError) {
+      console.warn('Fallback admin menu loading also failed:', dbError);
+    }
+    
     const defaultConfig = {
       header: {
         logo: {
           text: 'LinkPick',
           imageUrl: null
         },
-        menus: [
-          { id: 'menu-1', label: 'header.menu.campaigns', href: '/campaigns', order: 1, visible: true },
-          { id: 'menu-2', label: 'header.menu.influencers', href: '/influencers', order: 2, visible: true },
-          { id: 'menu-3', label: 'header.menu.community', href: '/community', order: 3, visible: true },
-          { id: 'menu-4', label: 'header.menu.pricing', href: '/pricing', order: 4, visible: true },
+        menus: fallbackAdminMenus.length > 0 ? fallbackAdminMenus : [
+          { id: 'fallback-1', label: 'header.menu.campaigns', href: '/campaigns', order: 1, visible: true },
+          { id: 'fallback-2', label: 'header.menu.community', href: '/community', order: 2, visible: true },
         ],
         ctaButton: {
           text: 'header.cta.start',
@@ -395,13 +465,9 @@ export async function GET(request: NextRequest) {
       }
     };
     
+    console.log('[UI Config] Returning fallback default config');
+    console.log(`[UI Config] Fallback config header menus: ${defaultConfig.header.menus.length}`);
     return NextResponse.json({ config: defaultConfig });
-  } finally {
-    try {
-      await prisma.$disconnect();
-    } catch (e) {
-      console.warn('Failed to disconnect Prisma:', e);
-    }
   }
 }
 
@@ -474,11 +540,5 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to update UI configuration' },
       { status: 500 }
     );
-  } finally {
-    try {
-      await prisma.$disconnect();
-    } catch (e) {
-      console.warn('Failed to disconnect Prisma:', e);
-    }
   }
 }

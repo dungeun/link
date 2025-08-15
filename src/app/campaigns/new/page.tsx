@@ -122,7 +122,7 @@ export default function CreateCampaignPage() {
     switch (step) {
       case 1:
         if (!formData.title) newErrors.title = '캠페인 제목을 입력해주세요';
-        if (!(formData as any).description) (newErrors as any).description = '캠페인 설명을 입력해주세요';
+        if (!formData.description) newErrors.description = '캠페인 설명을 입력해주세요';
         if (!formData.category) newErrors.category = '카테고리를 선택해주세요';
         if (formData.objectives.length === 0) newErrors.objectives = '최소 1개 이상의 목표를 선택해주세요';
         break;
@@ -226,16 +226,16 @@ export default function CreateCampaignPage() {
                 캠페인 설명 <span className="text-red-500">*</span>
               </label>
               <textarea
-                value={(formData as any).description}
+                value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 rows={4}
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  (errors as any).description ? 'border-red-500' : 'border-gray-300'
+                  errors.description ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="캠페인에 대한 상세한 설명을 입력해주세요"
               />
-              {(errors as any).description && (
-                <p className="mt-1 text-sm text-red-600">{(errors as any).description}</p>
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
               )}
             </div>
 

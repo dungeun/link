@@ -157,9 +157,9 @@ export default function LanguagePacksPage() {
         const packs = await response.json()
         setStats({
           totalPacks: packs.length,
-          translatedKo: packs.filter((p: any) => p.ko).length,
-          translatedEn: packs.filter((p: any) => p.en).length,
-          translatedJp: packs.filter((p: any) => p.jp).length
+          translatedKo: packs.filter((p: Record<string, unknown>) => p.ko).length,
+          translatedEn: packs.filter((p: Record<string, unknown>) => p.en).length,
+          translatedJp: packs.filter((p: Record<string, unknown>) => p.jp).length
         })
       }
     } catch (error) {

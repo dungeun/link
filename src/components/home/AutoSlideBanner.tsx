@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -19,13 +19,17 @@ interface AutoSlideBannerProps {
   interval?: number // 자동 슬라이드 간격 (ms)
 }
 
-export default function AutoSlideBanner({ slides, interval = 5000 }: AutoSlideBannerProps) {
+function AutoSlideBanner({ slides, interval = 5000 }: AutoSlideBannerProps) {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
 
-  const visibleSlides = slides.filter(slide => slide.visible)
+  // 표시할 슬라이드 필터링 - 메모이제이션
+  const visibleSlides = useMemo(() => 
+    slides.filter(slide => slide.visible),
+    [slides]
+  )
 
-  // 자동 슬라이드
+  // 자동 슬라이드 - currentSlide 제거하여 무한 재생성 방지
   useEffect(() => {
     if (isPaused || visibleSlides.length <= 1) return
 
@@ -34,31 +38,40 @@ export default function AutoSlideBanner({ slides, interval = 5000 }: AutoSlideBa
     }, interval)
 
     return () => clearInterval(timer)
-  }, [currentSlide, isPaused, visibleSlides.length, interval])
+  }, [isPaused, visibleSlides.length, interval])
 
-  const goToSlide = (index: number) => {
+  // 슬라이드 이동 함수들 - 메모이제이션
+  const goToSlide = useCallback((index: number) => {
     setCurrentSlide(index)
-  }
+  }, [])
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % visibleSlides.length)
-  }
+  }, [visibleSlides.length])
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev - 1 + visibleSlides.length) % visibleSlides.length)
-  }
+  }, [visibleSlides.length])
+
+  // 현재 슬라이드 데이터 - 메모이제이션
+  const currentSlideData = useMemo(() => 
+    visibleSlides.length > 0 ? visibleSlides[currentSlide] : null,
+    [visibleSlides, currentSlide]
+  )
+
+  // 마우스 이벤트 핸들러 - 메모이제이션
+  const handleMouseEnter = useCallback(() => setIsPaused(true), [])
+  const handleMouseLeave = useCallback(() => setIsPaused(false), [])
 
   if (visibleSlides.length === 0) {
     return null
   }
 
-  const currentSlideData = visibleSlides[currentSlide]
-
   return (
     <div 
       className="relative h-[400px] sm:h-[500px] lg:h-[600px] w-full overflow-hidden rounded-xl"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* 배너 이미지 */}
       <div className="relative h-full w-full">
@@ -133,7 +146,8 @@ export default function AutoSlideBanner({ slides, interval = 5000 }: AutoSlideBa
   )
 }
 
-function BannerContent({ slide }: { slide: BannerSlide }) {
+// BannerContent 컴포넌트 - 메모이제이션
+const BannerContent = memo(({ slide }: { slide: BannerSlide }) => {
   return (
     <div className="relative h-full w-full">
       <Image
@@ -156,4 +170,9 @@ function BannerContent({ slide }: { slide: BannerSlide }) {
       </div>
     </div>
   )
-}
+})
+
+BannerContent.displayName = 'BannerContent'
+
+// React.memo로 성능 최적화
+export default memo(AutoSlideBanner)

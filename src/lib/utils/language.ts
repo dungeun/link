@@ -75,13 +75,13 @@ function mapToSupported(lang: string): SupportedLanguage | null {
  * 캠페인 데이터에서 언어별 필드 선택
  */
 export function getTranslatedCampaignData(
-  campaign: any,
+  campaign: Record<string, unknown>,
   language: SupportedLanguage
 ) {
   // 번역 테이블이 있는 경우
   if (campaign.campaignTranslations && campaign.campaignTranslations.length > 0) {
-    const translation = campaign.campaignTranslations.find(
-      (t: any) => t.language === language
+    const translation = (campaign.campaignTranslations as Array<{ language: string; title?: string; description?: string; requirements?: string; hashtags?: string[] }>).find(
+      (t) => t.language === language
     )
     
     if (translation) {
@@ -124,13 +124,13 @@ export function getTranslatedCampaignData(
  * 게시물 데이터에서 언어별 필드 선택
  */
 export function getTranslatedPostData(
-  post: any,
+  post: Record<string, unknown>,
   language: SupportedLanguage
 ) {
   // 번역 테이블이 있는 경우
   if (post.postTranslations && post.postTranslations.length > 0) {
-    const translation = post.postTranslations.find(
-      (t: any) => t.language === language
+    const translation = (post.postTranslations as Array<{ language: string; title?: string; content?: string }>).find(
+      (t) => t.language === language
     )
     
     if (translation) {

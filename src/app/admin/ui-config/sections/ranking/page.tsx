@@ -193,7 +193,7 @@ export default function RankingSectionEditPage() {
                       name="criteria"
                       value={option.value}
                       checked={rankingSection.criteria === option.value}
-                      onChange={(e) => handleUpdate({ criteria: e.target.value as any })}
+                      onChange={(e) => handleUpdate({ criteria: e.target.value as 'popular' | 'deadline' | 'reward' | 'participants' })}
                       className="mt-0.5 mr-3"
                     />
                     <div>

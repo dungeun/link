@@ -79,11 +79,11 @@ export async function GET(
         id: report.id,
         type: report.type.toLowerCase(),
         reportedItemId: report.targetId,
-        reportedItemTitle: (targetInfo as any)?.title || (targetInfo as any)?.name || report.targetId,
+        reportedItemTitle: (targetInfo as { title?: string; name?: string })?.title || (targetInfo as { title?: string; name?: string })?.name || report.targetId,
         reporterName: report.reporter.name,
         reporterEmail: report.reporter.email,
-        targetUserName: (targetInfo as any)?.name || '알 수 없음',
-        targetUserEmail: (targetInfo as any)?.email || '',
+        targetUserName: (targetInfo as { name?: string })?.name || '알 수 없음',
+        targetUserEmail: (targetInfo as { email?: string })?.email || '',
         reason: report.reason,
         description: report.description,
         status: report.status.toLowerCase(),
@@ -142,7 +142,7 @@ export async function PUT(
     const reportId = params.id
 
     // 신고 상태 업데이트
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updatedAt: new Date()
     }
     

@@ -1,6 +1,6 @@
 'use client';
 
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableMenuItemWithLanguagePack } from '@/components/admin/SortableMenuItemWithLanguagePack';
 import { useUIConfigStore } from '@/lib/stores/ui-config.store';
@@ -16,7 +16,7 @@ export function HeaderConfigTab() {
     })
   );
 
-  const handleHeaderDragEnd = (event: any) => {
+  const handleHeaderDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (active.id !== over.id) {

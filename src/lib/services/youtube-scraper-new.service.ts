@@ -178,8 +178,8 @@ export class YouTubeScraperService {
             };
           }
           
-        } catch (e: any) {
-          console.log(`[NEW] YouTube: Failed ${url}: ${e.message}`);
+        } catch (e) {
+          console.log(`[NEW] YouTube: Failed ${url}: ${e instanceof Error ? e.message : 'Unknown error'}`);
         }
       }
 
@@ -193,14 +193,14 @@ export class YouTubeScraperService {
         error: 'Scraping failed - showing minimum value'
       };
 
-    } catch (error: any) {
-      console.error('[NEW] YouTube scraping error:', error.message);
+    } catch (error) {
+      console.error('[NEW] YouTube scraping error:', error instanceof Error ? error.message : 'Unknown error');
       return {
         followers: 1,
         platform: 'youtube',
         username: channelName,
         lastUpdated: new Date(),
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }

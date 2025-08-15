@@ -168,9 +168,9 @@ export class TranslationService {
   /**
    * 캠페인 데이터 번역
    */
-  async translateCampaignData(campaignData: any): Promise<any> {
+  async translateCampaignData(campaignData: Record<string, unknown>): Promise<Record<string, unknown>> {
     const fieldsToTranslate = ['title', 'description', 'requirements'];
-    const translatedData: any = {};
+    const translatedData: Record<string, unknown> = {};
 
     for (const field of fieldsToTranslate) {
       if (campaignData[field]) {
@@ -216,7 +216,7 @@ export class TranslationService {
   /**
    * 메뉴 아이템 번역
    */
-  async translateMenuItem(menuItem: any, targetLang: string = 'en'): Promise<any> {
+  async translateMenuItem(menuItem: { label?: string; [key: string]: unknown }, targetLang: string = 'en'): Promise<{ label?: string; [key: string]: unknown }> {
     if (!menuItem.label) {
       return menuItem;
     }

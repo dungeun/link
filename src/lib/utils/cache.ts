@@ -6,14 +6,14 @@ import { NextResponse } from 'next/server';
 
 // 메모리 기반 간단한 캐시 (개발용)
 class SimpleCache {
-  private cache = new Map<string, { data: any; expires: number }>();
+  private cache = new Map<string, { data: unknown; expires: number }>();
 
-  set(key: string, data: any, ttlSeconds: number = 300): void {
+  set(key: string, data: unknown, ttlSeconds: number = 300): void {
     const expires = Date.now() + ttlSeconds * 1000;
     this.cache.set(key, { data, expires });
   }
 
-  get(key: string): any | null {
+  get(key: string): unknown | null {
     const cached = this.cache.get(key);
     if (!cached) return null;
 
@@ -93,7 +93,7 @@ export class CacheKeyBuilder {
     return this.add('page', page).add('limit', limit);
   }
 
-  filter(filters: Record<string, any>): CacheKeyBuilder {
+  filter(filters: Record<string, unknown>): CacheKeyBuilder {
     const filterString = Object.entries(filters)
       .filter(([_, value]) => value !== undefined && value !== null && value !== '')
       .map(([key, value]) => `${key}:${value}`)
@@ -155,7 +155,7 @@ export class ResponseCache {
    */
   static invalidate(pattern: string): void {
     // 간단한 패턴 매칭으로 캐시 무효화
-    const keys = Array.from((cache as any).cache.keys());
+    const keys = Array.from((cache as SimpleCache & { cache: Map<string, unknown> }).cache.keys());
     keys.forEach((key: string) => {
       if (key.includes(pattern)) {
         cache.delete(key);
@@ -185,10 +185,10 @@ export class ResponseCache {
  * 데이터베이스 쿼리 캐싱 데코레이터
  */
 export function cached(ttlSeconds: number = 300) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (target: unknown, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       // 캐시 키 생성 (함수명 + 인자들)
       const cacheKey = `${propertyName}:${JSON.stringify(args)}`;
       

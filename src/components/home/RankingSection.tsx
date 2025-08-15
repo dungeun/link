@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo } from 'react'
 
 interface Campaign {
   id: string
@@ -19,26 +19,63 @@ interface Campaign {
   rank?: number
 }
 
-interface RankingSectionProps {
-  section: any
-  localizedContent: any
-  t: (key: string, fallback?: string) => string
+interface SectionSettings {
+  count?: number;
+  period?: string;
+  sortBy?: string;
 }
 
-export default function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
+interface Section {
+  title?: string;
+  subtitle?: string;
+  settings?: SectionSettings;
+}
+
+interface LocalizedContent {
+  title?: string;
+  subtitle?: string;
+}
+
+interface RankingSectionProps {
+  section: Section;
+  localizedContent: LocalizedContent;
+  t: (key: string, fallback?: string) => string;
+}
+
+function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   
-  // 섹션 설정에서 개수와 기준 가져오기
-  const count = section.settings?.count || 5
-  const criteria = section.settings?.criteria || 'popular'
-  const showBadge = section.settings?.showBadge !== false
+  // 섹션 설정에서 개수와 기준 가져오기 - 메모이제이션
+  const count = useMemo(() => section.settings?.count || 5, [section.settings?.count])
+  const criteria = useMemo(() => section.settings?.criteria || 'popular', [section.settings?.criteria])
+  const showBadge = useMemo(() => section.settings?.showBadge !== false, [section.settings?.showBadge])
 
-  // 제목과 부제목 (다국어 지원)
-  const title = localizedContent?.title || section.title || '인기 랭킹'
-  const subtitle = localizedContent?.subtitle || section.subtitle || '실시간 인기 캠페인'
+  // 제목과 부제목 (다국어 지원) - 메모이제이션
+  const title = useMemo(() => localizedContent?.title || section.title || '인기 랭킹', [localizedContent?.title, section.title])
+  const subtitle = useMemo(() => localizedContent?.subtitle || section.subtitle || '실시간 인기 캠페인', [localizedContent?.subtitle, section.subtitle])
 
-  const loadRankingCampaigns = async () => {
+  // 랭킹 뱃지 색상 - 메모이제이션
+  const getRankBadgeColor = useCallback((rank: number) => {
+    switch (rank) {
+      case 1: return 'bg-yellow-500 text-white' // 금
+      case 2: return 'bg-gray-400 text-white'  // 은
+      case 3: return 'bg-amber-600 text-white' // 동
+      default: return 'bg-blue-500 text-white'
+    }
+  }, [])
+
+  // 랭킹 아이콘 - 메모이제이션
+  const getRankIcon = useCallback((rank: number) => {
+    switch (rank) {
+      case 1: return '👑'
+      case 2: return '🥈'
+      case 3: return '🥉'
+      default: return rank.toString()
+    }
+  }, [])
+
+  const loadRankingCampaigns = useCallback(async () => {
     try {
       setLoading(true)
       // 랭킹 기준에 따라 API 호출
@@ -62,31 +99,11 @@ export default function RankingSection({ section, localizedContent, t }: Ranking
     } finally {
       setLoading(false)
     }
-  }
+  }, [criteria, count])
 
   useEffect(() => {
     loadRankingCampaigns()
-  }, [criteria, count])
-
-  // 랭킹 뱃지 색상
-  const getRankBadgeColor = (rank: number) => {
-    switch (rank) {
-      case 1: return 'bg-yellow-500 text-white' // 금
-      case 2: return 'bg-gray-400 text-white'  // 은
-      case 3: return 'bg-amber-600 text-white' // 동
-      default: return 'bg-blue-500 text-white'
-    }
-  }
-
-  // 랭킹 아이콘
-  const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1: return '👑'
-      case 2: return '🥈'
-      case 3: return '🥉'
-      default: return rank.toString()
-    }
-  }
+  }, [loadRankingCampaigns])
 
   if (!section.visible) return null
 
@@ -95,30 +112,31 @@ export default function RankingSection({ section, localizedContent, t }: Ranking
       {/* 섹션 헤더 */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-          <p className="text-gray-600 mt-1">{subtitle}</p>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">{title}</h2>
+          <p className="text-sm md:text-base text-gray-600 mt-1">{subtitle}</p>
         </div>
         <Link 
           href={`/campaigns?sort=${criteria === 'popular' ? 'applicants' : criteria}`}
-          className="text-blue-600 hover:text-blue-700 font-medium"
+          className="text-blue-600 hover:text-blue-700 font-medium text-sm md:text-base"
         >
           전체보기 →
         </Link>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {[...Array(count)].map((_, i) => (
             <div key={i} className="bg-gray-100 rounded-xl h-64 animate-pulse" />
           ))}
         </div>
       ) : campaigns.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {campaigns.map((campaign) => (
             <Link
               key={campaign.id}
               href={`/campaigns/${campaign.id}`}
-              className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow relative"
+              className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow relative cursor-pointer"
+              style={{ pointerEvents: 'auto' }}
             >
               {/* 랭킹 뱃지 */}
               {showBadge && campaign.rank && (
@@ -146,19 +164,19 @@ export default function RankingSection({ section, localizedContent, t }: Ranking
               </div>
 
               {/* 캠페인 정보 */}
-              <div className="p-3">
-                <p className="text-xs text-gray-600 mb-1">{campaign.brand}</p>
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-sm">
+              <div className="p-2 md:p-3">
+                <p className="text-xs text-gray-600 mb-1 truncate">{campaign.brand}</p>
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-xs md:text-sm leading-tight">
                   {campaign.title}
                 </h3>
                 
                 {/* 통계 정보 */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500">
+                    <span className="text-gray-500 text-xs">
                       {campaign.applicants}/{campaign.maxApplicants}명
                     </span>
-                    <span className="text-blue-600 font-medium">
+                    <span className="text-blue-600 font-medium text-xs">
                       {campaign.budget}
                     </span>
                   </div>
@@ -195,3 +213,6 @@ export default function RankingSection({ section, localizedContent, t }: Ranking
     </div>
   )
 }
+
+// React.memo로 성능 최적화
+export default memo(RankingSection)

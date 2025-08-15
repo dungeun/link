@@ -11,7 +11,7 @@ export interface CacheOptions {
 
 export class CacheManager {
   private redis: Redis | null = null;
-  private memoryCache: Map<string, { value: any; expires: number }> = new Map();
+  private memoryCache: Map<string, { value: unknown; expires: number }> = new Map();
 
   constructor() {
     // Initialize Redis if connection is available
@@ -182,7 +182,7 @@ export const cache = new CacheManager();
 // Cache key generators
 export const cacheKeys = {
   campaign: (id: string) => `campaign:${id}`,
-  campaignList: (params: any) => `campaigns:${JSON.stringify(params)}`,
+  campaignList: (params: Record<string, unknown>) => `campaigns:${JSON.stringify(params)}`,
   user: (id: string) => `user:${id}`,
   userProfile: (id: string) => `profile:${id}`,
   revenue: (date: string) => `revenue:${date}`,

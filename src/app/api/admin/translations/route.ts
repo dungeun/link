@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type') || 'campaign'
     const untranslatedOnly = searchParams.get('untranslatedOnly') === 'true'
 
-    let data: any[] = []
+    let data: Array<Record<string, unknown>> = []
 
     if (type === 'campaign') {
       // 캠페인 번역 데이터 조회
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       }))
     } else if (type === 'menu') {
       // 메뉴 관련 LanguagePack 데이터만 조회
-      const whereClause: any = {
+      const whereClause: Record<string, unknown> = {
         OR: [
           { category: 'ui_menu' },
           { category: 'ui_action' },
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       }))
     } else if (type === 'main-sections') {
       // 메인 섹션 관련 LanguagePack 데이터만 조회
-      const whereClause: any = {
+      const whereClause: Record<string, unknown> = {
         OR: [
           { category: 'ui_hero' },
           { category: 'ui_category' },
