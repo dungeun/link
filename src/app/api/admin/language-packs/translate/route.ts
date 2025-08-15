@@ -164,7 +164,7 @@ export async function PUT(request: NextRequest) {
         try {
           const multiLang = await translationService.translateToMultiLanguages(item.ko);
           enText = multiLang.en;
-          jaText = multiLang.ja;
+          jaText = multiLang.jp;
         } catch (error) {
           console.error(`번역 실패 - ${item.key}:`, error);
         }
@@ -176,7 +176,7 @@ export async function PUT(request: NextRequest) {
           key: item.key,
           ko: item.ko,
           en: enText,
-          ja: jaText,
+          jp: jaText,
           category: item.category,
           isEditable: true
         }

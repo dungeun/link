@@ -8,7 +8,7 @@ export async function DELETE(
 ) {
   try {
     const auth = await verifyAuth(request)
-    if (!auth || auth.user.type !== 'ADMIN') {
+    if (!auth || !auth.user || auth.user.type !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -26,10 +26,10 @@ export async function DELETE(
         where: { postId: postId }
       })
 
-      // 첨부파일 삭제
-      await tx.attachment.deleteMany({
-        where: { postId: postId }
-      })
+      // 첨부파일 삭제 (attachment 모델이 없으므로 주석 처리)
+      // await tx.attachment.deleteMany({
+      //   where: { postId: postId }
+      // })
 
       // 게시물 삭제
       const deletedPost = await tx.post.delete({
@@ -59,7 +59,7 @@ export async function PUT(
 ) {
   try {
     const auth = await verifyAuth(request)
-    if (!auth || auth.user.type !== 'ADMIN') {
+    if (!auth || !auth.user || auth.user.type !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

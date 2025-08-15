@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
 import { withAuth } from '@/lib/auth/middleware'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+
+// Note: Board model is not currently defined in the Prisma schema
+// This endpoint is a placeholder and will return 501 Not Implemented
 
 // GET /api/admin/boards/[id]/posts - 게시판의 게시물 목록 조회
 export async function GET(
@@ -26,36 +28,11 @@ export async function GET(
       )
     }
 
-    // 게시물 목록 조회
-    const posts = await prisma.$queryRaw`
-      SELECT 
-        p.*,
-        u.name as author_name,
-        COUNT(DISTINCT c.id) as comment_count,
-        COUNT(DISTINCT l.id) as like_count
-      FROM posts p
-      LEFT JOIN users u ON p.author_id = u.id
-      LEFT JOIN comments c ON p.id = c.post_id
-      LEFT JOIN likes l ON p.id = l.post_id
-      WHERE p.board_id = ${params.id}
-      GROUP BY p.id, u.name
-      ORDER BY p.created_at DESC
-    `
-
-    return NextResponse.json({
-      success: true,
-      posts: posts.map((post: { id: string; board_id: string; title: string; content: string; view_count: number; status: string; author_id: string; author_name: string; comment_count: string | number; like_count: string | number; created_at: Date; updated_at: Date }) => ({
-        id: post.id,
-        boardId: post.board_id,
-        title: post.title,
-        author: post.author_name || 'Unknown',
-        status: post.status,
-        viewCount: post.view_count || 0,
-        likeCount: parseInt(post.like_count || 0),
-        commentCount: parseInt(post.comment_count || 0),
-        createdAt: post.created_at
-      }))
-    })
+    // Board model not implemented
+    return NextResponse.json(
+      { success: false, error: 'Board functionality not implemented' },
+      { status: 501 }
+    )
   } catch (error) {
     console.error('Failed to get posts:', error)
     return NextResponse.json(

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         key: true,
         ko: true,
         en: true,
-        ja: true,
+        jp: true,
         description: true
       },
       orderBy: {

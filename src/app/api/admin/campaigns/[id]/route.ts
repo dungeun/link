@@ -165,13 +165,17 @@ export async function PUT(
     })
   } catch (error) {
     console.error('❌ 캠페인 업데이트 오류:', error)
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    const errorName = error instanceof Error ? error.name : 'UnknownError'
+    
     console.error('❌ Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+      message: errorMessage,
+      stack: errorStack,
+      name: errorName
     })
     return NextResponse.json(
-      { success: false, error: `서버 오류: ${error.message}`, details: error.stack },
+      { success: false, error: `서버 오류: ${errorMessage}`, details: errorStack },
       { status: 500 }
     )
   }

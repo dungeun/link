@@ -7,6 +7,9 @@ export const runtime = 'nodejs'
 
 // POST /api/admin/translations/auto - 자동 번역
 export async function POST(request: NextRequest) {
+  let testMode = false
+  let testApiKey: string | undefined
+  
   try {
     console.log('[API Auto] 요청 헤더:', {
       authorization: request.headers.get('authorization'),
@@ -15,7 +18,9 @@ export async function POST(request: NextRequest) {
     })
     
     const body = await request.json()
-    const { text, targetLanguages = ['en', 'ja'], sourceLanguage = 'ko', testMode = false, testApiKey } = body
+    const { text, targetLanguages = ['en', 'ja'], sourceLanguage = 'ko' } = body
+    testMode = body.testMode || false
+    testApiKey = body.testApiKey
     
     const authResult = await requireAdminAuth(request)
     if (authResult.error) {
@@ -130,7 +135,7 @@ export async function POST(request: NextRequest) {
 
       // 테스트 모드일 때는 특별한 응답 형식
       if (testMode) {
-        const englishTranslation = translations.en
+        const englishTranslation = translations.en as any
         if (englishTranslation && !englishTranslation.error) {
           return NextResponse.json({
             success: true,
@@ -171,7 +176,7 @@ export async function POST(request: NextRequest) {
     console.error('자동 번역 처리 오류:', {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-      testMode,
+      testMode: testMode,
       testApiKey: testApiKey ? 'provided' : 'not provided'
     })
     

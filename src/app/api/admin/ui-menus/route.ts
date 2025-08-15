@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
         sectionId: menuKey,
         type: type,
         content: menuContent,
-        translations: translations,
+        translations: translations as any,
         order: (maxOrder?.order || 0) + 1,
         visible: true
       }
@@ -122,16 +122,16 @@ export async function POST(req: NextRequest) {
       where: { key: menuKey },
       update: {
         ko: name,
-        en: translations.en?.name || name,
-        jp: translations.jp?.name || name,
+        en: (translations as any).en?.name || name,
+        jp: (translations as any).jp?.name || name,
         category: type,
         description: `${type === 'header' ? '헤더' : '푸터'} 메뉴`
       },
       create: {
         key: menuKey,
         ko: name,
-        en: translations.en?.name || name,
-        jp: translations.jp?.name || name,
+        en: (translations as any).en?.name || name,
+        jp: (translations as any).jp?.name || name,
         category: type,
         description: `${type === 'header' ? '헤더' : '푸터'} 메뉴`
       }
@@ -198,8 +198,8 @@ export async function PUT(req: NextRequest) {
 
         updatedTranslations = {
           ...updatedTranslations,
-          en: { ...updatedTranslations.en, name: enTranslation },
-          jp: { ...updatedTranslations.jp, name: jpTranslation }
+          en: { ...(updatedTranslations.en || {}), name: enTranslation },
+          jp: { ...(updatedTranslations.jp || {}), name: jpTranslation }
         };
 
         // 언어팩도 업데이트
@@ -221,8 +221,8 @@ export async function PUT(req: NextRequest) {
     const updatedMenu = await prisma.uISection.update({
       where: { id },
       data: {
-        content: updatedContent,
-        translations: updatedTranslations,
+        content: updatedContent as any,
+        translations: updatedTranslations as any,
         order: order !== undefined ? order : menu.order,
         visible: visible !== undefined ? visible : menu.visible
       }

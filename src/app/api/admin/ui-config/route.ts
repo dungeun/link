@@ -165,11 +165,12 @@ export async function POST(request: NextRequest) {
       // sectionOrder에서 중복 제거
       const seenIds = new Set<string>();
       const cleanedSectionOrder = config.mainPage.sectionOrder.filter((section: Record<string, unknown>) => {
-        if (seenIds.has(section.id)) {
-          console.log(`Removing duplicate section ID: ${section.id}`);
+        const sectionId = section.id as string;
+        if (seenIds.has(sectionId)) {
+          console.log(`Removing duplicate section ID: ${sectionId}`);
           return false;
         }
-        seenIds.add(section.id);
+        seenIds.add(sectionId);
         return true;
       });
       config.mainPage.sectionOrder = cleanedSectionOrder;
@@ -179,11 +180,12 @@ export async function POST(request: NextRequest) {
       // customSections에서 중복 제거
       const seenCustomIds = new Set<string>();
       const cleanedCustomSections = config.mainPage.customSections.filter((section: Record<string, unknown>) => {
-        if (seenCustomIds.has(section.id)) {
-          console.log(`Removing duplicate custom section ID: ${section.id}`);
+        const sectionId = section.id as string;
+        if (seenCustomIds.has(sectionId)) {
+          console.log(`Removing duplicate custom section ID: ${sectionId}`);
           return false;
         }
-        seenCustomIds.add(section.id);
+        seenCustomIds.add(sectionId);
         return true;
       });
       config.mainPage.customSections = cleanedCustomSections;

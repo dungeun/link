@@ -59,7 +59,8 @@ export async function PATCH(
             type: 'POST_HIDDEN',
             title: '게시물이 숨김 처리되었습니다',
             message: `"${postDetails.title}" 게시물이 관리자에 의해 숨김 처리되었습니다`,
-            relatedId: params.id
+            actionUrl: `/posts/${params.id}`,
+            metadata: JSON.stringify({ postId: params.id })
           }
         })
       }

@@ -25,7 +25,7 @@ export async function GET(
       success: true 
     });
   } catch (error) {
-    logger.error('Error fetching UI section:', error);
+    logger.error('Error fetching UI section:', error as string);
     return NextResponse.json({ 
       error: 'Failed to fetch section',
       success: false 
@@ -65,7 +65,7 @@ export async function PUT(
           translations.jp = translations.jp || {};
           
           // 영어 번역
-          translations.en.slides = await Promise.all(content.slides.map(async (slide: { title?: string; subtitle?: string; tag?: string; [key: string]: unknown }) => ({
+          (translations.en as any).slides = await Promise.all(content.slides.map(async (slide: { title?: string; subtitle?: string; tag?: string; [key: string]: unknown }) => ({
             ...slide,
             title: slide.title ? await translateText(slide.title, 'en').catch(() => slide.title) : slide.title,
             subtitle: slide.subtitle ? await translateText(slide.subtitle, 'en').catch(() => slide.subtitle) : slide.subtitle,
@@ -73,7 +73,7 @@ export async function PUT(
           })));
 
           // 일본어 번역
-          translations.jp.slides = await Promise.all(content.slides.map(async (slide: { title?: string; subtitle?: string; tag?: string; [key: string]: unknown }) => ({
+          (translations.jp as any).slides = await Promise.all(content.slides.map(async (slide: { title?: string; subtitle?: string; tag?: string; [key: string]: unknown }) => ({
             ...slide,
             title: slide.title ? await translateText(slide.title, 'ja').catch(() => slide.title) : slide.title,
             subtitle: slide.subtitle ? await translateText(slide.subtitle, 'ja').catch(() => slide.subtitle) : slide.subtitle,
@@ -152,7 +152,7 @@ export async function PUT(
       success: true 
     });
   } catch (error) {
-    logger.error('Error updating UI section:', error);
+    logger.error('Error updating UI section:', error as string);
     return NextResponse.json({ 
       error: 'Failed to update section',
       success: false 
@@ -174,7 +174,7 @@ export async function DELETE(
       success: true 
     });
   } catch (error) {
-    logger.error('Error deleting UI section:', error);
+    logger.error('Error deleting UI section:', error as string);
     return NextResponse.json({ 
       error: 'Failed to delete section',
       success: false 

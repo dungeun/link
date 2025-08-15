@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         { key: { contains: search, mode: 'insensitive' } },
         { ko: { contains: search, mode: 'insensitive' } },
         { en: { contains: search, mode: 'insensitive' } },
-        { ja: { contains: search, mode: 'insensitive' } }
+        { jp: { contains: search, mode: 'insensitive' } }
       ];
     }
 
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { key, ko, en, ja, category, description, autoTranslate } = body;
+    const { key, ko, en, jp: ja, category, description, autoTranslate } = body;
 
     // 필수 필드 검증
     if (!key || !ko || !category) {
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         key,
         ko,
         en: translatedEn || ko, // 번역 실패 시 한국어 사용
-        ja: translatedJa || ko, // 번역 실패 시 한국어 사용
+        jp: translatedJa || ko, // 번역 실패 시 한국어 사용
         category,
         description,
         isEditable: true
@@ -136,7 +136,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, ko, en, ja, description } = body;
+    const { id, ko, en, jp: ja, description } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -169,7 +169,7 @@ export async function PUT(request: NextRequest) {
       data: {
         ko,
         en,
-        ja,
+        jp: ja,
         description
       }
     });

@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         key,
         ko,
         en,
-        ja,
+        jp: ja,
         category,
         description: `Auto-generated menu item for: ${ko}`,
         isEditable: true
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       key: languagePack.key,
       ko: languagePack.ko,
       en: languagePack.en,
-      ja: languagePack.ja
+      ja: languagePack.jp
     })
 
   } catch (error) {
@@ -119,7 +119,7 @@ export async function PUT(request: NextRequest) {
     }
 
     let en = existingPack.en
-    let ja = existingPack.ja
+    let ja = existingPack.jp
 
     // 자동 번역 수행
     if (autoTranslate) {
@@ -141,7 +141,7 @@ export async function PUT(request: NextRequest) {
       data: {
         ko,
         en,
-        ja,
+        jp: ja,
         updatedAt: new Date()
       }
     })
@@ -153,7 +153,7 @@ export async function PUT(request: NextRequest) {
       key: updatedPack.key,
       ko: updatedPack.ko,
       en: updatedPack.en,
-      ja: updatedPack.ja
+      ja: updatedPack.jp
     })
 
   } catch (error) {

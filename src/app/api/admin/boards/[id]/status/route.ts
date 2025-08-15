@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
 import { withAuth } from '@/lib/auth/middleware'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+
+// Note: Board model is not currently defined in the Prisma schema
+// This endpoint is a placeholder and will return 501 Not Implemented
 
 // PATCH /api/admin/boards/[id]/status - 게시판 상태 변경
 export async function PATCH(
@@ -26,34 +28,15 @@ export async function PATCH(
       )
     }
 
-    const body = await request.json()
-    const { status } = body
-
-    if (!['ACTIVE', 'INACTIVE', 'ARCHIVED'].includes(status)) {
-      return NextResponse.json(
-        { success: false, error: '유효하지 않은 상태입니다' },
-        { status: 400 }
-      )
-    }
-
-    // 게시판 상태 업데이트
-    const board = await prisma.board.update({
-      where: { id: params.id },
-      data: {
-        status,
-        updatedAt: new Date()
-      }
-    })
-
-    return NextResponse.json({
-      success: true,
-      message: '게시판 상태가 변경되었습니다',
-      board
-    })
+    // Board model not implemented
+    return NextResponse.json(
+      { success: false, error: 'Board functionality not implemented' },
+      { status: 501 }
+    )
   } catch (error) {
     console.error('Failed to update board status:', error)
     return NextResponse.json(
-      { success: false, error: '게시판 상태 변경 중 오류가 발생했습니다' },
+      { success: false, error: '상태 변경 중 오류가 발생했습니다' },
       { status: 500 }
     )
   }

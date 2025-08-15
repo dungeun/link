@@ -174,7 +174,7 @@ export async function PUT(
 
       const updateData: Record<string, unknown> = {}
       if (en !== undefined) updateData.en = en
-      if (ja !== undefined) updateData.ja = ja
+      if (ja !== undefined) updateData.jp = ja
 
       if (Object.keys(updateData).length > 0) {
         await prisma.languagePack.update({

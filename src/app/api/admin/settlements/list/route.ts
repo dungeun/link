@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // 필터 조건 구성
-    const where: Record<string, unknown> = {};
+    const where: Record<string, any> = {};
     
     if (status) {
       where.status = status;
@@ -32,9 +32,10 @@ export async function GET(request: NextRequest) {
     }
     
     if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate);
-      if (endDate) where.createdAt.lte = new Date(endDate);
+      const dateFilter: Record<string, Date> = {};
+      if (startDate) dateFilter.gte = new Date(startDate);
+      if (endDate) dateFilter.lte = new Date(endDate);
+      where.createdAt = dateFilter;
     }
 
     // 전체 개수 조회

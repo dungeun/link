@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
         if (!pack.ko?.trim()) continue
 
         for (const targetLang of targetLanguages) {
-          const currentValue = targetLang === 'en' ? pack.en : pack.ja
+          const currentValue = targetLang === 'en' ? pack.en : pack.jp
 
           // 이미 번역이 있으면 스킵
           if (currentValue) {
