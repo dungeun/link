@@ -4,140 +4,112 @@ import { authenticateRequest } from '@/lib/auth/middleware'
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await authenticateRequest(request)
+    const authResult = await authenticateRequest(request)
+    const userId = (authResult as any).userId
     if (!userId) {
       return NextResponse.json({ error: '인증되지 않은 요청입니다.' }, { status: 401 })
     }
 
-    // 인플루언서 프로필 조회
-    const influencer = await prisma.influencer.findUnique({
-      where: { user_id: userId },
+    // 인플루언서 사용자 정보 조회
+    const user = await prisma.user.findUnique({
+      where: { 
+        id: userId,
+        type: 'INFLUENCER'
+      },
       include: {
-        portfolios: {
+        profile: true,
+        applications: {
+          where: {
+            status: 'APPROVED'
+          },
           orderBy: {
-            created_at: 'desc'
+            createdAt: 'desc'
           },
           include: {
             campaign: {
               include: {
                 business: true
               }
+            },
+            contents: {
+              where: {
+                status: 'APPROVED'
+              }
             }
-          }
-        },
-        applications: {
-          where: {
-            status: 'COMPLETED'
-          },
-          include: {
-            campaign: true
           }
         }
       }
     })
 
-    if (!influencer) {
+    if (!user || user.type !== 'INFLUENCER') {
       return NextResponse.json({ error: '인플루언서 프로필을 찾을 수 없습니다.' }, { status: 404 })
     }
 
-    // 포트폴리오 아이템 형식화
-    const portfolioItems = influencer.portfolios.map(portfolio => ({
-      id: portfolio.id,
-      title: portfolio.title,
-      description: portfolio.description,
-      imageUrl: portfolio.image_url,
-      platform: portfolio.platform,
-      link: portfolio.link,
-      metrics: {
-        views: portfolio.view_count || 0,
-        likes: portfolio.like_count || 0,
-        comments: portfolio.comment_count || 0,
-        shares: portfolio.share_count || 0
-      },
-      campaign: portfolio.campaign ? {
-        id: portfolio.campaign.id,
-        title: portfolio.campaign.title,
-        brand: portfolio.campaign.business?.name || 'Unknown Brand'
-      } : null,
-      createdAt: portfolio.created_at
-    }))
+    // 포트폴리오 데이터 형식화
+    const portfolios = user.applications
+      .filter((app: any) => app.contents && app.contents.length > 0)
+      .map((app: any) => ({
+        id: app.id,
+        campaignTitle: app.campaign?.title || 'Unknown Campaign',
+        brand: app.campaign?.business?.name || 'Unknown Brand',
+        platform: app.campaign?.platform || 'instagram',
+        contentUrl: app.contents[0]?.contentUrl || '#',
+        description: app.contents[0]?.description || '',
+        createdAt: app.contents[0]?.createdAt || app.createdAt,
+        status: 'COMPLETED'
+      }))
 
     // 통계 계산
-    const totalViews = portfolioItems.reduce((sum, item) => sum + item.metrics.views, 0)
-    const totalLikes = portfolioItems.reduce((sum, item) => sum + item.metrics.likes, 0)
-    const avgEngagement = portfolioItems.length > 0 
-      ? Math.round((totalLikes / totalViews) * 100 * 10) / 10 
-      : 0
-
-    const stats = {
-      totalProjects: portfolioItems.length,
-      completedCampaigns: influencer.applications.length,
-      totalViews,
-      avgEngagement
+    const statistics = {
+      totalCampaigns: user.applications.filter((app: any) => app.status === 'APPROVED').length,
+      completedCampaigns: portfolios.length,
+      totalEarnings: 0, // 실제 수익 계산 로직 필요
+      averageRating: 0 // 평점 시스템 구현 필요
     }
 
     return NextResponse.json({
-      portfolioItems,
-      stats
+      portfolios,
+      statistics
     })
   } catch (error) {
-    console.error('Portfolio API error:', error)
+    console.error('Failed to fetch portfolio:', error)
     return NextResponse.json(
-      { error: '포트폴리오를 가져오는데 실패했습니다.' },
+      { error: '포트폴리오 정보를 불러오는데 실패했습니다.' },
       { status: 500 }
     )
   }
 }
 
-// 포트폴리오 아이템 추가
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await authenticateRequest(request)
+    const authResult = await authenticateRequest(request)
+    const userId = (authResult as any).userId
     if (!userId) {
       return NextResponse.json({ error: '인증되지 않은 요청입니다.' }, { status: 401 })
     }
 
     const body = await request.json()
-    const { title, description, imageUrl, platform, link, campaignId, metrics } = body
+    const { applicationId, contentUrl, description, platform } = body
 
-    if (!title || !platform) {
-      return NextResponse.json({ error: '필수 정보가 누락되었습니다.' }, { status: 400 })
-    }
-
-    // 인플루언서 확인
-    const influencer = await prisma.influencer.findUnique({
-      where: { user_id: userId }
-    })
-
-    if (!influencer) {
-      return NextResponse.json({ error: '인플루언서 프로필을 찾을 수 없습니다.' }, { status: 404 })
-    }
-
-    // 포트폴리오 생성
-    const portfolio = await prisma.portfolio.create({
+    // 컨텐츠 생성
+    const content = await prisma.content.create({
       data: {
-        influencer_id: influencer.id,
-        title,
+        applicationId,
+        contentUrl,
         description,
-        image_url: imageUrl,
         platform,
-        link,
-        campaign_id: campaignId,
-        view_count: metrics?.views || 0,
-        like_count: metrics?.likes || 0,
-        comment_count: metrics?.comments || 0,
-        share_count: metrics?.shares || 0
+        status: 'PENDING_REVIEW'
       }
     })
 
     return NextResponse.json({
-      success: true,
-      portfolio
+      message: '포트폴리오가 추가되었습니다.',
+      content
     })
   } catch (error) {
-    console.error('Create portfolio error:', error)
+    console.error('Failed to add portfolio:', error)
     return NextResponse.json(
-      { error: '포트폴리오 생성에 실패했습니다.' },
+      { error: '포트폴리오 추가에 실패했습니다.' },
       { status: 500 }
     )
   }

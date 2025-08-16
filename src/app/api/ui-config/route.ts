@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     const language = searchParams.get('lang') || 'ko';
     
     // 데이터베이스에서 메뉴에 표시할 카테고리 조회
-    let categoryMenus = [];
+    let categoryMenus: any[] = [];
     try {
       const categories = await prisma.category.findMany({
         where: {

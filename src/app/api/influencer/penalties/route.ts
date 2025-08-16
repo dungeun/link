@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       penalties,
-      activePenaltyCount: parseInt(activePenalties[0]?.count || 0)
+      activePenaltyCount: parseInt((activePenalties as any)[0]?.count || 0)
     })
   } catch (error) {
     console.error('Failed to get penalties:', error)
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
         type: 'PENALTY_ISSUED',
         title: '페널티가 부과되었습니다',
         message: `사유: ${reason}`,
-        relatedId: campaignId
+        metadata: JSON.stringify({ campaignId })
       }
     })
 

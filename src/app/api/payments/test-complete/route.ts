@@ -70,13 +70,15 @@ export async function POST(request: NextRequest) {
     })
 
     // 캠페인 상태 업데이트 (isPaid = true)
-    await prisma.campaign.update({
-      where: { id: payment.campaignId },
-      data: {
-        isPaid: true,
-        status: 'ACTIVE'
-      }
-    })
+    if (payment.campaignId) {
+      await prisma.campaign.update({
+        where: { id: payment.campaignId },
+        data: {
+          isPaid: true,
+          status: 'ACTIVE'
+        }
+      })
+    }
 
     return NextResponse.json({
       success: true,

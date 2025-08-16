@@ -290,8 +290,8 @@ export async function GET(request: NextRequest) {
             description: campaign.description || '',
             budget: campaign.budget,
             deadline: Math.max(0, daysDiff), // 마감일까지 남은 일수
-            category: campaign.categories?.find(c => c.isPrimary)?.category?.slug || campaign.categories?.[0]?.category?.slug || 'other',
-            categoryName: campaign.categories?.find(c => c.isPrimary)?.category?.name || campaign.categories?.[0]?.category?.name || 'Other',
+            category: campaign.categories?.find((c: any) => c.isPrimary)?.category?.slug || campaign.categories?.[0]?.category?.slug || 'other',
+            categoryName: campaign.categories?.find((c: any) => c.isPrimary)?.category?.name || campaign.categories?.[0]?.category?.name || 'Other',
             platforms: [campaign.platform?.toLowerCase() || 'unknown'],
             required_followers: campaign.targetFollowers,
             location: '전국',
@@ -308,13 +308,13 @@ export async function GET(request: NextRequest) {
                 if (typeof campaign.hashtags === 'string' && campaign.hashtags.startsWith('[')) {
                   return JSON.parse(campaign.hashtags);
                 } else if (typeof campaign.hashtags === 'string') {
-                  return campaign.hashtags.split(' ').filter(tag => tag && tag.startsWith('#'));
+                  return campaign.hashtags.split(' ').filter((tag: any) => tag && tag.startsWith('#'));
                 }
                 return [];
               } catch (e) {
                 console.warn('Failed to parse hashtags:', campaign.hashtags);
                 if (typeof campaign.hashtags === 'string') {
-                  return campaign.hashtags.split(' ').filter(tag => tag && tag.startsWith('#'));
+                  return campaign.hashtags.split(' ').filter((tag: any) => tag && tag.startsWith('#'));
                 }
                 return [];
               }
@@ -426,7 +426,7 @@ export async function GET(request: NextRequest) {
 // POST /api/campaigns - 새 캠페인 생성
 export async function POST(request: NextRequest) {
   const timer = new PerformanceTimer('api.campaigns.POST');
-  let user: { id: string; [key: string]: unknown } | null = null;
+  let user: any = null;
   
   try {
     // Authenticate user
@@ -462,7 +462,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Invalid campaign data', 400, errors);
     }
     
-    const validatedData = validationResult.data;
+    const validatedData = validationResult.data!;
 
     // Create campaign with validated data (성능 측정 포함)
     const campaign = await QueryPerformance.measure(

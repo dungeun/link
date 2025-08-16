@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
         platforms: [campaign.platform.toLowerCase()],
         description: campaign.description || '',
         createdAt: campaign.createdAt,
-        budget: `${campaign.budget.toLocaleString()}원`,
+        budget: campaign.budget ? `${campaign.budget.toLocaleString()}원` : '협의',
         imageUrl: campaign.imageUrl
       };
     });

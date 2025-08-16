@@ -191,8 +191,10 @@ export async function POST(request: NextRequest) {
             .filter(app => app.campaign?.budget && app.campaign.budget > 0)
             .slice(0, Math.ceil(amount / (availableAmount / completedApplications.length)))
             .map(app => ({
-              applicationId: app.id,
-              amount: app.campaign!.budget,
+              application: {
+                connect: { id: app.id }
+              },
+              amount: app.campaign!.budget || 0,
               campaignTitle: app.campaign!.title
             }))
         }

@@ -63,7 +63,7 @@ export async function GET(
         break;
     }
     
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(fileBuffer as any, {
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=31536000', // 1년 캐시

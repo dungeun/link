@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      summary: ratings[0] || {
+      summary: (ratings as any)[0] || {
         total_ratings: 0,
         average_score: 0,
         avg_communication: 0,
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         AND campaign_id = ${campaignId}
     `
 
-    if (existingRating.length > 0) {
+    if ((existingRating as any).length > 0) {
       return NextResponse.json(
         { success: false, error: '이미 평가를 등록하셨습니다' },
         { status: 400 }
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
         type: 'RATING_RECEIVED',
         title: '새로운 평가를 받았습니다',
         message: `캠페인에 대한 평가가 등록되었습니다`,
-        relatedId: campaignId
+        metadata: JSON.stringify({ campaignId })
       }
     })
 

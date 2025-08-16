@@ -84,13 +84,15 @@ export async function GET(request: NextRequest) {
     })
 
     // 캠페인 상태 업데이트 (isPaid = true, 관리자 검토 대기)
-    await prisma.campaign.update({
-      where: { id: payment.campaignId },
-      data: {
-        isPaid: true,
-        status: 'PENDING_REVIEW'  // 관리자 승인 대기 상태로 변경
-      }
-    })
+    if (payment.campaignId) {
+      await prisma.campaign.update({
+        where: { id: payment.campaignId },
+        data: {
+          isPaid: true,
+          status: 'PENDING_REVIEW'  // 관리자 승인 대기 상태로 변경
+        }
+      })
+    }
 
     // 관리자에게 승인 요청 알림 생성
     const admins = await prisma.user.findMany({
@@ -98,20 +100,22 @@ export async function GET(request: NextRequest) {
       select: { id: true }
     })
 
-    for (const admin of admins) {
-      await prisma.notification.create({
-        data: {
-          userId: admin.id,
-          type: 'CAMPAIGN_REVIEW',
-          title: '새로운 캠페인 승인 요청',
-          message: `"${payment.campaign.title}" 캠페인이 결제 완료되어 검토가 필요합니다.`,
-          actionUrl: `/admin/campaigns?status=pending_review`,
-          metadata: JSON.stringify({
-            campaignId: payment.campaignId,
-            businessId: payment.userId
-          })
-        }
-      })
+    if (payment.campaign) {
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: 'CAMPAIGN_REVIEW',
+            title: '새로운 캠페인 승인 요청',
+            message: `"${payment.campaign.title}" 캠페인이 결제 완료되어 검토가 필요합니다.`,
+            actionUrl: `/admin/campaigns?status=pending_review`,
+            metadata: JSON.stringify({
+              campaignId: payment.campaignId,
+              businessId: payment.userId
+            })
+          }
+        })
+      }
     }
 
     // Revenue 기록 추가 (플랫폼 수수료)

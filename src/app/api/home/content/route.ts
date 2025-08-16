@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         } catch {
           return null;
         }
-      }).filter(Boolean).sort((a, b) => a.order - b.order);
+      }).filter(Boolean).sort((a: any, b: any) => a.order - b.order);
 
       // FAQ가 없으면 기본 FAQ 반환
       if (faqItems.length === 0) {
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
         } catch {
           return null;
         }
-      }).filter(Boolean).sort((a, b) => a.order - b.order);
+      }).filter(Boolean).sort((a: any, b: any) => a.order - b.order);
 
       // 기본 성공 사례가 없으면 기본값 반환
       if (testimonialItems.length === 0) {

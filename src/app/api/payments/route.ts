@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       amount,
       orderId: payment.orderId,
       orderName: `${campaign.title} 캠페인 결제`,
-      customerName: user.name || user.email,
+      customerName: (user as any).name || (user as any).email || '고객',
       successUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/payments/callback/success`,
       failUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/payments/callback/fail`
     }

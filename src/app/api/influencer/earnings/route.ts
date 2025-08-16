@@ -4,18 +4,23 @@ import { authenticateRequest } from '@/lib/auth/middleware'
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await authenticateRequest(request)
+    const authResult = await authenticateRequest(request)
+    const userId = (authResult as any).userId
     if (!userId) {
       return NextResponse.json({ error: '인증되지 않은 요청입니다.' }, { status: 401 })
     }
 
-    // 인플루언서 프로필 조회
-    const influencer = await prisma.influencer.findUnique({
-      where: { user_id: userId },
+    // 인플루언서 사용자 정보 조회
+    const user = await prisma.user.findUnique({
+      where: { 
+        id: userId,
+        type: 'INFLUENCER'
+      },
       include: {
+        profile: true,
         payments: {
           orderBy: {
-            created_at: 'desc'
+            createdAt: 'desc'
           },
           include: {
             campaign: {
@@ -27,155 +32,112 @@ export async function GET(request: NextRequest) {
         },
         settlements: {
           orderBy: {
-            created_at: 'desc'
+            createdAt: 'desc'
           }
         },
-        paymentAccounts: {
-          where: {
-            is_active: true
-          }
-        }
+        withdrawalAccount: true
       }
     })
 
-    if (!influencer) {
+    if (!user || user.type !== 'INFLUENCER') {
       return NextResponse.json({ error: '인플루언서 프로필을 찾을 수 없습니다.' }, { status: 404 })
     }
 
     // 수익 내역 형식화
-    const earnings = influencer.payments
-      .filter(payment => payment.status === 'COMPLETED')
-      .map(payment => ({
+    const earnings = user.payments
+      .filter((payment: any) => payment.status === 'COMPLETED')
+      .map((payment: any) => ({
         id: payment.id,
         campaignTitle: payment.campaign?.title || 'Unknown Campaign',
         brand: payment.campaign?.business?.name || 'Unknown Brand',
         amount: payment.amount,
         status: payment.status,
-        date: payment.created_at,
+        date: payment.createdAt,
         settlementStatus: payment.settlement_status || 'PENDING'
       }))
 
     // 통계 계산
-    const currentDate = new Date()
-    const currentMonth = currentDate.getMonth()
-    const currentYear = currentDate.getFullYear()
-
-    const totalEarnings = earnings.reduce((sum, earning) => sum + earning.amount, 0)
-    
-    const thisMonthEarnings = earnings
-      .filter(earning => {
-        const date = new Date(earning.date)
-        return date.getMonth() === currentMonth && date.getFullYear() === currentYear
-      })
-      .reduce((sum, earning) => sum + earning.amount, 0)
-
-    const pendingSettlement = earnings
-      .filter(earning => earning.settlementStatus === 'PENDING')
-      .reduce((sum, earning) => sum + earning.amount, 0)
-
-    const availableBalance = influencer.available_balance || 0
-
-    const stats = {
-      totalEarnings,
-      thisMonthEarnings,
-      pendingSettlement,
-      availableBalance
+    const statistics = {
+      totalEarnings: user.payments
+        .filter((p: any) => p.status === 'COMPLETED')
+        .reduce((sum: number, p: any) => sum + p.amount, 0),
+      pendingSettlement: user.payments
+        .filter((p: any) => p.status === 'COMPLETED' && (!p.settlement_status || p.settlement_status === 'PENDING'))
+        .reduce((sum: number, p: any) => sum + p.amount, 0),
+      settledAmount: user.settlements
+        .filter((s: any) => s.status === 'COMPLETED')
+        .reduce((sum: number, s: any) => sum + s.totalAmount, 0),
+      thisMonthEarnings: user.payments
+        .filter((p: any) => {
+          const paymentDate = new Date(p.createdAt)
+          const now = new Date()
+          return paymentDate.getMonth() === now.getMonth() && 
+                 paymentDate.getFullYear() === now.getFullYear() &&
+                 p.status === 'COMPLETED'
+        })
+        .reduce((sum: number, p: any) => sum + p.amount, 0)
     }
 
-    // 결제 계좌 정보
-    const paymentAccounts = influencer.paymentAccounts.map(account => ({
-      id: account.id,
-      bankName: account.bank_name,
-      accountNumber: account.account_number,
-      accountHolder: account.account_holder,
-      isDefault: account.is_default
-    }))
+    // 계좌 정보
+    const bankAccount = user.withdrawalAccount || null
 
     return NextResponse.json({
       earnings,
-      stats,
-      paymentAccounts
+      statistics,
+      bankAccount: bankAccount ? {
+        bankName: bankAccount.bankName,
+        accountNumber: bankAccount.accountNumber,
+        accountHolder: bankAccount.accountHolder
+      } : null
     })
   } catch (error) {
-    console.error('Earnings API error:', error)
+    console.error('Failed to fetch earnings:', error)
     return NextResponse.json(
-      { error: '수익 정보를 가져오는데 실패했습니다.' },
+      { error: '수익 정보를 불러오는데 실패했습니다.' },
       { status: 500 }
     )
   }
 }
 
-// 출금 신청
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await authenticateRequest(request)
+    const authResult = await authenticateRequest(request)
+    const userId = (authResult as any).userId
     if (!userId) {
       return NextResponse.json({ error: '인증되지 않은 요청입니다.' }, { status: 401 })
     }
 
     const body = await request.json()
-    const { amount, accountId } = body
+    const { bankName, accountNumber, accountHolder } = body
 
-    if (!amount || !accountId) {
-      return NextResponse.json({ error: '필수 정보가 누락되었습니다.' }, { status: 400 })
-    }
-
-    // 인플루언서 및 잔액 확인
-    const influencer = await prisma.influencer.findUnique({
-      where: { user_id: userId }
-    })
-
-    if (!influencer) {
-      return NextResponse.json({ error: '인플루언서 프로필을 찾을 수 없습니다.' }, { status: 404 })
-    }
-
-    if ((influencer.available_balance || 0) < amount) {
-      return NextResponse.json({ error: '출금 가능 금액이 부족합니다.' }, { status: 400 })
-    }
-
-    // 결제 계좌 확인
-    const paymentAccount = await prisma.paymentAccount.findFirst({
-      where: {
-        id: accountId,
-        influencer_id: influencer.id,
-        is_active: true
-      }
-    })
-
-    if (!paymentAccount) {
-      return NextResponse.json({ error: '유효한 결제 계좌를 찾을 수 없습니다.' }, { status: 404 })
-    }
-
-    // 출금 신청 생성
-    const settlement = await prisma.settlement.create({
-      data: {
-        influencer_id: influencer.id,
-        amount,
-        bank_name: paymentAccount.bank_name,
-        account_number: paymentAccount.account_number,
-        account_holder: paymentAccount.account_holder,
-        status: 'PENDING'
-      }
-    })
-
-    // 잔액 차감
-    await prisma.influencer.update({
-      where: { id: influencer.id },
-      data: {
-        available_balance: {
-          decrement: amount
-        }
+    // 계좌 정보 업데이트
+    const account = await prisma.withdrawalAccount.upsert({
+      where: { userId },
+      update: {
+        bankName,
+        accountNumber,
+        accountHolder
+      },
+      create: {
+        userId,
+        bankName,
+        accountNumber,
+        accountHolder
       }
     })
 
     return NextResponse.json({
-      success: true,
-      settlement
+      message: '계좌 정보가 업데이트되었습니다.',
+      account: {
+        bankName: account.bankName,
+        accountNumber: account.accountNumber,
+        accountHolder: account.accountHolder
+      }
     })
   } catch (error) {
-    console.error('Settlement request error:', error)
+    console.error('Failed to update bank account:', error)
     return NextResponse.json(
-      { error: '출금 신청에 실패했습니다.' },
+      { error: '계좌 정보 업데이트에 실패했습니다.' },
       { status: 500 }
     )
   }

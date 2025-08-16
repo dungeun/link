@@ -36,7 +36,8 @@ export async function GET(request: NextRequest) {
                   }
                 }
               }
-            }
+            },
+            contents: true
           }
         }
       }
@@ -113,7 +114,7 @@ export async function GET(request: NextRequest) {
         title: app.campaign.title,
         brand: app.campaign.business.businessProfile?.companyName || app.campaign.business.name,
         deadline: app.campaign.endDate,
-        reward: app.campaign.budget * 0.8, // 인플루언서 수령 예정 금액
+        reward: app.campaign.budget ? app.campaign.budget * 0.8 : 0, // 인플루언서 수령 예정 금액
         progress: hasSubmittedContent ? 80 : 20, // 콘텐츠 제출했으면 80%, 아니면 20%
         status: campaignStatus
       };
@@ -122,12 +123,12 @@ export async function GET(request: NextRequest) {
     // 최근 수익 내역
     const recentEarnings = completedCampaigns.slice(0, 5).map(app => {
       const approvedContent = app.contents && Array.isArray(app.contents) ? 
-        app.contents.find((content: { status: string; reviewedAt?: Date }) => content.status === 'APPROVED') : 
+        app.contents.find((content: any) => content.status === 'APPROVED') : 
         null;
       return {
         id: app.id,
         campaignTitle: app.campaign.title,
-        amount: app.campaign.budget * 0.8, // 인플루언서는 80% 수령
+        amount: (app.campaign.budget || 0) * 0.8, // 인플루언서는 80% 수령
         date: approvedContent?.reviewedAt ? 
           new Date(approvedContent.reviewedAt).toISOString().split('T')[0] :
           app.updatedAt.toISOString().split('T')[0],

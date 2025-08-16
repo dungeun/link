@@ -29,9 +29,11 @@ export async function GET(request: NextRequest) {
         })
 
         // 캠페인 삭제 (결제 실패 시)
-        await prisma.campaign.delete({
-          where: { id: payment.campaignId }
-        })
+        if (payment.campaignId) {
+          await prisma.campaign.delete({
+            where: { id: payment.campaignId }
+          })
+        }
       }
     }
 

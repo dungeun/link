@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       success: true 
     });
   } catch (error) {
-    logger.error('Error fetching home sections:', error);
+    logger.error('Error fetching home sections:', error as any);
     return NextResponse.json({ 
       error: 'Failed to fetch sections',
       success: false 
