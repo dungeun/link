@@ -53,8 +53,8 @@ NEXT_PUBLIC_TOSS_CLIENT_KEY = test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq
 
 ### 6. Application URLs
 ```
-NEXT_PUBLIC_API_URL = https://link-coral-nine.vercel.app
-NEXT_PUBLIC_APP_URL = https://link-coral-nine.vercel.app
+NEXT_PUBLIC_API_URL = https://link-alpha-three.vercel.app
+NEXT_PUBLIC_APP_URL = https://link-alpha-three.vercel.app
 ```
 
 ### 7. Environment

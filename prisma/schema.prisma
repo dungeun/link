@@ -45,6 +45,7 @@ model User {
   savedCampaigns             SavedCampaign[]
   settlements                Settlement[]
   socialAccounts             SocialAccount[]
+  withdrawalAccount          WithdrawalAccount?
 
   @@map("users")
 }
@@ -753,4 +754,17 @@ enum PaymentStatus {
   CANCELLED
   PARTIAL_REFUNDED
   REFUNDED
+}
+
+model WithdrawalAccount {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  bankName      String
+  accountNumber String
+  accountHolder String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("withdrawal_accounts")
 }

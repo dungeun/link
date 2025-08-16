@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { logger } from '@/lib/logger';
 import { translateText } from '@/lib/services/translation.service';
 
 // GET: 특정 섹션 가져오기
@@ -25,7 +24,7 @@ export async function GET(
       success: true 
     });
   } catch (error) {
-    logger.error('Error fetching UI section:', error as string);
+    console.error('Error fetching UI section:', error);
     return NextResponse.json({ 
       error: 'Failed to fetch section',
       success: false 
@@ -86,13 +85,13 @@ export async function PUT(
           translations.en = translations.en || {};
           translations.jp = translations.jp || {};
           
-          translations.en.categories = await Promise.all(content.categories.map(async (cat: { name?: string; badge?: string; [key: string]: unknown }) => ({
+          (translations.en as any).categories = await Promise.all(content.categories.map(async (cat: { name?: string; badge?: string; [key: string]: unknown }) => ({
             ...cat,
             name: cat.name ? await translateText(cat.name, 'en').catch(() => cat.name) : cat.name,
             badge: cat.badge ? await translateText(cat.badge, 'en').catch(() => cat.badge) : cat.badge
           })));
 
-          translations.jp.categories = await Promise.all(content.categories.map(async (cat: { name?: string; badge?: string; [key: string]: unknown }) => ({
+          (translations.jp as any).categories = await Promise.all(content.categories.map(async (cat: { name?: string; badge?: string; [key: string]: unknown }) => ({
             ...cat,
             name: cat.name ? await translateText(cat.name, 'ja').catch(() => cat.name) : cat.name,
             badge: cat.badge ? await translateText(cat.badge, 'ja').catch(() => cat.badge) : cat.badge
@@ -104,12 +103,12 @@ export async function PUT(
           translations.en = translations.en || {};
           translations.jp = translations.jp || {};
           
-          translations.en.links = await Promise.all(content.links.map(async (link: { title?: string; [key: string]: unknown }) => ({
+          (translations.en as any).links = await Promise.all(content.links.map(async (link: { title?: string; [key: string]: unknown }) => ({
             ...link,
             title: link.title ? await translateTagText(link.title, 'en').catch(() => link.title) : link.title
           })));
 
-          translations.jp.links = await Promise.all(content.links.map(async (link: { title?: string; [key: string]: unknown }) => ({
+          (translations.jp as any).links = await Promise.all(content.links.map(async (link: { title?: string; [key: string]: unknown }) => ({
             ...link,
             title: link.title ? await translateTagText(link.title, 'ja').catch(() => link.title) : link.title
           })));
@@ -119,18 +118,18 @@ export async function PUT(
         if (title) {
           translations.en = translations.en || {};
           translations.jp = translations.jp || {};
-          translations.en.title = await translateText(title, 'en').catch(() => title);
-          translations.jp.title = await translateText(title, 'ja').catch(() => title);
+          (translations.en as any).title = await translateText(title, 'en').catch(() => title);
+          (translations.jp as any).title = await translateText(title, 'ja').catch(() => title);
         }
 
         if (subtitle) {
           translations.en = translations.en || {};
           translations.jp = translations.jp || {};
-          translations.en.subtitle = await translateText(subtitle, 'en').catch(() => subtitle);
-          translations.jp.subtitle = await translateText(subtitle, 'ja').catch(() => subtitle);
+          (translations.en as any).subtitle = await translateText(subtitle, 'en').catch(() => subtitle);
+          (translations.jp as any).subtitle = await translateText(subtitle, 'ja').catch(() => subtitle);
         }
       } catch (translationError) {
-        logger.warn('Translation failed, continuing without translation:', translationError);
+        console.warn('Translation failed, continuing without translation:', translationError);
         // 번역 실패해도 저장은 계속 진행
       }
     }
@@ -143,7 +142,7 @@ export async function PUT(
         ...(content !== undefined && { content }),
         ...(order !== undefined && { order }),
         ...(visible !== undefined && { visible }),
-        translations
+        translations: translations as any
       }
     });
 
@@ -152,7 +151,7 @@ export async function PUT(
       success: true 
     });
   } catch (error) {
-    logger.error('Error updating UI section:', error as string);
+    console.error('Error updating UI section:', error);
     return NextResponse.json({ 
       error: 'Failed to update section',
       success: false 
@@ -174,7 +173,7 @@ export async function DELETE(
       success: true 
     });
   } catch (error) {
-    logger.error('Error deleting UI section:', error as string);
+    console.error('Error deleting UI section:', error);
     return NextResponse.json({ 
       error: 'Failed to delete section',
       success: false 
@@ -184,8 +183,8 @@ export async function DELETE(
 
 // 이모지를 보존하면서 텍스트만 번역
 async function translateTagText(text: string, to: string): Promise<string> {
-  // 이모지 패턴
-  const emojiRegex = /[\u{1F000}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{2700}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1F900}-\u{1F9FF}]/gu;
+  // 이모지 패턴 (ES5 호환)
+  const emojiRegex = /[\u2600-\u26FF]|[\u2700-\u27BF]|[\uD83C-\uD83E][\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
   
   // 이모지 찾기
   const emojis = text.match(emojiRegex) || [];
@@ -199,7 +198,7 @@ async function translateTagText(text: string, to: string): Promise<string> {
   const translated = await translateText(textOnly, to);
   
   // 이모지 다시 붙이기 (원본 위치 유지)
-  if (emojis.length > 0) {
+  if (emojis.length > 0 && emojis[0]) {
     // 첫 번째 이모지가 앞에 있었는지 확인
     if (text.indexOf(emojis[0]) === 0) {
       return emojis[0] + ' ' + translated;

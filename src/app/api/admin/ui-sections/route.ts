@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { logger } from '@/lib/logger';
 import { translateText } from '@/lib/services/translation.service';
 
 // GET: 모든 UI 섹션 가져오기
@@ -15,7 +14,7 @@ export async function GET(request: NextRequest) {
       success: true 
     });
   } catch (error) {
-    logger.error('Error fetching UI sections:', error);
+    console.error('Error fetching UI sections:', error);
     return NextResponse.json({ 
       error: 'Failed to fetch sections',
       success: false 
@@ -35,8 +34,8 @@ export async function POST(request: NextRequest) {
     if (title || subtitle || content) {
       // 영어 번역
       const enTranslations: Record<string, unknown> = {};
-      if (title) enTranslations.title = await translateText(title, 'ko', 'en');
-      if (subtitle) enTranslations.subtitle = await translateText(subtitle, 'ko', 'en');
+      if (title) enTranslations.title = await translateText(title, 'en');
+      if (subtitle) enTranslations.subtitle = await translateText(subtitle, 'en');
       
       // content 내부의 텍스트들도 번역
       if (content) {
@@ -46,8 +45,8 @@ export async function POST(request: NextRequest) {
 
       // 일본어 번역
       const jpTranslations: Record<string, unknown> = {};
-      if (title) jpTranslations.title = await translateText(title, 'ko', 'ja');
-      if (subtitle) jpTranslations.subtitle = await translateText(subtitle, 'ko', 'ja');
+      if (title) jpTranslations.title = await translateText(title, 'ja');
+      if (subtitle) jpTranslations.subtitle = await translateText(subtitle, 'ja');
       
       if (content) {
         jpTranslations.content = await translateContentTexts(content, 'ko', 'ja');
@@ -64,7 +63,7 @@ export async function POST(request: NextRequest) {
         content,
         order: order || 0,
         visible: visible !== false,
-        translations
+        translations: translations as any
       }
     });
 
@@ -73,7 +72,7 @@ export async function POST(request: NextRequest) {
       success: true 
     });
   } catch (error) {
-    logger.error('Error creating UI section:', error);
+    console.error('Error creating UI section:', error);
     return NextResponse.json({ 
       error: 'Failed to create section',
       success: false 
@@ -112,8 +111,8 @@ export async function PUT(request: NextRequest) {
     if (autoTranslate && (title || subtitle || content)) {
       // 영어 번역
       if (!translations.en) translations.en = {};
-      if (title) translations.en.title = await translateText(title, 'ko', 'en');
-      if (subtitle) translations.en.subtitle = await translateText(subtitle, 'ko', 'en');
+      if (title) translations.en.title = await translateText(title, 'en');
+      if (subtitle) translations.en.subtitle = await translateText(subtitle, 'en');
       if (content) {
         const translatedContent = await translateContentTexts(content, 'ko', 'en');
         translations.en = { ...translations.en, ...translatedContent };
@@ -121,8 +120,8 @@ export async function PUT(request: NextRequest) {
 
       // 일본어 번역
       if (!translations.jp) translations.jp = {};
-      if (title) translations.jp.title = await translateText(title, 'ko', 'ja');
-      if (subtitle) translations.jp.subtitle = await translateText(subtitle, 'ko', 'ja');
+      if (title) translations.jp.title = await translateText(title, 'ja');
+      if (subtitle) translations.jp.subtitle = await translateText(subtitle, 'ja');
       if (content) {
         const translatedContent = await translateContentTexts(content, 'ko', 'ja');
         translations.jp = { ...translations.jp, ...translatedContent };
@@ -137,7 +136,7 @@ export async function PUT(request: NextRequest) {
         ...(content !== undefined && { content }),
         ...(order !== undefined && { order }),
         ...(visible !== undefined && { visible }),
-        translations
+        translations: translations as any
       }
     });
 
@@ -146,7 +145,7 @@ export async function PUT(request: NextRequest) {
       success: true 
     });
   } catch (error) {
-    logger.error('Error updating UI section:', error);
+    console.error('Error updating UI section:', error);
     return NextResponse.json({ 
       error: 'Failed to update section',
       success: false 
@@ -169,14 +168,14 @@ export async function DELETE(request: NextRequest) {
     }
 
     await prisma.uISection.delete({
-      where: id ? { id } : { sectionId }
+      where: id ? { id } : { sectionId: sectionId! }
     });
 
     return NextResponse.json({ 
       success: true 
     });
   } catch (error) {
-    logger.error('Error deleting UI section:', error);
+    console.error('Error deleting UI section:', error);
     return NextResponse.json({ 
       error: 'Failed to delete section',
       success: false 
@@ -197,17 +196,17 @@ async function translateContentTexts(content: Record<string, unknown>, from: str
         ...slide
       };
       
-      if (slide.title) {
-        translatedSlide.title = await translateText(slide.title, from, to);
+      if (slide.title && typeof slide.title === 'string') {
+        translatedSlide.title = await translateText(slide.title, to);
       }
-      if (slide.subtitle) {
-        translatedSlide.subtitle = await translateText(slide.subtitle, from, to);
+      if (slide.subtitle && typeof slide.subtitle === 'string') {
+        translatedSlide.subtitle = await translateText(slide.subtitle, to);
       }
-      if (slide.tag) {
-        // 이모지는 제외하고 텍스트만 번역
-        const textOnly = slide.tag.replace(/[\u{1F000}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '').trim();
+      if (slide.tag && typeof slide.tag === 'string') {
+        // 이모지는 제외하고 텍스트만 번역 (ES5 호환)
+        const textOnly = slide.tag.replace(/[\u2600-\u26FF]|[\u2700-\u27BF]|[\uD83C-\uD83E][\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim();
         if (textOnly) {
-          const translated = await translateText(textOnly, from, to);
+          const translated = await translateText(textOnly, to);
           translatedSlide.tag = slide.tag.replace(textOnly, translated);
         } else {
           translatedSlide.tag = slide.tag;
@@ -225,11 +224,11 @@ async function translateContentTexts(content: Record<string, unknown>, from: str
         ...cat
       };
       
-      if (cat.name) {
-        translatedCat.name = await translateText(cat.name, from, to);
+      if (cat.name && typeof cat.name === 'string') {
+        translatedCat.name = await translateText(cat.name, to);
       }
-      if (cat.badge) {
-        translatedCat.badge = await translateText(cat.badge, from, to);
+      if (cat.badge && typeof cat.badge === 'string') {
+        translatedCat.badge = await translateText(cat.badge, to);
       }
       
       return translatedCat;
@@ -243,11 +242,11 @@ async function translateContentTexts(content: Record<string, unknown>, from: str
         ...link
       };
       
-      if (link.title) {
-        // 이모지는 제외하고 텍스트만 번역
-        const textOnly = link.title.replace(/[\u{1F000}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '').trim();
+      if (link.title && typeof link.title === 'string') {
+        // 이모지는 제외하고 텍스트만 번역 (ES5 호환)
+        const textOnly = link.title.replace(/[\u2600-\u26FF]|[\u2700-\u27BF]|[\uD83C-\uD83E][\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim();
         if (textOnly) {
-          const translated = await translateText(textOnly, from, to);
+          const translated = await translateText(textOnly, to);
           translatedLink.title = link.title.replace(textOnly, translated);
         } else {
           translatedLink.title = link.title;
