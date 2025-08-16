@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import { verifyJWT } from '@/lib/auth/jwt'
 
 export const dynamic = 'force-dynamic'
@@ -56,9 +54,6 @@ export async function GET(request: NextRequest) {
         representativeName: businessUser.businessProfile.representativeName,
         businessAddress: businessUser.businessProfile.businessAddress,
         businessCategory: businessUser.businessProfile.businessCategory,
-        websiteUrl: businessUser.businessProfile.websiteUrl,
-        description: businessUser.businessProfile.description,
-        profileImage: businessUser.businessProfile.profileImage,
         isVerified: businessUser.businessProfile.isVerified,
         verifiedAt: businessUser.businessProfile.verifiedAt,
         createdAt: businessUser.businessProfile.createdAt,
@@ -106,10 +101,7 @@ export async function PUT(request: NextRequest) {
       businessNumber,
       representativeName,
       businessAddress,
-      businessCategory,
-      websiteUrl,
-      description,
-      profileImage
+      businessCategory
     } = body
 
     // 사용자 이름 업데이트
@@ -128,10 +120,7 @@ export async function PUT(request: NextRequest) {
         ...(businessNumber && { businessNumber }),
         ...(representativeName && { representativeName }),
         ...(businessAddress && { businessAddress }),
-        ...(businessCategory && { businessCategory }),
-        ...(websiteUrl && { websiteUrl }),
-        ...(description && { description }),
-        ...(profileImage && { profileImage })
+        ...(businessCategory && { businessCategory })
       },
       include: {
         user: true
@@ -152,9 +141,6 @@ export async function PUT(request: NextRequest) {
         representativeName: updatedProfile.representativeName,
         businessAddress: updatedProfile.businessAddress,
         businessCategory: updatedProfile.businessCategory,
-        websiteUrl: updatedProfile.websiteUrl,
-        description: updatedProfile.description,
-        profileImage: updatedProfile.profileImage,
         isVerified: updatedProfile.isVerified,
         verifiedAt: updatedProfile.verifiedAt,
         createdAt: updatedProfile.createdAt,

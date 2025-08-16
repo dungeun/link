@@ -260,7 +260,7 @@ export async function PUT(
 
     // 이미지 배열 처리
     const processImageArray = (images: unknown) => {
-      if (!images) return null;
+      if (!images) return undefined;
       if (typeof images === 'string') return images;
       return JSON.stringify(images);
     };
@@ -272,9 +272,9 @@ export async function PUT(
         title: body.title,
         description: body.description,
         platform: body.platform,
-        budget: body.budget ? Number(body.budget) : null,
-        targetFollowers: body.targetFollowers ? Number(body.targetFollowers) : null,
-        maxApplicants: body.maxApplicants ? Number(body.maxApplicants) : null,
+        budget: body.budget !== undefined ? Number(body.budget) : undefined,
+        targetFollowers: body.targetFollowers !== undefined ? Number(body.targetFollowers) : undefined,
+        maxApplicants: body.maxApplicants !== undefined ? Number(body.maxApplicants) : undefined,
         requirements: body.requirements,
         hashtags: body.hashtags ? (Array.isArray(body.hashtags) ? JSON.stringify(body.hashtags) : body.hashtags) : null,
         startDate: body.startDate ? new Date(body.startDate) : undefined,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { withAuth } from '@/lib/auth/middleware';
-import { createErrorResponse, createSuccessResponse, handleApiError } from '@/lib/utils/api-error';
+import { createErrorResponse, createSuccessResponse, createApiError, handleApiError } from '@/lib/utils/api-error';
 
 // GET /api/business/templates/[id] - 특정 템플릿 조회
 export async function GET(
@@ -27,7 +27,7 @@ export async function GET(
     });
 
     if (!template) {
-      return createErrorResponse('템플릿을 찾을 수 없습니다.', 404);
+      return createErrorResponse(createApiError.notFound('템플릿을 찾을 수 없습니다.'));
     }
 
     // data 필드를 파싱하여 반환
@@ -66,7 +66,7 @@ export async function DELETE(
     });
 
     if (!template) {
-      return createErrorResponse('템플릿을 찾을 수 없습니다.', 404);
+      return createErrorResponse(createApiError.notFound('템플릿을 찾을 수 없습니다.'));
     }
 
     // 템플릿 삭제

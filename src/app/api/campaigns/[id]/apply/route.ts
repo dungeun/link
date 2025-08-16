@@ -81,7 +81,7 @@ export async function POST(
 
     // 팔로워 수 확인
     const followers = influencerProfile.instagramFollowers || 0
-    if (followers < campaign.targetFollowers) {
+    if (campaign.targetFollowers && followers < campaign.targetFollowers) {
       return NextResponse.json({ 
         error: `Minimum ${campaign.targetFollowers} followers required. You have ${followers} followers.` 
       }, { status: 400 })
@@ -128,7 +128,7 @@ export async function POST(
         userId: campaign.businessId,
         type: 'APPLICATION',
         title: '새로운 캠페인 지원',
-        message: `${user.name || user.email}님이 "${campaign.title}" 캠페인에 지원했습니다.`,
+        message: `${(user as any).name || user.email}님이 "${campaign.title}" 캠페인에 지원했습니다.`,
         metadata: JSON.stringify({
           applicationId: application.id,
           relatedType: 'application'
@@ -144,12 +144,12 @@ export async function POST(
   } catch (error) {
     console.error('Campaign apply error:', error)
     console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code
+      message: (error as any).message,
+      stack: (error as any).stack,
+      code: (error as any).code
     })
     return NextResponse.json(
-      { error: error.message || 'Failed to apply to campaign' },
+      { error: (error as any).message || 'Failed to apply to campaign' },
       { status: 500 }
     )
   }

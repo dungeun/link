@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
       status: campaign.status.toLowerCase(),
       applications: campaign._count.applications,
       maxApplications: 100, // TODO: 실제 최대 지원자 수 필드 추가
-      budget: `₩${campaign.budget.toLocaleString()}`,
+      budget: campaign.budget ? `₩${campaign.budget.toLocaleString()}` : '₩0',
       deadline: campaign.endDate < new Date() ? '완료' : getDeadlineText(campaign.endDate),
       category: 'general' // TODO: 카테고리 필드 추가
     }));

@@ -66,7 +66,7 @@ export async function middleware(request: NextRequest) {
 
   // 디버그 로그는 필요시에만 활성화 (LOG_LEVEL=debug일 때만)
   if (process.env.LOG_LEVEL === 'debug') {
-    logger.debug({ path: pathname, method: request.method }, 'Middleware: Request received');
+    logger.debug('Middleware: Request received', { path: pathname, method: request.method });
   }
 
   // 고급 보안 체크
@@ -119,7 +119,7 @@ export async function middleware(request: NextRequest) {
       const payload = await verifyJWTEdge<{id: string, email: string, type: string}>(token);
       
       if (!payload) {
-        logger.error({ token: token?.substring(0, 10) + '...' }, 'Middleware: Invalid token');
+        logger.error('Middleware: Invalid token', { token: token?.substring(0, 10) + '...' });
         if (perfLogger) perfLogger.end({ status: 302, redirect: '/login' });
         return NextResponse.redirect(new URL('/login', request.url));
       }
@@ -142,7 +142,7 @@ export async function middleware(request: NextRequest) {
       }
       
     } catch (error) {
-      logger.error({ error }, 'Middleware: JWT verification failed');
+      logger.error('Middleware: JWT verification failed', { error });
       if (perfLogger) perfLogger.end({ status: 302, redirect: '/login', error: true });
       return NextResponse.redirect(new URL('/login', request.url));
     }

@@ -102,9 +102,9 @@ export async function POST(request: NextRequest) {
         imageUrl: thumbnailImageUrl || imageUrl || null,  // 썸네일 우선, 없으면 기존 필드
         headerImageUrl: headerImageUrl || null,
         thumbnailImageUrl: thumbnailImageUrl || null,
-        detailImages: detailImages ? JSON.stringify(detailImages) : null,
-        productImages: productImages ? JSON.stringify(productImages) : null,
-        questions: questions ? questions : null,  // JSON 타입이므로 직접 저장
+        detailImages: detailImages ? JSON.stringify(detailImages) : undefined,
+        productImages: productImages ? JSON.stringify(productImages) : undefined,
+        questions: questions ? questions : undefined,  // JSON 타입이므로 직접 저장
         // 새로운 필드들
         applicationStartDate: applicationStartDate ? new Date(applicationStartDate) : null,
         applicationEndDate: applicationEndDate ? new Date(applicationEndDate) : null,

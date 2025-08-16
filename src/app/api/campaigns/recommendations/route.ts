@@ -27,27 +27,17 @@ export async function GET(request: NextRequest) {
       const campaigns = await prisma.campaign.findMany({
         where: {
           ...baseWhere,
-          OR: [
-            { main_category: category },
-            { 
-              sub_categories: {
-                contains: category
-              }
-            }
-          ],
+          // TODO: Add category filtering when category fields are added to schema
           NOT: campaignId ? { id: campaignId } : undefined
         },
         select: {
           id: true,
           title: true,
-          brand: true,
           imageUrl: true,
           thumbnailImageUrl: true,
           budget: true,
           maxApplicants: true,
           endDate: true,
-          main_category: true,
-          sub_categories: true,
           viewCount: true,
           _count: {
             select: {
@@ -74,14 +64,11 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           title: true,
-          brand: true,
           imageUrl: true,
           thumbnailImageUrl: true,
           budget: true,
           maxApplicants: true,
           endDate: true,
-          main_category: true,
-          sub_categories: true,
           viewCount: true,
           _count: {
             select: {
@@ -97,13 +84,13 @@ export async function GET(request: NextRequest) {
     const formattedRecommendations = recommendations.map(campaign => ({
       id: campaign.id,
       title: campaign.title,
-      brand: campaign.brand,
+      brand: 'Unknown', // TODO: Add brand field to Campaign model
       imageUrl: campaign.thumbnailImageUrl || campaign.imageUrl,
       budget: campaign.budget,
       maxApplicants: campaign.maxApplicants,
       endDate: campaign.endDate,
-      mainCategory: campaign.main_category,
-      subCategories: campaign.sub_categories,
+      mainCategory: null, // TODO: Add category fields to Campaign model
+      subCategories: [],
       viewCount: campaign.viewCount,
       applicationCount: campaign._count.applications,
       likeCount: campaign._count.campaignLikes,

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { withAuth } from '@/lib/auth/middleware';
-import { createErrorResponse, createSuccessResponse, handleApiError } from '@/lib/utils/api-error';
+import { createErrorResponse, createSuccessResponse, createApiError, handleApiError } from '@/lib/utils/api-error';
 
 // GET /api/business/templates - 템플릿 목록 조회
 export async function GET(request: NextRequest) {
-  let user: { id: string; userId?: string; email: string; name: string; type: string } | null = null;
+  let user: { id: string; userId?: string; email: string; name?: string; type: string } | null = null;
   try {
     const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
     if ('error' in authResult) {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     user = authResult.user;
 
     // 비즈니스 계정의 템플릿 목록 조회
-    const userId = user.userId || user.id;
+    const userId = user?.userId || user?.id || '';
     const templates = await prisma.campaignTemplate.findMany({
       where: {
         businessId: userId
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/business/templates - 새 템플릿 생성
 export async function POST(request: NextRequest) {
-  let user: { id: string; userId?: string; email: string; name: string; type: string } | null = null;
+  let user: { id: string; userId?: string; email: string; name?: string; type: string } | null = null;
   try {
     const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
     if ('error' in authResult) {
@@ -46,11 +46,11 @@ export async function POST(request: NextRequest) {
     const { name, description, data } = body;
 
     if (!name || !data) {
-      return createErrorResponse('템플릿 이름과 데이터가 필요합니다.', 400);
+      return createErrorResponse(createApiError.badRequest('템플릿 이름과 데이터가 필요합니다.'));
     }
 
     // 템플릿 생성
-    const userId = user.userId || user.id;
+    const userId = user?.userId || user?.id || '';
     const template = await prisma.campaignTemplate.create({
       data: {
         name,
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 
 // DELETE /api/business/templates/[id] - 템플릿 삭제
 export async function DELETE(request: NextRequest) {
-  let user: { id: string; userId?: string; email: string; name: string; type: string } | null = null;
+  let user: { id: string; userId?: string; email: string; name?: string; type: string } | null = null;
   try {
     const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
     if ('error' in authResult) {
@@ -85,11 +85,11 @@ export async function DELETE(request: NextRequest) {
     const templateId = pathParts[pathParts.length - 1];
 
     if (!templateId || templateId === 'templates') {
-      return createErrorResponse('템플릿 ID가 필요합니다.', 400);
+      return createErrorResponse(createApiError.badRequest('템플릿 ID가 필요합니다.'));
     }
 
     // 템플릿 소유권 확인
-    const userId = user.userId || user.id;
+    const userId = user?.userId || user?.id || '';
     const template = await prisma.campaignTemplate.findFirst({
       where: {
         id: templateId,
@@ -98,7 +98,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!template) {
-      return createErrorResponse('템플릿을 찾을 수 없습니다.', 404);
+      return createErrorResponse(createApiError.notFound('템플릿을 찾을 수 없습니다.'));
     }
 
     // 템플릿 삭제

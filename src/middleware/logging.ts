@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createApiLogger, createPerformanceLogger } from '@/lib/logger';
+import { createApiLogger, createPerformanceLogger } from '@/lib/logger/index';
 
 /**
  * 로깅 미들웨어

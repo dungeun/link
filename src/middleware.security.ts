@@ -8,7 +8,7 @@ import type { NextRequest } from 'next/server';
 
 export function addSecurityHeaders(response: NextResponse): NextResponse {
   // 기본 보안 헤더
-  const headers = {
+  const headers: Record<string, string> = {
     // XSS 보호
     'X-XSS-Protection': '1; mode=block',
     

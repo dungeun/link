@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       return createErrorResponse('Invalid pagination parameters', 400, errors);
     }
     
-    const { page, limit } = paginationResult.data;
+    const { page, limit } = paginationResult.data!;
     const status = searchParams.get('status');
     const category = searchParams.get('category');
     const platform = searchParams.get('platform');
@@ -203,7 +203,7 @@ export async function GET(request: NextRequest) {
                   
                   // business 정보를 별도로 조회
                   const businessIds = campaignData.map(c => c?.businessId).filter(Boolean);
-                  let businesses = [];
+                  let businesses: any[] = [];
                   
                   if (businessIds.length > 0) {
                     businesses = await prisma.user.findMany({

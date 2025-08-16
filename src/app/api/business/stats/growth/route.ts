@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     }).catch(() => 0)
 
     // 이번달 지원자 수
-    const thisMonthApplications = await prisma.application.count({
+    const thisMonthApplications = await prisma.campaignApplication.count({
       where: {
         campaign: {
           businessId: userId
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     }).catch(() => 0)
 
     // 지난달 지원자 수
-    const lastMonthApplications = await prisma.application.count({
+    const lastMonthApplications = await prisma.campaignApplication.count({
       where: {
         campaign: {
           businessId: userId

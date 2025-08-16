@@ -55,7 +55,7 @@ const campaignCreateSchema = z.object({
  * - 검증된 쿼리 파라미터
  */
 export const GET = ApiPatterns.list(async (req: NextRequest, context: ApiContext) => {
-  const { page, limit, platform, status, search } = context.validated.query || {};
+  const { page, limit, platform, status, search } = (context.validated?.query || {}) as any;
 
   const where: Record<string, unknown> = {
     ...(platform && { platform }),
@@ -86,8 +86,7 @@ export const GET = ApiPatterns.list(async (req: NextRequest, context: ApiContext
         },
         _count: {
           select: {
-            applications: true,
-            savedBy: true
+            applications: true
           }
         }
       },
@@ -122,8 +121,12 @@ export const GET = ApiPatterns.list(async (req: NextRequest, context: ApiContext
  */
 export const POST = ApiPatterns.create(
   async (req: NextRequest, context: ApiContext) => {
-    const campaignData = context.validated.body;
+    const campaignData = (context.validated?.body || {}) as any;
     const user = context.user;
+
+    if (!user) {
+      throw new Error('인증이 필요합니다');
+    }
 
     // 비즈니스 프로필 확인
     const businessProfile = await prisma.businessProfile.findUnique({
@@ -156,16 +159,7 @@ export const POST = ApiPatterns.create(
         }
       });
 
-      // 캠페인 통계 초기화
-      await tx.campaignStats.create({
-        data: {
-          campaignId: newCampaign.id,
-          impressions: 0,
-          clicks: 0,
-          applications: 0,
-          conversions: 0
-        }
-      });
+      // TODO: Add campaign stats when model is created
 
       return newCampaign;
     });
