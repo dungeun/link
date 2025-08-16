@@ -1,3 +1,7 @@
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -31,6 +35,51 @@ const nextConfig = {
       };
     }
 
+    // Bundle optimization
+    if (!isServer) {
+      // Vendor chunk splitting for better caching
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        cacheGroups: {
+          ...config.optimization.splitChunks?.cacheGroups,
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: 10,
+            chunks: 'all',
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            priority: 5,
+            chunks: 'all',
+            enforce: true,
+          },
+          // Separate React chunks
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            name: 'react-vendor',
+            priority: 20,
+            chunks: 'all',
+          },
+          // Separate UI library chunks
+          ui: {
+            test: /[\\/]node_modules[\\/](framer-motion|lucide-react)[\\/]/,
+            name: 'ui-vendor',
+            priority: 15,
+            chunks: 'all',
+          },
+        },
+      }
+
+      // Performance optimization
+      config.optimization.usedExports = true
+      config.optimization.sideEffects = false
+      
+      // Tree shaking optimization
+      config.optimization.innerGraph = true
+    }
+
     return config;
   },
 
@@ -45,15 +94,72 @@ const nextConfig = {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   },
 
-  // CSP 설정 - Kakao Postcode API 허용
+  // Enhanced Security Headers
   async headers() {
     return [
       {
         source: '/(.*)',
         headers: [
+          // Content Security Policy - Strict with specific allowances
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://t1.daumcdn.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https:; frame-src 'self' https:;"
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://t1.daumcdn.net https://vercel.live",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "img-src 'self' data: https: blob: https://images.unsplash.com https://res.cloudinary.com https://lh3.googleusercontent.com",
+              "font-src 'self' data: https://fonts.gstatic.com",
+              "connect-src 'self' https: wss: https://vercel.live",
+              "frame-src 'self' https:",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "upgrade-insecure-requests"
+            ].join('; ')
+          },
+          // Security Headers
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          // Performance & Security Headers
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+          },
+          // Cross-Origin Headers
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin'
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'same-origin'
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp'
           }
         ]
       }
@@ -74,4 +180,4 @@ const nextConfig = {
   output: 'standalone',
 }
 
-module.exports = nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);

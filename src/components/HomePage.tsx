@@ -9,8 +9,23 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useLanguage } from '@/hooks/useLanguage'
 import { logger } from '@/lib/logger'
-import RankingSection from '@/components/home/RankingSection'
-import RecommendedSection from '@/components/home/RecommendedSection'
+import dynamic from 'next/dynamic'
+
+// Code splitting for heavy components
+const RankingSection = dynamic(() => import('@/components/home/RankingSection'), {
+  loading: () => <div className="h-64 bg-gray-100 rounded-xl animate-pulse" />,
+  ssr: false
+})
+
+const RecommendedSection = dynamic(() => import('@/components/home/RecommendedSection'), {
+  loading: () => <div className="h-64 bg-gray-100 rounded-xl animate-pulse" />,
+  ssr: false
+})
+import { CriticalCSS } from '@/components/CriticalCSS'
+import Image from 'next/image'
+import CampaignCard from '@/components/CampaignCard'
+import { useWebWorker } from '@/hooks/useWebWorker'
+import { initializePerformanceMonitoring, useWebVitals } from '@/lib/performance'
 
 import { 
   BaseCampaign, 
@@ -53,6 +68,37 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
   const [sectionsLoading, setSectionsLoading] = useState(false)
   const [currentLang, setCurrentLang] = useState<LanguageCode>(initialLanguage)
   const [langPacks, setLangPacks] = useState<Record<string, LanguagePack>>(initialLanguagePacks)
+  
+  // Web Worker for campaign processing
+  const { postMessage: postWorkerMessage, subscribe } = useWebWorker('/workers/campaignWorker.js')
+  
+  // Performance monitoring
+  const { getVitals, checkBudgets } = useWebVitals()
+  
+  // Web Worker error handling
+  useEffect(() => {
+    const unsubscribe = subscribe('ERROR', (error) => {
+      logger.error('Worker error:', error)
+    })
+    
+    const unsubscribeProcessed = subscribe('CAMPAIGNS_PROCESSED', (processedCampaigns) => {
+      // Use requestIdleCallback to defer DOM updates
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        window.requestIdleCallback(() => {
+          setCampaigns(processedCampaigns)
+        })
+      } else {
+        setTimeout(() => {
+          setCampaigns(processedCampaigns)
+        }, 0)
+      }
+    })
+    
+    return () => {
+      unsubscribe()
+      unsubscribeProcessed()
+    }
+  }, [subscribe])
   
   // 언어팩 사용
   const { t: contextT, currentLanguage } = useLanguage()
@@ -197,14 +243,25 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
       const data = await response.json()
       
       if (data.campaigns) {
-        setCampaigns(data.campaigns)
+        // Use Web Worker for heavy campaign processing
+        postWorkerMessage('PROCESS_CAMPAIGNS', data.campaigns)
       }
     } catch (error) {
       logger.error('Failed to load campaigns:', error)
+      // Fallback to original data if worker fails
+      try {
+        const response = await fetch('/api/campaigns?status=active&limit=10')
+        const data = await response.json()
+        if (data.campaigns) {
+          setCampaigns(data.campaigns)
+        }
+      } catch (fallbackError) {
+        logger.error('Fallback also failed:', fallbackError)
+      }
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [postWorkerMessage])
 
   // 언어 변경 시 섹션 데이터 재로드 
   const loadSections = useCallback(async (lang: string) => {
@@ -243,6 +300,9 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
   }, [initialSections])
 
   useEffect(() => {
+    // Initialize performance monitoring
+    initializePerformanceMonitoring()
+    
     // UI 설정 로드 (폴백용)
     loadSettingsFromAPI()
     
@@ -306,8 +366,9 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
 
   return (
     <>
+      <CriticalCSS />
       <Header />
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white main-content">
 
       <main className="container mx-auto px-6 py-8">
         
@@ -327,10 +388,10 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
             switch (section.type) {
               case 'hero':
                 return localizedContent?.slides ? (
-                  <div key={section.id} className="relative mb-8">
+                  <div key={section.id} className="relative mb-8 hero-section">
                     <div className="overflow-hidden">
                       <div 
-                        className="flex transition-transform duration-500 ease-out"
+                        className="flex transition-transform duration-500 ease-out hero-slide"
                         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                       >
                         {(localizedContent.slides as HeroSlide[]).map((slide: HeroSlide, slideIndex: number) => (
@@ -343,14 +404,21 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                                     <div className="relative">
                                       <div
                                         className={`w-full h-64 md:h-80 ${slide.bgColor} text-white relative rounded-2xl overflow-hidden`}
-                                        style={{
-                                          backgroundImage: slide.backgroundImage 
-                                            ? `url(${slide.backgroundImage})`
-                                            : undefined,
-                                          backgroundSize: 'cover',
-                                          backgroundPosition: 'center'
-                                        }}
                                       >
+                                        {slide.backgroundImage && (
+                                          <Image
+                                            src={slide.backgroundImage}
+                                            alt={slide.title || ''}
+                                            fill
+                                            className="hero-image"
+                                            priority={slideIndex === 0}
+                                            quality={85}
+                                            sizes="(max-width: 768px) 100vw, 50vw"
+                                          />
+                                        )}
+                                        {!slide.backgroundImage && (
+                                          <div className={`absolute inset-0 ${slide.bgColor}`} />
+                                        )}
                                         <div className="absolute inset-0 flex items-center justify-center px-8">
                                           <div className="text-center max-w-2xl">
                                             {slide.tag && (
@@ -487,10 +555,17 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                             href={`/campaigns?category=${category.categoryId}`}
                             className="flex flex-col items-center gap-1.5 group"
                           >
-                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative">
+                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative category-icon">
                               {category.icon ? (
                                 category.icon.startsWith('http') ? (
-                                  <img src={category.icon} alt={category.name} className="w-6 h-6 object-contain" />
+                                  <Image 
+                                    src={category.icon} 
+                                    alt={category.name} 
+                                    width={24}
+                                    height={24}
+                                    className="object-contain"
+                                    loading="lazy"
+                                  />
                                 ) : (
                                   <span className="text-lg">{category.icon}</span>
                                 )
@@ -529,10 +604,17 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                               href={`/campaigns?category=${category.categoryId}`}
                               className="flex flex-col items-center gap-2 min-w-[60px] lg:min-w-[70px] group"
                             >
-                              <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative">
+                              <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative category-icon">
                                 {category.icon ? (
                                   category.icon.startsWith('http') ? (
-                                    <img src={category.icon} alt={category.name} className="w-7 h-7 lg:w-8 lg:h-8 object-contain" />
+                                    <Image 
+                                      src={category.icon} 
+                                      alt={category.name} 
+                                      width={32}
+                                      height={32}
+                                      className="object-contain"
+                                      loading="lazy"
+                                    />
                                   ) : (
                                     <span className="text-xl lg:text-2xl">{category.icon}</span>
                                   )
@@ -573,7 +655,14 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                         >
                           {link.icon && (
                             link.icon.startsWith('http') ? (
-                              <img src={link.icon} alt={link.title} className="w-8 h-8 object-contain" />
+                              <Image 
+                                src={link.icon} 
+                                alt={link.title} 
+                                width={32}
+                                height={32}
+                                className="object-contain"
+                                loading="lazy"
+                              />
                             ) : (
                               <span className="text-2xl">{link.icon}</span>
                             )
@@ -596,7 +685,14 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                           >
                             {link.icon && (
                               link.icon.startsWith('http') ? (
-                                <img src={link.icon} alt={link.title} className="w-8 h-8 object-contain" />
+                                <Image 
+                                  src={link.icon} 
+                                  alt={link.title} 
+                                  width={32}
+                                  height={32}
+                                  className="object-contain"
+                                  loading="lazy"
+                                />
                               ) : (
                                 <span className="text-2xl">{link.icon}</span>
                               )
@@ -762,42 +858,13 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
             </div>
           ) : campaigns.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {campaigns.slice(0, 8).map((campaign) => (
-                <div
+              {campaigns.slice(0, 8).map((campaign, index) => (
+                <CampaignCard
                   key={campaign.id}
-                  onClick={() => window.location.href = `/campaigns/${campaign.id}`}
-                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
-                  style={{ pointerEvents: 'auto' }}
-                >
-                  <div className="aspect-square bg-gradient-to-br from-indigo-500 to-purple-600 relative">
-                    {campaign.imageUrl && (
-                      <img 
-                        src={campaign.imageUrl} 
-                        alt={campaign.title}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                    <div className="absolute top-3 left-3">
-                      <span className="bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-medium">
-                        D-{campaign.deadline}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-3 md:p-4">
-                    <p className="text-xs md:text-sm text-gray-600 mb-1">{campaign.brand}</p>
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-sm md:text-base">
-                      {campaign.title}
-                    </h3>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs md:text-sm text-gray-500">
-                        {campaign.applicants}/{campaign.maxApplicants}명
-                      </span>
-                      <span className="text-xs md:text-sm font-medium text-blue-600">
-                        {campaign.budget}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  campaign={campaign}
+                  index={index}
+                  onClick={(id) => window.location.href = `/campaigns/${id}`}
+                />
               ))}
             </div>
           ) : (
