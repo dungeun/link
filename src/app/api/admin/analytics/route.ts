@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import { verifyJWT } from '@/lib/auth/jwt'
 import { prisma } from '@/lib/db/prisma'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/admin/analytics - 통계 데이터 조회
 export async function GET(request: NextRequest) {
   try {

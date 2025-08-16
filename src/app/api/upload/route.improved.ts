@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!uploadValidation.success) {
-      const errors = ValidationHelper.formatErrorMessages(uploadValidation.errors!);
+      const errors = ValidationHelper.extractFieldErrors(uploadValidation.errors!);
       return createErrorResponse(
         createApiError.validation('파일 업로드 설정이 유효하지 않습니다.', errors)
       );
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       const imageValidation = ValidationHelper.validateImageFile(file, MAX_FILE_SIZE_MB);
       if (!imageValidation.valid) {
         return createErrorResponse(
-          createApiError.validation('이미지 파일 검증 실패', imageValidation.errors)
+          createApiError.validation('이미지 파일 검증 실패', { errors: imageValidation.errors })
         );
       }
 
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
       const dimensionValidation = await validateImageDimensions(file);
       if (!dimensionValidation.valid) {
         return createErrorResponse(
-          createApiError.validation('이미지 크기 제한 초과', dimensionValidation.errors)
+          createApiError.validation('이미지 크기 제한 초과', { errors: dimensionValidation.errors })
         );
       }
     }
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       const docValidation = ValidationHelper.validateDocumentFile(file, MAX_FILE_SIZE_MB);
       if (!docValidation.valid) {
         return createErrorResponse(
-          createApiError.validation('문서 파일 검증 실패', docValidation.errors)
+          createApiError.validation('문서 파일 검증 실패', { errors: docValidation.errors })
         );
       }
     }
@@ -151,11 +151,7 @@ export async function POST(request: NextRequest) {
         {
           width: type === 'campaign' ? 1200 : undefined,
           quality: 85,
-          format: 'jpeg',
-          // 높이 제한 추가
-          withoutEnlargement: true,
-          fit: 'inside',
-          limitInputPixels: MAX_IMAGE_HEIGHT_PX * MAX_IMAGE_HEIGHT_PX // 최대 픽셀 수 제한
+          format: 'jpeg'
         }
       ),
       { fileType: type, fileName: file.name, fileSize: file.size }

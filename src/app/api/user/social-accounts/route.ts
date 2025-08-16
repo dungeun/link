@@ -171,8 +171,8 @@ export async function DELETE(req: NextRequest) {
       deletedProvider: deletedAccount.provider
     });
 
-  } catch (error) {
-    if (error.code === 'P2025') {
+  } catch (error: any) {
+    if (error?.code === 'P2025') {
       return NextResponse.json(
         { error: '연동되지 않은 계정입니다.' },
         { status: 404 }

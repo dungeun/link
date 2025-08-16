@@ -14,7 +14,7 @@ type FileType = typeof ALLOWED_FILE_TYPES[number];
 // POST /api/upload - 파일 업로드
 export async function POST(request: NextRequest) {
   const timer = new PerformanceTimer('api.upload.POST');
-  let user: { id: string; email: string; name: string; type: string } | null = null;
+  let user: { id: string; email: string; type: string } | null = null;
   let fileInfo = { name: 'unknown', size: 0 };
   
   try {
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!uploadValidation.success) {
-      const errors = ValidationHelper.formatErrorMessages(uploadValidation.errors!);
+      const errors = ValidationHelper.extractFieldErrors(uploadValidation.errors!);
       return createErrorResponse(
         createApiError.validation('파일 업로드 설정이 유효하지 않습니다.', errors)
       );
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       const imageValidation = ValidationHelper.validateImageFile(file, MAX_FILE_SIZE_MB);
       if (!imageValidation.valid) {
         return createErrorResponse(
-          createApiError.validation('이미지 파일 검증 실패', imageValidation.errors)
+          createApiError.validation('이미지 파일 검증 실패', { errors: imageValidation.errors })
         );
       }
     }
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       const docValidation = ValidationHelper.validateDocumentFile(file, MAX_FILE_SIZE_MB);
       if (!docValidation.valid) {
         return createErrorResponse(
-          createApiError.validation('문서 파일 검증 실패', docValidation.errors)
+          createApiError.validation('문서 파일 검증 실패', { errors: docValidation.errors })
         );
       }
     }

@@ -33,7 +33,8 @@ export default function BusinessCampaignsPage() {
           }
           
           const parsedUser = JSON.parse(storedUser)
-          AuthService.login(parsedUser.type, parsedUser)
+          // AuthService is deprecated - using parsedUser directly instead
+          // AuthService.login(parsedUser.type, parsedUser)
           setUser(parsedUser)
         } else {
           setUser(currentUser)
@@ -86,7 +87,7 @@ export default function BusinessCampaignsPage() {
     }
   }
 
-  const filteredCampaigns = campaigns.filter(campaign => {
+  const filteredCampaigns = campaigns.filter((campaign: any) => {
     const matchesSearch = campaign.title.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = filterStatus === 'all' || campaign.status === filterStatus
     return matchesSearch && matchesStatus
@@ -176,7 +177,7 @@ export default function BusinessCampaignsPage() {
               </div>
             </div>
           ) : (
-            filteredCampaigns.map((campaign) => (
+            filteredCampaigns.map((campaign: any) => (
               <div key={campaign.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
                 <div className="p-6">
                   <div className="flex items-start justify-between">

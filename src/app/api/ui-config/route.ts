@@ -298,7 +298,7 @@ export async function GET(request: NextRequest) {
     console.log('[UI Config] Falling back to error handling with admin menus...');
     
     // Fallback to default config - try to load admin menus even in error case
-    let fallbackAdminMenus = [];
+    let fallbackAdminMenus: any[] = [];
     try {
       const adminMenus = await prisma.uISection.findMany({
         where: {

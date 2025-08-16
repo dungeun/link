@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query, withTransaction } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
@@ -168,13 +167,13 @@ export async function DELETE(
       );
     }
 
-    // 트랜잭션으로 사용자 삭제
-    await withTransaction(async (client) => {
-      // 관련 데이터 삭제
-      // await client.query('DELETE FROM campaign_applications WHERE user_id = $1', [userId]);
-      // await client.query('DELETE FROM campaigns WHERE user_id = $1', [userId]);
-      // await client.query('DELETE FROM users WHERE id = $1', [userId]);
-    });
+    // 트랜잭션으로 사용자 삭제 (Mock implementation)
+    // await withTransaction(async (client) => {
+    //   // 관련 데이터 삭제
+    //   // await client.query('DELETE FROM campaign_applications WHERE user_id = $1', [userId]);
+    //   // await client.query('DELETE FROM campaigns WHERE user_id = $1', [userId]);
+    //   // await client.query('DELETE FROM users WHERE id = $1', [userId]);
+    // });
 
     // 쿠키 삭제
     const cookieStore = cookies();

@@ -393,10 +393,10 @@ export async function PUT(req: NextRequest) {
       };
 
       // 업데이트된 값으로 덮어쓰기
-      if (updateData.instagramFollowers !== undefined) currentFollowers.instagram = updateData.instagramFollowers;
-      if (updateData.youtubeSubscribers !== undefined) currentFollowers.youtube = updateData.youtubeSubscribers;
-      if (updateData.tiktokFollowers !== undefined) currentFollowers.tiktok = updateData.tiktokFollowers;
-      if (updateData.naverBlogFollowers !== undefined) currentFollowers.naverBlog = updateData.naverBlogFollowers;
+      if (updateData.instagramFollowers !== undefined) currentFollowers.instagram = Number(updateData.instagramFollowers);
+      if (updateData.youtubeSubscribers !== undefined) currentFollowers.youtube = Number(updateData.youtubeSubscribers);
+      if (updateData.tiktokFollowers !== undefined) currentFollowers.tiktok = Number(updateData.tiktokFollowers);
+      if (updateData.naverBlogFollowers !== undefined) currentFollowers.naverBlog = Number(updateData.naverBlogFollowers);
 
       updateData.followerCount = 
         currentFollowers.instagram +

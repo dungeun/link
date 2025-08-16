@@ -221,7 +221,7 @@ export default function NewCampaignPage() {
   }
   
   const loadTemplate = (templateId: string) => {
-    const template = templates.find(t => t.id === templateId)
+    const template = templates.find((t: any) => t.id === templateId)
     if (template && template.data) {
       // Parse template data if it's a string
       const templateData = typeof template.data === 'string' 
@@ -584,7 +584,7 @@ export default function NewCampaignPage() {
                       저장된 템플릿이 없습니다.
                     </div>
                   ) : (
-                    templates.map(template => (
+                    templates.map((template: any) => (
                       <div key={template.id} className="relative group">
                         <SelectItem value={template.id}>
                           <div className="pr-8">
@@ -647,7 +647,7 @@ export default function NewCampaignPage() {
           {currentStep === 1 && (
             <StepBasicInfo
               formData={formData}
-              setFormData={setFormData}
+              setFormData={(data: any) => setFormData({...formData, ...data})}
               platformIcons={platformIcons}
             />
           )}
@@ -656,7 +656,7 @@ export default function NewCampaignPage() {
             <>
               <StepDetails
                 formData={formData}
-                setFormData={setFormData}
+                setFormData={(data: any) => setFormData({...formData, ...data})}
               />
               <QuestionPreview
                 questions={dynamicQuestions}
@@ -675,7 +675,7 @@ export default function NewCampaignPage() {
           {currentStep === 3 && (
             <StepMedia
               formData={formData}
-              setFormData={setFormData}
+              setFormData={(data: any) => setFormData({...formData, ...data})}
               productImages={productImages}
               setProductImages={setProductImages}
             />

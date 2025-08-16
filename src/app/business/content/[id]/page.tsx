@@ -13,7 +13,18 @@ export default function BusinessContentPage() {
   const [user, setUser] = useState<{ type?: string; [key: string]: unknown } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [application, setApplication] = useState<{ hasContent?: boolean; influencerName?: string; campaignTitle?: string; [key: string]: unknown } | null>(null)
-  const [content, setContent] = useState<{ status?: string; campaignTitle?: string; influencerName?: string; createdAt?: string; platform?: string; url?: string; description?: string; media?: Array<{ id: string; url: string; filename: string }>; [key: string]: unknown } | null>(null)
+  const [content, setContent] = useState<{ 
+    status?: string; 
+    campaignTitle?: string; 
+    influencerName?: string; 
+    createdAt?: string; 
+    platform?: string; 
+    url?: string; 
+    description?: string; 
+    media?: Array<{ id: string; url: string; filename: string }>; 
+    feedback?: string;
+    reviewedAt?: string;
+  } | null>(null)
   const [feedback, setFeedback] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -30,16 +41,17 @@ export default function BusinessContentPage() {
           }
           
           const parsedUser = JSON.parse(storedUser)
-          AuthService.login(parsedUser.type, parsedUser)
+          // AuthService is deprecated - using parsedUser directly instead
+          // AuthService.login(parsedUser.type, parsedUser)
           currentUser = parsedUser
         }
         
-        if (currentUser.type?.toUpperCase() !== 'BUSINESS' && currentUser.type?.toUpperCase() !== 'ADMIN') {
+        if (!currentUser || (currentUser.type?.toUpperCase() !== 'BUSINESS' && currentUser.type?.toUpperCase() !== 'ADMIN')) {
           router.push('/login')
           return
         }
         
-        setUser(currentUser)
+        setUser(currentUser as any)
         await fetchContent()
       } catch (error) {
         console.error('Auth check error:', error)
@@ -151,6 +163,26 @@ export default function BusinessContentPage() {
                 돌아가기
               </button>
             </div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    )
+  }
+
+  if (!content) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">콘텐츠를 찾을 수 없습니다</h1>
+            <button 
+              onClick={() => router.back()}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            >
+              돌아가기
+            </button>
           </div>
         </div>
         <Footer />

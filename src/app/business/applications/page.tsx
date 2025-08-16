@@ -38,7 +38,8 @@ export default function BusinessApplicationsPage() {
           }
           
           const parsedUser = JSON.parse(storedUser)
-          AuthService.login(parsedUser.type, parsedUser)
+          // AuthService is deprecated - using parsedUser directly instead
+          // AuthService.login(parsedUser.type, parsedUser)
           setUser(parsedUser)
         } else {
           setUser(currentUser)
@@ -90,11 +91,11 @@ export default function BusinessApplicationsPage() {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || '상태 변경 실패')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Status change error:', error)
       toast({
         title: '오류',
-        description: error.message || '상태 변경에 실패했습니다.',
+        description: error?.message || '상태 변경에 실패했습니다.',
         variant: 'destructive'
       })
     }

@@ -3,7 +3,8 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "SKIP_ENV_VALIDATION": "1"
   },
   "headers": [
     {

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 // 정산 설정 API
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/lib/admin-auth';

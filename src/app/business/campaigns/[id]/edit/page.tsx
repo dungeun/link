@@ -528,7 +528,7 @@ export default function EditCampaignPage() {
                 <Label>헤더 이미지</Label>
                 <ImageUpload
                   value={headerImage}
-                  onChange={setHeaderImage}
+                  onChange={(value) => setHeaderImage(Array.isArray(value) ? value[0] || '' : value)}
                   className="mt-2"
                 />
               </div>
@@ -537,7 +537,7 @@ export default function EditCampaignPage() {
                 <Label>썸네일 이미지</Label>
                 <ImageUpload
                   value={thumbnailImage}
-                  onChange={setThumbnailImage}
+                  onChange={(value) => setThumbnailImage(Array.isArray(value) ? value[0] || '' : value)}
                   className="mt-2"
                 />
               </div>
@@ -559,7 +559,10 @@ export default function EditCampaignPage() {
                   ))}
                   <ImageUpload
                     value=""
-                    onChange={(url) => setProductImages([...productImages, url])}
+                    onChange={(value) => {
+                      const url = Array.isArray(value) ? value[0] || '' : value;
+                      if (url) setProductImages([...productImages, url]);
+                    }}
                     className="h-24"
                   />
                 </div>
@@ -582,7 +585,10 @@ export default function EditCampaignPage() {
                   ))}
                   <ImageUpload
                     value=""
-                    onChange={(url) => setDetailImages([...detailImages, url])}
+                    onChange={(value) => {
+                      const url = Array.isArray(value) ? value[0] || '' : value;
+                      if (url) setDetailImages([...detailImages, url]);
+                    }}
                     className="h-24"
                   />
                 </div>

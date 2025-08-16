@@ -97,7 +97,7 @@ export default function ApplicantsPage() {
       REJECTED: { color: 'bg-red-100 text-red-800', icon: XCircle, text: '거절됨' }
     }
     
-    const badge = badges[status] || badges.PENDING
+    const badge = badges[status as keyof typeof badges] || badges.PENDING
     const Icon = badge.icon
     
     return (

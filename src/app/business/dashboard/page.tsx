@@ -60,12 +60,12 @@ function BusinessDashboardContent() {
           const parsedUser = JSON.parse(storedUser)
           console.log('Parsed user:', parsedUser)
           
-          // AuthService 복원
-          AuthService.login(parsedUser.type, parsedUser)
+          // AuthService is deprecated - using parsedUser directly instead
+          // AuthService.login(parsedUser.type, parsedUser)
           currentUser = parsedUser
         }
         
-        const userType = currentUser.type?.toUpperCase()
+        const userType = currentUser?.type?.toUpperCase()
         console.log('User type:', userType);
         
         if (userType !== 'BUSINESS' && userType !== 'ADMIN') {

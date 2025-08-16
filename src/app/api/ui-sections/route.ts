@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ sections });
   } catch (error) {
-    logger.error('Error fetching UI sections:', error);
+    logger.error('Error fetching UI sections:', error as string);
     return NextResponse.json({ error: 'Failed to fetch UI sections' }, { status: 500 });
   }
 }
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ section: created });
     }
   } catch (error) {
-    logger.error('Error creating/updating UI section:', error);
+    logger.error('Error creating/updating UI section:', error as string);
     return NextResponse.json({ error: 'Failed to save UI section' }, { status: 500 });
   }
 }
@@ -90,7 +90,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ section: updated });
   } catch (error) {
-    logger.error('Error updating UI section:', error);
+    logger.error('Error updating UI section:', error as string);
     return NextResponse.json({ error: 'Failed to update UI section' }, { status: 500 });
   }
 }
@@ -111,7 +111,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Error deleting UI section:', error);
+    logger.error('Error deleting UI section:', error as string);
     return NextResponse.json({ error: 'Failed to delete UI section' }, { status: 500 });
   }
 }
