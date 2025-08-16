@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
     
     // 쿼리 조건 구성
-    const where: Record<string, unknown> = {};
+    const where: any = {};
     
     if (onlyPublic || !userId) {
       where.isPublic = true;

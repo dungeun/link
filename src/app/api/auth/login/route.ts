@@ -19,7 +19,7 @@ const loginSchema = z.object({
 
 // 민감한 정보를 제거한 안전한 로깅
 function sanitizeForLogging(data: unknown) {
-  const sanitized = { ...data }
+  const sanitized = { ...(data as any) }
   if (sanitized.password) {
     sanitized.password = '[REDACTED]'
   }

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     const where = {
       userId: user.id,
-      ...(unreadOnly ? { isRead: false } : {})
+      ...(unreadOnly ? { readAt: null } : {})
     }
 
     const [notifications, total] = await Promise.all([
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     const unreadCount = await prisma.notification.count({
       where: {
         userId: user.id,
-        isRead: false
+        readAt: null
       }
     })
 
@@ -75,10 +75,9 @@ export async function POST(request: NextRequest) {
       await prisma.notification.updateMany({
         where: {
           userId: user.id,
-          isRead: false
+          readAt: null
         },
         data: {
-          isRead: true,
           readAt: new Date()
         }
       })
@@ -90,7 +89,6 @@ export async function POST(request: NextRequest) {
           userId: user.id
         },
         data: {
-          isRead: true,
           readAt: new Date()
         }
       })

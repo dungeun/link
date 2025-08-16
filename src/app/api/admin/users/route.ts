@@ -20,7 +20,7 @@ async function authenticate(request: NextRequest) {
   // 쿠키 확인
   if (!token) {
     const cookieStore = cookies();
-    token = cookieStore.get('auth-token')?.value || null;
+    token = cookieStore.get('auth-token')?.value;
   }
 
   if (!token) {
