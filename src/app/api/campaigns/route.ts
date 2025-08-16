@@ -275,7 +275,7 @@ export async function GET(request: NextRequest) {
         
         // 안전한 배열 확인 및 응답 데이터 포맷팅
         const safeCampaigns = Array.isArray(campaigns) ? campaigns : [];
-        const formattedCampaigns = safeCampaigns.map((campaign, index: number) => {
+        const formattedCampaigns = safeCampaigns.map((campaign: any, index: number) => {
           // 마감일까지 남은 일수 계산
           const today = new Date();
           const endDate = new Date(campaign.endDate);
