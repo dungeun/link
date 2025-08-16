@@ -117,9 +117,9 @@ export async function GET(request: NextRequest) {
         campaignTitle: campaign.title || '알 수 없는 캠페인',
         influencerId: influencer.id || '',
         influencerName: influencer.name || '알 수 없는 인플루언서',
-        influencerHandle: profile.instagram || (influencer.email ? influencer.email.split('@')[0] : '미설정'),
-        followers: profile.instagramFollowers || 0,
-        engagementRate: profile.averageEngagementRate || 0,
+        influencerHandle: (profile as any)?.instagram || (influencer.email ? influencer.email.split('@')[0] : '미설정'),
+        followers: (profile as any)?.instagramFollowers || 0,
+        engagementRate: (profile as any)?.averageEngagementRate || 0,
         status: (app.status || 'PENDING').toLowerCase(),
         message: app.message || '',
         appliedAt: app.createdAt || new Date()

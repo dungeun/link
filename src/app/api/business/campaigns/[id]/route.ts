@@ -124,7 +124,7 @@ export async function GET(
     // 상세 이미지 파싱
     let detailImages = [];
     try {
-      detailImages = campaign.detailImages ? JSON.parse(campaign.detailImages) : [];
+      detailImages = campaign.detailImages ? JSON.parse(String(campaign.detailImages)) : [];
     } catch (e) {
       detailImages = [];
     }

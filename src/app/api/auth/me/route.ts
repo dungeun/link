@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user - handle both userId and id fields for compatibility
-    const userId = tokenData.userId || tokenData.id
+    const userId = tokenData.userId || (tokenData as any).id
     console.log('Auth Me - User ID from token:', userId)
     
     if (!userId) {

@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         businessFileUrl,
         businessFileName,
         businessFileSize
-      }),
+      } as any),
       { userType: userData.type, hasBusinessFile: !!businessFileUrl }
     );
 
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
 
     timer.end();
     
-    logger.logInfo('User registered successfully', { 
+    logger.info('User registered successfully', { 
       userId: registerResponse.user.id, 
       userType: userData.type,
       hasBusinessFile: !!businessFileUrl 
