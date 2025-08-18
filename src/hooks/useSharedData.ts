@@ -15,7 +15,12 @@ export function useCampaignData(campaignId: string) {
       
       if (!response.ok) throw new Error('Failed to fetch campaign')
       const data = await response.json()
-      return data.campaign
+      // 표준화된 API 응답 처리
+      if (data.success && data.data?.campaign) {
+        return data.data.campaign
+      }
+      // 이전 API 구조 지원 (하위 호환성)
+      return data.campaign || data
     },
     {
       key: `campaign_${campaignId}_${user?.id || 'anonymous'}`, // 사용자별 캐시 키
