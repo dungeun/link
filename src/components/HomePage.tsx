@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 import { useRouter } from 'next/navigation'
 import { AuthService, User } from '@/lib/auth'
 import { useUIConfigStore } from '@/lib/stores/ui-config.store'
@@ -10,6 +11,20 @@ import Footer from '@/components/Footer'
 import { useLanguage } from '@/hooks/useLanguage'
 import { logger } from '@/lib/logger'
 import dynamic from 'next/dynamic'
+// Lucide 픽토그램 아이콘 import
+import {
+  Sparkles,
+  Shirt,
+  UtensilsCrossed,
+  Plane,
+  Laptop,
+  Dumbbell,
+  Home,
+  Heart,
+  Baby,
+  Gamepad2,
+  GraduationCap
+} from 'lucide-react'
 
 // Code splitting for heavy components
 const RankingSection = dynamic(() => import('@/components/home/RankingSection'), {
@@ -23,6 +38,11 @@ const RecommendedSection = dynamic(() => import('@/components/home/RecommendedSe
 })
 
 const CategorySection = dynamic(() => import('@/components/home/CategorySection'), {
+  loading: () => <div className="h-32 bg-gray-100 rounded-xl animate-pulse" />,
+  ssr: true
+})
+
+const ActiveCampaignsSection = dynamic(() => import('@/components/home/ActiveCampaignsSection'), {
   loading: () => <div className="h-64 bg-gray-100 rounded-xl animate-pulse" />,
   ssr: false
 })
@@ -85,13 +105,15 @@ function HomePage({
   const [searchTerm, setSearchTerm] = useState('')
   const [currentSlide, setCurrentSlide] = useState(0)
   
-  // 프리로드된 데이터 사용 (API 호출 제거)
-  const [campaigns] = useState<Campaign[]>(initialCampaigns)
-  const [loading] = useState(false) // 프리로드되었으므로 항상 false
-  const [sections] = useState<UISection[]>(initialSections || [])
-  const [sectionsLoading] = useState(false) // 프리로드되었으므로 항상 false
-  const [currentLang, setCurrentLang] = useState<LanguageCode>(initialLanguage)
-  const [langPacks] = useState<Record<string, LanguagePack>>(initialLanguagePacks)
+  // 캠페인 데이터 상태 관리 - 무한 스크롤 지원
+  const [campaigns, setCampaigns] = useState<Campaign[]>(() => initialCampaigns)
+  const [loading, setLoading] = useState(false)
+  const [cursor, setCursor] = useState<string | null>(null)
+  const [hasMore, setHasMore] = useState(true)
+  const [sections] = useState<UISection[]>(() => initialSections || [])
+  const [sectionsLoading] = useState(() => false) // 프리로드되었으므로 항상 false
+  const [currentLang, setCurrentLang] = useState<LanguageCode>(() => initialLanguage)
+  const [langPacks] = useState<Record<string, LanguagePack>>(() => initialLanguagePacks)
   
   // Web Worker for campaign processing
   const { postMessage: postWorkerMessage, subscribe } = useWebWorker('/workers/campaignWorker.js')
@@ -189,68 +211,106 @@ function HomePage({
   console.log("Zustand에서 가져온 순서/필터 (visibleSections):", visibleSections);
   console.log("---------------------------------");
   
-  // 카테고리별 기본 픽토그램 - 메모이제이션 적용
-  const defaultCategoryIcons = useMemo(() => ({
-    beauty: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
-    ),
-    fashion: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-      </svg>
-    ),
-    food: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
-    travel: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-      </svg>
-    ),
-    tech: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-      </svg>
-    ),
-    fitness: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-      </svg>
-    ),
-    lifestyle: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-    ),
-    pet: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-      </svg>
-    ),
-    parenting: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
-    game: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
-      </svg>
-    ),
-    education: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
-      </svg>
-    ),
+  // Lucide 아이콘 맵핑
+  const lucideIcons = useMemo(() => ({
+    'Sparkles': Sparkles,
+    'Shirt': Shirt,
+    'UtensilsCrossed': UtensilsCrossed,
+    'Plane': Plane,
+    'Laptop': Laptop,
+    'Dumbbell': Dumbbell,
+    'Home': Home,
+    'Heart': Heart,
+    'Baby': Baby,
+    'Gamepad2': Gamepad2,
+    'GraduationCap': GraduationCap,
   }), [])
 
-  // Campaigns are now preloaded - no need for loadCampaigns function
+  // 카테고리별 기본 픽토그램 - Lucide 아이콘 사용
+  const defaultCategoryIcons = useMemo(() => ({
+    beauty: <Sparkles className="w-8 h-8" />,
+    fashion: <Shirt className="w-8 h-8" />,
+    food: <UtensilsCrossed className="w-8 h-8" />,
+    travel: <Plane className="w-8 h-8" />,
+    tech: <Laptop className="w-8 h-8" />,
+    fitness: <Dumbbell className="w-8 h-8" />,
+    lifestyle: <Home className="w-8 h-8" />,
+    pet: <Heart className="w-8 h-8" />,
+    parenting: <Baby className="w-8 h-8" />,
+    game: <Gamepad2 className="w-8 h-8" />,
+    education: <GraduationCap className="w-8 h-8" />,
+  }), [])
+
+  // Lucide 아이콘 렌더링 함수
+  const renderCategoryIcon = useCallback((category: any, size: 'small' | 'large' = 'small') => {
+    const sizeClasses = size === 'small' ? 'w-6 h-6' : 'w-7 h-7 lg:w-8 lg:h-8'
+    
+    if (category.icon) {
+      // HTTP URL인 경우 이미지로 렌더링
+      if (category.icon.startsWith('http')) {
+        return <img src={category.icon} alt={category.name} className={`${sizeClasses} object-contain`} />
+      }
+      
+      // Lucide 아이콘 이름인 경우 동적 렌더링
+      const IconComponent = (lucideIcons as any)[category.icon]
+      if (IconComponent) {
+        return <IconComponent className={sizeClasses} />
+      }
+      
+      // 기타 텍스트/이모지인 경우
+      return <span className={size === 'small' ? 'text-lg' : 'text-xl lg:text-2xl'}>{category.icon}</span>
+    }
+    
+    // 기본 아이콘 사용
+    return (defaultCategoryIcons as any)[category.categoryId || ''] || (
+      <svg className={sizeClasses} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    )
+  }, [lucideIcons, defaultCategoryIcons])
+
+  // 추가 캠페인 로드 (무한 스크롤)
+  const loadMoreCampaigns = useCallback(async () => {
+    if (loading || !hasMore) return
+
+    try {
+      setLoading(true)
+      
+      const params = new URLSearchParams()
+      if (cursor) params.append('cursor', cursor)
+      params.append('limit', '8')
+      params.append('sort', 'latest')
+      
+      const response = await fetch(`/api/campaigns/optimized?${params}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to load campaigns')
+      }
+      
+      const data = await response.json()
+      
+      setCampaigns(prev => [...prev, ...data.items])
+      setCursor(data.nextCursor)
+      setHasMore(data.hasMore)
+      
+      logger.info('HomePage: Loaded more campaigns', {
+        count: data.items?.length,
+        total: campaigns.length + data.items?.length
+      })
+    } catch (error) {
+      logger.error('HomePage: Failed to load campaigns', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [cursor, hasMore, loading, campaigns.length])
+
+  // 무한 스크롤 Hook 사용
+  const { sentinelRef } = useInfiniteScroll({
+    onLoadMore: loadMoreCampaigns,
+    hasMore,
+    loading,
+    threshold: 200
+  })
 
   // Sections are now preloaded with language data - no need for loadSections function
 
@@ -650,7 +710,7 @@ function HomePage({
                   </div>
                 ) : null
 
-                            case 'category':
+              case 'category':
                 return localizedContent?.categories ? (
                   <div key={section.id} className="mb-12">
                     {/* 데스크톱: 가로 스크롤, 모바일: 그리드 */}
@@ -659,39 +719,31 @@ function HomePage({
                       <div className="grid grid-cols-4 gap-3 sm:hidden">
                         {(localizedContent.categories as Array<{
                           id: string;
-                          categoryId: string;
+                          link?: string;
+                          categoryId?: string;
                           name: string;
                           icon?: string;
+                          iconType?: string;
                           badge?: string;
+                          badgeColor?: string;
                         }>).map((category) => (
                           <Link
                             key={category.id}
-                            href={`/campaigns?category=${category.categoryId}`}
+                            href={category.link || `/category/${category.categoryId}`}
                             className="flex flex-col items-center gap-1.5 group"
                           >
-                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative category-icon">
-                              {category.icon ? (
-                                category.icon.startsWith('http') ? (
-                                  <Image 
-                                    src={category.icon} 
-                                    alt={category.name} 
-                                    width={24}
-                                    height={24}
-                                    className="object-contain"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <span className="text-lg">{category.icon}</span>
-                                )
-                              ) : (
-                                (defaultCategoryIcons as any)[category.categoryId] || (
-                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                  </svg>
-                                )
-                              )}
+                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative">
+                              {renderCategoryIcon(category, 'small')}
                               {category.badge && (
-                                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 bg-red-500 text-white rounded-full font-bold min-w-[14px] text-center leading-none">
+                                <span className={`absolute -top-1 -right-1 text-[8px] px-1 py-0.5 text-white rounded-full font-bold min-w-[14px] text-center leading-none ${
+                                  category.badgeColor === 'blue' ? 'bg-blue-500' :
+                                  category.badgeColor === 'green' ? 'bg-green-500' :
+                                  category.badgeColor === 'purple' ? 'bg-purple-500' :
+                                  category.badgeColor === 'orange' ? 'bg-orange-500' :
+                                  category.badgeColor === 'yellow' ? 'bg-yellow-500' :
+                                  category.badgeColor === 'pink' ? 'bg-pink-500' :
+                                  'bg-red-500'
+                                }`}>
                                   {category.badge}
                                 </span>
                               )}
@@ -708,39 +760,31 @@ function HomePage({
                         <div className="flex gap-3 lg:gap-2 pb-4 justify-center pt-4 pb-2 min-w-max">
                           {(localizedContent.categories as Array<{
                             id: string;
-                            categoryId: string;
+                            link?: string;
+                            categoryId?: string;
                             name: string;
                             icon?: string;
+                            iconType?: string;
                             badge?: string;
+                            badgeColor?: string;
                           }>).map((category) => (
                             <Link
                               key={category.id}
-                              href={`/campaigns?category=${category.categoryId}`}
+                              href={category.link || `/category/${category.categoryId}`}
                               className="flex flex-col items-center gap-2 min-w-[60px] lg:min-w-[70px] group"
                             >
-                              <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative category-icon">
-                                {category.icon ? (
-                                  category.icon.startsWith('http') ? (
-                                    <Image 
-                                      src={category.icon} 
-                                      alt={category.name} 
-                                      width={32}
-                                      height={32}
-                                      className="object-contain"
-                                      loading="lazy"
-                                    />
-                                  ) : (
-                                    <span className="text-xl lg:text-2xl">{category.icon}</span>
-                                  )
-                                ) : (
-                                  (defaultCategoryIcons as any)[category.categoryId] || (
-                                    <svg className="w-7 h-7 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                    </svg>
-                                  )
-                                )}
+                              <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative">
+                                {renderCategoryIcon(category, 'large')}
                                 {category.badge && (
-                                  <span className="absolute -top-1.5 -right-1.5 text-[9px] lg:text-[10px] px-1.5 py-0.5 bg-red-500 text-white rounded-full font-bold min-w-[16px] lg:min-w-[18px] text-center leading-none">
+                                  <span className={`absolute -top-1.5 -right-1.5 text-[9px] lg:text-[10px] px-1.5 py-0.5 text-white rounded-full font-bold min-w-[16px] lg:min-w-[18px] text-center leading-none ${
+                                    category.badgeColor === 'blue' ? 'bg-blue-500' :
+                                    category.badgeColor === 'green' ? 'bg-green-500' :
+                                    category.badgeColor === 'purple' ? 'bg-purple-500' :
+                                    category.badgeColor === 'orange' ? 'bg-orange-500' :
+                                    category.badgeColor === 'yellow' ? 'bg-yellow-500' :
+                                    category.badgeColor === 'pink' ? 'bg-pink-500' :
+                                    'bg-red-500'
+                                  }`}>
                                     {category.badge}
                                   </span>
                                 )}
@@ -775,6 +819,15 @@ function HomePage({
                     t={t}
                   />
                 )
+              case 'active-campaigns':
+                return (
+                  <ActiveCampaignsSection
+                    key={section.id}
+                    section={section as any}
+                    localizedContent={localizedContent}
+                    t={t}
+                  />
+                )
               
 
               default:
@@ -794,41 +847,6 @@ function HomePage({
           )
         )}
 
-        {/* 캠페인 섹션 */}
-        <div className="mt-16">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">{t('homepage.campaigns.title', '진행 중인 캠페인')}</h2>
-            <Link 
-              href="/campaigns" 
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              {t('homepage.campaigns.viewAll', '더보기')} →
-            </Link>
-          </div>
-
-          {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-gray-100 rounded-xl h-64 animate-pulse" />
-              ))}
-            </div>
-          ) : campaigns.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {campaigns.slice(0, 8).map((campaign, index) => (
-                <CampaignCard
-                  key={campaign.id}
-                  campaign={campaign}
-                  index={index}
-                  onClick={(id) => window.location.href = `/campaigns/${id}`}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 bg-gray-50 rounded-xl">
-              <p className="text-gray-500">{t('homepage.campaigns.noCampaigns', '진행 중인 캠페인이 없습니다.')}</p>
-            </div>
-          )}
-        </div>
       </main>
       </div>
       <Footer />

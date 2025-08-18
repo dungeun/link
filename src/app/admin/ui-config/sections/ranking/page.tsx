@@ -19,7 +19,7 @@ export default function RankingSectionEditPage() {
     title: '실시간 랭킹',
     subtitle: '지금 가장 인기있는 캠페인',
     visible: true,
-    count: 5,
+    count: 4,
     criteria: 'popular',
     showBadge: true
   });
@@ -43,7 +43,7 @@ export default function RankingSectionEditPage() {
             title: data.section.title || '실시간 랭킹',
             subtitle: data.section.subtitle || '지금 가장 인기있는 캠페인',
             visible: data.section.visible,
-            count: data.section.content?.count || 5,
+            count: data.section.content?.count || 4,
             criteria: data.section.content?.criteria || 'popular',
             showBadge: data.section.content?.showBadge ?? true
           });
@@ -168,9 +168,8 @@ export default function RankingSectionEditPage() {
                 onChange={(e) => handleUpdate({ count: parseInt(e.target.value) })}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value={3}>TOP 3</option>
-                <option value={5}>TOP 5</option>
-                <option value={10}>TOP 10</option>
+                <option value={4}>TOP 4</option>
+                <option value={8}>TOP 8</option>
               </select>
             </div>
 

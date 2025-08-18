@@ -35,9 +35,23 @@ interface Section {
   settings?: SectionSettings;
 }
 
+interface CategoryMenu {
+  id: string;
+  name: string;
+  link: string;
+  icon?: string;
+  iconType?: 'emoji' | 'lucide';
+  badge?: string;
+  badgeColor?: string;
+  visible: boolean;
+  order: number;
+}
+
 interface LocalizedContent {
   title?: string;
   subtitle?: string;
+  categories?: CategoryMenu[];
+  gridLayout?: string;
 }
 
 interface CategorySectionProps {
@@ -47,6 +61,74 @@ interface CategorySectionProps {
 }
 
 function CategorySection({ section, localizedContent, t }: CategorySectionProps) {
+  // 디버깅 로그 추가
+  console.log('[CategorySection] Received props:', {
+    section,
+    localizedContent,
+    hasCategories: localizedContent?.categories
+  })
+  
+  // admin에서 설정한 카테고리 메뉴가 있으면 그것을 표시
+  if (localizedContent?.categories && localizedContent.categories.length > 0) {
+    // 카테고리 메뉴 아이콘 섹션 렌더링
+    const visibleCategories = localizedContent.categories
+      .filter(cat => cat.visible)
+      .sort((a, b) => a.order - b.order)
+
+    const getBadgeColorClass = (color?: string) => {
+      const colorMap: { [key: string]: string } = {
+        red: 'bg-red-500',
+        blue: 'bg-blue-500',
+        green: 'bg-green-500',
+        purple: 'bg-purple-500',
+        orange: 'bg-orange-500',
+        yellow: 'bg-yellow-500',
+        pink: 'bg-pink-500',
+      };
+      return colorMap[color || ''] || 'bg-gray-500';
+    };
+
+    return (
+      <div className="mb-12">
+        <div className="bg-white rounded-xl p-6">
+          <div className="flex flex-wrap gap-4 justify-center">
+            {visibleCategories.map((category) => (
+              <Link
+                key={category.id}
+                href={category.link}
+                className="flex flex-col items-center gap-2 group"
+              >
+                <div className="relative">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center border border-gray-100 group-hover:shadow-md group-hover:border-blue-200 transition-all">
+                    {category.iconType === 'emoji' ? (
+                      <span className="text-2xl">{category.icon}</span>
+                    ) : (
+                      <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    )}
+                  </div>
+                  {category.badge && (
+                    <span className={`absolute -top-1 -right-1 text-[10px] px-2 py-0.5 rounded-full font-bold text-white ${
+                      getBadgeColorClass(category.badgeColor)
+                    }`}>
+                      {category.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-700 text-center">
+                  {category.name}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 기존 캠페인 표시 로직
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   

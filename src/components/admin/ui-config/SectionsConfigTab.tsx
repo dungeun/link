@@ -47,7 +47,7 @@ const sections: Section[] = [
   {
     id: 'ranking',
     name: '실시간 랭킹',
-    description: '인기/마감임박 캠페인 TOP 5',
+    description: '인기/마감임박 캠페인 TOP 4',
     status: 'active',
     editUrl: '/admin/ui-config/sections/ranking'
   },
@@ -57,6 +57,13 @@ const sections: Section[] = [
     description: '큐레이션된 캠페인 목록',
     status: 'active',
     editUrl: '/admin/ui-config/sections/recommended'
+  },
+  {
+    id: 'active-campaigns',
+    name: '진행 중인 캠페인',
+    description: '지금 참여할 수 있는 캠페인 목록',
+    status: 'active',
+    editUrl: '/admin/ui-config/sections/active-campaigns'
   },
   {
     id: 'cta',

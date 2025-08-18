@@ -47,7 +47,7 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
   const [loading, setLoading] = useState(true)
   
   // 섹션 설정에서 개수와 기준 가져오기 - 메모이제이션
-  const count = useMemo(() => section.settings?.count || 5, [section.settings?.count])
+  const count = useMemo(() => section.settings?.count || 4, [section.settings?.count])
   const criteria = useMemo(() => 'popular', [])
   const showBadge = useMemo(() => true, [])
 
