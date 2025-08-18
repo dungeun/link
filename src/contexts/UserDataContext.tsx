@@ -8,6 +8,7 @@ interface ProfileData {
   name: string
   email: string
   type: string
+  profileCompleted?: boolean
   profile?: {
     bio?: string
     profileImage?: string
@@ -32,6 +33,7 @@ interface ProfileData {
     bankName?: string
     bankAccountNumber?: string
     bankAccountHolder?: string
+    profileCompleted?: boolean
   }
   businessProfile?: {
     companyName: string

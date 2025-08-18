@@ -106,17 +106,17 @@ export async function GET(
     let hashtags = [];
     if (campaign.hashtags) {
       try {
-        hashtags = JSON.parse(campaign.hashtags);
+        hashtags = JSON.parse(campaign.hashtags as string);
       } catch (e) {
         // JSON 파싱 실패 시 공백으로 분리
-        hashtags = campaign.hashtags.split(' ').filter(tag => tag);
+        hashtags = (campaign.hashtags as string).split(' ').filter(tag => tag);
       }
     }
     
     // 플랫폼 파싱
     let platforms = [];
     try {
-      platforms = campaign.platforms ? JSON.parse(campaign.platforms) : [campaign.platform];
+      platforms = campaign.platforms ? JSON.parse(campaign.platforms as string) : [campaign.platform];
     } catch (e) {
       platforms = [campaign.platform];
     }

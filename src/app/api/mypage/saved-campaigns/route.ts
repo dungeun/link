@@ -75,13 +75,18 @@ export async function GET(request: NextRequest) {
       .map(save => ({
         id: save.campaign.id,
         title: save.campaign.title,
+        businessName: save.campaign.business.businessProfile?.companyName || 'Unknown',
         brand_name: save.campaign.business.businessProfile?.companyName || 'Unknown',
         category: '', // Campaign model doesn't have category field
         platform: save.campaign.platform || '',
         budget: save.campaign.budget,
+        reward: save.campaign.budget ? parseInt(save.campaign.budget.replace(/[^0-9]/g, '') || '0') : 0,
         image_url: save.campaign.imageUrl || '',
+        imageUrl: save.campaign.imageUrl || '',
         requirements: save.campaign.requirements || '',
         application_deadline: save.campaign.endDate,
+        startDate: save.campaign.startDate,
+        endDate: save.campaign.endDate,
         likes: save.campaign._count.campaignLikes,
         applications: save.campaign._count.applications,
         savedAt: save.createdAt,

@@ -5,12 +5,12 @@ const SECURITY_CONFIG = {
   // CSP 설정
   contentSecurityPolicy: {
     'default-src': ["'self'"],
-    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://t1.daumcdn.net", "https://cdn.iamport.kr", "https://js.tosspayments.com"],
+    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://t1.daumcdn.net", "https://ssl.daumcdn.net", "https://cdn.iamport.kr", "https://js.tosspayments.com", "https://postcode.map.daum.net"],
     'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     'font-src': ["'self'", "https://fonts.gstatic.com"],
     'img-src': ["'self'", "data:", "https:", "blob:"],
     'connect-src': ["'self'", "https://api.github.com", "https:", "https://api.tosspayments.com"],
-    'frame-src': ["'self'", "https://www.youtube.com", "https://youtube.com", "https://www.youtube-nocookie.com", "https://player.vimeo.com", "https://service.iamport.kr"],
+    'frame-src': ["'self'", "https://www.youtube.com", "https://youtube.com", "https://www.youtube-nocookie.com", "https://player.vimeo.com", "https://service.iamport.kr", "https://postcode.map.daum.net"],
     'frame-ancestors': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],

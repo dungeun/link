@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/db/prisma';
 
 // Dynamic route configuration
 import { verifyJWT } from '@/lib/auth/jwt';

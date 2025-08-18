@@ -61,6 +61,7 @@ export default function EditCampaignPage() {
     campaignMission: '',
     keywords: '',
     additionalNotes: '',
+    youtubeUrl: '',
     status: 'ACTIVE'
   })
 
@@ -109,6 +110,7 @@ export default function EditCampaignPage() {
           campaignMission: campaign.campaignMission || '',
           keywords: campaign.keywords || '',
           additionalNotes: campaign.additionalNotes || '',
+          youtubeUrl: campaign.youtubeUrl || '',
           status: campaign.status || 'ACTIVE'
         })
 
@@ -147,6 +149,7 @@ export default function EditCampaignPage() {
         },
         body: JSON.stringify({
           ...formData,
+          youtubeUrl: formData.youtubeUrl,
           headerImageUrl: headerImage,
           thumbnailImageUrl: thumbnailImage,
           productImages,
@@ -513,6 +516,21 @@ export default function EditCampaignPage() {
                     </span>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="youtubeUrl">YouTube URL</Label>
+                <Input
+                  id="youtubeUrl"
+                  type="url"
+                  value={formData.youtubeUrl}
+                  onChange={(e) => setFormData({...formData, youtubeUrl: e.target.value})}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  className="mt-1"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  YouTube 링크가 있다면 입력해주세요 (선택사항)
+                </p>
               </div>
 
               <div>

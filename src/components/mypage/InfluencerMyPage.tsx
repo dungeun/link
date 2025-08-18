@@ -39,6 +39,9 @@ interface Campaign {
   startDate?: string
   endDate?: string
   createdAt?: string
+  savedAt?: string
+  imageUrl?: string
+  budget?: string
 }
 
 interface Application {
@@ -677,14 +680,43 @@ function InfluencerMyPage({ user, activeTab, setActiveTab }: InfluencerMyPagePro
             ) : savedCampaigns.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {savedCampaigns.map((campaign: Campaign) => (
-                  <div key={campaign.id} className="border rounded-lg p-4">
-                    <h3 className="font-semibold">{campaign.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{campaign.businessName}</p>
-                    {campaign.reward && (
-                      <p className="text-lg font-bold text-blue-600 mt-2">
-                        ₩{campaign.reward.toLocaleString()}
-                      </p>
-                    )}
+                  <div key={campaign.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                    {/* Campaign Image */}
+                    <div className="aspect-video bg-gradient-to-br from-cyan-500 to-blue-600 relative">
+                      {campaign.imageUrl ? (
+                        <img 
+                          src={campaign.imageUrl} 
+                          alt={campaign.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                          <span className="text-white text-lg font-semibold">
+                            {campaign.title.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Campaign Content */}
+                    <div className="p-4">
+                      <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{campaign.title}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{campaign.businessName}</p>
+                      {campaign.reward ? (
+                        <p className="text-lg font-bold text-blue-600">
+                          ₩{campaign.reward.toLocaleString()}
+                        </p>
+                      ) : campaign.budget && (
+                        <p className="text-lg font-bold text-blue-600">
+                          {campaign.budget}
+                        </p>
+                      )}
+                      {campaign.savedAt && (
+                        <p className="text-xs text-gray-400 mt-2">
+                          저장일: {new Date(campaign.savedAt).toLocaleDateString('ko-KR')}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
