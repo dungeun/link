@@ -4,32 +4,15 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { AuthService } from '@/lib/auth'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function WritePostPage() {
   const router = useRouter()
-  const [user, setUser] = useState<{ id: string; type: string; name: string; email: string } | null>(null)
+  const { user, loading: authLoading } = useAuth()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [category, setCategory] = useState('free')
   const [loading, setLoading] = useState(false)
-
-  // Check login status on component mount and when window gets focus
-  useEffect(() => {
-    const checkLoginStatus = () => {
-      const currentUser = AuthService.getCurrentUser()
-      setUser(currentUser)
-    }
-    
-    checkLoginStatus()
-    
-    // Re-check when window gets focus (in case user logged in on another tab)
-    window.addEventListener('focus', checkLoginStatus)
-    
-    return () => {
-      window.removeEventListener('focus', checkLoginStatus)
-    }
-  }, [])
 
   const categories = [
     { id: 'tips', name: '캠페인 팁', icon: '💡' },
@@ -61,6 +44,12 @@ export default function WritePostPage() {
       setLoading(true)
       const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token')
       
+      if (!token) {
+        alert('로그인이 필요합니다. 다시 로그인해주세요.')
+        router.push('/login')
+        return
+      }
+      
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
@@ -74,11 +63,17 @@ export default function WritePostPage() {
         })
       })
 
+      if (response.status === 401) {
+        alert('로그인이 만료되었습니다. 다시 로그인해주세요.')
+        router.push('/login')
+        return
+      }
+
       if (response.ok) {
         const post = await response.json()
         router.push(`/community/${post.id}`)
       } else {
-        const error = await response.json()
+        const error = await response.json().catch(() => ({}))
         alert(error.error || '게시글 작성에 실패했습니다.')
       }
     } catch (error) {

@@ -262,21 +262,48 @@ export default function CampaignDetailPage() {
       return
     }
 
+    // 토큰 유효성 확인
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token')
+    if (!token) {
+      toast({
+        title: '인증 오류',
+        description: '로그인이 필요합니다. 다시 로그인해주세요.',
+        variant: 'destructive'
+      })
+      return
+    }
+
     try {
       const response = await fetch(`/api/campaigns/${params.id}/save`, {
         method: isLiked ? 'DELETE' : 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
+          'Authorization': `Bearer ${token}`
         }
       })
 
-      if (!response.ok) throw new Error('Failed to toggle save')
+      if (response.status === 401) {
+        toast({
+          title: '인증 오류',
+          description: '로그인이 만료되었습니다. 다시 로그인해주세요.',
+          variant: 'destructive'
+        })
+        return
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to toggle save')
+      }
 
       const data = await response.json()
       setIsLiked(data.saved !== false)
       
-      // 캐시 무효화하여 관심 목록 갱신
+      // 캐시 무효화하여 관심 목록 갱신 (페이지별 캐시 모두 무효화)
       invalidateCache(`saved_campaigns_${user?.id}`)
+      // 페이지별 캐시도 무효화
+      for (let page = 1; page <= 10; page++) {
+        invalidateCache(`saved_campaigns_${user?.id}_${page}_20`)
+      }
       
       toast({
         title: data.saved !== false ? '관심 캠페인 추가' : '관심 캠페인 제거',
@@ -286,7 +313,7 @@ export default function CampaignDetailPage() {
       console.error('Error toggling like:', error)
       toast({
         title: '오류',
-        description: '좋아요 처리 중 문제가 발생했습니다.',
+        description: error instanceof Error ? error.message : '좋아요 처리 중 문제가 발생했습니다.',
         variant: 'destructive'
       })
     }
@@ -313,7 +340,8 @@ export default function CampaignDetailPage() {
     }
 
     // 프로필 완성 상태 최종 체크
-    if (!(profileData as any)?.profileCompleted) {
+    const isProfileCompleted = profileData?.profileCompleted || profileData?.profile?.profileCompleted || false
+    if (!isProfileCompleted) {
       toast({
         title: '프로필 완성 필요',
         description: '프로필을 먼저 완성해주세요.',
@@ -933,8 +961,9 @@ export default function CampaignDetailPage() {
                         className="w-full" 
                         size="lg"
                         onClick={() => {
-                          // 프로필 완성 상태 체크 (DB의 profileCompleted 플래그 사용)
-                          if (!(profileData as any)?.profileCompleted) {
+                          // 프로필 완성 상태 체크
+                          const isProfileCompleted = profileData?.profileCompleted || profileData?.profile?.profileCompleted || false
+                          if (!isProfileCompleted) {
                             // 프로필 정보가 불완전한 경우
                             if (confirm('프로필 정보를 먼저 완성해주세요. 프로필 수정 페이지로 이동하시겠습니까?')) {
                               router.push('/mypage')
@@ -989,7 +1018,7 @@ export default function CampaignDetailPage() {
             </div>
 
             {/* 주의사항 */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 relative z-10 mt-6">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                 <div>
