@@ -60,14 +60,6 @@ const nextConfig = {
     scrollRestoration: true,
   },
 
-  // API 바디 크기 제한 설정
-  api: {
-    bodyParser: {
-      sizeLimit: '20mb',
-    },
-    responseLimit: '20mb',
-  },
-
   // 환경 변수
   env: {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',

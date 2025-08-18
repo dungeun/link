@@ -758,8 +758,8 @@ export default function CampaignDetailPage() {
                           
                           // 유효한 이미지만 필터링
                           const validImages = images
-                            .map(img => typeof img === 'string' ? img : img?.url || img)
-                            .filter(url => url && typeof url === 'string');
+                            .map((img: any) => typeof img === 'string' ? img : img?.url || img)
+                            .filter((url: any) => url && typeof url === 'string');
                           
                           if (validImages.length === 0) {
                             return <p className="text-gray-500">상세 이미지가 없습니다.</p>;

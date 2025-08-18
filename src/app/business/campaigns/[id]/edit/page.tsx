@@ -233,7 +233,7 @@ export default function EditCampaignPage() {
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-500">캠페인 ID</p>
-                <p className="font-mono text-xs text-gray-600">{id}</p>
+                <p className="font-mono text-xs text-gray-600">{campaignId}</p>
               </div>
             </div>
           </div>
