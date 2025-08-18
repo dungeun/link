@@ -110,3 +110,10 @@ apps/*/pnpm-lock.yaml
 !.gitkeep.env.production
 .env*
 .env-backups/
+
+# Campaign data and crawling
+campaign-data/
+crawled-data/
+final-campaigns/
+첨부사진/
+크롤링.md

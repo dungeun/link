@@ -629,19 +629,29 @@ export default function CampaignDetailPage() {
 
                 {/* 제품 소개 탭 */}
                 <TabsContent value="product" className="mt-6">
-                  {campaign.productImages && Array.isArray(campaign.productImages) && campaign.productImages.length > 0 ? (
+                  {campaign.productImages ? (
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold text-gray-900">제품 소개</h2>
                       <div className="space-y-6">
-                        {(campaign.productImages || []).map((image: any, index: number) => (
-                          <div key={index} className="relative w-full rounded-lg overflow-hidden">
-                            <img
-                              src={image}
-                              alt={`제품 이미지 ${index + 1}`}
-                              className="w-full h-auto object-cover"
-                            />
-                          </div>
-                        ))}
+                        {(() => {
+                          // productImages가 문자열인 경우 파싱, 배열인 경우 그대로 사용
+                          const images = typeof campaign.productImages === 'string' 
+                            ? JSON.parse(campaign.productImages) 
+                            : campaign.productImages || [];
+                          
+                          // detail 타입의 이미지들만 필터링 (02 이미지들)
+                          const detailImages = images.filter((img: any) => img.type === 'detail');
+                          
+                          return detailImages.map((image: any, index: number) => (
+                            <div key={image.id || index} className="relative w-full rounded-lg overflow-hidden">
+                              <img
+                                src={image.url || image}
+                                alt={`제품 이미지 ${index + 1}`}
+                                className="w-full h-auto object-cover"
+                              />
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   ) : (
@@ -715,20 +725,27 @@ export default function CampaignDetailPage() {
                   )}
 
                   {/* 상세 이미지 */}
-                  {campaign.detailImages && Array.isArray(campaign.detailImages) && campaign.detailImages.length > 0 && (
+                  {campaign.detailImages && (
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">상세 이미지</h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {(campaign.detailImages || []).map((image: any, index: number) => (
-                          <div key={index} className="relative aspect-video rounded-lg overflow-hidden">
-                            <Image
-                              src={image}
-                              alt={`상세 이미지 ${index + 1}`}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        ))}
+                        {(() => {
+                          // detailImages가 문자열인 경우 파싱, 배열인 경우 그대로 사용
+                          const images = typeof campaign.detailImages === 'string' 
+                            ? JSON.parse(campaign.detailImages) 
+                            : campaign.detailImages || [];
+                          
+                          return images.map((image: any, index: number) => (
+                            <div key={image.id || index} className="relative aspect-video rounded-lg overflow-hidden">
+                              <Image
+                                src={image.url || image}
+                                alt={`상세 이미지 ${index + 1}`}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   )}
