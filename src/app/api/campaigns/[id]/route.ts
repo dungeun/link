@@ -57,6 +57,7 @@ export async function GET(
           title: true,
           description: true,
           platform: true,
+          platforms: true,
           budget: true,
           targetFollowers: true,
           maxApplicants: true,

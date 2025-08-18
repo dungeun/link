@@ -484,7 +484,7 @@ export async function POST(request: NextRequest) {
           startDate: new Date(validatedData.startDate),
           endDate: new Date(validatedData.endDate),
           requirements: validatedData.requirements,
-          hashtags: validatedData.hashtags ? JSON.stringify(validatedData.hashtags) : null,
+          hashtags: validatedData.hashtags ? JSON.stringify(validatedData.hashtags) : undefined,
           maxApplicants: validatedData.maxApplicants,
           rewardAmount: validatedData.rewardAmount,
           location: validatedData.location,
