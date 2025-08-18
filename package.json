@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--max-old-space-size=512' PORT=$(node scripts/find-free-port.js) && echo \"🚀 Starting REVU Platform on port $PORT\" && next dev -p $PORT",
+    "dev": "NODE_OPTIONS='--max-old-space-size=384' PORT=$(node scripts/find-free-port.js) && echo \"🚀 Starting REVU Platform on port $PORT\" && next dev -p $PORT",
     "dev:clean": "rm -rf .next && npm run dev",
     "build": "prisma generate && next build",
     "build:analyze": "prisma generate && ANALYZE=true next build",

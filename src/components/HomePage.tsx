@@ -21,6 +21,12 @@ const RecommendedSection = dynamic(() => import('@/components/home/RecommendedSe
   loading: () => <div className="h-64 bg-gray-100 rounded-xl animate-pulse" />,
   ssr: false
 })
+
+const CategorySection = dynamic(() => import('@/components/home/CategorySection'), {
+  loading: () => <div className="h-64 bg-gray-100 rounded-xl animate-pulse" />,
+  ssr: false
+})
+
 import { CriticalCSS } from '@/components/CriticalCSS'
 import Image from 'next/image'
 import CampaignCard from '@/components/CampaignCard'
@@ -809,6 +815,15 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
               case 'recommended':
                 return (
                   <RecommendedSection
+                    key={section.id}
+                    section={section as any}
+                    localizedContent={localizedContent}
+                    t={t}
+                  />
+                )
+              case 'category':
+                return (
+                  <CategorySection
                     key={section.id}
                     section={section as any}
                     localizedContent={localizedContent}

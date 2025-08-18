@@ -42,11 +42,11 @@ function CategoriesPageContent() {
       const data = await response.json()
       if (data.success) {
         setCategories(data.categories)
-        // 대분류(level 1) 카테고리를 기본적으로 확장
-        const mainCategories = data.categories
-          .filter((cat: Category) => cat.level === 1 && cat.children && cat.children.length > 0)
+        // 모든 카테고리를 기본적으로 확장 (중분류가 보이도록)
+        const allCategoriesWithChildren = data.categories
+          .filter((cat: Category) => cat.children && cat.children.length > 0)
           .map((cat: Category) => cat.id)
-        setExpandedCategories(new Set(mainCategories))
+        setExpandedCategories(new Set(allCategoriesWithChildren))
       }
     } catch (error) {
       console.error('Error fetching categories:', error)

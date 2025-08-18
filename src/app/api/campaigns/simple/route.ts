@@ -6,49 +6,96 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'ACTIVE';
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
     const category = searchParams.get('category');
     const platform = searchParams.get('platform');
+    const type = searchParams.get('type');
+    const offset = (page - 1) * limit;
     
-    console.log('Simple API called with:', { status, limit, category, platform });
+    console.log('Simple API called with:', { status, page, limit, category, platform, type });
     
     // 필터 조건 구성
-    const where: Record<string, unknown> = { status: status.toUpperCase() };
+    const where: Record<string, unknown> = { 
+      status: status.toUpperCase(),
+      deletedAt: null
+    };
+    
+    // 카테고리 필터링
+    if (category && category !== 'all') {
+      where.categories = {
+        some: {
+          category: {
+            slug: category
+          }
+        }
+      };
+    }
     
     if (platform && platform !== 'all') {
       where.platform = platform.toUpperCase();
     }
     
-    // 간단한 캠페인 조회 - business 관계 없이
-    const campaigns = await prisma.campaign.findMany({
-      where,
-      take: limit,
-      select: {
-        id: true,
-        businessId: true,
-        title: true,
-        description: true,
-        platform: true,
-        budget: true,
-        targetFollowers: true,
-        startDate: true,
-        endDate: true,
-        imageUrl: true,
-        status: true,
-        maxApplicants: true,
-        rewardAmount: true,
-        createdAt: true,
-        _count: {
-          select: {
-            applications: true
-          }
-        }
-      },
-      orderBy: [
-        { status: 'desc' },
+    // 정렬 옵션
+    let orderBy: any = [
+      { createdAt: 'desc' }
+    ];
+
+    // 타입별 정렬
+    if (type === 'trending') {
+      orderBy = [
+        { applications: { _count: 'desc' } },
         { createdAt: 'desc' }
-      ]
-    });
+      ];
+    } else if (type === 'latest') {
+      orderBy = [
+        { createdAt: 'desc' }
+      ];
+    }
+    
+    // 간단한 캠페인 조회 - business 관계 없이
+    const [campaigns, total] = await Promise.all([
+      prisma.campaign.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        select: {
+          id: true,
+          businessId: true,
+          title: true,
+          description: true,
+          platform: true,
+          budget: true,
+          targetFollowers: true,
+          startDate: true,
+          endDate: true,
+          imageUrl: true,
+          status: true,
+          maxApplicants: true,
+          rewardAmount: true,
+          createdAt: true,
+          categories: {
+            select: {
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true
+                }
+              },
+              isPrimary: true
+            }
+          },
+          _count: {
+            select: {
+              applications: true
+            }
+          }
+        },
+        orderBy
+      }),
+      prisma.campaign.count({ where })
+    ]);
     
     console.log('Found campaigns count:', campaigns?.length);
     
@@ -69,7 +116,7 @@ export async function GET(request: NextRequest) {
     });
     
     // 캠페인 데이터 포맷팅
-    const formattedCampaigns = campaigns.map((campaign, index) => {
+    const formattedCampaigns = campaigns.map((campaign: any, index) => {
       const business = businesses.find(b => b.id === campaign.businessId);
       
       // 마감일까지 남은 일수 계산
@@ -77,6 +124,11 @@ export async function GET(request: NextRequest) {
       const endDate = new Date(campaign.endDate);
       const timeDiff = endDate.getTime() - today.getTime();
       const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      
+      // 카테고리 정보 가져오기
+      const primaryCategory = campaign.categories?.find((c: any) => c.isPrimary)?.category;
+      const categorySlug = primaryCategory?.slug || 'other';
+      const categoryName = primaryCategory?.name || 'Other';
       
       return {
         id: campaign.id,
@@ -86,7 +138,8 @@ export async function GET(request: NextRequest) {
         description: campaign.description || '',
         budget: campaign.budget,
         deadline: Math.max(0, daysDiff),
-        category: business?.businessProfile?.businessCategory || 'other',
+        category: categorySlug,
+        categoryName: categoryName,
         platforms: [campaign.platform.toLowerCase()],
         required_followers: campaign.targetFollowers,
         location: '전국',
@@ -111,10 +164,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       campaigns: formattedCampaigns,
       pagination: {
-        page: 1,
+        page,
         limit,
-        total: formattedCampaigns.length,
-        totalPages: 1
+        total,
+        totalPages: Math.ceil(total / limit)
       },
       categoryStats: {}
     });
