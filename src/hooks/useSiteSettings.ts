@@ -17,9 +17,9 @@ interface SiteSettings {
     primaryColor: string
     secondaryColor: string
     footerEnabled: boolean
-    footerText: string
+    footerText: string | Record<string, string>
     footerLinks: Array<{
-      title: string
+      title: string | Record<string, string>
       url: string
       newWindow: boolean
     }>

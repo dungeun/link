@@ -125,9 +125,13 @@ function Footer() {
                     {/* 저작권 */}
                     <div className="mt-4">
                       <p className="text-xs text-gray-500">
-                        {siteSettings.website?.footerText?.[currentLanguage] || 
-                         siteSettings.website?.footerText?.ko || 
-                         t(copyright, `© ${new Date().getFullYear()} LinkPick. All rights reserved.`)}
+                        {(() => {
+                          const footerText = siteSettings.website?.footerText;
+                          if (typeof footerText === 'object' && footerText) {
+                            return footerText[currentLanguage] || footerText.ko || footerText.en;
+                          }
+                          return footerText || t(copyright, `© ${new Date().getFullYear()} LinkPick. All rights reserved.`);
+                        })()}
                       </p>
                     </div>
                   </div>
@@ -151,7 +155,13 @@ function Footer() {
                             rel={link.newWindow ? 'noopener noreferrer' : undefined}
                             className="text-gray-400 hover:text-cyan-400 transition-colors duration-200 text-sm"
                           >
-                            {link.title?.[currentLanguage] || link.title?.ko || link.title?.en}
+                            {(() => {
+                              const title = link.title;
+                              if (typeof title === 'object' && title) {
+                                return title[currentLanguage] || title.ko || title.en;
+                              }
+                              return title || '';
+                            })()}
                           </Link>
                         </li>
                       ))}

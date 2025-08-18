@@ -177,7 +177,7 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
       alert('메뉴 이름이 업데이트되었습니다.');
     } catch (error) {
       console.error('메뉴 이름 업데이트 실패:', error);
-      alert(`메뉴 이름 업데이트 중 오류가 발생했습니다: ${error.message}`);
+      alert(`메뉴 이름 업데이트 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     }
   };
 

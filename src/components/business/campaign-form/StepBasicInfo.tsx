@@ -13,6 +13,7 @@ interface Category {
   level: number
   parentId?: string
   isActive: boolean
+  icon?: string
   children?: Category[]
 }
 

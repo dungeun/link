@@ -159,8 +159,8 @@ export async function checkLoginRateLimit(
   const isDevelopment = process.env.NODE_ENV === 'development'
   
   return rateLimiter.checkLimit(identifier, {
-    windowMs: isDevelopment ? 60 * 1000 : 15 * 60 * 1000, // 개발: 1분, 프로덕션: 15분
-    max: isDevelopment ? 100 : 5, // 개발: 100회, 프로덕션: 5회 시도
+    windowMs: isDevelopment ? 60 * 1000 : 5 * 60 * 1000, // 개발: 1분, 프로덕션: 5분
+    max: isDevelopment ? 100 : 10, // 개발: 100회, 프로덕션: 10회 시도
     keyPrefix: 'login_attempt'
   })
 }
