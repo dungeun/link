@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { verifyAuth } from '@/lib/auth-utils';
-import { freeSocialScraperService } from '@/lib/services/free-social-scraper.service';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { PrismaClient } from '@prisma/client';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { verifyAuth } from '@/lib/auth-utils';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { freeSocialScraperService } from '@/lib/services/free-social-scraper.service';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 const prisma = new PrismaClient();
 
 // SNS 플랫폼별 팔로워 수 가져오기 (무료 크롤링만 사용)

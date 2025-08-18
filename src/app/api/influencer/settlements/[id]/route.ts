@@ -1,8 +1,14 @@
 // 인플루언서 정산 상세 조회 API
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyJWT } from '@/lib/auth/jwt';
-import { prisma } from '@/lib/db/prisma';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { verifyJWT } from '@/lib/auth/jwt';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

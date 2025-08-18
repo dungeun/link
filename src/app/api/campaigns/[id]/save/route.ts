@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { verifyJWT } from '@/lib/auth/jwt';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { verifyJWT } from '@/lib/auth/jwt';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // POST /api/campaigns/[id]/save - 관심 캠페인 저장
 export async function POST(
   request: NextRequest,

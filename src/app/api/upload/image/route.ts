@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveImageLocally } from '@/lib/utils/image-upload';
-import { authenticateRequest } from '@/lib/auth/middleware';
-import { prisma } from '@/lib/db/prisma';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { saveImageLocally } from '@/lib/utils/image-upload';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { authenticateRequest } from '@/lib/auth/middleware';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     // 인증 확인 (모든 인증된 사용자)

@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 export async function GET() {
   try {
     // 데이터베이스 연결 테스트

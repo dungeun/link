@@ -1,9 +1,17 @@
 // 관리자 정산 상세 API
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminAuth } from '@/lib/admin-auth';
-import { settlementService } from '@/lib/services/settlement.service';
-import { prisma } from '@/lib/db/prisma';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { requireAdminAuth } from '@/lib/admin-auth';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { settlementService } from '@/lib/services/settlement.service';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

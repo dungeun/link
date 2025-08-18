@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { verifyJWT } from '@/lib/auth/jwt'
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { verifyJWT } from '@/lib/auth/jwt'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // POST /api/payments/test-complete - 테스트 결제 완료 처리 (현금 결제)
 export async function POST(request: NextRequest) {
   try {

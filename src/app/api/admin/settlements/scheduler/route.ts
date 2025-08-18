@@ -1,8 +1,14 @@
 // 정산 스케줄러 관리 API
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminAuth } from '@/lib/admin-auth';
-import { settlementScheduler } from '@/lib/scheduler/settlement-scheduler';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { requireAdminAuth } from '@/lib/admin-auth';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { settlementScheduler } from '@/lib/scheduler/settlement-scheduler';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // 스케줄러 상태 조회
 export async function GET(request: NextRequest) {
   try {

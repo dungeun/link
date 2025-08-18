@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { requireAdminAuth } from '@/lib/admin-auth'
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { requireAdminAuth } from '@/lib/admin-auth'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // POST /api/admin/campaigns/[id]/reject - 캠페인 거절
 export async function POST(
   request: NextRequest,

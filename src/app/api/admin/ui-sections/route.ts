@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
-import { translateText } from '@/lib/services/translation.service';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { translateText } from '@/lib/services/translation.service';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // GET: 모든 UI 섹션 가져오기
 export async function GET(request: NextRequest) {
   try {

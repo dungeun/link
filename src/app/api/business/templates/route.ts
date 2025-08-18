@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
-import { withAuth } from '@/lib/auth/middleware';
-import { createErrorResponse, createSuccessResponse, createApiError, handleApiError } from '@/lib/utils/api-error';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { withAuth } from '@/lib/auth/middleware';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { createErrorResponse, createSuccessResponse, createApiError, handleApiError } from '@/lib/utils/api-error';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // GET /api/business/templates - 템플릿 목록 조회
 export async function GET(request: NextRequest) {
   let user: { id: string; userId?: string; email: string; name?: string; type: string } | null = null;

@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyJWT } from '@/lib/auth/jwt'
-import { prisma } from '@/lib/db/prisma'
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { cookies } from 'next/headers'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { verifyJWT } from '@/lib/auth/jwt'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // GET /api/admin/payments/[id] - 특정 결제 상세 조회
 export async function GET(
   request: NextRequest,

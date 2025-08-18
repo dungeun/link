@@ -1,8 +1,14 @@
 // 관리자 정산 API
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminAuth } from '@/lib/admin-auth';
-import { settlementService } from '@/lib/services/settlement.service';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { requireAdminAuth } from '@/lib/admin-auth';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { settlementService } from '@/lib/services/settlement.service';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const authResult = await requireAdminAuth(request);

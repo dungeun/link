@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from '@/lib/auth-server'
-import { prisma } from '@/lib/db/prisma'
-import { requireAuth, createAuthResponse, createErrorResponse } from '@/lib/auth-middleware'
-import { validateRequest, dateRangeSchema } from '@/lib/validation'
-import { DEFAULT_PLATFORM_FEE_RATE, ERROR_MESSAGES } from '@/lib/constants'
-import { z } from 'zod'
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { getServerSession } from '@/lib/auth-server'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { requireAuth, createAuthResponse, createErrorResponse } from '@/lib/auth-middleware'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { validateRequest, dateRangeSchema } from '@/lib/validation'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { DEFAULT_PLATFORM_FEE_RATE, ERROR_MESSAGES } from '@/lib/constants'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { z } from 'zod'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // Revenue query schema
 const revenueQuerySchema = z.object({
   period: z.enum(['daily', 'weekly', 'monthly', 'yearly']).default('monthly'),

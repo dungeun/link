@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { verifyAuth } from '@/lib/auth-utils'
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { verifyAuth } from '@/lib/auth-utils'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAuth } from '@/lib/auth-utils'
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { verifyAuth } from '@/lib/auth-utils'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // Note: Board model is not currently defined in the Prisma schema
 // These endpoints are placeholders and will return 501 Not Implemented
 

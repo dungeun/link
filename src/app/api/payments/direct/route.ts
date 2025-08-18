@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
-import { withAuth } from '@/lib/auth/middleware';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { withAuth } from '@/lib/auth/middleware';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // POST /api/payments/direct - 직접 결제 처리 (계좌이체)
 export async function POST(request: NextRequest) {
   try {

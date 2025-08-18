@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { requireAdminAuth } from '@/lib/admin-auth'
-import { translateText } from '@/lib/services/google-translate.service'
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { requireAdminAuth } from '@/lib/admin-auth'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { translateText } from '@/lib/services/google-translate.service'
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // POST /api/admin/language-packs/auto-translate - 언어팩 자동 번역 및 추가
 export async function POST(request: NextRequest) {
   try {

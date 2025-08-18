@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     // 공개적으로 접근 가능한 설정만 반환

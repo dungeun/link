@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCachedSections } from '@/lib/cache/sections';
 import { logger } from '@/lib/logger';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // GET: 홈페이지 섹션 데이터 가져오기 (캐시된 데이터 사용)
 export async function GET(request: NextRequest) {
   try {

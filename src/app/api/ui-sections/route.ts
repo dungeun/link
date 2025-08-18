@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db/prisma';
-import { logger } from '@/lib/logger';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import prisma from '@/lib/db/prisma';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { logger } from '@/lib/logger';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // GET: UISection 조회
 export async function GET(request: NextRequest) {
   try {

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getServerSession } from '@/lib/auth/session'
 
+// 동적 라우트로 설정 (cookies 사용)
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   try {
     console.log('=== /api/business/applicants GET ===')

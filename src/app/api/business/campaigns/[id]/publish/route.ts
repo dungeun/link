@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
-import { withAuth } from '@/lib/auth/middleware';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { withAuth } from '@/lib/auth/middleware';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 // POST /api/business/campaigns/[id]/publish - 캠페인 활성화
 export async function POST(
   request: NextRequest,

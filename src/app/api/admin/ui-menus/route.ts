@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { verifyAuth } from '@/lib/auth-utils';
-import { translateText } from '@/lib/services/translation.service';
 
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { PrismaClient } from '@prisma/client';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { verifyAuth } from '@/lib/auth-utils';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'import { translateText } from '@/lib/services/translation.service';
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic'
 const prisma = new PrismaClient();
 
 // GET: 메뉴 목록 조회
