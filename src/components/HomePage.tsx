@@ -63,19 +63,35 @@ interface HomePageProps {
   initialSections: UISection[]
   initialLanguage?: LanguageCode
   initialLanguagePacks?: Record<string, LanguagePack>
+  initialCampaigns?: Campaign[]
+  initialCategoryStats?: Record<string, number>
+  preloadMetadata?: {
+    totalCampaigns: number
+    loadTime: number
+    cached: boolean
+  }
 }
 
-function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePacks = {} }: HomePageProps) {
+function HomePage({ 
+  initialSections, 
+  initialLanguage = 'ko', 
+  initialLanguagePacks = {},
+  initialCampaigns = [],
+  initialCategoryStats = {},
+  preloadMetadata
+}: HomePageProps) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
-  const [sections, setSections] = useState<UISection[]>(initialSections || [])
-  const [sectionsLoading, setSectionsLoading] = useState(false)
+  
+  // 프리로드된 데이터 사용 (API 호출 제거)
+  const [campaigns] = useState<Campaign[]>(initialCampaigns)
+  const [loading] = useState(false) // 프리로드되었으므로 항상 false
+  const [sections] = useState<UISection[]>(initialSections || [])
+  const [sectionsLoading] = useState(false) // 프리로드되었으므로 항상 false
   const [currentLang, setCurrentLang] = useState<LanguageCode>(initialLanguage)
-  const [langPacks, setLangPacks] = useState<Record<string, LanguagePack>>(initialLanguagePacks)
+  const [langPacks] = useState<Record<string, LanguagePack>>(initialLanguagePacks)
   
   // Web Worker for campaign processing
   const { postMessage: postWorkerMessage, subscribe } = useWebWorker('/workers/campaignWorker.js')
@@ -89,22 +105,10 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
       logger.error('Worker error:', error)
     })
     
-    const unsubscribeProcessed = subscribe('CAMPAIGNS_PROCESSED', (processedCampaigns) => {
-      // Use requestIdleCallback to defer DOM updates
-      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-        window.requestIdleCallback(() => {
-          setCampaigns(processedCampaigns)
-        })
-      } else {
-        setTimeout(() => {
-          setCampaigns(processedCampaigns)
-        }, 0)
-      }
-    })
+    // Campaigns are now preloaded, no need for worker processing
     
     return () => {
       unsubscribe()
-      unsubscribeProcessed()
     }
   }, [subscribe])
   
@@ -246,67 +250,9 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
     ),
   }), [])
 
-  const loadCampaigns = useCallback(async () => {
-    try {
-      const response = await fetch('/api/campaigns?status=active&limit=10')
-      const data = await response.json()
-      
-      if (data.campaigns) {
-        // Use Web Worker for heavy campaign processing
-        postWorkerMessage('PROCESS_CAMPAIGNS', data.campaigns)
-      }
-    } catch (error) {
-      logger.error('Failed to load campaigns', String(error))
-      // Fallback to original data if worker fails
-      try {
-        const response = await fetch('/api/campaigns?status=active&limit=10')
-        const data = await response.json()
-        if (data.campaigns) {
-          setCampaigns(data.campaigns)
-        }
-      } catch (fallbackError) {
-        logger.error('Fallback also failed', String(fallbackError))
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [postWorkerMessage])
+  // Campaigns are now preloaded - no need for loadCampaigns function
 
-  // 언어 변경 시 섹션 데이터 재로드 
-  const loadSections = useCallback(async (lang: string) => {
-    try {
-      setSectionsLoading(true)
-      console.log('Loading sections for language:', lang)
-      const response = await fetch(`/api/home/sections?lang=${lang}`)
-      if (response.ok) {
-        const data = await response.json()
-        console.log('Sections API response:', data)
-        if (data.sections && data.sections.length > 0) {
-          setSections(data.sections)
-          console.log('Set sections:', data.sections.length)
-          logger.info('Loaded sections from DB:', data.sections.length)
-        } else {
-          // 초기 서버 데이터가 있으면 유지
-          if (initialSections && initialSections.length > 0) {
-            setSections(initialSections)
-          } else {
-            setSections([])
-          }
-        }
-      } else {
-        console.error('API response not ok:', response.status)
-      }
-    } catch (error) {
-      console.error('Failed to load sections:', error)
-      logger.error('Failed to load sections', String(error))
-      // 초기 서버 데이터가 있으면 유지
-      if (initialSections && initialSections.length > 0) {
-        setSections(initialSections)
-      }
-    } finally {
-      setSectionsLoading(false)
-    }
-  }, [initialSections])
+  // Sections are now preloaded with language data - no need for loadSections function
 
   useEffect(() => {
     // Initialize performance monitoring
@@ -321,8 +267,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
       router.push('/business/dashboard')
     }
 
-    // 캠페인 데이터 로드
-    loadCampaigns()
+    // 캠페인 데이터는 이미 프리로드됨
   }, [router])
 
   // 언어 변경 시 섹션 데이터 재로드
@@ -330,8 +275,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
     if (currentLanguage && currentLanguage !== currentLang) {
       console.log('Language changed to:', currentLanguage)
       setCurrentLang(currentLanguage as any)
-      loadSections(currentLanguage)
-      loadCampaigns()
+      // 섹션 및 캠페인 데이터는 이미 프리로드됨
     }
   }, [currentLanguage, currentLang])
 

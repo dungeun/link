@@ -1,21 +1,18 @@
 import { headers } from 'next/headers'
 import HomePage from '@/components/HomePage'
 import { 
-  UISection, 
-  LanguagePack, 
   LanguageCode, 
-  isLanguageCode, 
-  isJsonObject,
-  UISectionContent 
+  isLanguageCode
 } from '@/types/global'
-import { getCachedSections } from '@/lib/cache/sections'
-import { getCachedLanguagePacks } from '@/lib/cache/language-packs'
+import { preloadHomePageData } from '@/lib/cache/preload-service'
 
-// 정적 생성으로 변경 + ISR 적용 (5분마다 갱신)
-export const revalidate = 300
+// 검색엔진 수준 최적화: 정적 생성 + ISR (10분마다 갱신)
+export const revalidate = 600
 
-// 서버 컴포넌트로 변경 - 캐시된 데이터를 서버에서 미리 가져옴
+// 서버 컴포넌트 - 모든 필요 데이터를 미리 프리로드
 export default async function Page() {
+  const startTime = Date.now()
+  
   // 서버에서 Accept-Language 헤더로 초기 언어 감지
   const headersList = headers()
   const acceptLanguage = headersList.get('accept-language') || ''
@@ -27,17 +24,19 @@ export default async function Page() {
     initialLanguage = 'jp'
   }
   
-  // 병렬로 캐시된 데이터 가져오기 (Promise.all 사용)
-  const [sections, languagePacks] = await Promise.all([
-    getCachedSections(),
-    getCachedLanguagePacks()
-  ])
+  // 단일 통합 쿼리로 모든 데이터 프리로드 (N+1 문제 완전 해결)
+  const preloadedData = await preloadHomePageData()
+  
+  console.log(`Page loaded in ${Date.now() - startTime}ms, cached: ${preloadedData.metadata.cached}`)
 
-  // 클라이언트 컴포넌트에 데이터 전달
+  // 클라이언트 컴포넌트에 모든 프리로드된 데이터 전달
   return <HomePage 
-    initialSections={sections} 
+    initialSections={preloadedData.sections} 
     initialLanguage={initialLanguage}
-    initialLanguagePacks={languagePacks}
+    initialLanguagePacks={preloadedData.languagePacks}
+    initialCampaigns={preloadedData.campaigns}
+    initialCategoryStats={preloadedData.categoryStats}
+    preloadMetadata={preloadedData.metadata}
   />
 }
 

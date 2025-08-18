@@ -1,0 +1,2 @@
+Console.log 발견 파일 목록:
+286개 파일에서 Console.log 발견

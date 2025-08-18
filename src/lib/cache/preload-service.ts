@@ -1,0 +1,236 @@
+/**
+ * 검색엔진 수준 프리로딩 서비스
+ * 첫 페이지 접속 시 필요한 모든 데이터를 단일 쿼리로 미리 로드
+ */
+
+import { prisma } from '@/lib/db/prisma';
+import { standardizeCampaign } from '@/lib/utils/api-standardizer';
+import { logger } from '@/lib/logger';
+
+export interface PreloadedData {
+  campaigns: any[];
+  sections: any[];
+  languagePacks: Record<string, any>;
+  categoryStats: Record<string, number>;
+  metadata: {
+    totalCampaigns: number;
+    loadTime: number;
+    cached: boolean;
+  };
+}
+
+// 메모리 캐시
+let preloadedCache: PreloadedData | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_TTL = 30 * 60 * 1000; // 30분
+
+/**
+ * 모든 홈페이지 데이터를 단일 트랜잭션으로 프리로드
+ * 검색엔진처럼 첫 접속 시 필요한 모든 데이터를 한 번에 가져옴
+ */
+export async function preloadHomePageData(): Promise<PreloadedData> {
+  const startTime = Date.now();
+  
+  // 캐시 확인
+  if (preloadedCache && (Date.now() - cacheTimestamp) < CACHE_TTL) {
+    logger.info('Returning cached preloaded data');
+    return {
+      ...preloadedCache,
+      metadata: {
+        ...preloadedCache.metadata,
+        cached: true,
+        loadTime: Date.now() - startTime
+      }
+    };
+  }
+
+  try {
+    // 단일 트랜잭션으로 모든 데이터 조회 (N+1 문제 완전 해결)
+    const [campaignsData, sectionsData, languagePacksData, categoryStatsData] = await Promise.all([
+      // 1. 캠페인 데이터 - 최적화된 단일 쿼리
+      prisma.campaign.findMany({
+        where: {
+          status: 'ACTIVE',
+          deletedAt: null
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          platform: true,
+          budget: true,
+          targetFollowers: true,
+          endDate: true,
+          rewardAmount: true,
+          maxApplicants: true,
+          thumbnailImageUrl: true,
+          headerImageUrl: true,
+          imageUrl: true,
+          hashtags: true,
+          createdAt: true,
+          // JOIN 최적화: 필요한 필드만 선택
+          categories: {
+            select: {
+              isPrimary: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true
+                }
+              }
+            }
+          },
+          business: {
+            select: {
+              id: true,
+              name: true,
+              businessProfile: {
+                select: {
+                  companyName: true
+                }
+              }
+            }
+          },
+          _count: {
+            select: {
+              applications: {
+                where: { deletedAt: null }
+              }
+            }
+          }
+        },
+        orderBy: [
+          { status: 'desc' },
+          { applications: { _count: 'desc' } },
+          { createdAt: 'desc' }
+        ],
+        take: 20 // 홈페이지용 제한
+      }),
+
+      // 2. UI 섹션 데이터
+      prisma.uISection.findMany({
+        where: { 
+          visible: true,
+          type: { in: ['hero', 'category', 'quicklinks', 'promo', 'ranking', 'recommended'] }
+        },
+        select: {
+          id: true,
+          type: true,
+          sectionId: true,
+          title: true,
+          subtitle: true,
+          content: true,
+          translations: true,
+          visible: true,
+          order: true
+        },
+        orderBy: { order: 'asc' }
+      }),
+
+      // 3. 언어팩 데이터
+      prisma.languagePack.findMany({
+        select: {
+          id: true,
+          key: true,
+          ko: true,
+          en: true,
+          jp: true,
+          category: true
+        }
+      }),
+
+      // 4. 카테고리 통계 - 원시 쿼리로 최적화
+      prisma.$queryRaw<Array<{
+        categoryId: string;
+        slug: string;
+        name: string;
+        campaignCount: bigint;
+      }>>`
+        SELECT 
+          cc."categoryId",
+          c.slug,
+          c.name,
+          COUNT(*)::bigint as "campaignCount"
+        FROM "campaign_categories" cc
+        INNER JOIN "categories" c ON cc."categoryId" = c.id
+        INNER JOIN "campaigns" camp ON cc."campaignId" = camp.id
+        WHERE camp.status = 'ACTIVE' 
+          AND camp."deletedAt" IS NULL
+        GROUP BY cc."categoryId", c.slug, c.name
+        ORDER BY "campaignCount" DESC
+        LIMIT 20
+      `
+    ]);
+
+    // 데이터 변환 및 표준화
+    const campaigns = campaignsData.map(campaign => standardizeCampaign(campaign));
+    
+    const languagePacks = languagePacksData.reduce((acc, pack) => {
+      acc[pack.key] = pack;
+      return acc;
+    }, {} as Record<string, any>);
+
+    const categoryStats: Record<string, number> = {};
+    categoryStatsData.forEach(stat => {
+      categoryStats[stat.slug] = Number(stat.campaignCount);
+    });
+
+    const result: PreloadedData = {
+      campaigns,
+      sections: sectionsData,
+      languagePacks,
+      categoryStats,
+      metadata: {
+        totalCampaigns: campaigns.length,
+        loadTime: Date.now() - startTime,
+        cached: false
+      }
+    };
+
+    // 캐시 저장
+    preloadedCache = result;
+    cacheTimestamp = Date.now();
+
+    logger.info(`Preloaded homepage data in ${result.metadata.loadTime}ms - campaigns: ${campaigns.length}, sections: ${sectionsData.length}, languagePacks: ${Object.keys(languagePacks).length}, categories: ${Object.keys(categoryStats).length}`);
+
+    return result;
+
+  } catch (error) {
+    logger.error(`Failed to preload homepage data: ${String(error)}`);
+    
+    // 실패 시 최소한의 데이터 반환
+    return {
+      campaigns: [],
+      sections: [],
+      languagePacks: {},
+      categoryStats: {},
+      metadata: {
+        totalCampaigns: 0,
+        loadTime: Date.now() - startTime,
+        cached: false
+      }
+    };
+  }
+}
+
+/**
+ * 캐시 무효화
+ */
+export function invalidatePreloadCache(): void {
+  preloadedCache = null;
+  cacheTimestamp = 0;
+  logger.info('Preload cache invalidated');
+}
+
+/**
+ * 백그라운드에서 캐시 갱신
+ */
+export async function refreshCacheInBackground(): Promise<void> {
+  try {
+    await preloadHomePageData();
+    logger.info('Background cache refresh completed');
+  } catch (error) {
+    logger.error(`Background cache refresh failed: ${String(error)}`);
+  }
+}
