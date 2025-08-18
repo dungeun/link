@@ -61,6 +61,44 @@ interface CategorySectionProps {
 }
 
 function CategorySection({ section, localizedContent, t }: CategorySectionProps) {
+  // ALL HOOKS MUST BE DECLARED AT THE TOP - NEVER CONDITIONALLY!
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [loading, setLoading] = useState(true)
+  
+  // 섹션 설정에서 카테고리 정보 가져오기
+  const count = useMemo(() => section.settings?.count || 8, [section.settings?.count])
+  const categorySlug = useMemo(() => section.settings?.categorySlug || 'hospital', [section.settings?.categorySlug])
+  const categoryName = useMemo(() => section.settings?.categoryName || '병원', [section.settings?.categoryName])
+
+  // 제목과 부제목 (다국어 지원)
+  const title = useMemo(() => localizedContent?.title || section.title || `${categoryName} 캠페인`, [localizedContent?.title, section.title, categoryName])
+  const subtitle = useMemo(() => localizedContent?.subtitle || section.subtitle || `${categoryName} 관련 캠페인을 만나보세요`, [localizedContent?.subtitle, section.subtitle, categoryName])
+
+  const loadCategoryCampaigns = useCallback(async () => {
+    try {
+      setLoading(true)
+      
+      // 카테고리별 캠페인 조회
+      const response = await fetch(`/api/campaigns/simple?category=${categorySlug}&limit=${count}&status=active`)
+      const data = await response.json()
+      
+      if (data.campaigns) {
+        setCampaigns(data.campaigns)
+      }
+    } catch (error) {
+      console.error(`Failed to load ${categorySlug} campaigns:`, error)
+    } finally {
+      setLoading(false)
+    }
+  }, [categorySlug, count])
+
+  useEffect(() => {
+    // 카테고리 메뉴가 있는 경우에는 캠페인을 로드하지 않음
+    if (!localizedContent?.categories || localizedContent.categories.length === 0) {
+      loadCategoryCampaigns()
+    }
+  }, [loadCategoryCampaigns, localizedContent?.categories])
+
   // 디버깅 로그 추가
   console.log('[CategorySection] Received props:', {
     section,
@@ -127,41 +165,6 @@ function CategorySection({ section, localizedContent, t }: CategorySectionProps)
       </div>
     )
   }
-
-  // 기존 캠페인 표시 로직
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
-  
-  // 섹션 설정에서 카테고리 정보 가져오기
-  const count = useMemo(() => section.settings?.count || 8, [section.settings?.count])
-  const categorySlug = useMemo(() => section.settings?.categorySlug || 'hospital', [section.settings?.categorySlug])
-  const categoryName = useMemo(() => section.settings?.categoryName || '병원', [section.settings?.categoryName])
-
-  // 제목과 부제목 (다국어 지원)
-  const title = useMemo(() => localizedContent?.title || section.title || `${categoryName} 캠페인`, [localizedContent?.title, section.title, categoryName])
-  const subtitle = useMemo(() => localizedContent?.subtitle || section.subtitle || `${categoryName} 관련 캠페인을 만나보세요`, [localizedContent?.subtitle, section.subtitle, categoryName])
-
-  const loadCategoryCampaigns = useCallback(async () => {
-    try {
-      setLoading(true)
-      
-      // 카테고리별 캠페인 조회
-      const response = await fetch(`/api/campaigns/simple?category=${categorySlug}&limit=${count}&status=active`)
-      const data = await response.json()
-      
-      if (data.campaigns) {
-        setCampaigns(data.campaigns)
-      }
-    } catch (error) {
-      console.error(`Failed to load ${categorySlug} campaigns:`, error)
-    } finally {
-      setLoading(false)
-    }
-  }, [categorySlug, count])
-
-  useEffect(() => {
-    loadCategoryCampaigns()
-  }, [loadCategoryCampaigns])
 
   // 플랫폼 아이콘
   const getPlatformIcon = (platform: string) => {
