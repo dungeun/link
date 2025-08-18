@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/db/prisma'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // GET /api/admin/category-pages - 모든 카테고리 페이지 조회
 export async function GET() {
   try {

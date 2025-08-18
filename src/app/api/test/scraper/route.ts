@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { socialScraperLiteService } from '@/lib/services/social-scraper-lite.service';
+export const dynamic = 'force-dynamic';
+import { socialScraperLiteService } from '@/lib/services/social-scraper-lite.service';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // 테스트용 API - 실제 크롤링 테스트
 export async function GET(req: NextRequest) {
   try {

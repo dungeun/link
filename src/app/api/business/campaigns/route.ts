@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/db/prisma';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { withAuth } from '@/lib/auth/middleware';
+import { withAuth } from '@/lib/auth/middleware';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'import { createErrorResponse, createSuccessResponse, createApiError, handleApiError } from '@/lib/utils/api-error';
+import { createErrorResponse, createSuccessResponse, createApiError, handleApiError } from '@/lib/utils/api-error';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // POST /api/business/campaigns - 새 캠페인 생성
 export async function POST(request: NextRequest) {
   let user: { id: string; email: string; type: string } | null = null;

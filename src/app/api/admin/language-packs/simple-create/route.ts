@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/db/prisma'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // 기본 번역 매핑 (Google Translate 없이 사용)
 const basicTranslations: Record<string, { en: string; jp: string }> = {
   '캠페인': { en: 'Campaign', jp: 'キャンペーン' },

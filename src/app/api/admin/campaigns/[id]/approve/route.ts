@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/db/prisma'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { requireAdminAuth } from '@/lib/admin-auth'
+import { requireAdminAuth } from '@/lib/admin-auth'
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // POST /api/admin/campaigns/[id]/approve - 캠페인 승인
 export async function POST(
   request: NextRequest,

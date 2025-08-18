@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/db/prisma'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { verifyJWT } from '@/lib/auth/jwt'
+import { verifyJWT } from '@/lib/auth/jwt'
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'import { generateOrderId } from '@/lib/utils/order'
+import { generateOrderId } from '@/lib/utils/order'
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // POST /api/payments - 결제 요청 생성
 export async function POST(request: NextRequest) {
   try {

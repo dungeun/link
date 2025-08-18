@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { join } from 'path';
+export const dynamic = 'force-dynamic';
+import { join } from 'path';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { readFile, access } from 'fs/promises';
+import { readFile, access } from 'fs/promises';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'import { constants } from 'fs';
+import { constants } from 'fs';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } }

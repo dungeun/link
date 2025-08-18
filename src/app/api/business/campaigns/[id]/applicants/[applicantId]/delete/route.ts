@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/db/prisma'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { getServerSession } from '@/lib/auth/session'
+import { getServerSession } from '@/lib/auth/session'
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'// import { AppError } from '@/lib/errors/application-errors'
 
 export async function POST(
   req: NextRequest,

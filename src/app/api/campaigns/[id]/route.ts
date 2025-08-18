@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/db/prisma';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { verifyJWT } from '@/lib/auth/jwt';
+import { verifyJWT } from '@/lib/auth/jwt';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // 인증 미들웨어
 async function authenticate(request: NextRequest) {
   const authHeader = request.headers.get('Authorization');

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/db/prisma';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     console.log('Test API called');

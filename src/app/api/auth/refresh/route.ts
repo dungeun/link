@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { authService } from '@/lib/auth/services'
+export const dynamic = 'force-dynamic';
+import { authService } from '@/lib/auth/services'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const refreshToken = request.cookies.get('refreshToken')?.value

@@ -2,13 +2,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { requireAdminAuth } from '@/lib/admin-auth';
+export const dynamic = 'force-dynamic';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { settlementScheduler } from '@/lib/scheduler/settlement-scheduler';
+import { settlementScheduler } from '@/lib/scheduler/settlement-scheduler';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // 스케줄러 상태 조회
 export async function GET(request: NextRequest) {
   try {

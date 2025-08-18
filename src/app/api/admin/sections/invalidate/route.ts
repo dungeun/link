@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { invalidateSectionsCache } from '@/lib/cache/sections'
+export const dynamic = 'force-dynamic';
+import { invalidateSectionsCache } from '@/lib/cache/sections'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { invalidateLanguagePacksCache } from '@/lib/cache/language-packs'
+import { invalidateLanguagePacksCache } from '@/lib/cache/language-packs'
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'import { logger } from '@/lib/logger'
+import { logger } from '@/lib/logger'
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // POST: 캐시 무효화 (관리자 전용)
 export async function POST(request: NextRequest) {
   try {

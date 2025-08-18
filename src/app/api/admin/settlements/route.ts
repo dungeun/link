@@ -2,13 +2,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { requireAdminAuth } from '@/lib/admin-auth';
+export const dynamic = 'force-dynamic';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { settlementService } from '@/lib/services/settlement.service';
+import { settlementService } from '@/lib/services/settlement.service';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const authResult = await requireAdminAuth(request);

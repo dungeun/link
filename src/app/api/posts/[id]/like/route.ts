@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/db/prisma'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { verifyJWT } from '@/lib/auth/jwt'
+import { verifyJWT } from '@/lib/auth/jwt'
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 
 // POST /api/posts/[id]/like - 게시글 좋아요/취소
 export async function POST(

@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { uploadService } from '@/lib/services/upload.service';
+export const dynamic = 'force-dynamic';
+import { uploadService } from '@/lib/services/upload.service';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { withAuth } from '@/lib/auth/middleware';
+import { withAuth } from '@/lib/auth/middleware';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'import { createErrorResponse, createSuccessResponse, createApiError, handleApiError } from '@/lib/utils/api-error';
+import { createErrorResponse, createSuccessResponse, createApiError, handleApiError } from '@/lib/utils/api-error';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'import { ValidationHelper, fileUploadSchema } from '@/lib/utils/validation';
+import { ValidationHelper, fileUploadSchema } from '@/lib/utils/validation';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'import { PerformanceTimer } from '@/lib/utils/performance';
+import { PerformanceTimer } from '@/lib/utils/performance';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // 허용된 파일 타입 상수
 const ALLOWED_FILE_TYPES = ['profile', 'campaign', 'content', 'document'] as const;
 const MAX_FILE_SIZE_MB = 15;

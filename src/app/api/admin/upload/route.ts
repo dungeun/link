@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { requireAdminAuth } from '@/lib/admin-auth'
+export const dynamic = 'force-dynamic';
+import { requireAdminAuth } from '@/lib/admin-auth'
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { writeFile, mkdir } from 'fs/promises'
+import { writeFile, mkdir } from 'fs/promises'
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'import { join } from 'path'
+import { join } from 'path'
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma'
+import { prisma } from '@/lib/db/prisma'
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // POST /api/admin/upload - 파일 업로드
 export async function POST(request: NextRequest) {
   try {

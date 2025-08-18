@@ -2,13 +2,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { verifyJWT } from '@/lib/auth/jwt';
+export const dynamic = 'force-dynamic';
+import { verifyJWT } from '@/lib/auth/jwt';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+import { prisma } from '@/lib/db/prisma';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

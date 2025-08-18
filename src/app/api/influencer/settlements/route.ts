@@ -2,16 +2,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { verifyJWT } from '@/lib/auth/jwt';
+export const dynamic = 'force-dynamic';
+import { verifyJWT } from '@/lib/auth/jwt';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+import { prisma } from '@/lib/db/prisma';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'import { settlementService } from '@/lib/services/settlement.service';
+import { settlementService } from '@/lib/services/settlement.service';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // 내 정산 목록 조회
 export async function GET(request: NextRequest) {
   try {

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { prisma } from '@/lib/db/prisma';
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/db/prisma';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { withAuth } from '@/lib/auth/middleware';
+import { withAuth } from '@/lib/auth/middleware';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
 
 // POST /api/payments/prepare - 토스페이먼츠 결제 준비

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { freeSocialScraperService } from '@/lib/services/free-social-scraper.service';
+export const dynamic = 'force-dynamic';
+import { freeSocialScraperService } from '@/lib/services/free-social-scraper.service';
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'import { newYouTubeScraperService } from '@/lib/services/youtube-scraper-new.service';
+import { newYouTubeScraperService } from '@/lib/services/youtube-scraper-new.service';
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic'
 // YouTube 스크래핑 테스트용 API
 export async function POST(req: NextRequest) {
   try {
