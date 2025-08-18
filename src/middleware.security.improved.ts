@@ -139,13 +139,25 @@ export async function advancedSecurityCheck(request: NextRequest): Promise<Secur
   const userAgent = request.headers.get('user-agent') || ''
   const path = request.nextUrl.pathname
   
-  // 1. User-Agent 체크
-  if (!userAgent || userAgent.length < 10) {
+  // 이미지와 정적 파일은 User-Agent 체크 건너뛰기
+  const isStaticFile = path.startsWith('/uploads/') || 
+                      path.startsWith('/images/') || 
+                      path.startsWith('/_next/') ||
+                      path.startsWith('/favicon') ||
+                      path.match(/\.(jpg|jpeg|png|gif|webp|svg|ico|css|js|woff|woff2|ttf)$/i)
+  
+  // 1. User-Agent 체크 (정적 파일은 제외)
+  if (!isStaticFile && (!userAgent || userAgent.length < 10)) {
     return { 
       allowed: false, 
       reason: 'Invalid User-Agent',
       action: 'block'
     }
+  }
+  
+  // 정적 파일은 추가 보안 체크 건너뛰기
+  if (isStaticFile) {
+    return { allowed: true }
   }
   
   // 2. 악성 봇 체크 (개발 환경에서는 curl 허용)

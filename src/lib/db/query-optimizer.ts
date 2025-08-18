@@ -15,7 +15,7 @@ export class QueryOptimizer {
         id: true,
         title: true,
         description: true,
-        thumbnail: true,
+        thumbnailImageUrl: true,
         budget: true,
         category: true,
         status: true,
@@ -26,15 +26,14 @@ export class QueryOptimizer {
         business: {
           select: {
             id: true,
-            companyName: true,
-            companyLogo: true
+            name: true,
+            email: true
           }
         },
         // 지원자 수만 카운트
         _count: {
           select: {
-            applications: true,
-            likes: true
+            applications: true
           }
         }
       },
@@ -53,7 +52,7 @@ export class QueryOptimizer {
         id: true,
         title: true,
         content: true,
-        viewCount: true,
+        views: true,
         status: true,
         createdAt: true,
         updatedAt: true,
@@ -68,13 +67,6 @@ export class QueryOptimizer {
                 profileImage: true
               }
             }
-          }
-        },
-        // 게시판 정보
-        board: {
-          select: {
-            id: true,
-            name: true
           }
         },
         // 댓글 - 페이지네이션 적용
@@ -102,7 +94,7 @@ export class QueryOptimizer {
         _count: {
           select: {
             comments: true,
-            likes: true
+            postLikes: true
           }
         }
       }
@@ -184,7 +176,7 @@ export class QueryOptimizer {
    * 배치 조회 최적화 - ID 목록으로 한 번에 조회
    */
   static async batchQuery<T>(
-    model: unknown,
+    model: any,
     ids: string[],
     selectFields: Record<string, unknown>
   ): Promise<T[]> {
@@ -194,7 +186,7 @@ export class QueryOptimizer {
     const uniqueIds = [...new Set(ids)]
     
     // 한 번의 쿼리로 모든 데이터 조회
-    const results = await model.findMany({
+    const results = await (model as any).findMany({
       where: {
         id: { in: uniqueIds }
       },
@@ -209,7 +201,7 @@ export class QueryOptimizer {
   /**
    * 집계 쿼리 최적화
    */
-  static async getAggregatedStats(prisma: unknown, userId: string) {
+  static async getAggregatedStats(prisma: any, userId: string) {
     // 병렬로 여러 집계 쿼리 실행
     const [
       campaignCount,

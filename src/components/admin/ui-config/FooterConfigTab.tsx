@@ -1,6 +1,6 @@
 'use client';
 
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableFooterColumn } from '@/components/admin/SortableFooterColumn';
 import { useUIConfigStore } from '@/lib/stores/ui-config.store';
@@ -16,12 +16,12 @@ export function FooterConfigTab() {
     })
   );
 
-  const handleFooterDragEnd = (event: { active: { id: string }; over: { id: string } }) => {
+  const handleFooterDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (active.id !== over.id) {
-      const oldIndex = config.footer.columns.findIndex((item) => item.id === active.id);
-      const newIndex = config.footer.columns.findIndex((item) => item.id === over.id);
+    if (over && active.id !== over.id) {
+      const oldIndex = config.footer.columns.findIndex((item) => item.id === String(active.id));
+      const newIndex = config.footer.columns.findIndex((item) => item.id === String(over.id));
       
       const newColumns = arrayMove(config.footer.columns, oldIndex, newIndex).map((item, index) => ({
         ...item,

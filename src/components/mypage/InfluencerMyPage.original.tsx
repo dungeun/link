@@ -172,7 +172,7 @@ function InfluencerMyPage({ user, activeTab, setActiveTab }: InfluencerMyPagePro
     categories: profileData?.profile?.categories ? parseCategories(profileData.profile.categories) : []
   })
   const [addressData, setAddressData] = useState<AddressData | null>(
-    profileData?.profile?.addressData ? profileData.profile.addressData as AddressData : null
+    profileData?.profile?.addressData ? profileData.profile.addressData as unknown as AddressData : null
   )
   const [profileImage, setProfileImage] = useState<string | null>(
     profileData?.profile?.profileImage || null
@@ -239,7 +239,7 @@ function InfluencerMyPage({ user, activeTab, setActiveTab }: InfluencerMyPagePro
         categories: profileData.profile?.categories ? parseCategories(profileData.profile.categories) : []
       })
       setProfileImage(profileData.profile?.profileImage || null)
-      setAddressData(profileData.profile?.addressData ? profileData.profile.addressData as AddressData : null)
+      setAddressData(profileData.profile?.addressData ? profileData.profile.addressData as unknown as AddressData : null)
     }
   }, [profileData, user])
 
@@ -785,10 +785,11 @@ function InfluencerMyPage({ user, activeTab, setActiveTab }: InfluencerMyPagePro
                   {t('mypage.profile.image', '프로필 이미지')}
                 </label>
                 <ProfileImageUpload
+                  userName={user?.name || ''}
                   currentImage={profileImage}
                   onImageChange={(file, preview) => {
-                    setProfileImageFile(file)
-                    setProfileImage(preview)
+                    setProfileImageFile(preview || null)
+                    setProfileImage(file)
                   }}
                 />
               </div>
@@ -924,13 +925,7 @@ function InfluencerMyPage({ user, activeTab, setActiveTab }: InfluencerMyPagePro
               {/* SNS 연동 */}
               <div>
                 <h3 className="text-lg font-medium mb-4">{t('mypage.sns.title', 'SNS 연동')}</h3>
-                <SNSConnection
-                  instagram={profileForm.instagram}
-                  youtube={profileForm.youtube}
-                  tiktok={profileForm.tiktok}
-                  naverBlog={profileForm.naverBlog}
-                  onUpdate={(sns) => setProfileForm({ ...profileForm, ...sns })}
-                />
+                <SNSConnection />
               </div>
 
               {/* 저장 버튼 */}
@@ -986,9 +981,12 @@ function InfluencerMyPage({ user, activeTab, setActiveTab }: InfluencerMyPagePro
   if (showBankModal) {
     return (
       <BankingInfo
-        value={bankInfo}
-        onChange={setBankInfo}
-        onClose={() => setShowBankModal(false)}
+        userId={user?.id || ''}
+        initialData={bankInfo as any}
+        onSave={(data) => {
+          setBankInfo(data)
+          setShowBankModal(false)
+        }}
       />
     )
   }

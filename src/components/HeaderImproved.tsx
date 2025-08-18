@@ -89,8 +89,8 @@ export default function Header({ variant = 'default' }: HeaderProps) {
     if (isAuthenticated) {
       // TODO: API에서 알림 데이터 로드
       setNotifications([
-        { id: 1, message: '새로운 캠페인이 등록되었습니다', unread: true },
-        { id: 2, message: '캠페인 신청이 승인되었습니다', unread: false },
+        { id: '1', title: '캠페인 알림', message: '새로운 캠페인이 등록되었습니다', read: false },
+        { id: '2', title: '승인 알림', message: '캠페인 신청이 승인되었습니다', read: true },
       ])
     }
   }, [isAuthenticated])
@@ -152,7 +152,7 @@ export default function Header({ variant = 'default' }: HeaderProps) {
                   className="relative p-2 hover:bg-white/10 rounded-lg transition"
                 >
                   <Bell className="w-5 h-5" />
-                  {notifications.some(n => n.unread) && (
+                  {notifications.some(n => !n.read) && (
                     <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                   )}
                 </button>
@@ -168,7 +168,7 @@ export default function Header({ variant = 'default' }: HeaderProps) {
                           <div
                             key={notif.id}
                             className={`p-4 border-b hover:bg-gray-50 transition ${
-                              notif.unread ? 'bg-blue-50' : ''
+                              !notif.read ? 'bg-blue-50' : ''
                             }`}
                           >
                             <p className="text-sm text-gray-700">{notif.message}</p>

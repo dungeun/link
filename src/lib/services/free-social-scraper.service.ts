@@ -715,7 +715,7 @@ export class FreeSocialScraperService {
         const visitorMatch = response.data.match(/cnt="(\d+)"/g);
         if (visitorMatch && visitorMatch.length > 0) {
           // 방문자수만이라도 있으면 최소한의 팔로워가 있다고 가정
-          const totalVisitors = visitorMatch.reduce((sum, match) => {
+          const totalVisitors = visitorMatch.reduce((sum: number, match: string) => {
             const count = parseInt(match.match(/(\d+)/)?.[1] || '0', 10);
             return sum + count;
           }, 0);

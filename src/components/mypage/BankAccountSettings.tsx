@@ -227,12 +227,12 @@ export default function BankAccountSettings({
                   const accountData = data.accountType === 'domestic' ? data.domestic : data.international
                   
                   if (data.accountType === 'domestic') {
-                    if (!accountData.bankName || !accountData.accountNumber || !accountData.accountHolder) {
+                    if (!(accountData as any).bankName || !(accountData as any).accountNumber || !(accountData as any).accountHolder) {
                       alert('모든 필수 정보를 입력해주세요.')
                       return
                     }
                   } else {
-                    if (!accountData.englishName || !accountData.accountNumber || !accountData.bankEnglishName || !accountData.swiftCode) {
+                    if (!(accountData as any).englishName || !(accountData as any).accountNumber || !(accountData as any).bankEnglishName || !(accountData as any).swiftCode) {
                       alert('모든 필수 정보를 입력해주세요.')
                       return
                     }
@@ -255,7 +255,7 @@ export default function BankAccountSettings({
                       setBankInfo(data)
                       // 출금 폼에도 반영
                       if (data.accountType === 'domestic') {
-                        setWithdrawalForm(prev => ({
+                        (setWithdrawalForm as any)((prev: any) => ({
                           ...prev,
                           bankName: data.domestic.bankName,
                           accountNumber: data.domestic.accountNumber,

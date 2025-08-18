@@ -109,7 +109,7 @@ export default function CategoryEditPanel({
         console.error('❌ Response status:', response.status)
         console.error('❌ Response headers:', [...response.headers.entries()])
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Network/Parse error:', error)
       if (error.message) {
         console.error('❌ Error message:', error.message)
@@ -174,7 +174,7 @@ export default function CategoryEditPanel({
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="font-medium text-gray-900 mb-2">캠페인 정보</h3>
                   <p className="text-sm text-gray-600 mb-1"><strong>제목:</strong> {campaign.title}</p>
-                  <p className="text-sm text-gray-600"><strong>업체:</strong> {campaign.businessName}</p>
+                  <p className="text-sm text-gray-600"><strong>업체:</strong> {(campaign as any).businessName || 'N/A'}</p>
                 </div>
               )}
 

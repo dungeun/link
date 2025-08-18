@@ -79,7 +79,7 @@ export function getTranslatedCampaignData(
   language: SupportedLanguage
 ) {
   // 번역 테이블이 있는 경우
-  if (campaign.campaignTranslations && campaign.campaignTranslations.length > 0) {
+  if (campaign.campaignTranslations && (campaign.campaignTranslations as any).length > 0) {
     const translation = (campaign.campaignTranslations as Array<{ language: string; title?: string; description?: string; requirements?: string; hashtags?: string[] }>).find(
       (t) => t.language === language
     )
@@ -128,7 +128,7 @@ export function getTranslatedPostData(
   language: SupportedLanguage
 ) {
   // 번역 테이블이 있는 경우
-  if (post.postTranslations && post.postTranslations.length > 0) {
+  if (post.postTranslations && (post.postTranslations as any).length > 0) {
     const translation = (post.postTranslations as Array<{ language: string; title?: string; content?: string }>).find(
       (t) => t.language === language
     )

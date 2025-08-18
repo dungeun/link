@@ -196,7 +196,7 @@ export class ImageOptimizer {
 
       return output;
     } catch (error) {
-      logger.error('Image optimization failed', error);
+      logger.error('Image optimization failed', error instanceof Error ? error : undefined, { error: String(error) });
       
       if (error instanceof AppError) {
         throw error;

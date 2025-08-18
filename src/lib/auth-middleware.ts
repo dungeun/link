@@ -49,7 +49,7 @@ export async function authenticateSession(): Promise<AuthUser | null> {
     id: session.user.id,
     email: session.user.email,
     name: session.user.name,
-    type: session.user.type
+    type: session.user.type as 'ADMIN' | 'BUSINESS' | 'INFLUENCER'
   };
 }
 
@@ -96,7 +96,7 @@ export function createErrorResponse(
   return NextResponse.json(
     {
       error: message,
-      ...(details && { details })
+      ...(details && typeof details === 'object' ? { details } : {})
     },
     { status }
   );

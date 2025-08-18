@@ -5,14 +5,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getDefaultTranslation } from '@/lib/translations/default-translations';
 import { logger } from '@/lib/utils/structured-logger';
 
-type Language = 'ko' | 'en' | 'jp';
+type Language = 'ko' | 'en' | 'ja';
 
 interface LanguagePack {
   id: string;
   key: string;
   ko: string;
   en: string;
-  jp: string;
+  ja: string;
   category: string;
   description?: string;
 }
@@ -33,14 +33,14 @@ const getStoredLanguage = (): Language => {
   if (typeof window === 'undefined') return 'ko';
   
   const stored = localStorage.getItem('language');
-  if (stored && ['ko', 'en', 'jp'].includes(stored)) {
+  if (stored && ['ko', 'en', 'ja'].includes(stored)) {
     return stored as Language;
   }
   
   // 브라우저 언어 감지
   const browserLang = navigator.language.toLowerCase();
   if (browserLang.startsWith('ko')) return 'ko';
-  if (browserLang.startsWith('jp')) return 'jp';
+  if (browserLang.startsWith('ja')) return 'ja';
   if (browserLang.startsWith('en')) return 'en';
   
   return 'ko'; // 기본값
@@ -70,17 +70,11 @@ export function LanguageProvider({ children, initialLanguagePacks = {} }: Langua
   const languages = [
     { code: 'ko' as Language, name: 'Korean', nativeName: '한국어' },
     { code: 'en' as Language, name: 'English', nativeName: 'English' },
-    { code: 'jp' as Language, name: 'Japanese', nativeName: '日本語' }
+    { code: 'ja' as Language, name: 'Japanese', nativeName: '日本語' }
   ];
 
   // 언어팩 로드
   const loadLanguagePacks = useCallback(async () => {
-    // 이미 언어팩이 있으면 로드하지 않음
-    if (Object.keys(languagePacks).length > 0) {
-      setIsLoading(false);
-      return;
-    }
-    
     try {
       const response = await fetch('/api/language-packs');
       if (response.ok) {
@@ -100,14 +94,14 @@ export function LanguageProvider({ children, initialLanguagePacks = {} }: Langua
     } finally {
       setIsLoading(false);
     }
-  }, [languagePacks]);
+  }, []); // 의존성 배열을 비워서 무한 루프 방지
 
   useEffect(() => {
     // 초기 언어팩이 없을 때만 로드
     if (Object.keys(languagePacks).length === 0) {
       loadLanguagePacks();
     }
-  }, [loadLanguagePacks]);
+  }, []); // 한 번만 실행되도록 의존성 배열 비움
 
   // 언어 설정 함수
   const setLanguage = useCallback((lang: Language) => {
@@ -213,5 +207,6 @@ export function getTranslatedField(
   }
   
   // 기본 필드 반환
-  return data[fieldName] || '';
+  const fieldValue = data[fieldName];
+  return typeof fieldValue === 'string' ? fieldValue : '';
 }

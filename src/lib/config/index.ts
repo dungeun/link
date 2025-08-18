@@ -35,8 +35,8 @@ const envSchema = z.object({
   
   // Security
   ENCRYPTION_KEY: z.string().optional(),
-  RATE_LIMIT_WINDOW_MS: z.string().transform(Number).default('900000'),
-  RATE_LIMIT_MAX_REQUESTS: z.string().transform(Number).default('100'),
+  RATE_LIMIT_WINDOW_MS: z.string().default('900000').transform(Number),
+  RATE_LIMIT_MAX_REQUESTS: z.string().default('100').transform(Number),
   ALLOWED_ORIGINS: z.string().optional(),
   
   // Application URLs
@@ -67,7 +67,7 @@ class ConfigManager {
     } catch (error) {
       if (error instanceof z.ZodError) {
         console.error('❌ 환경 변수 검증 실패:');
-        error.errors.forEach(err => {
+        error.issues.forEach(err => {
           console.error(`  - ${err.path.join('.')}: ${err.message}`);
         });
         throw new Error('환경 변수 설정이 올바르지 않습니다.');

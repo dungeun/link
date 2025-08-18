@@ -155,7 +155,7 @@ function getErrorDetails(error: unknown): unknown {
   
   if (error instanceof ZodError) {
     return {
-      validation: error.errors.map(e => ({
+      validation: error.issues.map(e => ({
         path: e.path.join('.'),
         message: e.message,
       })),
@@ -187,7 +187,7 @@ export function handleError(
   const statusCode = determineStatusCode(error);
   
   if (statusCode >= 500) {
-    logger.error('Application Error', error, {
+    logger.error('Application Error', error instanceof Error ? error : new Error(String(error)), {
       type: errorType,
       statusCode,
       requestId,

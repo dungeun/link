@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableMenuItemImproved } from './SortableMenuItemImproved';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -11,7 +11,7 @@ interface MenuItem {
   label: string;
   name: string;
   href: string;
-  icon?: string | null;
+  icon?: string;
   visible: boolean;
   order: number;
 }
@@ -45,17 +45,17 @@ export function HeaderConfigDB() {
       
       if (response.ok) {
         const data = await response.json();
-        const formattedMenus = data.menus.map((menu: Record<string, unknown>) => ({
+        const formattedMenus = data.menus.map((menu: any) => ({
           id: menu.id,
           label: menu.content?.label || menu.sectionId,
           name: menu.content?.name || '',
           href: menu.content?.href || '/',
-          icon: menu.content?.icon,
+          icon: menu.content?.icon || undefined,
           visible: menu.visible,
           order: menu.order
         }));
         // Admin UI에서도 order 필드로 정렬하여 UI Config API와 일치시킴
-        formattedMenus.sort((a, b) => a.order - b.order);
+        formattedMenus.sort((a: any, b: any) => a.order - b.order);
         setMenus(formattedMenus);
       }
     } catch (error) {
@@ -69,12 +69,12 @@ export function HeaderConfigDB() {
     loadMenus();
   }, []);
 
-  const handleDragEnd = async (event: { active: { id: string }; over: { id: string } }) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (active.id !== over.id) {
-      const oldIndex = menus.findIndex((item) => item.id === active.id);
-      const newIndex = menus.findIndex((item) => item.id === over.id);
+    if (over && active.id !== over.id) {
+      const oldIndex = menus.findIndex((item) => item.id === String(active.id));
+      const newIndex = menus.findIndex((item) => item.id === String(over.id));
       
       const newMenus = arrayMove(menus, oldIndex, newIndex).map((item, index) => ({
         ...item,

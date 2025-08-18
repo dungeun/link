@@ -91,9 +91,8 @@ export class SettlementScheduler {
         console.error('❌ 일일 정산 처리 실패:', error);
       }
     }, {
-      scheduled: true,
       timezone: 'Asia/Seoul' // 한국 시간 기준
-    });
+    } as any);
 
     this.tasks.set('daily', task);
     console.log('📅 일일 정산 스케줄이 등록되었습니다 (매일 00:00 KST)');
@@ -133,9 +132,8 @@ export class SettlementScheduler {
         console.error('❌ 주간 정산 리포트 생성 실패:', error);
       }
     }, {
-      scheduled: true,
       timezone: 'Asia/Seoul'
-    });
+    } as any);
 
     this.tasks.set('weekly', task);
     console.log('📅 주간 정산 스케줄이 등록되었습니다 (매주 월요일 09:00 KST)');
@@ -176,9 +174,8 @@ export class SettlementScheduler {
         console.error('❌ 월간 정산 처리 실패:', error);
       }
     }, {
-      scheduled: true,
       timezone: 'Asia/Seoul'
-    });
+    } as any);
 
     this.tasks.set('monthly', task);
     console.log('📅 월간 정산 스케줄이 등록되었습니다 (매월 1일 10:00 KST)');

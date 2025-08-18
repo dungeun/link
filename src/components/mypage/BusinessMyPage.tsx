@@ -225,7 +225,7 @@ export default function BusinessMyPage({ user, activeTab, setActiveTab }: Busine
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <h4 className="font-medium text-gray-900">{campaign.title}</h4>
-                          <p className="text-sm text-gray-600">{campaign.platform || ''}</p>
+                          <p className="text-sm text-gray-600">{campaign.category}</p>
                         </div>
                         <span className="text-sm font-medium text-blue-600">
                           ₩{campaign.budget.toLocaleString()}
@@ -297,7 +297,7 @@ export default function BusinessMyPage({ user, activeTab, setActiveTab }: Busine
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h4 className="font-semibold text-gray-900">{campaign.title}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{campaign.platform || ''}</p>
+                        <p className="text-sm text-gray-600 mt-1">{campaign.category}</p>
                       </div>
                       <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(campaign.status)}`}>
                         {getStatusText(campaign.status)}

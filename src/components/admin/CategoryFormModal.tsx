@@ -44,7 +44,9 @@ export default function CategoryFormModal({
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const isEditing = !!category
+  // id가 null이면 새 카테고리 생성 (중분류 추가 시)
+  const isEditing = !!(category && category.id)
+  const isCreatingSubcategory = !!(category && !category.id && category.parentId)
 
   useEffect(() => {
     if (category) {
@@ -55,8 +57,8 @@ export default function CategoryFormModal({
         description: category.description || '',
         icon: category.icon || '',
         color: category.color || '#3B82F6',
-        isActive: category.isActive,
-        showInMenu: category.showInMenu,
+        isActive: category.isActive !== undefined ? category.isActive : true,
+        showInMenu: category.showInMenu !== undefined ? category.showInMenu : false,
         menuOrder: category.menuOrder || 0
       })
     }
@@ -133,12 +135,25 @@ export default function CategoryFormModal({
     '💎', '🍷', '🎯', '🔧', '📷', '🎪', '🏆', '🎸'
   ]
 
+  // 부모 카테고리 이름 가져오기
+  const getParentCategoryName = () => {
+    if (formData.parentId) {
+      const parent = categories.find(c => c.id === formData.parentId)
+      return parent ? parent.name : null
+    }
+    return null
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-900">
-            {isEditing ? '카테고리 수정' : '새 카테고리 생성'}
+            {isEditing 
+              ? '카테고리 수정' 
+              : isCreatingSubcategory 
+                ? '중분류 카테고리 생성' 
+                : '새 카테고리 생성'}
           </h2>
           <button
             onClick={onClose}
@@ -190,16 +205,22 @@ export default function CategoryFormModal({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               부모 카테고리
+              {isCreatingSubcategory && (
+                <span className="ml-2 text-sm text-blue-600">
+                  ({getParentCategoryName()}의 하위 카테고리로 생성됩니다)
+                </span>
+              )}
             </label>
             <select
               value={formData.parentId}
               onChange={(e) => setFormData(prev => ({ ...prev, parentId: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled={isCreatingSubcategory} // 중분류 생성 시 부모 카테고리 변경 불가
             >
               <option value="">최상위 카테고리</option>
               {availableParents.map(parent => (
                 <option key={parent.id} value={parent.id}>
-                  {'  '.repeat(parent.level - 1)}{parent.name} ({parent.level}단계)
+                  {'  '.repeat(parent.level - 1)}{parent.name} ({parent.level === 1 ? '대분류' : parent.level === 2 ? '중분류' : '소분류'})
                 </option>
               ))}
             </select>

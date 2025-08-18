@@ -67,20 +67,29 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // 데이터 형식 변환
+    // 데이터 형식 변환 - campaign 객체를 유지하여 일관성 있는 구조 제공
     const formattedApplications = applications.map(app => ({
       id: app.id,
       campaignId: app.campaign.id,
-      title: app.campaign.title,
-      brand: app.campaign.business.name,
       status: app.status,
       appliedAt: app.createdAt,
-      campaignStatus: app.campaign.status,
-      startDate: app.campaign.startDate,
-      endDate: app.campaign.endDate,
-      budget: app.campaign.budget,
-      platform: app.campaign.platform,
       message: app.message,
+      // 기존 호환성을 위한 직접 필드
+      title: app.campaign.title,
+      brand: app.campaign.business.name,
+      budget: app.campaign.budget,
+      // campaign 객체로도 접근 가능하도록 구조화
+      campaign: {
+        id: app.campaign.id,
+        title: app.campaign.title,
+        businessName: app.campaign.business.name,
+        reward: app.campaign.budget,
+        status: app.campaign.status,
+        startDate: app.campaign.startDate,
+        endDate: app.campaign.endDate,
+        budget: app.campaign.budget,
+        platform: app.campaign.platform
+      },
       submittedContent: app.contents && app.contents.length > 0 ? {
         url: app.contents[0].contentUrl,
         submittedDate: app.contents[0].createdAt,

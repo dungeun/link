@@ -171,11 +171,11 @@ export default function CampaignDetailPage() {
     if (profileData && user?.type === 'INFLUENCER') {
       setApplyForm(prev => ({
         ...prev,
-        name: profileData.name || profileData.realName || '',
-        birthYear: profileData.birthYear || profileData.profile?.birthYear || '',
-        gender: profileData.gender || profileData.profile?.gender || '',
-        phone: profileData.phone || profileData.profile?.phone || '',
-        address: profileData.address || profileData.profile?.address || ''
+        name: profileData.name || (profileData as any).realName || '',
+        birthYear: String((profileData as any).birthYear || profileData.profile?.birthYear || ''),
+        gender: (profileData as any).gender || profileData.profile?.gender || '',
+        phone: (profileData as any).phone || profileData.profile?.phone || '',
+        address: (profileData as any).address || profileData.profile?.address || ''
       }))
     }
   }, [profileData, user])
@@ -220,7 +220,7 @@ export default function CampaignDetailPage() {
   }
 
   const handleTemplateSelect = (templateId: string) => {
-    const template = templates.find(t => t.id === templateId)
+    const template = templates.find((t: any) => t.id === templateId)
     if (template) {
       setApplyForm(prev => ({ ...prev, message: template.content }))
       setSelectedTemplate(templateId)
@@ -233,7 +233,7 @@ export default function CampaignDetailPage() {
       setApplyForm(prev => ({
         ...prev,
         name: profileData.name || '',
-        birthYear: profileData.profile?.birthYear || '',
+        birthYear: String(profileData.profile?.birthYear || ''),
         gender: profileData.profile?.gender || '',
         phone: profileData.profile?.phone || '',
         address: profileData.profile?.address || ''
@@ -313,7 +313,7 @@ export default function CampaignDetailPage() {
     }
 
     // 프로필 완성 상태 최종 체크
-    if (!profileData?.profileCompleted) {
+    if (!(profileData as any)?.profileCompleted) {
       toast({
         title: '프로필 완성 필요',
         description: '프로필을 먼저 완성해주세요.',
@@ -373,7 +373,7 @@ export default function CampaignDetailPage() {
       setApplyForm({
         message: '',
         name: profileData?.name || '',
-        birthYear: profileData?.profile?.birthYear || '',
+        birthYear: String(profileData?.profile?.birthYear || ''),
         gender: profileData?.profile?.gender || '',
         phone: profileData?.profile?.phone || '',
         address: profileData?.profile?.address || ''
@@ -581,7 +581,7 @@ export default function CampaignDetailPage() {
                     {getStatusBadge(campaign.status)}
                     <span className="text-gray-500">|</span>
                     <div className="flex items-center gap-2">
-                      {(campaign.platforms || []).map(platform => (
+                      {(campaign.platforms || []).map((platform: any) => (
                         <span key={platform} className="flex items-center gap-1 text-gray-600">
                           {getPlatformIcon(platform)}
                         </span>
@@ -633,7 +633,7 @@ export default function CampaignDetailPage() {
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold text-gray-900">제품 소개</h2>
                       <div className="space-y-6">
-                        {(campaign.productImages || []).map((image, index) => (
+                        {(campaign.productImages || []).map((image: any, index: number) => (
                           <div key={index} className="relative w-full rounded-lg overflow-hidden">
                             <img
                               src={image}
@@ -705,7 +705,7 @@ export default function CampaignDetailPage() {
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">해시태그</h2>
                       <div className="flex flex-wrap gap-2">
-                        {(campaign.hashtags || []).map((tag, index) => (
+                        {(campaign.hashtags || []).map((tag: any, index: number) => (
                           <span key={index} className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-sm">
                             #{tag}
                           </span>
@@ -719,7 +719,7 @@ export default function CampaignDetailPage() {
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">상세 이미지</h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {(campaign.detailImages || []).map((image, index) => (
+                        {(campaign.detailImages || []).map((image: any, index: number) => (
                           <div key={index} className="relative aspect-video rounded-lg overflow-hidden">
                             <Image
                               src={image}
@@ -884,7 +884,7 @@ export default function CampaignDetailPage() {
                         size="lg"
                         onClick={() => {
                           // 프로필 완성 상태 체크 (DB의 profileCompleted 플래그 사용)
-                          if (!profileData?.profileCompleted) {
+                          if (!(profileData as any)?.profileCompleted) {
                             // 프로필 정보가 불완전한 경우
                             if (confirm('프로필 정보를 먼저 완성해주세요. 프로필 수정 페이지로 이동하시겠습니까?')) {
                               router.push('/mypage')
@@ -1070,15 +1070,15 @@ export default function CampaignDetailPage() {
             >
               <option value="">직접 작성</option>
               <optgroup label="기본 템플릿">
-                {(templates || []).filter(t => t.isPublic && (!t.user || t.user.name === 'LinkPick System')).map(template => (
+                {(templates || []).filter((t: any) => t.isPublic && (!t.user || t.user.name === 'LinkPick System')).map((template: any) => (
                   <option key={template.id} value={template.id}>
                     {template.name}
                   </option>
                 ))}
               </optgroup>
-              {(templates || []).filter(t => !t.isPublic || (t.user && t.user.name !== 'LinkPick System')).length > 0 && (
+              {(templates || []).filter((t: any) => !t.isPublic || (t.user && t.user.name !== 'LinkPick System')).length > 0 && (
                 <optgroup label="내 템플릿">
-                  {(templates || []).filter(t => !t.isPublic || (t.user && t.user.name !== 'LinkPick System')).map(template => (
+                  {(templates || []).filter((t: any) => !t.isPublic || (t.user && t.user.name !== 'LinkPick System')).map((template: any) => (
                     <option key={template.id} value={template.id}>
                       {template.name}
                     </option>
@@ -1128,7 +1128,7 @@ export default function CampaignDetailPage() {
               setApplyForm({
                 message: '',
                 name: profileData?.name || '',
-                birthYear: profileData?.profile?.birthYear || '',
+                birthYear: String(profileData?.profile?.birthYear || ''),
                 gender: profileData?.profile?.gender || '',
                 phone: profileData?.profile?.phone || '',
                 address: profileData?.profile?.address || ''

@@ -48,8 +48,8 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
   
   // 섹션 설정에서 개수와 기준 가져오기 - 메모이제이션
   const count = useMemo(() => section.settings?.count || 5, [section.settings?.count])
-  const criteria = useMemo(() => section.settings?.criteria || 'popular', [section.settings?.criteria])
-  const showBadge = useMemo(() => section.settings?.showBadge !== false, [section.settings?.showBadge])
+  const criteria = useMemo(() => 'popular', [])
+  const showBadge = useMemo(() => true, [])
 
   // 제목과 부제목 (다국어 지원) - 메모이제이션
   const title = useMemo(() => localizedContent?.title || section.title || '인기 랭킹', [localizedContent?.title, section.title])
@@ -62,16 +62,6 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
       case 2: return 'bg-gray-400 text-white'  // 은
       case 3: return 'bg-amber-600 text-white' // 동
       default: return 'bg-blue-500 text-white'
-    }
-  }, [])
-
-  // 랭킹 아이콘 - 메모이제이션
-  const getRankIcon = useCallback((rank: number) => {
-    switch (rank) {
-      case 1: return '👑'
-      case 2: return '🥈'
-      case 3: return '🥉'
-      default: return rank.toString()
     }
   }, [])
 
@@ -105,7 +95,6 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
     loadRankingCampaigns()
   }, [loadRankingCampaigns])
 
-  if (!section.visible) return null
 
   return (
     <div className="mb-12">
@@ -142,7 +131,7 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
               {showBadge && campaign.rank && (
                 <div className="absolute top-3 left-3 z-10">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${getRankBadgeColor(campaign.rank)}`}>
-                    {campaign.rank <= 3 ? getRankIcon(campaign.rank) : campaign.rank}
+                    {campaign.rank}
                   </div>
                 </div>
               )}

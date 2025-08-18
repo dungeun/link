@@ -152,12 +152,17 @@ class StructuredLogger {
 
   // HTTP 응답 로깅
   logResponse(res: { statusCode: number }, duration: number, context?: LogContext): void {
-    const level = res.statusCode >= 400 ? 'error' : 'info'
-    this[level](`Response ${res.statusCode} (${duration}ms)`, {
+    const responseContext = {
       ...context,
       statusCode: res.statusCode,
       duration,
-    })
+    }
+    
+    if (res.statusCode >= 400) {
+      this.error(`Response ${res.statusCode} (${duration}ms)`, undefined, responseContext)
+    } else {
+      this.info(`Response ${res.statusCode} (${duration}ms)`, responseContext)
+    }
   }
 
   // 데이터베이스 쿼리 로깅

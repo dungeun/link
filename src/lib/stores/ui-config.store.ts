@@ -46,6 +46,7 @@ export interface CategoryMenu {
   id: string;
   name: string;
   categoryId: string;
+  campaignType?: string; // FREE, PAID, REVIEW
   icon: string; // 이미지 URL
   badge?: string;
   order: number;
@@ -348,7 +349,7 @@ export const useUIConfigStore = create<UIConfigStore>()(
   persist(
     (set, get) => ({
       config: defaultConfig,
-      websiteSettings: null,
+      websiteSettings: {} as WebsiteSettings,
       updateHeaderMenus: (menus) =>
         set((state) => ({
           config: {

@@ -17,6 +17,7 @@ interface ApplicationFormData {
   proposedPrice: string
   campaignId: string
   userId: string
+  useProfileData?: boolean
 }
 
 interface ApplicationFormProps {
@@ -121,9 +122,10 @@ function ApplicationForm({ campaignId, userId, onSubmit }: ApplicationFormProps)
     onSubmit({
       ...formData,
       campaignId,
+      userId,
       useProfileData: useProfile
     })
-  }, [formData, campaignId, useProfile, onSubmit])
+  }, [formData, campaignId, userId, useProfile, onSubmit])
 
   // 프로필 데이터 가용성 체크 - 메모이제이션
   const hasProfileData = useMemo(() => !!profileData, [profileData])

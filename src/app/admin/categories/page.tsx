@@ -42,6 +42,11 @@ function CategoriesPageContent() {
       const data = await response.json()
       if (data.success) {
         setCategories(data.categories)
+        // 대분류(level 1) 카테고리를 기본적으로 확장
+        const mainCategories = data.categories
+          .filter((cat: Category) => cat.level === 1 && cat.children && cat.children.length > 0)
+          .map((cat: Category) => cat.id)
+        setExpandedCategories(new Set(mainCategories))
       }
     } catch (error) {
       console.error('Error fetching categories:', error)
@@ -56,6 +61,18 @@ function CategoriesPageContent() {
   }
 
   const handleDelete = async (category: Category) => {
+    // 대분류는 삭제 불가능
+    if (category.level === 1) {
+      alert('대분류는 삭제할 수 없습니다. 중분류와 소분류만 삭제 가능합니다.')
+      return
+    }
+
+    // 하위 카테고리가 있는지 확인
+    if (category.children && category.children.length > 0) {
+      alert('하위 카테고리가 있는 카테고리는 삭제할 수 없습니다. 먼저 하위 카테고리를 삭제해주세요.')
+      return
+    }
+
     if (!confirm(`"${category.name}" 카테고리를 삭제하시겠습니까?`)) {
       return
     }
@@ -92,6 +109,17 @@ function CategoriesPageContent() {
     setExpandedCategories(newExpanded)
   }
 
+  const expandAll = () => {
+    const allParentIds = categories
+      .filter(cat => cat.children && cat.children.length > 0)
+      .map(cat => cat.id)
+    setExpandedCategories(new Set(allParentIds))
+  }
+
+  const collapseAll = () => {
+    setExpandedCategories(new Set())
+  }
+
   // 계층 구조로 정리
   const organizeCategoriesByHierarchy = (categories: Category[]) => {
     const categoryMap = new Map<string, Category & { children: Category[] }>()
@@ -114,6 +142,16 @@ function CategoriesPageContent() {
     })
 
     return rootCategories
+  }
+
+  const handleAddSubcategory = (parentCategory: Category) => {
+    setSelectedCategory({
+      ...parentCategory,
+      id: null, // 새 카테고리를 만들기 위해 id를 null로 설정
+      parentId: parentCategory.id,
+      level: parentCategory.level + 1
+    } as any)
+    setShowCategoryModal(true)
   }
 
   const renderCategoryItem = (category: Category & { children: Category[] }, depth = 0) => {
@@ -150,7 +188,7 @@ function CategoriesPageContent() {
                 <div className="flex items-center gap-2">
                   <h3 className="font-medium text-gray-900">{category.name}</h3>
                   <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
-                    {category.level}단계
+                    {category.level === 1 ? '대분류' : category.level === 2 ? '중분류' : '소분류'}
                   </span>
                   {!category.isActive && (
                     <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-600">
@@ -182,6 +220,18 @@ function CategoriesPageContent() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* 대분류에만 중분류 추가 버튼 표시 */}
+            {category.level === 1 && (
+              <button
+                onClick={() => handleAddSubcategory(category)}
+                className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1"
+                title="중분류 추가"
+              >
+                <Plus className="w-3 h-3" />
+                중분류
+              </button>
+            )}
+            
             {!category.categoryPage && (
               <button
                 onClick={() => handleCreatePage(category)}
@@ -200,13 +250,16 @@ function CategoriesPageContent() {
               <Edit className="w-4 h-4" />
             </button>
             
-            <button
-              onClick={() => handleDelete(category)}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="삭제"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {/* 대분류가 아닌 경우에만 삭제 버튼 표시 */}
+            {category.level !== 1 && (
+              <button
+                onClick={() => handleDelete(category)}
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="삭제"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -281,8 +334,22 @@ function CategoriesPageContent() {
 
       {/* 카테고리 트리 */}
       <div className="bg-white rounded-lg border overflow-hidden">
-        <div className="p-4 border-b bg-gray-50">
+        <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">카테고리 계층 구조</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={expandAll}
+              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              모두 펼치기
+            </button>
+            <button
+              onClick={collapseAll}
+              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              모두 접기
+            </button>
+          </div>
         </div>
         
         {hierarchicalCategories.length > 0 ? (

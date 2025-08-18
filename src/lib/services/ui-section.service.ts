@@ -48,10 +48,10 @@ export class UISectionService {
             type: section.type as GlobalUISection['type'],
             sectionId: section.sectionId,
             title: section.title ? 
-              (isJsonObject(section.title) ? section.title as Record<LanguageCode, string> : undefined) : 
+              (isJsonObject(section.title) ? section.title as unknown as Record<LanguageCode, string> : undefined) : 
               undefined,
             subtitle: section.subtitle ? 
-              (isJsonObject(section.subtitle) ? section.subtitle as Record<LanguageCode, string> : undefined) : 
+              (isJsonObject(section.subtitle) ? section.subtitle as unknown as Record<LanguageCode, string> : undefined) : 
               undefined,
             content: { ...content, ...langTranslations },
             translations,
@@ -66,10 +66,10 @@ export class UISectionService {
           type: section.type as GlobalUISection['type'],
           sectionId: section.sectionId,
           title: section.title ? 
-            (isJsonObject(section.title) ? section.title as Record<LanguageCode, string> : undefined) : 
+            (isJsonObject(section.title) ? section.title as unknown as Record<LanguageCode, string> : undefined) : 
             undefined,
           subtitle: section.subtitle ? 
-            (isJsonObject(section.subtitle) ? section.subtitle as Record<LanguageCode, string> : undefined) : 
+            (isJsonObject(section.subtitle) ? section.subtitle as unknown as Record<LanguageCode, string> : undefined) : 
             undefined,
           content,
           translations,
@@ -79,7 +79,7 @@ export class UISectionService {
         }
       });
     } catch (error) {
-      logger.error('Error fetching visible sections:', error);
+      logger.error('Error fetching visible sections:', error instanceof Error ? error.message : 'Unknown error');
       return [];
     }
   }
@@ -118,10 +118,10 @@ export class UISectionService {
           type: section.type as GlobalUISection['type'],
           sectionId: section.sectionId,
           title: section.title ? 
-            (isJsonObject(section.title) ? section.title as Record<LanguageCode, string> : undefined) : 
+            (isJsonObject(section.title) ? section.title as unknown as Record<LanguageCode, string> : undefined) : 
             undefined,
           subtitle: section.subtitle ? 
-            (isJsonObject(section.subtitle) ? section.subtitle as Record<LanguageCode, string> : undefined) : 
+            (isJsonObject(section.subtitle) ? section.subtitle as unknown as Record<LanguageCode, string> : undefined) : 
             undefined,
           content: { ...content, ...langTranslations },
           translations,
@@ -136,10 +136,10 @@ export class UISectionService {
         type: section.type as GlobalUISection['type'],
         sectionId: section.sectionId,
         title: section.title ? 
-          (isJsonObject(section.title) ? section.title as Record<LanguageCode, string> : undefined) : 
+          (isJsonObject(section.title) ? section.title as unknown as Record<LanguageCode, string> : undefined) : 
           undefined,
         subtitle: section.subtitle ? 
-          (isJsonObject(section.subtitle) ? section.subtitle as Record<LanguageCode, string> : undefined) : 
+          (isJsonObject(section.subtitle) ? section.subtitle as unknown as Record<LanguageCode, string> : undefined) : 
           undefined,
         content,
         translations,
@@ -148,7 +148,7 @@ export class UISectionService {
         settings: section.settings && isJsonObject(section.settings) ? section.settings : undefined
       }
     } catch (error) {
-      logger.error(`Error fetching section ${sectionId}:`, error);
+      logger.error(`Error fetching section ${sectionId}:`, error instanceof Error ? error.message : 'Unknown error');
       return null;
     }
   }
@@ -158,12 +158,12 @@ export class UISectionService {
     try {
       const updated = await prisma.uISection.update({
         where: { sectionId },
-        data
+        data: data as any
       });
       
-      return updated;
+      return updated as any;
     } catch (error) {
-      logger.error(`Error updating section ${sectionId}:`, error);
+      logger.error(`Error updating section ${sectionId}:`, error instanceof Error ? error.message : 'Unknown error');
       return null;
     }
   }
@@ -182,7 +182,7 @@ export class UISectionService {
       
       return true;
     } catch (error) {
-      logger.error('Error updating section orders:', error);
+      logger.error('Error updating section orders:', error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
@@ -201,9 +201,9 @@ export class UISectionService {
         data: { visible: !section.visible }
       });
       
-      return updated;
+      return updated as any;
     } catch (error) {
-      logger.error(`Error toggling section visibility ${sectionId}:`, error);
+      logger.error(`Error toggling section visibility ${sectionId}:`, error instanceof Error ? error.message : 'Unknown error');
       return null;
     }
   }

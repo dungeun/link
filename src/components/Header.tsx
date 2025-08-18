@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { ChevronDown, User as UserIcon, LogOut, Settings, Menu, X, Bell } from 'lucide-react'
+import { ChevronDown, User as UserIcon, LogOut, Settings, Menu, X } from 'lucide-react'
 import { useUIConfigStore } from '@/lib/stores/ui-config.store'
 import LanguageSelector from './LanguageSelector'
 import { useLanguage } from '@/hooks/useLanguage'
@@ -22,11 +22,8 @@ function Header({ variant = 'default' }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
-  const [showNotifications, setShowNotifications] = useState(false)
-  const [notifications, setNotifications] = useState<Array<{ id: string; title: string; message: string; read: boolean }>>([])
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const notificationRef = useRef<HTMLDivElement>(null)
   const { config, loadSettingsFromAPI } = useUIConfigStore()
   const { user, isAuthenticated, logout } = useAuth()
   const { t, currentLanguage } = useLanguage()
@@ -69,23 +66,34 @@ function Header({ variant = 'default' }: HeaderProps) {
     }
   }, [user])
   
-  // UI 설정 로드 (언어 변경 시에만)
+  // UI 설정 초기 로드 (한 번만)
   useEffect(() => {
-    logger.debug('Loading UI settings', { 
-      module: 'Header', 
-      metadata: { language: currentLanguage } 
-    });
-    loadSettingsFromAPI(currentLanguage)
-  }, [currentLanguage, loadSettingsFromAPI])
+    if (config.header.menus.length === 0) {
+      logger.debug('Initial UI settings load', { 
+        module: 'Header', 
+        metadata: { language: currentLanguage } 
+      });
+      loadSettingsFromAPI(currentLanguage)
+    }
+  }, [])
+
+  // 언어 변경 시 UI 설정 재로드
+  useEffect(() => {
+    // 초기 로드가 완료된 후 언어가 변경되었을 때만
+    if (currentLanguage && config.header.menus.length > 0) {
+      logger.debug('Language changed, reloading UI settings', { 
+        module: 'Header', 
+        metadata: { language: currentLanguage } 
+      });
+      loadSettingsFromAPI(currentLanguage)
+    }
+  }, [currentLanguage])
 
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false)
-      }
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-        setShowNotifications(false)
       }
     }
 
@@ -94,17 +102,6 @@ function Header({ variant = 'default' }: HeaderProps) {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
-
-  // 알림 데이터 로드 (예시)
-  useEffect(() => {
-    if (isAuthenticated) {
-      // TODO: API에서 알림 데이터 로드
-      setNotifications([
-        { id: 1, message: '새로운 캠페인이 등록되었습니다', unread: true },
-        { id: 2, message: '캠페인 신청이 승인되었습니다', unread: false },
-      ])
-    }
-  }, [isAuthenticated])
 
   const handleLogout = useCallback(() => {
     logout()
@@ -180,49 +177,6 @@ function Header({ variant = 'default' }: HeaderProps) {
           <nav className="flex items-center gap-3 sm:gap-6 flex-1 justify-end">
             {/* 언어 선택 - 관리자 페이지가 아닐 때만 표시 */}
             {!pathname.startsWith('/admin') && <LanguageSelector />}
-            
-            {/* 알림 아이콘 - 모바일 최적화 */}
-            {isAuthenticated && (
-              <div className="relative" ref={notificationRef}>
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-3 hover:bg-white/10 rounded-xl transition-all duration-200 active:scale-95"
-                  aria-label="알림"
-                >
-                  <Bell className="w-6 h-6" />
-                  {notifications.some(n => n.unread) && (
-                    <span className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
-                  )}
-                </button>
-                
-                {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200 z-50">
-                    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-                      <h3 className="font-semibold text-gray-900 text-lg">{t('notification.title', '알림')}</h3>
-                    </div>
-                    <div className="max-h-80 sm:max-h-96 overflow-y-auto">
-                      {notifications.length > 0 ? (
-                        notifications.map(notif => (
-                          <div
-                            key={notif.id}
-                            className={`p-4 border-b hover:bg-gray-50 transition cursor-pointer ${
-                              notif.unread ? 'bg-blue-50' : ''
-                            }`}
-                          >
-                            <p className="text-sm text-gray-700">{notif.message}</p>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-8 text-center text-gray-500">
-                          <Bell className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                          <p>{t('notification.empty', '알림이 없습니다')}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
             
             {/* 권한별 메뉴 - 데스크톱 */}
             <div className="hidden lg:flex items-center gap-4">

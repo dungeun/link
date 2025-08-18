@@ -244,7 +244,7 @@ export class SocialScraperLiteService {
 
       return null;
     } catch (error) {
-      console.error('TikTok scraping error:', error.message);
+      console.error('TikTok scraping error:', error instanceof Error ? error.message : String(error));
       return null;
     }
   }
@@ -314,7 +314,7 @@ export class SocialScraperLiteService {
 
       return null;
     } catch (error) {
-      console.error('Naver Blog scraping error:', error.message);
+      console.error('Naver Blog scraping error:', error instanceof Error ? error.message : String(error));
       return null;
     }
   }

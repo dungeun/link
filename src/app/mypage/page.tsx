@@ -58,7 +58,7 @@ function MyPageContent() {
   })
 
   const [addressData, setAddressData] = useState<AddressData | null>(
-    profileData?.profile?.addressData ? profileData.profile.addressData as AddressData : null
+    profileData?.profile?.addressData ? profileData.profile.addressData as unknown as AddressData : null
   )
   const [profileImage, setProfileImage] = useState<string | null>(
     profileData?.profile?.profileImage || null
@@ -193,15 +193,15 @@ function MyPageContent() {
       }))
 
       if (profileData.profile?.addressData) {
-        setAddressData(profileData.profile.addressData as AddressData)
+        setAddressData(profileData.profile.addressData as unknown as AddressData)
       }
       
       if (profileData.profile?.profileImage) {
         setProfileImage(profileData.profile.profileImage)
       }
 
-      if (profileData.profile?.bankingInfo) {
-        setBankInfo(profileData.profile.bankingInfo)
+      if ((profileData.profile as any)?.bankingInfo) {
+        setBankInfo((profileData.profile as any).bankingInfo)
       }
     }
 
@@ -471,7 +471,7 @@ function MyPageContent() {
                 <div key={application.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
-                      {application.campaign?.title || '캠페인 정보 없음'}
+                      {application.campaign?.title || application.title || '캠페인 정보 없음'}
                     </p>
                     <p className="text-xs text-gray-500">
                       {new Date(application.appliedAt).toLocaleDateString('ko-KR')}
@@ -614,7 +614,7 @@ function MyPageContent() {
               <div>
                 <p className="text-sm text-gray-600">승인됨</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {applications.filter(app => app.status === 'APPROVED').length}
+                  {applications.filter((app: any) => app.status === 'APPROVED').length}
                 </p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-500" />
@@ -626,7 +626,7 @@ function MyPageContent() {
               <div>
                 <p className="text-sm text-gray-600">심사중</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {applications.filter(app => app.status === 'PENDING').length}
+                  {applications.filter((app: any) => app.status === 'PENDING').length}
                 </p>
               </div>
               <Clock className="w-8 h-8 text-yellow-500" />
@@ -638,7 +638,7 @@ function MyPageContent() {
               <div>
                 <p className="text-sm text-gray-600">완료됨</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {applications.filter(app => app.status === 'COMPLETED').length}
+                  {applications.filter((app: any) => app.status === 'COMPLETED').length}
                 </p>
               </div>
               <Star className="w-8 h-8 text-purple-500" />
@@ -665,7 +665,7 @@ function MyPageContent() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {application.campaign?.title || '캠페인 정보 없음'}
+                          {application.campaign?.title || application.title || '캠페인 정보 없음'}
                         </h3>
                         <div className="space-y-2">
                           <div className="flex items-center text-sm text-gray-600">
@@ -1192,7 +1192,7 @@ function MyPageContent() {
             {profileSubTab === 'sns' && (
               <SNSIntegrationSettings
                 connectedPlatforms={connectedPlatforms}
-                onPlatformUpdate={setConnectedPlatforms}
+                onPlatformUpdate={(platforms) => setConnectedPlatforms(platforms as any)}
                 userId={user?.id || ''}
                 refreshConnections={refreshSNSConnections}
               />

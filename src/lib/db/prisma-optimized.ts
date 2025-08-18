@@ -60,7 +60,7 @@ function getPrismaLogLevel(): Prisma.LogLevel[] {
 }
 
 // 성능 모니터링 미들웨어
-async function performanceMiddleware(params: { model?: string; action?: string }, next: (params: unknown) => Promise<unknown>) {
+async function performanceMiddleware(params: any, next: (params: any) => Promise<unknown>) {
   const start = Date.now()
   const result = await next(params)
   const duration = Date.now() - start

@@ -8,15 +8,12 @@ import { useSiteSettings } from '@/hooks/useSiteSettings'
 import { Twitter, Facebook, Youtube, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
 
 function Footer() {
-  const { config, websiteSettings, loadSettingsFromAPI } = useUIConfigStore()
+  const { config, websiteSettings } = useUIConfigStore()
   const { columns = [], social = [], copyright = '' } = config.footer || {}
   const { t, currentLanguage } = useLanguage()
   const { settings: siteSettings } = useSiteSettings()
 
-  // useEffect 통합 - 언어 변경과 초기 로딩을 하나로 합침
-  useEffect(() => {
-    loadSettingsFromAPI(currentLanguage)
-  }, [currentLanguage, loadSettingsFromAPI])
+  // API 호출 제거 - 무한 루프 방지
 
   // 관리자 설정이 있으면 우선 사용, 없으면 기본 설정 사용 - 메모이제이션
   const footerEnabled = useMemo(() => 
@@ -97,17 +94,17 @@ function Footer() {
                 <div className="grid grid-cols-2 gap-6 text-sm">
                   {/* 회사 정보 (왼쪽) */}
                   <div className="text-gray-400 space-y-2">
-                    <p className="font-medium text-white mb-2">{siteSettings.general?.companyName || 'LinkPick'}</p>
+                    <p className="font-medium text-white mb-2">LinkPick</p>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                      <span>{t('footer.info.ceo', '대표')}: {siteSettings.general?.ceoName || '홍길동'}</span>
-                      <span>{t('footer.info.businessNo', '사업자등록번호')}: {siteSettings.general?.businessNumber || '123-45-67890'}</span>
+                      <span>{t('footer.info.ceo', '대표')}: 홍길동</span>
+                      <span>{t('footer.info.businessNo', '사업자등록번호')}: 123-45-67890</span>
                     </div>
                     <div className="text-xs">
-                      <span>{t('footer.info.telecom', '통신판매업')}: {siteSettings.general?.telecomNumber || '2024-서울강남-1234'}</span>
+                      <span>{t('footer.info.telecom', '통신판매업')}: 2024-서울강남-1234</span>
                     </div>
                     <div className="flex items-start gap-1 text-xs">
                       <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                      <span>{siteSettings.general?.address || '서울특별시 강남구 테헤란로 123, 456호'}</span>
+                      <span>서울특별시 강남구 테헤란로 123, 456호</span>
                     </div>
                   </div>
                   
@@ -117,10 +114,10 @@ function Footer() {
                     <div className="text-xs space-y-1">
                       <div className="flex items-center gap-1">
                         <Phone className="w-3 h-3" />
-                        <span>{siteSettings.general?.supportPhone || '1588-1234'}</span>
+                        <span>1588-1234</span>
                         <span className="mx-2">|</span>
                         <Mail className="w-3 h-3" />
-                        <span>{siteSettings.general?.supportEmail || 'support@linkpick.com'}</span>
+                        <span>support@linkpick.com</span>
                       </div>
                       <p className="text-gray-500">{t('footer.support.hours', '평일 09:00~18:00 (주말/공휴일 휴무)')}</p>
                     </div>
@@ -128,7 +125,9 @@ function Footer() {
                     {/* 저작권 */}
                     <div className="mt-4">
                       <p className="text-xs text-gray-500">
-                        {siteSettings.website?.footerText || t(copyright, `© ${new Date().getFullYear()} LinkPick. All rights reserved.`)}
+                        {siteSettings.website?.footerText?.[currentLanguage] || 
+                         siteSettings.website?.footerText?.ko || 
+                         t(copyright, `© ${new Date().getFullYear()} LinkPick. All rights reserved.`)}
                       </p>
                     </div>
                   </div>
@@ -137,7 +136,30 @@ function Footer() {
             </div>
 
             {/* 푸터 링크 컬럼들 (오른쪽) */}
-            {filteredColumns?.length > 0 ? (
+            {siteSettings.website?.footerLinks?.length > 0 ? (
+              // Admin 설정의 푸터 링크 사용
+              <div className="lg:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <h4 className="text-white font-semibold mb-4">{t('footer.links.title', '바로가기')}</h4>
+                    <ul className="space-y-3">
+                      {siteSettings.website.footerLinks.map((link, index) => (
+                        <li key={index}>
+                          <Link 
+                            href={link.url} 
+                            target={link.newWindow ? '_blank' : '_self'}
+                            rel={link.newWindow ? 'noopener noreferrer' : undefined}
+                            className="text-gray-400 hover:text-cyan-400 transition-colors duration-200 text-sm"
+                          >
+                            {link.title?.[currentLanguage] || link.title?.ko || link.title?.en}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            ) : filteredColumns?.length > 0 ? (
               filteredColumns.slice(0, 2).map(column => (
                 <div key={column.id} className="lg:col-span-1">
                   <h4 className="text-white font-semibold mb-4">

@@ -107,7 +107,6 @@ function RecommendedSection({ section, localizedContent, t }: RecommendedSection
     loadRecommendedCampaigns()
   }, [loadRecommendedCampaigns])
 
-  if (!section.visible) return null
 
   return (
     <div className="mb-12">

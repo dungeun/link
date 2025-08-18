@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# ESLint 보안 규칙 검사
+echo "🔍 보안 규칙 검사 중..."
+npm run lint:security
+
+# TypeScript 타입 체크
+echo "📝 TypeScript 타입 검사 중..."
+npm run typecheck
+
+# 테스트 실행
+echo "🧪 테스트 실행 중..."
+npm test -- --passWithNoTests
+
+# 코드 포맷 검사
+echo "🎨 코드 포맷 검사 중..."
+npm run format:check
+
+echo "✅ 모든 검사를 통과했습니다!"

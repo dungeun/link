@@ -37,7 +37,7 @@ const createLogger = (): Logger => {
       browser: {
         transmit: {
           level: 'error',
-          send: (level: { label: string; value: number }, logEvent: LogEvent) => {
+          send: (level: any, logEvent: any) => {
             // 프로덕션에서만 에러를 서버로 전송
             if (isProduction && level.label === 'error') {
               fetch('/api/logs', {

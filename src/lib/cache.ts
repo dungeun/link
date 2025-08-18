@@ -42,7 +42,7 @@ export class CacheManager {
       // Fallback to memory cache
       const cached = this.memoryCache.get(key);
       if (cached && cached.expires > Date.now()) {
-        return cached.value;
+        return cached.value as T;
       }
 
       // Clean up expired entry
@@ -70,9 +70,7 @@ export class CacheManager {
     try {
       // Store in Redis
       if (this.redis) {
-        await this.redis.set(key, JSON.stringify(value), {
-          ex: ttl
-        });
+        await this.redis.set(key, JSON.stringify(value), 'EX', ttl);
 
         // Store tags for invalidation
         if (tags.length > 0) {

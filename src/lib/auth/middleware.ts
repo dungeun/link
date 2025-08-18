@@ -35,7 +35,7 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
     } else {
       // 2. 쿠키에서 토큰 확인
       token = cookieStore.get(AUTH_CONFIG.COOKIE_NAME)?.value || 
-              cookieStore.get('accessToken')?.value;
+              cookieStore.get('accessToken')?.value || null;
     }
 
     if (!token) {

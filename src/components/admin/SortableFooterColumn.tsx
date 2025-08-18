@@ -37,12 +37,12 @@ export function SortableFooterColumn({ column, onUpdate, onDelete, onAddLink }: 
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const handleLinkDragEnd = (event: { active: { id: string }; over: { id: string } }) => {
+  const handleLinkDragEnd = (event: any) => {
     const { active, over } = event;
 
     if (active.id !== over.id) {
-      const oldIndex = column.links.findIndex((link) => link.id === active.id);
-      const newIndex = column.links.findIndex((link) => link.id === over.id);
+      const oldIndex = column.links.findIndex((link) => link.id === String(active.id));
+      const newIndex = column.links.findIndex((link) => link.id === String(over.id));
       
       const newLinks = arrayMove(column.links, oldIndex, newIndex).map((link, index) => ({
         ...link,

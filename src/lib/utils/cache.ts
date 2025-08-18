@@ -126,7 +126,7 @@ export class ResponseCache {
     // 캐시된 데이터 확인
     const cached = cache.get(key);
     if (cached) {
-      return cached;
+      return cached as T;
     }
 
     // 데이터 조회 및 캐시 저장
@@ -155,8 +155,8 @@ export class ResponseCache {
    */
   static invalidate(pattern: string): void {
     // 간단한 패턴 매칭으로 캐시 무효화
-    const keys = Array.from((cache as SimpleCache & { cache: Map<string, unknown> }).cache.keys());
-    keys.forEach((key: string) => {
+    const keys = Array.from((cache as any).cache.keys());
+    keys.forEach((key: any) => {
       if (key.includes(pattern)) {
         cache.delete(key);
       }

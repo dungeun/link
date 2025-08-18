@@ -1,4 +1,5 @@
 import { redis } from '@/lib/db/redis'
+import { PrismaClient } from '@prisma/client'
 import crypto from 'crypto'
 
 interface CacheOptions {
@@ -261,7 +262,7 @@ export async function cacheMiddleware(
 
 // 캐시 워밍
 export class CacheWarmer {
-  static async warmPopularData(prisma: unknown): Promise<void> {
+  static async warmPopularData(prisma: PrismaClient): Promise<void> {
     try {
       // 인기 캠페인 캐싱
       const popularCampaigns = await prisma.campaign.findMany({
@@ -271,7 +272,6 @@ export class CacheWarmer {
         select: {
           id: true,
           title: true,
-          thumbnail: true,
           budget: true,
           category: true
         }

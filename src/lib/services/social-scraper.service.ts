@@ -15,12 +15,12 @@ interface SocialStats {
 }
 
 export class SocialScraperService {
-  private browser: puppeteer.Browser | null = null;
+  private browser: any | null = null;
 
   async initialize() {
     if (!this.browser) {
       this.browser = await puppeteerExtra.launch({
-        headless: 'new',
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',

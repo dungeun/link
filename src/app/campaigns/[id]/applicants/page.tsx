@@ -155,24 +155,24 @@ export default function CampaignApplicantsPage() {
         if (response.ok) {
           const data = await response.json();
           // API 응답을 현재 UI 형식에 맞게 변환
-          const formattedApplicants = data.applications.map((app: Record<string, unknown>) => ({
+          const formattedApplicants = data.applications.map((app: any) => ({
             id: app.id,
-            name: app.influencer.name,
-            email: app.influencer.email,
-            avatar: app.influencer.profile?.profileImage || '/images/default-avatar.png',
-            bio: app.influencer.profile?.bio || '',
-            location: app.influencer.profile?.location || '전국',
-            categories: app.influencer.profile?.categories || [],
+            name: app.influencer?.name || '',
+            email: app.influencer?.email || '',
+            avatar: app.influencer?.profile?.profileImage || '/images/default-avatar.png',
+            bio: app.influencer?.profile?.bio || '',
+            location: app.influencer?.profile?.location || '전국',
+            categories: app.influencer?.profile?.categories || [],
             socialMedia: {
-              instagram: app.influencer.profile?.instagramHandle ? {
+              instagram: app.influencer?.profile?.instagramHandle ? {
                 handle: app.influencer.profile.instagramHandle,
                 followers: app.influencer.profile.instagramFollowers || 0
               } : null,
-              youtube: app.influencer.profile?.youtubeHandle ? {
+              youtube: app.influencer?.profile?.youtubeHandle ? {
                 handle: app.influencer.profile.youtubeHandle,
                 subscribers: app.influencer.profile.youtubeSubscribers || 0
               } : null,
-              tiktok: app.influencer.profile?.tiktokHandle ? {
+              tiktok: app.influencer?.profile?.tiktokHandle ? {
                 handle: app.influencer.profile.tiktokHandle,
                 followers: app.influencer.profile.tiktokFollowers || 0
               } : null

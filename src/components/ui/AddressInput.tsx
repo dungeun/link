@@ -2,26 +2,6 @@
 
 import { useState, useEffect } from 'react'
 
-declare global {
-  interface Window {
-    daum: {
-      Postcode: new (options: {
-        oncomplete: (data: {
-          zonecode: string;
-          roadAddress: string;
-          jibunAddress: string;
-          buildingName?: string;
-        }) => void
-        onclose?: (state: string) => void
-        width?: string | number
-        height?: string | number
-      }) => {
-        open: () => void
-        embed: (element: HTMLElement) => void
-      }
-    }
-  }
-}
 
 export interface AddressData {
   type: 'korea' | 'international'
@@ -66,7 +46,7 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
     }
 
     // 이미 로드되어 있으면 스킵
-    if (window.daum && window.daum.Postcode) {
+    if ((window as any).daum && (window as any).daum.Postcode) {
       setIsScriptLoaded(true)
       return
     }
@@ -79,7 +59,7 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
       const maxAttempts = 50 // 5초 대기
       const checkLoaded = () => {
         attempts++
-        if (window.daum && window.daum.Postcode) {
+        if ((window as any).daum && (window as any).daum.Postcode) {
           setIsScriptLoaded(true)
         } else if (attempts < maxAttempts) {
           setTimeout(checkLoaded, 100)
@@ -100,7 +80,7 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
     script.onload = () => {
       // 스크립트 로드 후 잠시 대기 (API 초기화 시간)
       setTimeout(() => {
-        if (window.daum && window.daum.Postcode) {
+        if ((window as any).daum && (window as any).daum.Postcode) {
           setIsScriptLoaded(true)
         } else {
           console.error('카카오 우편번호 API 초기화 실패')
@@ -121,7 +101,7 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
 
   // 카카오 우편번호 검색
   const handleKakaoPostcode = () => {
-    if (!window.daum || !window.daum.Postcode) {
+    if (!(window as any).daum || !(window as any).daum.Postcode) {
       if (!isScriptLoaded) {
         alert('우편번호 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
       } else {
@@ -130,8 +110,8 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
       return
     }
 
-    new window.daum.Postcode({
-      oncomplete: function(data) {
+    new (window as any).daum.Postcode({
+      oncomplete: function(data: any) {
         const newAddress: AddressData = {
           type: 'korea',
           korea: {
@@ -145,7 +125,7 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
         onChange(newAddress)
         setIsPostcodeOpen(false)
       },
-      onclose: function(state) {
+      onclose: function(state: any) {
         if (state === 'COMPLETE_CLOSE') {
           setIsPostcodeOpen(false)
         }

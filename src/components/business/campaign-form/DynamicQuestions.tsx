@@ -27,25 +27,7 @@ interface DynamicQuestionsProps {
   setQuestions: (questions: DynamicQuestion[]) => void
 }
 
-declare global {
-  interface Window {
-    daum: {
-      Postcode: new (options: {
-        oncomplete: (data: {
-          zonecode: string;
-          roadAddress: string;
-          jibunAddress: string;
-          buildingName?: string;
-        }) => void;
-        onclose?: () => void;
-        width?: string;
-        height?: string;
-      }) => {
-        open: () => void;
-      };
-    };
-  }
-}
+// Daum Postcode interface는 DaumPostcode.tsx에서 이미 정의됨
 
 export default function DynamicQuestions({ questions, setQuestions }: DynamicQuestionsProps) {
   const [userAddress, setUserAddress] = useState<string>('')
@@ -111,26 +93,23 @@ export default function DynamicQuestions({ questions, setQuestions }: DynamicQue
   }
 
   const searchAddress = (questionId: string) => {
-    if (!window.daum) {
+    if (!(window as any).daum) {
       alert('주소 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
       return
     }
 
-    new window.daum.Postcode({
-      oncomplete: function(data: {
-        zonecode: string;
-        roadAddress: string;
-        jibunAddress: string;
-        buildingName?: string;
-      }) {
+    new (window as any).daum.Postcode({
+      oncomplete: function(data: any) {
         updateQuestion(questionId, {
           addressData: {
-            postcode: data.zonecode,
-            address: data.roadAddress || data.jibunAddress,
+            postcode: data.zonecode || '',
+            address: data.roadAddress || data.jibunAddress || data.address || '',
             detailAddress: ''
           }
         })
-      }
+      },
+      width: '500px',
+      height: '600px'
     }).open()
   }
 

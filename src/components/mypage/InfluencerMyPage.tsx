@@ -135,7 +135,7 @@ function InfluencerMyPage({ user, activeTab, setActiveTab }: InfluencerMyPagePro
   })
 
   const [addressData, setAddressData] = useState<AddressData | null>(
-    profileData?.profile?.addressData ? profileData.profile.addressData as AddressData : null
+    profileData?.profile?.addressData ? profileData.profile.addressData as unknown as AddressData : null
   )
   const [profileImage, setProfileImage] = useState<string | null>(
     profileData?.profile?.profileImage || null
@@ -333,15 +333,15 @@ function InfluencerMyPage({ user, activeTab, setActiveTab }: InfluencerMyPagePro
       }))
 
       if (profileData.profile?.addressData) {
-        setAddressData(profileData.profile.addressData as AddressData)
+        setAddressData(profileData.profile.addressData as unknown as AddressData)
       }
       
       if (profileData.profile?.profileImage) {
         setProfileImage(profileData.profile.profileImage)
       }
 
-      if (profileData.profile?.bankingInfo) {
-        setBankInfo(profileData.profile.bankingInfo)
+      if ((profileData.profile as any)?.bankingInfo) {
+        setBankInfo((profileData.profile as any).bankingInfo)
       }
     }
 
@@ -507,6 +507,7 @@ function InfluencerMyPage({ user, activeTab, setActiveTab }: InfluencerMyPagePro
                   addressData={addressData}
                   setAddressData={setAddressData}
                   profileImage={profileImage}
+                  profileImageFile={profileImageFile}
                   onProfileImageChange={(imageUrl, imageFile) => {
                     setProfileImage(imageUrl)
                     if (imageFile) setProfileImageFile(imageFile)

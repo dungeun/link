@@ -3,11 +3,13 @@ interface StepPaymentProps {
   platformFee: number
   budget?: number
   budgetType?: string
+  reviewPrice?: number
 }
 
-export default function StepPayment({ baseFee, platformFee, budget = 0, budgetType = 'FREE' }: StepPaymentProps) {
+export default function StepPayment({ baseFee, platformFee, budget = 0, budgetType = 'FREE', reviewPrice = 0 }: StepPaymentProps) {
   const campaignBudget = budgetType === 'PAID' ? budget : 0
-  const totalAmount = baseFee + platformFee + campaignBudget
+  const reviewBudget = budgetType === 'REVIEW' ? reviewPrice : 0
+  const totalAmount = baseFee + platformFee + campaignBudget + reviewBudget
 
   return (
     <>
@@ -24,6 +26,12 @@ export default function StepPayment({ baseFee, platformFee, budget = 0, budgetTy
             <div className="flex justify-between items-center">
               <span className="text-gray-600">인플루언서 보상 예산</span>
               <span className="font-medium">₩{campaignBudget.toLocaleString()}</span>
+            </div>
+          )}
+          {budgetType === 'REVIEW' && reviewBudget > 0 && (
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">구매평 단가 (개당)</span>
+              <span className="font-medium">₩{reviewBudget.toLocaleString()}</span>
             </div>
           )}
           <div className="flex justify-between items-center">

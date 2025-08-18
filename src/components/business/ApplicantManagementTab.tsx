@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, memo } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import { apiGet, apiPost } from '@/lib/api/client'
-import { Search, Filter, Check, X, Eye, MessageSquare, Instagram, Youtube, User, Calendar, TrendingUp } from 'lucide-react'
+import { Check, X, User, Users, TrendingUp, Instagram, Youtube, Facebook, Mail, Phone, Globe, Twitter } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface Applicant {
@@ -14,7 +13,6 @@ interface Applicant {
   proposedPrice?: number
   status: string
   createdAt: string
-  appliedAt?: string
   influencerId: string
   influencerName: string
   influencerHandle: string
@@ -24,90 +22,134 @@ interface Applicant {
     id: string
     name: string
     email: string
+    phone?: string
     profile?: {
       profileImage?: string
+      bio?: string
       instagram?: string
       instagramFollowers?: number
       youtube?: string
       youtubeSubscribers?: number
+      facebook?: string
+      facebookFollowers?: number
+      twitter?: string
+      twitterFollowers?: number
+      tiktok?: string
+      tiktokFollowers?: number
+      naverBlog?: string
+      naverBlogFollowers?: number
       averageEngagementRate?: number
       categories?: string
+      gender?: string
     }
   }
 }
 
-function ApplicantManagementTab() {
+interface Props {
+  campaign?: any
+}
+
+export default function ApplicantManagementTab({ campaign }: Props) {
   const { toast } = useToast()
   const [applicants, setApplicants] = useState<Applicant[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [filterCampaign, setFilterCampaign] = useState('all')
-  const [campaigns, setCampaigns] = useState<Array<{ id: string; title: string }>>([])
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
-  const [activeTab, setActiveTab] = useState('profile')
-  const [stats, setStats] = useState({
-    totalApplicants: 0,
-    pendingApplicants: 0,
-    approvedApplicants: 0,
-    rejectedApplicants: 0
-  })
+  const [loading, setLoading] = useState(true)
+  const [processingId, setProcessingId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'basic' | 'sns' | 'intro'>('basic')
+
+  // Helper functions
+  const calculateTotalFollowers = (applicant: Applicant) => {
+    const profile = applicant.influencer?.profile
+    if (!profile) return 0
+    
+    let total = 0
+    if (profile.instagramFollowers) total += profile.instagramFollowers
+    if (profile.youtubeSubscribers) total += profile.youtubeSubscribers
+    if (profile.tiktokFollowers) total += profile.tiktokFollowers
+    if (profile.facebookFollowers) total += profile.facebookFollowers
+    if (profile.twitterFollowers) total += profile.twitterFollowers
+    if (profile.naverBlogFollowers) total += profile.naverBlogFollowers
+    
+    return total
+  }
+
+  const calculateAverageEngagement = (applicant: Applicant) => {
+    const profile = applicant.influencer?.profile
+    return profile?.averageEngagementRate || 0
+  }
+
+  const countActivePlatforms = (applicant: Applicant) => {
+    const profile = applicant.influencer?.profile
+    if (!profile) return 0
+    
+    let count = 0
+    if (profile.instagram) count++
+    if (profile.youtube) count++
+    if (profile.tiktok) count++
+    if (profile.facebook) count++
+    if (profile.twitter) count++
+    if (profile.naverBlog) count++
+    
+    return count
+  }
 
   useEffect(() => {
     fetchApplicants()
-    fetchCampaigns()
   }, [])
 
   const fetchApplicants = async () => {
     try {
       setLoading(true)
-      const response = await apiGet('/api/business/applications')
+      console.log('=== Fetching applicants ===')
+      
+      // 모든 캠페인의 지원자를 가져오는 API 호출
+      const response = await apiGet('/api/business/applicants')
+      console.log('API Response status:', response.status)
       
       if (response.ok) {
         const data = await response.json()
-        const applications = data.applications || []
-        setApplicants(applications)
-        
-        // 통계 계산
-        setStats({
-          totalApplicants: applications.length,
-          pendingApplicants: applications.filter((a: Applicant) => a.status === 'PENDING').length,
-          approvedApplicants: applications.filter((a: Applicant) => a.status === 'APPROVED').length,
-          rejectedApplicants: applications.filter((a: Applicant) => a.status === 'REJECTED').length
+        console.log('API Response data:', data)
+        setApplicants(data.applicants || [])
+      } else {
+        const errorData = await response.json()
+        console.error('API Error:', errorData)
+        toast({
+          title: '오류',
+          description: errorData.error || '지원자 목록을 불러오는데 실패했습니다.',
+          variant: 'destructive'
         })
       }
     } catch (error) {
-      console.error('지원자 데이터 조회 실패:', error)
+      console.error('Error fetching applicants:', error)
+      toast({
+        title: '오류',
+        description: '지원자 목록을 불러오는데 실패했습니다.',
+        variant: 'destructive'
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  const fetchCampaigns = async () => {
-    try {
-      const response = await apiGet('/api/business/campaigns')
-      if (response.ok) {
-        const data = await response.json()
-        setCampaigns(data.campaigns || [])
-      }
-    } catch (error) {
-      console.error('캠페인 데이터 조회 실패:', error)
-    }
-  }
-
   const handleStatusChange = async (applicantId: string, campaignId: string, status: 'APPROVED' | 'REJECTED') => {
     try {
+      setProcessingId(applicantId)
       const response = await apiPost(`/api/business/campaigns/${campaignId}/applicants/${applicantId}/status`, {
         status
       })
 
       if (response.ok) {
+        const messages = {
+          APPROVED: '지원자를 승인했습니다.',
+          REJECTED: '지원자를 거절했습니다.'
+        }
         toast({
           title: '성공',
-          description: status === 'APPROVED' ? '지원자를 승인했습니다.' : '지원자를 거절했습니다.'
+          description: messages[status]
         })
-        fetchApplicants() // 목록 새로고침
+        fetchApplicants()
+        setShowDetailModal(false)
       } else {
         throw new Error('상태 업데이트 실패')
       }
@@ -117,17 +159,18 @@ function ApplicantManagementTab() {
         description: '상태 업데이트에 실패했습니다.',
         variant: 'destructive'
       })
+    } finally {
+      setProcessingId(null)
     }
   }
 
-  const filteredApplicants = applicants.filter(applicant => {
-    const matchesSearch = 
-      (applicant.influencerName?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
-      (applicant.campaignTitle?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
-    const matchesStatus = filterStatus === 'all' || applicant.status === filterStatus
-    const matchesCampaign = filterCampaign === 'all' || applicant.campaignId === filterCampaign
-    return matchesSearch && matchesStatus && matchesCampaign
-  })
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -144,26 +187,6 @@ function ApplicantManagementTab() {
     )
   }
 
-  const formatDate = (dateString: string | Date) => {
-    if (!dateString) return '날짜 없음'
-    
-    const date = new Date(dateString)
-    if (isNaN(date.getTime())) return '날짜 없음'
-    
-    const now = new Date()
-    const diffTime = Math.abs(now.getTime() - date.getTime())
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-    
-    if (diffDays === 0) return '오늘'
-    if (diffDays === 1) return '어제'
-    if (diffDays < 7) return `${diffDays}일 전`
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -174,264 +197,107 @@ function ApplicantManagementTab() {
 
   return (
     <div className="space-y-6">
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">전체 지원자</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalApplicants}</p>
-            </div>
-            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-              <User className="w-6 h-6 text-indigo-600" />
-            </div>
-          </div>
+      {/* 지원자 목록 */}
+      <div className="bg-white rounded-lg shadow-sm">
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-semibold">지원자 관리</h3>
+          <p className="text-sm text-gray-500 mt-1">총 {applicants.length}명의 지원자</p>
         </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">검토 대기</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.pendingApplicants}</p>
+        
+        <div className="divide-y">
+          {applicants.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              아직 지원자가 없습니다.
             </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">승인됨</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.approvedApplicants}</p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <Check className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">거절됨</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.rejectedApplicants}</p>
-            </div>
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <X className="w-6 h-6 text-red-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 검색 및 필터 */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="지원자 또는 캠페인 검색..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            >
-              <option value="all">전체 상태</option>
-              <option value="PENDING">검토중</option>
-              <option value="APPROVED">승인됨</option>
-              <option value="REJECTED">거절됨</option>
-            </select>
-            <select
-              value={filterCampaign}
-              onChange={(e) => setFilterCampaign(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            >
-              <option value="all">전체 캠페인</option>
-              {campaigns.map(campaign => (
-                <option key={campaign.id} value={campaign.id}>{campaign.title}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* 지원자 리스트 */}
-        <div className="bg-white rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    인플루언서
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    캠페인
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    상태
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    지원일
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    작업
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredApplicants.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                      지원자가 없습니다.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredApplicants.map((applicant) => (
-                    <tr 
-                      key={applicant.id} 
-                      className="hover:bg-gray-50 cursor-pointer" 
+          ) : (
+            applicants.map((applicant) => (
+              <div key={applicant.id} className="p-6 hover:bg-gray-50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                      <User className="w-6 h-6 text-gray-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{applicant.influencerName}</h4>
+                      <p className="text-sm text-gray-500">
+                        {applicant.influencerHandle && `@${applicant.influencerHandle} • `}
+                        {formatDate(applicant.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(applicant.status)}
+                    <button
                       onClick={() => {
                         setSelectedApplicant(applicant)
                         setShowDetailModal(true)
                       }}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
-                            {applicant.influencer?.profile?.profileImage ? (
-                              <img 
-                                src={applicant.influencer.profile.profileImage} 
-                                alt={applicant.influencerName || '인플루언서'}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <User className="w-5 h-5 text-gray-400" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">{applicant.influencerName || '이름 없음'}</p>
-                            <p className="text-sm text-gray-500">@{applicant.influencerHandle}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm text-gray-900">{applicant.campaignTitle}</p>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(applicant.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(applicant.appliedAt || applicant.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center gap-2">
-                          {applicant.status === 'PENDING' && (
-                            <>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleStatusChange(applicant.id, applicant.campaignId, 'APPROVED')
-                                }}
-                                className="inline-flex items-center px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                              >
-                                <Check className="w-3 h-3 mr-1" />
-                                승인
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleStatusChange(applicant.id, applicant.campaignId, 'REJECTED')
-                                }}
-                                className="inline-flex items-center px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-                              >
-                                <X className="w-3 h-3 mr-1" />
-                                거절
-                              </button>
-                            </>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setSelectedApplicant(applicant)
-                              setShowDetailModal(true)
-                            }}
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                      상세 보기
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
-      {/* 상세 정보 모달 */}
+      {/* 상세 모달 */}
       {selectedApplicant && showDetailModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">지원자 상세 정보</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-60"
+            onClick={() => setShowDetailModal(false)}
+          />
+          
+          <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            {/* 모달 헤더 */}
+            <div className="border-b px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">지원자 상세 정보</h2>
                 <button
-                  onClick={() => {
-                    setShowDetailModal(false)
-                    setActiveTab('profile')
-                  }}
+                  onClick={() => setShowDetailModal(false)}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
-
-              {/* 인플루언서 기본 정보 */}
-              <div className="flex items-start gap-6 mb-6 pb-6 border-b">
-                <div className="w-24 h-24 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+            </div>
+            
+            {/* 프로필 헤더 */}
+            <div className="px-6 py-4 bg-gray-50 border-b">
+              <div className="flex items-start gap-4">
+                <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
                   {selectedApplicant.influencer?.profile?.profileImage ? (
                     <img 
                       src={selectedApplicant.influencer.profile.profileImage} 
-                      alt={selectedApplicant.influencerName || '인플루언서'}
-                      className="w-full h-full object-cover"
+                      alt={selectedApplicant.influencerName}
+                      className="w-20 h-20 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <User className="w-12 h-12 text-gray-400" />
-                    </div>
+                    <User className="w-10 h-10 text-gray-500" />
                   )}
                 </div>
-                
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-2xl font-bold text-gray-900">{selectedApplicant.influencerName || '이름 없음'}</h3>
+                  <h3 className="text-2xl font-bold">{selectedApplicant.influencerName}</h3>
+                  <p className="text-gray-500">@{selectedApplicant.influencerHandle || 'N/A'}</p>
+                  <div className="mt-2">
                     {getStatusBadge(selectedApplicant.status)}
                   </div>
-                  <p className="text-gray-600 mb-2">@{selectedApplicant.influencerHandle}</p>
-                  <p className="text-sm text-gray-500">캠페인: {selectedApplicant.campaignTitle}</p>
-                  <p className="text-sm text-gray-500">지원일: {formatDate(selectedApplicant.appliedAt || selectedApplicant.createdAt)}</p>
                 </div>
               </div>
+            </div>
 
-              {/* 탭 네비게이션 */}
-              <div className="flex border-b border-gray-200 mb-6">
+            {/* 탭 네비게이션 */}
+            <div className="border-b px-6">
+              <nav className="flex space-x-8">
                 <button
-                  onClick={() => setActiveTab('profile')}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 ${
-                    activeTab === 'profile'
+                  onClick={() => setActiveTab('basic')}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'basic'
                       ? 'border-indigo-500 text-indigo-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
@@ -440,241 +306,368 @@ function ApplicantManagementTab() {
                 </button>
                 <button
                   onClick={() => setActiveTab('sns')}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === 'sns'
                       ? 'border-indigo-500 text-indigo-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  SNS 정보
+                  SNS 활동
                 </button>
                 <button
-                  onClick={() => setActiveTab('application')}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 ${
-                    activeTab === 'application'
+                  onClick={() => setActiveTab('intro')}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'intro'
                       ? 'border-indigo-500 text-indigo-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  지원 정보
+                  지원자 소개
                 </button>
-              </div>
-
-              {/* 탭 컨텐츠 */}
-              <div className="space-y-6">
-                {/* 기본 정보 탭 */}
-                {activeTab === 'profile' && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {selectedApplicant.engagementRate > 0 && (
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <TrendingUp className="w-5 h-5 text-blue-600" />
-                            <span className="font-medium text-blue-600">평균 참여율</span>
-                          </div>
-                          <p className="text-2xl font-bold text-gray-900">
-                            {selectedApplicant.engagementRate}%
-                          </p>
-                        </div>
-                      )}
-                      
-                      {selectedApplicant.followers > 0 && (
-                        <div className="bg-pink-50 p-4 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Instagram className="w-5 h-5 text-pink-600" />
-                            <span className="font-medium text-pink-600">팔로워</span>
-                          </div>
-                          <p className="text-2xl font-bold text-gray-900">
-                            {selectedApplicant.followers.toLocaleString()}
-                          </p>
-                        </div>
-                      )}
-                      
-                      {selectedApplicant.influencer?.profile?.categories && (
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium text-purple-600">카테고리</span>
-                          </div>
-                          <p className="text-sm text-gray-700">
-                            {selectedApplicant.influencer.profile.categories}
-                          </p>
-                        </div>
-                      )}
+              </nav>
+            </div>
+            
+            {/* 모달 바디 - 스크롤 가능 */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* 기본 정보 탭 */}
+              {activeTab === 'basic' && (
+                <div className="space-y-6">
+                  {/* 통계 카드 */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-indigo-50 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="w-5 h-5 text-indigo-600" />
+                        <span className="text-sm text-gray-600">평균 참여율</span>
+                      </div>
+                      <p className="text-2xl font-bold text-indigo-600">
+                        {calculateAverageEngagement(selectedApplicant)}%
+                      </p>
+                    </div>
+                    
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="w-5 h-5 text-purple-600" />
+                        <span className="text-sm text-gray-600">총 팔로워</span>
+                      </div>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {calculateTotalFollowers(selectedApplicant).toLocaleString()}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Globe className="w-5 h-5 text-green-600" />
+                        <span className="text-sm text-gray-600">활동 플랫폼</span>
+                      </div>
+                      <p className="text-2xl font-bold text-green-600">
+                        {countActivePlatforms(selectedApplicant)}개
+                      </p>
                     </div>
                   </div>
-                )}
 
-                {/* SNS 정보 탭 */}
-                {activeTab === 'sns' && (
-                  <div className="space-y-6">
-                    {/* Instagram */}
-                    {(selectedApplicant.influencer?.profile?.instagram || selectedApplicant.influencerHandle) && (
-                      <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-1 rounded-lg">
-                        <div className="bg-white p-6 rounded-lg">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              <Instagram className="w-8 h-8 text-pink-600" />
-                              <div>
-                                <h4 className="text-lg font-semibold text-gray-900">Instagram</h4>
-                                <p className="text-sm text-gray-600">@{selectedApplicant.influencer?.profile?.instagram || selectedApplicant.influencerHandle}</p>
-                              </div>
-                            </div>
-                            <a
-                              href={`https://instagram.com/${selectedApplicant.influencer?.profile?.instagram || selectedApplicant.influencerHandle}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-1.5 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700 transition-colors"
-                            >
-                              프로필 보기
-                            </a>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-gray-900">
-                                {(selectedApplicant.influencer?.profile?.instagramFollowers || selectedApplicant.followers || 0).toLocaleString()}
-                              </p>
-                              <p className="text-sm text-gray-600">팔로워</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-gray-900">
-                                {selectedApplicant.influencer?.profile?.averageEngagementRate || selectedApplicant.engagementRate || 0}%
-                              </p>
-                              <p className="text-sm text-gray-600">참여율</p>
-                            </div>
-                          </div>
+                  {/* 기본 정보 */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-lg">개인 정보</h4>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">이름</span>
+                        <span className="font-medium">{selectedApplicant.influencerName}</span>
+                      </div>
+                      {selectedApplicant.influencer?.profile?.gender && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">성별</span>
+                          <span className="font-medium">
+                            {selectedApplicant.influencer.profile.gender === 'MALE' ? '남성' : 
+                             selectedApplicant.influencer.profile.gender === 'FEMALE' ? '여성' : '기타'}
+                          </span>
                         </div>
-                      </div>
-                    )}
-
-                    {/* YouTube */}
-                    {selectedApplicant.influencer?.profile?.youtube && (
-                      <div className="bg-red-600 p-1 rounded-lg">
-                        <div className="bg-white p-6 rounded-lg">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              <Youtube className="w-8 h-8 text-red-600" />
-                              <div>
-                                <h4 className="text-lg font-semibold text-gray-900">YouTube</h4>
-                                <p className="text-sm text-gray-600">@{selectedApplicant.influencer.profile.youtube}</p>
-                              </div>
-                            </div>
-                            <a
-                              href={`https://youtube.com/@${selectedApplicant.influencer.profile.youtube}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
-                            >
-                              채널 보기
-                            </a>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-gray-900">
-                                {selectedApplicant.influencer.profile.youtubeSubscribers?.toLocaleString() || 0}
-                              </p>
-                              <p className="text-sm text-gray-600">구독자</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-gray-900">
-                                {selectedApplicant.influencer.profile.averageEngagementRate || selectedApplicant.engagementRate || 0}%
-                              </p>
-                              <p className="text-sm text-gray-600">참여율</p>
-                            </div>
-                          </div>
+                      )}
+                      {selectedApplicant.influencer?.profile?.categories && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">카테고리</span>
+                          <span className="font-medium">{selectedApplicant.influencer.profile.categories}</span>
                         </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">지원일</span>
+                        <span className="font-medium">{formatDate(selectedApplicant.createdAt)}</span>
                       </div>
-                    )}
-
-                    {/* SNS 정보가 없는 경우 */}
-                    {!selectedApplicant.influencer?.profile?.instagram && !selectedApplicant.influencer?.profile?.youtube && !selectedApplicant.influencerHandle && (
-                      <div className="text-center py-12">
-                        <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500">등록된 SNS 정보가 없습니다.</p>
-                      </div>
-                    )}
+                    </div>
                   </div>
-                )}
 
-                {/* 지원 정보 탭 */}
-                {activeTab === 'application' && (
-                  <div className="space-y-6">
-                    {/* 캠페인 정보 */}
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-3">캠페인 정보</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <p className="font-medium text-gray-900 mb-2">{selectedApplicant.campaignTitle}</p>
-                        <p className="text-sm text-gray-600">지원일: {formatDate(selectedApplicant.createdAt)}</p>
-                        {selectedApplicant.proposedPrice && (
-                          <p className="text-sm text-gray-600">제안 금액: ₩{selectedApplicant.proposedPrice.toLocaleString()}</p>
+                  {/* 연락처 정보 */}
+                  {selectedApplicant.influencer && (
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-lg">연락처 정보</h4>
+                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                        {selectedApplicant.influencer.email && (
+                          <div className="flex items-center gap-3">
+                            <Mail className="w-5 h-5 text-gray-400" />
+                            <span className="text-gray-700">{selectedApplicant.influencer.email}</span>
+                          </div>
+                        )}
+                        {selectedApplicant.influencer.phone && (
+                          <div className="flex items-center gap-3">
+                            <Phone className="w-5 h-5 text-gray-400" />
+                            <span className="text-gray-700">{selectedApplicant.influencer.phone}</span>
+                          </div>
                         )}
                       </div>
                     </div>
+                  )}
+                </div>
+              )}
 
-                    {/* 지원 메시지 */}
-                    {selectedApplicant.message && (
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-3">지원 메시지</h4>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <p className="text-gray-700 whitespace-pre-wrap">{selectedApplicant.message}</p>
+              {/* SNS 활동 탭 */}
+              {activeTab === 'sns' && (
+                <div className="space-y-6">
+                  <h4 className="font-semibold text-lg">SNS 플랫폼 상세</h4>
+                  
+                  <div className="grid gap-4">
+                    {selectedApplicant.influencer?.profile?.instagram && (
+                      <div className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                              <Instagram className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-lg">Instagram</p>
+                              <a href={`https://instagram.com/${selectedApplicant.influencer.profile.instagram.replace('@', '')}`} 
+                                 target="_blank" 
+                                 rel="noopener noreferrer"
+                                 className="text-blue-600 hover:underline">
+                                @{selectedApplicant.influencer.profile.instagram.replace('@', '')}
+                              </a>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold">{selectedApplicant.influencer.profile.instagramFollowers?.toLocaleString() || 0}</p>
+                            <p className="text-sm text-gray-500">팔로워</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedApplicant.influencer?.profile?.youtube && (
+                      <div className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
+                              <Youtube className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-lg">YouTube</p>
+                              <p className="text-gray-600">{selectedApplicant.influencer.profile.youtube}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold">{selectedApplicant.influencer.profile.youtubeSubscribers?.toLocaleString() || 0}</p>
+                            <p className="text-sm text-gray-500">구독자</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedApplicant.influencer?.profile?.tiktok && (
+                      <div className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
+                              <span className="text-white font-bold">TikTok</span>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-lg">TikTok</p>
+                              <p className="text-gray-600">@{selectedApplicant.influencer.profile.tiktok.replace('@', '')}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold">{selectedApplicant.influencer.profile.tiktokFollowers?.toLocaleString() || 0}</p>
+                            <p className="text-sm text-gray-500">팔로워</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedApplicant.influencer?.profile?.facebook && (
+                      <div className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                              <Facebook className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-lg">Facebook</p>
+                              <p className="text-gray-600">{selectedApplicant.influencer.profile.facebook}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold">{selectedApplicant.influencer.profile.facebookFollowers?.toLocaleString() || 0}</p>
+                            <p className="text-sm text-gray-500">팔로워</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedApplicant.influencer?.profile?.twitter && (
+                      <div className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center">
+                              <Twitter className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-lg">Twitter</p>
+                              <p className="text-gray-600">@{selectedApplicant.influencer.profile.twitter.replace('@', '')}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold">{selectedApplicant.influencer.profile.twitterFollowers?.toLocaleString() || 0}</p>
+                            <p className="text-sm text-gray-500">팔로워</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedApplicant.influencer?.profile?.naverBlog && (
+                      <div className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                              <span className="text-white font-bold text-xs">NAVER</span>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-lg">네이버 블로그</p>
+                              <p className="text-gray-600">{selectedApplicant.influencer.profile.naverBlog}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold">{selectedApplicant.influencer.profile.naverBlogFollowers?.toLocaleString() || 0}</p>
+                            <p className="text-sm text-gray-500">이웃</p>
+                          </div>
                         </div>
                       </div>
                     )}
                   </div>
-                )}
-              </div>
 
-              {/* 액션 버튼 */}
-              <div className="border-t pt-6 mt-6 flex justify-between">
-                <div className="flex gap-3">
-                  {selectedApplicant.status === 'PENDING' && (
-                    <>
-                      <button
-                        onClick={() => {
-                          handleStatusChange(selectedApplicant.id, selectedApplicant.campaignId, 'APPROVED')
-                          setShowDetailModal(false)
-                        }}
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                      >
-                        <Check className="w-4 h-4 mr-2" />
-                        승인
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleStatusChange(selectedApplicant.id, selectedApplicant.campaignId, 'REJECTED')
-                          setShowDetailModal(false)
-                        }}
-                        className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
-                      >
-                        <X className="w-4 h-4 mr-2" />
-                        거절
-                      </button>
-                    </>
+                  {/* 참여율 정보 */}
+                  {selectedApplicant.influencer?.profile?.averageEngagementRate && (
+                    <div className="bg-indigo-50 rounded-lg p-4">
+                      <h5 className="font-semibold mb-2">평균 참여율</h5>
+                      <div className="flex items-center gap-4">
+                        <div className="text-3xl font-bold text-indigo-600">
+                          {selectedApplicant.influencer.profile.averageEngagementRate.toFixed(2)}%
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          높은 참여율은 팔로워와의 활발한 소통을 의미합니다
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
-                
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => window.open(`mailto:${selectedApplicant.influencer?.email || 'contact@example.com'}`, '_blank')}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    이메일 보내기
-                  </button>
-                  
-                  {(selectedApplicant.influencer?.id || selectedApplicant.influencerId) && (
-                    <a
-                      href={`/influencers/${selectedApplicant.influencer?.id || selectedApplicant.influencerId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+              )}
+
+              {/* 지원자 소개 탭 */}
+              {activeTab === 'intro' && (
+                <div className="space-y-6">
+                  {/* 프로필 소개 */}
+                  {selectedApplicant.influencer?.profile?.bio && (
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-lg">프로필 소개</h4>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <p className="text-gray-700 whitespace-pre-wrap">
+                          {selectedApplicant.influencer.profile.bio}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 지원 메시지 */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-lg">지원 메시지</h4>
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <p className="text-gray-700 whitespace-pre-wrap">{selectedApplicant.message}</p>
+                    </div>
+                  </div>
+
+                  {/* 제안 정보 */}
+                  {selectedApplicant.proposedPrice && (
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-lg">제안 조건</h4>
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-600">제안 금액</span>
+                          <span className="text-2xl font-bold text-green-600">
+                            ₩{selectedApplicant.proposedPrice.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 캠페인 정보 */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-lg">지원 캠페인</h4>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="font-medium text-lg mb-2">{selectedApplicant.campaignTitle}</p>
+                      <p className="text-sm text-gray-600">캠페인 ID: {selectedApplicant.campaignId}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* 모달 푸터 - 액션 버튼 */}
+            <div className="border-t px-6 py-4 bg-white">
+              <div className="flex justify-center gap-4">
+                {selectedApplicant.status === 'PENDING' && (
+                  <>
+                    <button
+                      onClick={() => handleStatusChange(selectedApplicant.id, selectedApplicant.campaignId, 'APPROVED')}
+                      disabled={processingId === selectedApplicant.id}
+                      className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Eye className="w-4 h-4 mr-2" />
-                      전체 프로필 보기
-                    </a>
-                  )}
-                </div>
+                      <Check className="w-5 h-5 mr-2" />
+                      지원 수락
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange(selectedApplicant.id, selectedApplicant.campaignId, 'REJECTED')}
+                      disabled={processingId === selectedApplicant.id}
+                      className="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <X className="w-5 h-5 mr-2" />
+                      지원 거절
+                    </button>
+                  </>
+                )}
+                
+                {selectedApplicant.status === 'APPROVED' && (
+                  <div className="text-center">
+                    <p className="text-green-600 font-medium mb-3">✅ 승인된 지원자입니다</p>
+                    <button
+                      onClick={() => handleStatusChange(selectedApplicant.id, selectedApplicant.campaignId, 'REJECTED')}
+                      disabled={processingId === selectedApplicant.id}
+                      className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      승인 취소
+                    </button>
+                  </div>
+                )}
+                
+                {selectedApplicant.status === 'REJECTED' && (
+                  <div className="text-center">
+                    <p className="text-red-600 font-medium mb-3">❌ 거절된 지원자입니다</p>
+                    <button
+                      onClick={() => handleStatusChange(selectedApplicant.id, selectedApplicant.campaignId, 'APPROVED')}
+                      disabled={processingId === selectedApplicant.id}
+                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Check className="w-4 h-4 mr-2" />
+                      다시 승인
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -683,6 +676,3 @@ function ApplicantManagementTab() {
     </div>
   )
 }
-
-// React.memo로 성능 최적화
-export default memo(ApplicantManagementTab)

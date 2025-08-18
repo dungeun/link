@@ -121,9 +121,9 @@ export const memoryMonitor = MemoryMonitor.getInstance();
 // 개발 환경에서만 자동 시작
 if (process.env.NODE_ENV === 'development') {
   // 시작 시 한 번만 실행
-  if (!global.memoryMonitorStarted) {
+  if (!(global as any).memoryMonitorStarted) {
     memoryMonitor.start();
-    global.memoryMonitorStarted = true;
+    (global as any).memoryMonitorStarted = true;
   }
 }
 

@@ -42,17 +42,25 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
     // 언어팩 데이터 가져오기
     const fetchLanguageData = async () => {
       const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
-      if (!token) return;
+      if (!token) {
+        console.log('토큰이 없어서 언어팩 데이터를 가져올 수 없습니다.');
+        return;
+      }
 
       try {
-        const response = await fetch(`/api/admin/language-packs/${menu.label}`, {
+        console.log(`언어팩 데이터 로드 시작: ${menu.label}`);
+        const response = await fetch(`/api/admin/language-packs/${encodeURIComponent(menu.label)}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
         
+        console.log(`언어팩 API 응답: ${response.status}`);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('언어팩 데이터:', data);
+          
           // 응답 데이터 구조에 맞게 처리
           setLanguageData({
             key: data.key || menu.label,
@@ -60,9 +68,25 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
             en: data.en || '',
             jp: data.jp || ''
           });
+        } else {
+          console.error('언어팩 데이터 로드 실패:', response.status, response.statusText);
+          // 실패해도 기본값 설정
+          setLanguageData({
+            key: menu.label,
+            ko: menu.label.split('.').pop() || menu.label,
+            en: menu.label.split('.').pop() || menu.label,
+            jp: menu.label.split('.').pop() || menu.label
+          });
         }
       } catch (error) {
         console.error('언어팩 데이터 로드 실패:', error);
+        // 에러 발생시에도 기본값 설정
+        setLanguageData({
+          key: menu.label,
+          ko: menu.label.split('.').pop() || menu.label,
+          en: menu.label.split('.').pop() || menu.label,
+          jp: menu.label.split('.').pop() || menu.label
+        });
       }
     };
 
@@ -84,8 +108,10 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
         return;
       }
 
+      console.log(`메뉴 이름 업데이트 시작: ${menu.label} → ${editedName}`);
+
       // 언어팩 업데이트 (자동 번역)
-      const response = await fetch(`/api/admin/language-packs/${menu.label}`, {
+      const response = await fetch(`/api/admin/language-packs/${encodeURIComponent(menu.label)}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -93,15 +119,52 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
         },
         body: JSON.stringify({
           ko: editedName,
-          autoTranslate: true // 영어, 일본어 자동 번역
+          autoTranslate: false // 번역 서비스 문제로 일단 false
         }),
       });
 
+      console.log(`언어팩 업데이트 응답: ${response.status}`);
+
       if (!response.ok) {
-        throw new Error('언어팩 업데이트 실패');
+        const errorData = await response.text();
+        console.error('언어팩 업데이트 실패:', response.status, errorData);
+        
+        // 만약 언어팩이 없어서 실패했다면 직접 생성
+        if (response.status === 404) {
+          console.log('언어팩이 없어서 새로 생성합니다.');
+          const createResponse = await fetch('/api/admin/language-packs/simple-create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              key: menu.label,
+              ko: editedName,
+              category: 'header'
+            }),
+          });
+          
+          if (createResponse.ok) {
+            const createdData = await createResponse.json();
+            setLanguageData({
+              key: createdData.key || menu.label,
+              ko: createdData.ko || editedName,
+              en: createdData.en || editedName,
+              jp: createdData.jp || editedName
+            });
+            setIsEditing(false);
+            alert('메뉴 이름이 생성되었습니다.');
+            return;
+          }
+        }
+        
+        throw new Error(`언어팩 업데이트 실패: ${response.status}`);
       }
 
       const updatedData = await response.json();
+      console.log('언어팩 업데이트 성공:', updatedData);
+      
       // 응답 데이터 구조에 맞게 처리
       setLanguageData({
         key: updatedData.key || menu.label,
@@ -114,21 +177,38 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
       alert('메뉴 이름이 업데이트되었습니다.');
     } catch (error) {
       console.error('메뉴 이름 업데이트 실패:', error);
-      alert('메뉴 이름 업데이트 중 오류가 발생했습니다.');
+      alert(`메뉴 이름 업데이트 중 오류가 발생했습니다: ${error.message}`);
     }
   };
 
   // 메뉴 이름 표시 로직 개선
   const getDisplayName = () => {
-    // 언어팩 데이터가 있으면 한국어 번역 사용
+    // 1. UI 섹션의 content.name이 있으면 최우선 사용 (캠페인, 병원, 구매평)
+    if (menu.href && menu.href.startsWith('/category/')) {
+      // 카테고리 메뉴의 경우 실제 카테고리 이름 추출
+      const parts = menu.label.split('.');
+      const slug = parts[parts.length - 1]; // campaign, hospital, review
+      const nameMap: Record<string, string> = {
+        'campaign': '캠페인',
+        'hospital': '병원', 
+        'review': '구매평'
+      };
+      if (nameMap[slug]) {
+        return nameMap[slug];
+      }
+    }
+    
+    // 2. 언어팩 데이터가 있으면 한국어 번역 사용
     if (languageData?.ko) {
       return languageData.ko;
     }
-    // 언어팩 키가 아닌 일반 텍스트인 경우 그대로 표시
+    
+    // 3. 언어팩 키가 아닌 일반 텍스트인 경우 그대로 표시
     if (!menu.label.includes('.')) {
       return menu.label;
     }
-    // 언어팩 키인데 데이터가 없으면 키의 마지막 부분만 표시
+    
+    // 4. 언어팩 키인데 데이터가 없으면 키의 마지막 부분만 표시
     const parts = menu.label.split('.');
     return parts[parts.length - 1];
   };
@@ -220,6 +300,8 @@ export function SortableMenuItemImproved({ menu, onUpdate, onDelete }: SortableM
             onChange={(e) => onUpdate(menu.id, { href: e.target.value })}
             className="w-full px-2 py-1 border rounded text-sm focus:ring-2 focus:ring-blue-500"
             placeholder="링크 URL"
+            title={menu.label.startsWith('category.') ? '카테고리 링크는 자동 생성됩니다' : '링크 URL을 입력하세요'}
+            readOnly={menu.label.startsWith('category.')}
           />
         </div>
 

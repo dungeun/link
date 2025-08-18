@@ -32,9 +32,10 @@ export const AUTH_CONFIG = {
 export const getJWTSecret = getJwtSecret;
 export const getRefreshSecret = getJwtRefreshSecret;
 
-// 호환성을 위한 기존 방식 (사용 시점에 검증)
-export const JWT_SECRET = process.env.JWT_SECRET || '';
-export const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || '';
+// 보안 강화: 빈 문자열 대체 제거, 환경 변수 필수화
+export const JWT_SECRET = getJwtSecret();
+export const REFRESH_SECRET = getJwtRefreshSecret();
+export const JWT_REFRESH_SECRET = getJwtRefreshSecret();
 
 export const AUTH_ERRORS = {
   INVALID_TOKEN: 'Invalid or expired token',

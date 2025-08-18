@@ -239,7 +239,10 @@ export async function getAggregatedStats(
           lte: dateRange.end
         }
       },
-      _count: true
+      _count: true,
+      orderBy: {
+        type: 'asc'
+      }
     }),
     // Revenue statistics
     prisma.revenue.aggregate({
@@ -250,9 +253,7 @@ export async function getAggregatedStats(
         }
       },
       _sum: {
-        totalRevenue: true,
-        platformFee: true,
-        netProfit: true
+        amount: true
       }
     })
   ]);
@@ -302,7 +303,7 @@ export async function withQueryMetrics<T>(
     return result;
   } catch (error) {
     const duration = Date.now() - startTime;
-    logger.error(`Query failed: ${queryName}`, error, { duration });
+    logger.error(`Query failed: ${queryName}`, error instanceof Error ? error : new Error(String(error)), { duration });
     throw error;
   }
 }

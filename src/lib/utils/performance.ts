@@ -200,7 +200,7 @@ export class QueryPerformance {
     const model = prismaClient[modelName];
     const originalMethod = model[operation];
     
-    model[operation] = async function (...args: unknown[]) {
+    (model as any)[operation] = async function (...args: unknown[]) {
       return QueryPerformance.measure(
         `${String(modelName)}.${operation}`,
         () => originalMethod.apply(this, args),

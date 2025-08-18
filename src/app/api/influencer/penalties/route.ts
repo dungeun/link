@@ -18,32 +18,41 @@ export async function GET(request: NextRequest) {
     const influencerId = searchParams.get('influencerId') || user.id
     const activeOnly = searchParams.get('activeOnly') === 'true'
 
-    // 페널티 조회 쿼리
-    let whereClause = `WHERE influencer_id = $1`
-    if (activeOnly) {
-      whereClause += ` AND status = 'ACTIVE' AND (end_date IS NULL OR end_date > NOW())`
-    }
+    // 페널티 조회 쿼리 - 파라미터화된 쿼리 사용
+    const penalties = activeOnly 
+      ? await prisma.$queryRaw`
+          SELECT 
+            ip.*,
+            u.name as issued_by_name,
+            c.title as campaign_title
+          FROM influencer_penalties ip
+          LEFT JOIN users u ON ip.issued_by = u.id
+          LEFT JOIN campaigns c ON ip.campaign_id = c.id
+          WHERE influencer_id = ${influencerId}
+            AND status = 'ACTIVE' 
+            AND (end_date IS NULL OR end_date > NOW())
+          ORDER BY ip.created_at DESC
+        `
+      : await prisma.$queryRaw`
+          SELECT 
+            ip.*,
+            u.name as issued_by_name,
+            c.title as campaign_title
+          FROM influencer_penalties ip
+          LEFT JOIN users u ON ip.issued_by = u.id
+          LEFT JOIN campaigns c ON ip.campaign_id = c.id
+          WHERE influencer_id = ${influencerId}
+          ORDER BY ip.created_at DESC
+        `
 
-    const penalties = await prisma.$queryRawUnsafe(`
-      SELECT 
-        ip.*,
-        u.name as issued_by_name,
-        c.title as campaign_title
-      FROM influencer_penalties ip
-      LEFT JOIN users u ON ip.issued_by = u.id
-      LEFT JOIN campaigns c ON ip.campaign_id = c.id
-      ${whereClause}
-      ORDER BY ip.created_at DESC
-    `, influencerId)
-
-    // 활성 페널티 수 계산
-    const activePenalties = await prisma.$queryRawUnsafe(`
+    // 활성 페널티 수 계산 - 파라미터화된 쿼리 사용
+    const activePenalties = await prisma.$queryRaw`
       SELECT COUNT(*) as count
       FROM influencer_penalties
-      WHERE influencer_id = $1
+      WHERE influencer_id = ${influencerId}
         AND status = 'ACTIVE'
         AND (end_date IS NULL OR end_date > NOW())
-    `, influencerId)
+    `
 
     return NextResponse.json({
       success: true,

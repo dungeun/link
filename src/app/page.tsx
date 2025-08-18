@@ -27,13 +27,20 @@ export default async function Page() {
   let sections: UISection[] = []
   
   try {
-    const dbSections = await prisma.uISection.findMany({
+    // 데이터베이스 연결 타임아웃 설정
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database timeout')), 5000)
+    })
+    
+    const dbPromise = prisma.uISection.findMany({
       where: { 
         visible: true,
         type: { in: ['hero', 'category', 'quicklinks', 'promo'] }
       },
       orderBy: { order: 'asc' }
     })
+    
+    const dbSections = await Promise.race([dbPromise, timeoutPromise]) as any[]
     
     sections = dbSections.map(section => {
       // 타입 안전한 content 처리
@@ -75,7 +82,12 @@ export default async function Page() {
   // 언어팩 데이터도 서버에서 미리 가져오기
   let languagePacks: Record<string, LanguagePack> = {}
   try {
-    const packs = await prisma.languagePack.findMany()
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Language pack timeout')), 5000)
+    })
+    
+    const packsPromise = prisma.languagePack.findMany()
+    const packs = await Promise.race([packsPromise, timeoutPromise]) as any[]
     languagePacks = packs.reduce((acc, pack) => {
       acc[pack.key] = {
         id: pack.id,

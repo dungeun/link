@@ -125,7 +125,7 @@ export function measurePerformance(target: unknown, propertyKey: string, descrip
   const originalMethod = descriptor.value;
 
   descriptor.value = async function (...args: unknown[]) {
-    const name = `${target.constructor.name}.${propertyKey}`;
+    const name = `${(target as any).constructor.name}.${propertyKey}`;
     return performanceMonitor.measure(name, () => originalMethod.apply(this, args));
   };
 
@@ -176,7 +176,7 @@ class WebVitalsMonitor {
           name: 'LCP',
           value: lastEntry.startTime,
           delta: lastEntry.startTime,
-          id: lastEntry.id || 'lcp'
+          id: (lastEntry as any).id || 'lcp'
         });
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
@@ -266,8 +266,8 @@ class WebVitalsMonitor {
   private sendToAnalytics(vital: WebVitalMetric) {
     // Example implementation - replace with your analytics service
     try {
-      if (typeof gtag !== 'undefined') {
-        gtag('event', vital.name, {
+      if (typeof (window as any).gtag !== 'undefined') {
+        (window as any).gtag('event', vital.name, {
           custom_parameter_1: vital.value,
           custom_parameter_2: vital.id
         });

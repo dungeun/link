@@ -132,7 +132,7 @@ export class UploadService {
             url: blob.url,
             pathname: blob.pathname,
             contentType: blob.contentType,
-            size: blob.size
+            size: (blob as any).size || 0
           })
 
           return {

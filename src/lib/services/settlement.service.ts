@@ -112,7 +112,7 @@ export class SettlementService {
       for (const application of applications) {
         const campaign = application.campaign;
         const summary = this.calculateSettlementAmount(
-          campaign.rewardAmount || campaign.budget,
+          campaign.rewardAmount || campaign.budget || 0,
           (campaign as { platformFeeRate?: number }).platformFeeRate
         );
 
@@ -313,8 +313,8 @@ export class SettlementService {
     
     if (startDate || endDate) {
       where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
+      if (startDate) (where.createdAt as any).gte = startDate;
+      if (endDate) (where.createdAt as any).lte = endDate;
     }
 
     const [
@@ -407,7 +407,7 @@ export class SettlementService {
     for (const application of applications) {
       const campaign = application.campaign;
       const summary = this.calculateSettlementAmount(
-        campaign.rewardAmount || campaign.budget,
+        campaign.rewardAmount || campaign.budget || 0,
         (campaign as { platformFeeRate?: number }).platformFeeRate
       );
       totalAmount += summary.netAmount;

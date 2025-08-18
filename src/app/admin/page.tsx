@@ -6,12 +6,30 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { logger } from '@/lib/logger/structured-logger'
 
-// 직접 import로 변경 (lazy loading 문제 해결)
+import dynamic from 'next/dynamic'
+
+// 레이지 로딩으로 번들 크기 최적화
 import AdminLayout from '@/components/admin/AdminLayout'
-import StatsCards from '@/components/admin/dashboard/StatsCards'
-import SystemAlerts from '@/components/admin/dashboard/SystemAlerts'
-import QuickActions from '@/components/admin/dashboard/QuickActions'
-import RecentActivities from '@/components/admin/dashboard/RecentActivities'
+
+const StatsCards = dynamic(
+  () => import('@/components/admin/dashboard/StatsCards'),
+  { loading: () => <LoadingSpinner />, ssr: false }
+)
+
+const SystemAlerts = dynamic(
+  () => import('@/components/admin/dashboard/SystemAlerts'),
+  { loading: () => <LoadingSpinner />, ssr: false }
+)
+
+const QuickActions = dynamic(
+  () => import('@/components/admin/dashboard/QuickActions'),
+  { loading: () => <LoadingSpinner />, ssr: false }
+)
+
+const RecentActivities = dynamic(
+  () => import('@/components/admin/dashboard/RecentActivities'),
+  { loading: () => <LoadingSpinner />, ssr: false }
+)
 
 // 로딩 컴포넌트
 const LoadingSpinner = () => (

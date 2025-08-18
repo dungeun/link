@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
       platforms,
       budget,  // budget 필드 추가
       budgetType,  // budgetType 필드 추가
+      categoryId,  // 카테고리 ID 추가
       maxApplicants,
       rewardAmount,
       startDate,
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
     
     if (!title) missingFields.push('제목(title)');
     if (!description) missingFields.push('설명(description)');
+    if (!categoryId) missingFields.push('카테고리(categoryId)');
     if (!platform && (!platforms || platforms.length === 0)) missingFields.push('플랫폼(platform)');
     // budget, targetFollowers, maxApplicants, rewardAmount는 모두 선택적으로 처리
     if (!startDate) missingFields.push('시작일(startDate)');
@@ -89,6 +91,7 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         description,
+        categoryId,  // 카테고리 ID 추가
         platform: platform || (platforms && platforms[0]) || 'INSTAGRAM',
         platforms: platforms ? JSON.stringify(platforms) : null,
         budget: budget !== undefined ? budget : 0,  // budget 필드 추가

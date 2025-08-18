@@ -167,7 +167,7 @@ export function ImageUpload({
   }
 
   // Drag and drop functionality
-  const onDrop = useCallback(async (acceptedFiles: File[], fileRejections: { file: File; errors: { code: string; message: string }[] }[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[], fileRejections: any[]) => {
     if (fileRejections.length > 0) {
       const rejection = fileRejections[0]
       if (rejection.errors[0]?.code === 'file-too-large') {

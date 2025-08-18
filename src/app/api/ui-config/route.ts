@@ -110,10 +110,12 @@ export async function GET(request: NextRequest) {
         const adminMenu = {
           id: `admin-${menu.id}`,
           label: displayText,  // 번역된 텍스트 사용
-          languageKey: label,   // 원본 언어 키 보존
+          languageKey: label,   // 원본 언어 키 보존  
           href: content.href || '#',
           order: menu.order || 999,
-          visible: menu.visible
+          visible: menu.visible,
+          // 카테고리 메뉴인 경우 실제 이름 추가
+          displayName: content.name || displayText
         };
 
         adminHeaderMenus.push(adminMenu);

@@ -104,8 +104,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        },
-        timeout: 10000 // 10초 타임아웃
+        }
       })
 
       if (response.status === 401) {

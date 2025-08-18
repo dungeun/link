@@ -67,7 +67,7 @@ export function createApiHandler(
 
       // 1. 인증 확인
       if (options.requireAuth) {
-        const authRoles = Array.isArray(options.requireAuth) ? options.requireAuth : undefined;
+        const authRoles = Array.isArray(options.requireAuth) ? options.requireAuth as ('INFLUENCER' | 'BUSINESS' | 'ADMIN')[] : undefined;
         const authResult = await requireAuth(req, authRoles);
         
         if (authResult instanceof NextResponse) {
@@ -117,7 +117,7 @@ export function createApiHandler(
       return handleApiError(error, {
         endpoint: handler.name,
         method: req.method,
-        userId: (context as ApiContext | undefined)?.user?.id
+        userId: undefined
       });
     }
   };

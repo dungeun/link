@@ -9,6 +9,8 @@ interface Campaign {
   maxApplicants: number;
   deadline: number;
   budget: string;
+  campaignType?: string;
+  reviewPrice?: number;
   imageUrl?: string;
 }
 
@@ -39,10 +41,15 @@ const CampaignCard = memo(({ campaign, index, onClick }: CampaignCardProps) => {
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600" />
         )}
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 flex flex-col gap-1">
           <span className="bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-medium">
             D-{campaign.deadline}
           </span>
+          {campaign.campaignType === 'REVIEW' && (
+            <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-medium">
+              구매평
+            </span>
+          )}
         </div>
       </div>
       <div className="p-3 md:p-4">
@@ -54,9 +61,20 @@ const CampaignCard = memo(({ campaign, index, onClick }: CampaignCardProps) => {
           <span className="text-xs md:text-sm text-gray-500">
             {campaign.applicants}/{campaign.maxApplicants}명
           </span>
-          <span className="text-xs md:text-sm font-medium text-blue-600">
-            {campaign.budget}
-          </span>
+          <div className="text-right">
+            {campaign.campaignType === 'REVIEW' && campaign.reviewPrice ? (
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-400">구매평 단가</span>
+                <span className="text-xs md:text-sm font-medium text-orange-600">
+                  ₩{campaign.reviewPrice.toLocaleString()}
+                </span>
+              </div>
+            ) : (
+              <span className="text-xs md:text-sm font-medium text-blue-600">
+                {campaign.budget}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

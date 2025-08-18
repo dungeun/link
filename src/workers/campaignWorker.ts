@@ -20,7 +20,7 @@ self.onmessage = function(e) {
       } catch (error) {
         self.postMessage({
           type: 'ERROR',
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
       }
       break;
@@ -42,7 +42,7 @@ self.onmessage = function(e) {
       } catch (error) {
         self.postMessage({
           type: 'ERROR',
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
       }
       break;

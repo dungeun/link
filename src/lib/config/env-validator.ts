@@ -113,7 +113,7 @@ class EnvironmentValidator {
     console.error('\n❌ ENVIRONMENT VARIABLE VALIDATION FAILED\n');
     console.error('The following environment variables are missing or invalid:\n');
     
-    error.errors.forEach(err => {
+    error.issues.forEach(err => {
       const path = err.path.join('.');
       const message = err.message;
       console.error(`  • ${path}: ${message}`);

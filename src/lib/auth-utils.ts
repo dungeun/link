@@ -44,17 +44,17 @@ export async function verifyAuth(req: NextRequest): Promise<AuthResult> {
     return {
       isAuthenticated: true,
       user: {
-        id: decoded.userId || decoded.id,
+        id: decoded.userId || decoded.id || '',
         email: decoded.email,
         name: decoded.name,
-        type: decoded.type || decoded.userType
+        type: decoded.type || decoded.userType || 'INFLUENCER'
       }
     };
   } catch (error) {
-    console.error('Auth verification error:', error.message);
+    console.error('Auth verification error:', error instanceof Error ? error.message : String(error));
     return {
       isAuthenticated: false,
-      error: error.message || 'Invalid token'
+      error: error instanceof Error ? error.message : 'Invalid token'
     };
   }
 }

@@ -7,7 +7,7 @@ import { useLanguage } from '@/hooks/useLanguage'
 const languages = [
   { code: 'ko', name: '한국어', flag: '🇰🇷', shortName: 'KO' },
   { code: 'en', name: 'English', flag: '🇺🇸', shortName: 'EN' },
-  { code: 'jp', name: '日本語', flag: '🇯🇵', shortName: 'JP' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵', shortName: 'JP' },
 ]
 
 function LanguageSelector() {
@@ -41,7 +41,7 @@ function LanguageSelector() {
 
   // 언어 변경 핸들러 - 메모이제이션
   const handleLanguageChange = useCallback((langCode: string) => {
-    setLanguage(langCode as 'ko' | 'en' | 'jp')
+    setLanguage(langCode as 'ko' | 'en' | 'ja')
     setIsOpen(false)
     
     // 페이지 새로고침 (선택사항 - 전체 앱 리렌더링)

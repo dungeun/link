@@ -38,7 +38,7 @@ import {
   JsonValue
 } from '@/types/global'
 
-interface Campaign extends Omit<BaseCampaign, 'startDate' | 'endDate' | 'createdAt' | 'updatedAt'> {
+interface Campaign extends Omit<BaseCampaign, 'startDate' | 'endDate' | 'createdAt' | 'updatedAt' | 'budget'> {
   brand: string
   applicants: number
   maxApplicants: number
@@ -48,6 +48,8 @@ interface Campaign extends Omit<BaseCampaign, 'startDate' | 'endDate' | 'created
   description: string
   createdAt: string
   budget: string
+  campaignType?: string
+  reviewPrice?: number
   imageUrl?: string
 }
 
@@ -111,7 +113,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
     // 초기 언어팩 데이터 사용
     const pack = langPacks[key]
     if (pack) {
-      const lang: keyof LanguagePack = currentLang === 'ja' ? 'jp' : currentLang
+      const lang: keyof LanguagePack = (currentLang as string) === 'ja' ? 'jp' : currentLang
       const translation = pack[lang]
       if (typeof translation === 'string') {
         return translation
@@ -183,11 +185,6 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
       </svg>
     ),
-    fashion: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-      </svg>
-    ),
     food: (
       <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -247,7 +244,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
         postWorkerMessage('PROCESS_CAMPAIGNS', data.campaigns)
       }
     } catch (error) {
-      logger.error('Failed to load campaigns:', error)
+      logger.error('Failed to load campaigns', String(error))
       // Fallback to original data if worker fails
       try {
         const response = await fetch('/api/campaigns?status=active&limit=10')
@@ -256,7 +253,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
           setCampaigns(data.campaigns)
         }
       } catch (fallbackError) {
-        logger.error('Fallback also failed:', fallbackError)
+        logger.error('Fallback also failed', String(fallbackError))
       }
     } finally {
       setLoading(false)
@@ -289,7 +286,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
       }
     } catch (error) {
       console.error('Failed to load sections:', error)
-      logger.error('Failed to load sections:', error)
+      logger.error('Failed to load sections', String(error))
       // 초기 서버 데이터가 있으면 유지
       if (initialSections && initialSections.length > 0) {
         setSections(initialSections)
@@ -303,27 +300,24 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
     // Initialize performance monitoring
     initializePerformanceMonitoring()
     
-    // UI 설정 로드 (폴백용)
-    loadSettingsFromAPI()
-    
     // 로그인 상태 확인
     const currentUser = AuthService.getCurrentUser()
     setUser(currentUser)
     
     // 업체 사용자는 비즈니스 대시보드로 리다이렉트
-    if (currentUser && (currentUser.type === 'BUSINESS' || currentUser.type === 'business')) {
+    if (currentUser && currentUser.type === 'BUSINESS') {
       router.push('/business/dashboard')
     }
 
     // 캠페인 데이터 로드
     loadCampaigns()
-  }, [router, loadSettingsFromAPI])
+  }, [router])
 
   // 언어 변경 시 섹션 데이터 재로드
   useEffect(() => {
     if (currentLanguage && currentLanguage !== currentLang) {
       console.log('Language changed to:', currentLanguage)
-      setCurrentLang(currentLanguage)
+      setCurrentLang(currentLanguage as any)
       loadSections(currentLanguage)
       loadCampaigns()
     }
@@ -332,9 +326,10 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
   // 히어로 슬라이드 자동 전환
   useEffect(() => {
     const heroSection = sections.find(s => s.type === 'hero')
-    if (heroSection?.content?.slides && heroSection.content.slides.length > 1) {
+    if (heroSection?.content?.slides && Array.isArray(heroSection.content.slides) && heroSection.content.slides.length > 1) {
+      const slides = heroSection.content.slides
       const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % heroSection.content.slides.length)
+        setCurrentSlide((prev) => (prev + 1) % slides.length)
       }, 5000)
       return () => clearInterval(interval)
     }
@@ -354,8 +349,8 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
       return section.content
     }
     
-    const langKey = lang === 'ja' ? 'jp' : lang
-    const translation = section.translations[langKey]
+    const langKey = (lang as any) === 'ja' ? 'jp' : lang
+    const translation = (section.translations as any)[langKey]
     
     if (translation) {
       return { ...section.content, ...translation }
@@ -394,7 +389,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                         className="flex transition-transform duration-500 ease-out hero-slide"
                         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                       >
-                        {(localizedContent.slides as HeroSlide[]).map((slide: HeroSlide, slideIndex: number) => (
+                        {(localizedContent.slides as any)?.map((slide: any, slideIndex: number) => (
                           <div key={slide.id} className="min-w-full">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               {/* 현재 슬라이드 */}
@@ -475,10 +470,10 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                               </div>
 
                               {/* 다음 슬라이드 미리보기 */}
-                              {localizedContent.slides.length > 1 && (
+                              {localizedContent.slides && (localizedContent.slides as any).length > 1 && (
                                 <div className="hidden lg:block w-full">
                                   {(() => {
-                                    const slides = localizedContent.slides as HeroSlide[]
+                                    const slides = localizedContent.slides as any
                                     const nextIndex = (slideIndex + 1) % slides.length
                                     const nextSlide = slides[nextIndex]
                                     
@@ -517,9 +512,9 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                     </div>
                     
                     {/* 슬라이드 인디케이터 */}
-                    {(localizedContent.slides as HeroSlide[]).length > 1 && (
+                    {(localizedContent.slides as any)?.length > 1 && (
                       <div className="flex justify-center gap-2 mt-4">
-                        {(localizedContent.slides as HeroSlide[]).map((_: HeroSlide, index: number) => (
+                        {(localizedContent.slides as any)?.map((_: any, index: number) => (
                           <button
                             key={index}
                             onClick={() => setCurrentSlide(index)}
@@ -570,7 +565,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                                   <span className="text-lg">{category.icon}</span>
                                 )
                               ) : (
-                                defaultCategoryIcons[category.categoryId] || (
+                                (defaultCategoryIcons as any)[category.categoryId] || (
                                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                   </svg>
@@ -619,7 +614,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                                     <span className="text-xl lg:text-2xl">{category.icon}</span>
                                   )
                                 ) : (
-                                  defaultCategoryIcons[category.categoryId] || (
+                                  (defaultCategoryIcons as any)[category.categoryId] || (
                                     <svg className="w-7 h-7 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                     </svg>
@@ -647,7 +642,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                   <div key={section.id} className="mb-12">
                     {/* 데스크톱: 3단 그리드 */}
                     <div className="hidden md:grid md:grid-cols-3 gap-4">
-                      {(localizedContent.links as QuickLink[]).map((link: QuickLink) => (
+                      {(localizedContent.links as any)?.map((link: any) => (
                         <Link 
                           key={link.id}
                           href={link.link} 
@@ -677,7 +672,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                     {/* 모바일: 1개씩 슬라이드 */}
                     <div className="md:hidden">
                       <div className="flex overflow-x-auto scrollbar-hide gap-4 pb-4 px-4">
-                        {(localizedContent.links as QuickLink[]).map((link: QuickLink) => (
+                        {(localizedContent.links as any)?.map((link: any) => (
                           <Link 
                             key={link.id}
                             href={link.link} 
@@ -708,48 +703,48 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                 ) : null
 
               case 'promo':
-                const promoData = localizedContent?.banner || localizedContent
+                const promoData = (localizedContent as any)?.banner || (localizedContent as any)
                 return promoData ? (
                   <div key={section.id} className="mb-12">
-                    {promoData.link ? (
-                      <Link href={promoData.link}>
+                    {(promoData as any).link ? (
+                      <Link href={(promoData as any).link}>
                         <div 
                           className="rounded-2xl p-6 cursor-pointer hover:opacity-95 transition-opacity relative overflow-hidden"
                           style={{
-                            backgroundImage: promoData.backgroundImage 
-                              ? `url(${promoData.backgroundImage})`
+                            backgroundImage: (promoData as any).backgroundImage 
+                              ? `url(${(promoData as any).backgroundImage})`
                               : undefined,
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
-                            backgroundColor: !promoData.backgroundImage 
-                              ? promoData.backgroundColor || '#FEF3C7'
+                            backgroundColor: !(promoData as any).backgroundImage 
+                              ? (promoData as any).backgroundColor || '#FEF3C7'
                               : undefined
                           }}
                         >
                           <div className={`flex items-center justify-between ${
-                            promoData.backgroundImage ? 'relative z-10' : ''
+                            (promoData as any).backgroundImage ? 'relative z-10' : ''
                           }`}>
-                            {promoData.backgroundImage && (
+                            {(promoData as any).backgroundImage && (
                               <div className="absolute inset-0 bg-black/20 -z-10" />
                             )}
                             <div>
                               <h3 className={`text-xl font-bold mb-1`}
                                 style={{ 
-                                  color: promoData.backgroundImage ? '#FFFFFF' : promoData.textColor || '#000000' 
+                                  color: (promoData as any).backgroundImage ? '#FFFFFF' : (promoData as any).textColor || '#000000' 
                                 }}
                               >
-                                {promoData.title}
+                                {(promoData as any).title}
                               </h3>
                               <p style={{ 
-                                color: promoData.backgroundImage ? '#FFFFFF' : promoData.textColor || '#000000',
-                                opacity: promoData.backgroundImage ? 0.9 : 0.8
+                                color: (promoData as any).backgroundImage ? '#FFFFFF' : (promoData as any).textColor || '#000000',
+                                opacity: (promoData as any).backgroundImage ? 0.9 : 0.8
                               }}>
-                                {promoData.subtitle}
+                                {(promoData as any).subtitle}
                               </p>
                             </div>
                             <div className="flex items-center gap-4">
-                              {promoData.icon && (
-                                <span className="text-5xl">{promoData.icon}</span>
+                              {(promoData as any).icon && (
+                                <span className="text-5xl">{(promoData as any).icon}</span>
                               )}
                             </div>
                           </div>
@@ -759,18 +754,18 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                       <div 
                         className="rounded-2xl p-6 relative overflow-hidden"
                         style={{
-                          backgroundImage: promoData.backgroundImage 
-                            ? `url(${promoData.backgroundImage})`
+                          backgroundImage: (promoData as any).backgroundImage 
+                            ? `url(${(promoData as any).backgroundImage})`
                             : undefined,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
-                          backgroundColor: !promoData.backgroundImage 
-                            ? promoData.backgroundColor || '#FEF3C7'
+                          backgroundColor: !(promoData as any).backgroundImage 
+                            ? (promoData as any).backgroundColor || '#FEF3C7'
                             : undefined
                         }}
                       >
                         <div className={`flex items-center justify-between ${
-                          promoData.backgroundImage ? 'relative z-10' : ''
+                          (promoData as any).backgroundImage ? 'relative z-10' : ''
                         }`}>
                           {promoData.backgroundImage && (
                             <div className="absolute inset-0 bg-black/20 -z-10" />
@@ -805,7 +800,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                 return (
                   <RankingSection
                     key={section.id}
-                    section={section}
+                    section={section as any}
                     localizedContent={localizedContent}
                     t={t}
                   />
@@ -815,7 +810,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                 return (
                   <RecommendedSection
                     key={section.id}
-                    section={section}
+                    section={section as any}
                     localizedContent={localizedContent}
                     t={t}
                   />

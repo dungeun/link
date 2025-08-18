@@ -178,7 +178,7 @@ export default function CategoryPageModal({
                 <input
                   type="checkbox"
                   id="heroEnabled"
-                  checked={formData.heroSection.enabled}
+                  checked={formData.heroSection.enabled as boolean}
                   onChange={(e) => setFormData(prev => ({
                     ...prev,
                     heroSection: { ...prev.heroSection, enabled: e.target.checked }
@@ -191,7 +191,7 @@ export default function CategoryPageModal({
               </div>
             </div>
 
-            {formData.heroSection.enabled && (
+            {(formData.heroSection.enabled as boolean) && (
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -199,7 +199,7 @@ export default function CategoryPageModal({
                   </label>
                   <input
                     type="text"
-                    value={formData.heroSection.title}
+                    value={formData.heroSection.title as string}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
                       heroSection: { ...prev.heroSection, title: e.target.value }
@@ -214,7 +214,7 @@ export default function CategoryPageModal({
                   </label>
                   <input
                     type="text"
-                    value={formData.heroSection.subtitle}
+                    value={formData.heroSection.subtitle as string}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
                       heroSection: { ...prev.heroSection, subtitle: e.target.value }
@@ -229,7 +229,7 @@ export default function CategoryPageModal({
                   </label>
                   <input
                     type="text"
-                    value={formData.heroSection.ctaText}
+                    value={formData.heroSection.ctaText as string}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
                       heroSection: { ...prev.heroSection, ctaText: e.target.value }
@@ -250,7 +250,7 @@ export default function CategoryPageModal({
                 <input
                   type="checkbox"
                   id="showSearch"
-                  checked={formData.filterOptions.showSearch}
+                  checked={formData.filterOptions.showSearch as boolean}
                   onChange={(e) => setFormData(prev => ({
                     ...prev,
                     filterOptions: { ...prev.filterOptions, showSearch: e.target.checked }
@@ -266,7 +266,7 @@ export default function CategoryPageModal({
                 <input
                   type="checkbox"
                   id="showSort"
-                  checked={formData.filterOptions.showSort}
+                  checked={formData.filterOptions.showSort as boolean}
                   onChange={(e) => setFormData(prev => ({
                     ...prev,
                     filterOptions: { ...prev.filterOptions, showSort: e.target.checked }
@@ -282,7 +282,7 @@ export default function CategoryPageModal({
                 <input
                   type="checkbox"
                   id="showFilters"
-                  checked={formData.filterOptions.showFilters}
+                  checked={formData.filterOptions.showFilters as boolean}
                   onChange={(e) => setFormData(prev => ({
                     ...prev,
                     filterOptions: { ...prev.filterOptions, showFilters: e.target.checked }
@@ -307,7 +307,7 @@ export default function CategoryPageModal({
                 </label>
                 <input
                   type="text"
-                  value={formData.seoSettings.metaTitle}
+                  value={formData.seoSettings.metaTitle as string}
                   onChange={(e) => setFormData(prev => ({
                     ...prev,
                     seoSettings: { ...prev.seoSettings, metaTitle: e.target.value }
@@ -321,7 +321,7 @@ export default function CategoryPageModal({
                   메타 설명
                 </label>
                 <textarea
-                  value={formData.seoSettings.metaDescription}
+                  value={formData.seoSettings.metaDescription as string}
                   onChange={(e) => setFormData(prev => ({
                     ...prev,
                     seoSettings: { ...prev.seoSettings, metaDescription: e.target.value }
@@ -339,7 +339,7 @@ export default function CategoryPageModal({
               <input
                 type="checkbox"
                 id="isPublished"
-                checked={formData.isPublished}
+                checked={formData.isPublished as boolean}
                 onChange={(e) => setFormData(prev => ({ ...prev, isPublished: e.target.checked }))}
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />

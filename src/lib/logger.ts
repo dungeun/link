@@ -49,7 +49,7 @@ class Logger {
       level,
       message,
       context,
-      metadata: typeof metadata === 'object' ? metadata : { data: metadata }
+      metadata: typeof metadata === 'object' && metadata !== null ? metadata as Record<string, unknown> : metadata !== undefined ? { data: metadata } : undefined
     }
 
     // 개발환경: console 출력
@@ -98,7 +98,7 @@ class Logger {
       level: LogLevel.ERROR,
       message,
       context,
-      metadata,
+      metadata: typeof metadata === 'object' && metadata !== null ? metadata as Record<string, unknown> : metadata !== undefined ? { data: metadata } : undefined,
       error: {
         name: error.name,
         message: error.message,

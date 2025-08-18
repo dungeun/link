@@ -196,7 +196,7 @@ class AuthServiceClass {
 
   async verifyToken(token: string): Promise<{ userId: string; email: string; type: string }> {
     try {
-      return jwt.verify(token, JWT_SECRET)
+      return jwt.verify(token, JWT_SECRET) as { userId: string; email: string; type: string }
     } catch (error) {
       throw new Error('Invalid token')
     }
@@ -208,7 +208,7 @@ class AuthServiceClass {
       id: userId,
       email: 'user@example.com',
       name: 'Mock User',
-      type: 'business'
+      type: 'BUSINESS'
     }
   }
 
@@ -219,7 +219,7 @@ class AuthServiceClass {
 
   async validateToken(token: string): Promise<{ userId: string; email: string; type: string } | null> {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET)
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string; type: string }
       return decoded
     } catch (error) {
       return null
@@ -254,7 +254,7 @@ class AuthServiceClass {
     return {
       accessToken: result.token,
       refreshToken: result.refreshToken,
-      user: { id: '1', email: 'user@example.com', name: 'User', type: 'business' }
+      user: { id: '1', email: 'user@example.com', name: 'User', type: 'BUSINESS' }
     }
   }
 }

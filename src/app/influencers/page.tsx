@@ -12,14 +12,12 @@ interface Influencer {
     bio?: string
     avatar?: string
     categories?: string[]
-    avatar?: boolean
     instagram?: string
-    followerCount?: number
+    instagramFollowers?: number
     youtube?: string
-    followerCount?: number
+    youtubeSubscribers?: number
     tiktok?: string
-    followerCount?: number
-    followerCount?: number
+    tiktokFollowers?: number
   }
   _count?: {
     applications: number
@@ -128,9 +126,9 @@ export default function InfluencersPage() {
   const getMainFollowerCount = (profile?: Influencer['profile']) => {
     if (!profile) return 0
     return Math.max(
-      profile.followerCount || 0,
-      profile.followerCount || 0,
-      profile.followerCount || 0
+      profile.instagramFollowers || 0,
+      profile.youtubeSubscribers || 0,
+      profile.tiktokFollowers || 0
     )
   }
 
@@ -305,7 +303,7 @@ export default function InfluencersPage() {
                 const platforms = getPlatforms(influencer.profile)
                 const followerCount = getMainFollowerCount(influencer.profile)
                 const formattedFollowers = formatFollowers(followerCount)
-                const engagementRate = ((influencer.profile?.followerCount || 0) * 100).toFixed(1)
+                const engagementRate = (5.2).toFixed(1) // Mock engagement rate for now
                 const completedCampaigns = influencer._count?.applications || 0
 
                 return (

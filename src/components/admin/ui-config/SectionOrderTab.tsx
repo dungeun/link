@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -233,14 +233,14 @@ export function SectionOrderTab() {
     })
   );
 
-  const handleDragEnd = async (event: { active: { id: string }; over: { id: string } | null }) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (active.id !== over.id) {
+    if (over && active.id !== over.id) {
       const newSections = await new Promise<Section[]>((resolve) => {
         setSections((items) => {
-          const oldIndex = items.findIndex((item) => item.id === active.id);
-          const newIndex = items.findIndex((item) => item.id === over.id);
+          const oldIndex = items.findIndex((item) => item.id === String(active.id));
+          const newIndex = items.findIndex((item) => item.id === String(over.id));
           
           const newItems = arrayMove(items, oldIndex, newIndex);
           
@@ -366,7 +366,7 @@ export function SectionOrderTab() {
     // 커스텀 섹션은 중복 제거하여 유지
     const existingCustomSections = config.mainPage?.customSections || [];
     const seenCustomIds = new Set<string>();
-    const cleanedCustomSections = existingCustomSections.filter((section: { id: string; name: string }) => {
+    const cleanedCustomSections = existingCustomSections.filter((section: any) => {
       if (seenCustomIds.has(section.id)) {
         return false;
       }

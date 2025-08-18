@@ -21,9 +21,15 @@ interface SystemSettings {
     primaryColor: string
     secondaryColor: string
     footerEnabled: boolean
-    footerText: string
+    footerText: {
+      ko: string
+      en: string
+    }
     footerLinks: Array<{
-      title: string
+      title: {
+        ko: string
+        en: string
+      }
       url: string
       newWindow: boolean
     }>
@@ -90,12 +96,15 @@ export default function AdminSettingsPage() {
       primaryColor: '#3B82F6',
       secondaryColor: '#10B981',
       footerEnabled: true,
-      footerText: '© 2024 LinkPick. All rights reserved.',
+      footerText: {
+        ko: '© 2024 LinkPick. All rights reserved.',
+        en: '© 2024 LinkPick. All rights reserved.'
+      },
       footerLinks: [
-        { title: '이용약관', url: '/terms', newWindow: false },
-        { title: '개인정보처리방침', url: '/privacy', newWindow: false },
-        { title: '고객지원', url: '/support', newWindow: false },
-        { title: '회사소개', url: '/about', newWindow: false }
+        { title: { ko: '이용약관', en: 'Terms of Service' }, url: '/terms', newWindow: false },
+        { title: { ko: '개인정보처리방침', en: 'Privacy Policy' }, url: '/privacy', newWindow: false },
+        { title: { ko: '고객지원', en: 'Support' }, url: '/support', newWindow: false },
+        { title: { ko: '회사소개', en: 'About Us' }, url: '/about', newWindow: false }
       ],
       socialLinks: {
         facebook: 'https://facebook.com/linkpick',
@@ -149,6 +158,7 @@ export default function AdminSettingsPage() {
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState<'general' | 'website' | 'payments' | 'content' | 'notifications' | 'legal' | 'api'>('general')
+  const [footerTextLang, setFooterTextLang] = useState<'ko' | 'en'>('ko')
 
   useEffect(() => {
     loadSettings()
@@ -506,6 +516,188 @@ export default function AdminSettingsPage() {
               </div>
             </div>
 
+            {/* 푸터 설정 */}
+            <div>
+              <h3 className="text-md font-medium text-gray-900 mb-4">푸터 설정</h3>
+              
+              {/* 푸터 활성화 체크박스 */}
+              <div className="mb-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={settings.website.footerEnabled}
+                    onChange={(e) => handleInputChange('website', 'footerEnabled', e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 text-sm text-gray-700">
+                    푸터 표시
+                  </label>
+                </div>
+              </div>
+
+              {settings.website.footerEnabled && (
+                <>
+                  {/* 푸터 텍스트 (다국어) */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      푸터 텍스트
+                    </label>
+                    <div className="border border-gray-200 rounded-lg">
+                      <div className="border-b border-gray-200">
+                        <nav className="-mb-px flex">
+                          <button
+                            type="button"
+                            onClick={() => setFooterTextLang('ko')}
+                            className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                              footerTextLang === 'ko'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                          >
+                            한국어
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFooterTextLang('en')}
+                            className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                              footerTextLang === 'en'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                          >
+                            English
+                          </button>
+                        </nav>
+                      </div>
+                      <div className="p-4">
+                        <input
+                          type="text"
+                          value={settings.website.footerText[footerTextLang]}
+                          onChange={(e) => {
+                            const newFooterText = { ...settings.website.footerText, [footerTextLang]: e.target.value }
+                            handleInputChange('website', 'footerText', newFooterText)
+                          }}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder={footerTextLang === 'ko' ? '© 2024 LinkPick. All rights reserved.' : '© 2024 LinkPick. All rights reserved.'}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 푸터 링크 관리 */}
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <label className="block text-sm font-medium text-gray-700">
+                        푸터 링크
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newLink = {
+                            title: { ko: '', en: '' },
+                            url: '',
+                            newWindow: false
+                          }
+                          const newLinks = [...settings.website.footerLinks, newLink]
+                          handleInputChange('website', 'footerLinks', newLinks)
+                        }}
+                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      >
+                        링크 추가
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {settings.website.footerLinks.map((link, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                제목 (한국어)
+                              </label>
+                              <input
+                                type="text"
+                                value={link.title.ko}
+                                onChange={(e) => {
+                                  const newLinks = [...settings.website.footerLinks]
+                                  newLinks[index] = {
+                                    ...newLinks[index],
+                                    title: { ...newLinks[index].title, ko: e.target.value }
+                                  }
+                                  handleInputChange('website', 'footerLinks', newLinks)
+                                }}
+                                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                제목 (English)
+                              </label>
+                              <input
+                                type="text"
+                                value={link.title.en}
+                                onChange={(e) => {
+                                  const newLinks = [...settings.website.footerLinks]
+                                  newLinks[index] = {
+                                    ...newLinks[index],
+                                    title: { ...newLinks[index].title, en: e.target.value }
+                                  }
+                                  handleInputChange('website', 'footerLinks', newLinks)
+                                }}
+                                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                URL
+                              </label>
+                              <input
+                                type="text"
+                                value={link.url}
+                                onChange={(e) => {
+                                  const newLinks = [...settings.website.footerLinks]
+                                  newLinks[index] = { ...newLinks[index], url: e.target.value }
+                                  handleInputChange('website', 'footerLinks', newLinks)
+                                }}
+                                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="/terms"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  checked={link.newWindow}
+                                  onChange={(e) => {
+                                    const newLinks = [...settings.website.footerLinks]
+                                    newLinks[index] = { ...newLinks[index], newWindow: e.target.checked }
+                                    handleInputChange('website', 'footerLinks', newLinks)
+                                  }}
+                                  className="h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label className="ml-2 text-xs text-gray-700">
+                                  새 창에서 열기
+                                </label>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newLinks = settings.website.footerLinks.filter((_, i) => i !== index)
+                                  handleInputChange('website', 'footerLinks', newLinks)
+                                }}
+                                className="text-red-600 hover:text-red-700 text-sm"
+                              >
+                                삭제
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* 소셜 미디어 */}
             <div>

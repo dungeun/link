@@ -134,7 +134,7 @@ export class ValidationHelper {
   static extractFieldErrors(errors: z.ZodError): Record<string, string[]> {
     const fieldErrors: Record<string, string[]> = {};
     
-    errors.errors.forEach((error) => {
+    errors.issues.forEach((error) => {
       const field = error.path.join('.');
       if (!fieldErrors[field]) {
         fieldErrors[field] = [];
@@ -149,10 +149,10 @@ export class ValidationHelper {
    * 사용자 친화적 오류 메시지 생성
    */
   static formatErrorMessages(errors: z.ZodError): string[] {
-    if (!errors || !errors.errors) {
+    if (!errors || !errors.issues) {
       return ['Validation error occurred'];
     }
-    return errors.errors.map((error) => {
+    return errors.issues.map((error) => {
       const field = error.path.join('.');
       return `${field}: ${error.message}`;
     });

@@ -78,6 +78,7 @@ export default function NewCampaignPage() {
     title: '',
     description: '',
     platform: '',
+    categoryId: '',  // 카테고리 ID 추가
     budgetType: 'FREE',  // 기본값: 무료 캠페인
     budget: 0,  // 캠페인 예산
     // 캠페인 기간
@@ -286,6 +287,10 @@ export default function NewCampaignPage() {
       case 1:
         if (!formData.title || !formData.description || !formData.platform) {
           setError('모든 필수 정보를 입력해주세요.')
+          return false
+        }
+        if (!formData.categoryId) {
+          setError('카테고리를 선택해주세요.')
           return false
         }
         if (!formData.budgetType) {

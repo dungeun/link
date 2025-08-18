@@ -81,10 +81,8 @@ export default function SNSIntegrationSettings({
         <h4 className="text-sm font-semibold text-gray-900 mb-4">SNS 계정 연동 관리</h4>
         
         <SNSConnection 
-          connectedPlatforms={connectedPlatforms}
-          onConnectionUpdate={async (updatedPlatforms) => {
-            onPlatformUpdate(updatedPlatforms)
-            await refreshConnections()
+          onFollowersUpdate={(totalFollowers) => {
+            console.log('Total followers updated:', totalFollowers)
           }}
         />
 

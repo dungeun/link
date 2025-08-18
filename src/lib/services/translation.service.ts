@@ -175,10 +175,10 @@ export class TranslationService {
     for (const field of fieldsToTranslate) {
       if (campaignData[field]) {
         try {
-          const multilingualContent = await this.translateToMultiLanguages(campaignData[field]);
+          const multilingualContent = await this.translateToMultiLanguages(String(campaignData[field]));
           translatedData[`${field}_ko`] = multilingualContent.ko;
           translatedData[`${field}_en`] = multilingualContent.en;
-          translatedData[`${field}_ja`] = multilingualContent.ja;
+          translatedData[`${field}_ja`] = (multilingualContent as any).ja || multilingualContent.ko;
         } catch (error) {
           console.error(`Failed to translate ${field}:`, error);
           // 번역 실패 시 원본 텍스트 사용
@@ -193,7 +193,7 @@ export class TranslationService {
     if (campaignData.hashtags) {
       const hashtags = Array.isArray(campaignData.hashtags) 
         ? campaignData.hashtags 
-        : campaignData.hashtags.split(',').map((tag: string) => tag.trim());
+        : String(campaignData.hashtags).split(',').map((tag: string) => tag.trim());
       
       try {
         const translatedHashtagsEn = await this.translateBatch(hashtags, { from: 'ko', to: 'en' });

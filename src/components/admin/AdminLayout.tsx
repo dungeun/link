@@ -24,7 +24,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
       console.log('AdminLayout - User Type:', user?.type)
       console.log('AdminLayout - Is Authenticated:', isAuthenticated)
       
-      if (!isAuthenticated || (user?.type !== 'ADMIN' && user?.type !== 'admin')) {
+      if (!isAuthenticated || (user?.type !== 'ADMIN' && (user?.type as any) !== 'admin')) {
         console.log('AdminLayout - 관리자 권한이 없습니다. 로그인 페이지로 이동합니다.')
         console.log('현재 사용자:', user)
         

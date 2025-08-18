@@ -67,7 +67,6 @@ const pinoConfig = {
       type: err.constructor.name,
       message: err.message,
       stack: config.isDevelopment ? err.stack : undefined,
-      ...err,
     }),
     req: (req: LogRequest) => ({
       method: req.method,

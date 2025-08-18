@@ -19,9 +19,9 @@ export function HeaderConfigTab() {
   const handleHeaderDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (active.id !== over.id) {
-      const oldIndex = config.header.menus.findIndex((item) => item.id === active.id);
-      const newIndex = config.header.menus.findIndex((item) => item.id === over.id);
+    if (over && active.id !== over.id) {
+      const oldIndex = config.header.menus.findIndex((item) => item.id === String(active.id));
+      const newIndex = config.header.menus.findIndex((item) => item.id === String(over.id));
       
       const newMenus = arrayMove(config.header.menus, oldIndex, newIndex).map((item, index) => ({
         ...item,
