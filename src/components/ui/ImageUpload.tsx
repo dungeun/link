@@ -10,7 +10,7 @@ interface ImageUploadProps {
   value?: string | string[]
   onChange: (value: string | string[]) => void
   multiple?: boolean
-  category?: 'campaigns' | 'users' | 'profiles' | 'temp'
+  category?: 'campaigns' | 'users' | 'profiles' | 'temp' | 'seo'
   maxFiles?: number
   acceptedTypes?: string[]
   maxSize?: number // MB

@@ -385,12 +385,14 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
           visibleSections
             .map(orderedSection => {
               // 해당 타입의 실제 섹션 데이터를 찾기
-              const dbSection = sections.find(s => s.type === orderedSection.id)
+              const dbSection = sections.find(s => s.type === orderedSection.type)
+              console.log(`Searching for section type: ${orderedSection.type}`, dbSection)
               return dbSection ? { ...dbSection, order: orderedSection.order } : null
             })
             .filter(section => section !== null)
             .map((section) => {
             const localizedContent = getLocalizedContent(section)
+            console.log(`Rendering section type: ${section.type}, content:`, localizedContent)
             
             switch (section.type) {
               case 'hero':

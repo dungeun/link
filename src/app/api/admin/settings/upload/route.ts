@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       where: { key: 'metadata' }
     })
 
-    let metadata = {}
+    let metadata: Record<string, any> = {}
     if (metadataConfig) {
       try {
         metadata = JSON.parse(metadataConfig.value)

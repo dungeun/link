@@ -315,7 +315,7 @@ export default function MainPageSectionsPage() {
           {sections.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               <p>아직 추가된 섹션이 없습니다.</p>
-              <p className="text-sm mt-2">위의 "섹션 추가" 버튼을 클릭하여 새 섹션을 추가하세요.</p>
+              <p className="text-sm mt-2">위의 &quot;섹션 추가&quot; 버튼을 클릭하여 새 섹션을 추가하세요.</p>
             </div>
           )}
         </div>
@@ -323,7 +323,7 @@ export default function MainPageSectionsPage() {
         {/* 안내 메시지 */}
         <div className="mt-8 bg-blue-50 rounded-xl p-4">
           <p className="text-sm text-blue-800">
-            <strong>💡 팁:</strong> 각 섹션의 순서를 드래그하여 변경할 수 있으며, "상세 편집" 버튼을 클릭하여 섹션별 세부 설정을 변경할 수 있습니다.
+            <strong>💡 팁:</strong> 각 섹션의 순서를 드래그하여 변경할 수 있으며, &quot;상세 편집&quot; 버튼을 클릭하여 섹션별 세부 설정을 변경할 수 있습니다.
           </p>
         </div>
       </div>
