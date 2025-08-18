@@ -35,29 +35,33 @@ export async function POST(request: NextRequest) {
                    'unknown'
   
   try {
-    // 1. Rate limiting 체크
-    const rateLimitResult = await checkLoginRateLimit(clientIp)
-    if (!rateLimitResult.success) {
-      logger.warn({ 
-        ip: clientIp, 
-        remaining: rateLimitResult.remaining 
-      }, 'Login rate limit exceeded')
-      
-      return NextResponse.json(
-        { 
-          error: '너무 많은 로그인 시도입니다. 잠시 후 다시 시도해주세요.',
-          retryAfter: rateLimitResult.retryAfter 
-        },
-        { 
-          status: 429,
-          headers: {
-            'Retry-After': String(Math.ceil(rateLimitResult.retryAfter! / 1000)),
-            'X-RateLimit-Limit': String(rateLimitResult.limit),
-            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
-            'X-RateLimit-Reset': rateLimitResult.resetTime.toISOString()
+    // 1. Rate limiting 체크 (임시로 비활성화 가능)
+    const skipRateLimit = process.env.SKIP_RATE_LIMIT === 'true'
+    
+    if (!skipRateLimit) {
+      const rateLimitResult = await checkLoginRateLimit(clientIp)
+      if (!rateLimitResult.success) {
+        logger.warn({ 
+          ip: clientIp, 
+          remaining: rateLimitResult.remaining 
+        }, 'Login rate limit exceeded')
+        
+        return NextResponse.json(
+          { 
+            error: '너무 많은 로그인 시도입니다. 잠시 후 다시 시도해주세요.',
+            retryAfter: rateLimitResult.retryAfter 
+          },
+          { 
+            status: 429,
+            headers: {
+              'Retry-After': String(Math.ceil((rateLimitResult.retryAfter || 60000) / 1000)),
+              'X-RateLimit-Limit': String(rateLimitResult.limit),
+              'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+              'X-RateLimit-Reset': rateLimitResult.resetTime.toISOString()
+            }
           }
-        }
-      )
+        )
+      }
     }
 
     // 2. Request body 파싱 및 검증

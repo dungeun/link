@@ -158,9 +158,19 @@ export async function checkLoginRateLimit(
   // 개발 환경에서는 rate limit 완화
   const isDevelopment = process.env.NODE_ENV === 'development'
   
+  // Redis가 없으면 rate limiting 비활성화
+  if (!redis) {
+    return {
+      success: true,
+      limit: 100,
+      remaining: 100,
+      resetTime: new Date(Date.now() + 60000)
+    }
+  }
+  
   return rateLimiter.checkLimit(identifier, {
     windowMs: isDevelopment ? 60 * 1000 : 5 * 60 * 1000, // 개발: 1분, 프로덕션: 5분
-    max: isDevelopment ? 100 : 10, // 개발: 100회, 프로덕션: 10회 시도
+    max: isDevelopment ? 100 : 20, // 개발: 100회, 프로덕션: 20회 시도
     keyPrefix: 'login_attempt'
   })
 }
