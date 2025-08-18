@@ -69,11 +69,24 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
 
     // 이미 데이터가 있고, 5분 이내에 fetch했다면 스킵
     const lastFetch = localStorage.getItem('lastProfileFetch')
-    if (profileData && lastFetch) {
+    if (lastFetch) {
       try {
         const timeDiff = Date.now() - parseInt(lastFetch)
         if (timeDiff < 5 * 60 * 1000) { // 5분
-          return
+          // 캐시된 데이터가 있으면 사용
+          const cached = localStorage.getItem('cachedProfile')
+          if (cached) {
+            try {
+              const cachedData = JSON.parse(cached)
+              if (cachedData && typeof cachedData === 'object' && cachedData.id === user.id) {
+                setProfileData(cachedData)
+                setIsLoading(false)
+                return
+              }
+            } catch (e) {
+              console.warn('Failed to parse cached profile:', e)
+            }
+          }
         }
       } catch (e) {
         // 파싱 오류 시 계속 진행
@@ -158,7 +171,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }, [user, profileData])
+  }, [user?.id, user?.type, user?.name, user?.email]) // profileData를 제거하고 user의 필요한 필드만 추가
 
   // 프로필 데이터 업데이트 (로컬 상태만, API 호출 없음)
   const updateProfile = useCallback((updates: Partial<ProfileData>) => {

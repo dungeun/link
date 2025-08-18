@@ -164,7 +164,21 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
     ]);
 
     // 데이터 변환 및 표준화
-    const campaigns = campaignsData.map(campaign => standardizeCampaign(campaign));
+    const campaigns = campaignsData.map(campaign => {
+      const standardized = standardizeCampaign(campaign);
+      // HomePage Campaign 인터페이스에 맞게 변환
+      return {
+        ...standardized,
+        brand: standardized.business.name,
+        applicants: standardized.stats.applications,
+        maxApplicants: standardized.target.maxApplicants,
+        deadline: new Date(standardized.schedule.campaign.endDate).getTime(),
+        category: standardized.primaryCategory.name,
+        platforms: standardized.platforms.map(p => p.type),
+        budget: `${standardized.budget.amount.toLocaleString()}원`, // 객체를 문자열로 변환
+        imageUrl: standardized.media.thumbnail?.url
+      };
+    });
     
     const languagePacks = languagePacksData.reduce((acc, pack) => {
       acc[pack.key] = pack;
