@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
         title,
         description,
         platform: platform || (platforms && platforms[0]) || 'INSTAGRAM',
-        platforms: platforms ? JSON.stringify(platforms) : null,
+        platforms: platforms ? JSON.stringify(platforms) : undefined,
         budget: budget !== undefined ? budget : 0,  // budget 필드 추가
         maxApplicants: maxApplicants || 100,
         rewardAmount: rewardAmount || 0,
