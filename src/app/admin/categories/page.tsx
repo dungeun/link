@@ -157,26 +157,32 @@ function CategoriesPageContent() {
   const renderCategoryItem = (category: Category & { children: Category[] }, depth = 0) => {
     const hasChildren = category.children.length > 0
     const isExpanded = expandedCategories.has(category.id)
-    const paddingLeft = depth * 20 + 16
+    const paddingLeft = depth * 32 + 16
 
     return (
       <div key={category.id}>
         <div 
-          className="flex items-center justify-between p-4 border-b bg-white hover:bg-gray-50"
+          className={`flex items-center justify-between p-4 border-b hover:bg-gray-50 ${
+            depth === 0 ? 'bg-white' : depth === 1 ? 'bg-gray-25' : 'bg-gray-50'
+          }`}
           style={{ paddingLeft: `${paddingLeft}px` }}
         >
           <div className="flex items-center gap-3 flex-1">
-            {hasChildren && (
+            {hasChildren ? (
               <button
                 onClick={() => toggleExpanded(category.id)}
-                className="p-1 hover:bg-gray-200 rounded"
+                className="p-1 hover:bg-gray-200 rounded flex items-center justify-center w-6 h-6"
               >
-                {isExpanded ? (
-                  <FolderOpen className="w-4 h-4 text-blue-500" />
-                ) : (
-                  <Folder className="w-4 h-4 text-gray-500" />
-                )}
+                <ChevronRight 
+                  className={`w-4 h-4 text-gray-500 transition-transform ${
+                    isExpanded ? 'rotate-90' : ''
+                  }`} 
+                />
               </button>
+            ) : (
+              <div className="w-6 h-6 flex items-center justify-center">
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+              </div>
             )}
             
             <div className="flex items-center gap-3">
@@ -187,7 +193,13 @@ function CategoriesPageContent() {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-medium text-gray-900">{category.name}</h3>
-                  <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    category.level === 1 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : category.level === 2 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-purple-100 text-purple-700'
+                  }`}>
                     {category.level === 1 ? '대분류' : category.level === 2 ? '중분류' : '소분류'}
                   </span>
                   {!category.isActive && (
@@ -220,15 +232,15 @@ function CategoriesPageContent() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* 대분류에만 중분류 추가 버튼 표시 */}
-            {category.level === 1 && (
+            {/* 하위 카테고리 추가 버튼 */}
+            {category.level < 3 && (
               <button
                 onClick={() => handleAddSubcategory(category)}
                 className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1"
-                title="중분류 추가"
+                title={category.level === 1 ? "중분류 추가" : "소분류 추가"}
               >
                 <Plus className="w-3 h-3" />
-                중분류
+                {category.level === 1 ? "중분류" : "소분류"}
               </button>
             )}
             

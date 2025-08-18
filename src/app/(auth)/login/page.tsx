@@ -337,9 +337,10 @@ export default function LoginPage() {
                     <p>관리자: {demoAccounts.admin.name}</p>
                   )}
                   <div className="mt-2 text-gray-400 space-y-1">
-                    <p>인플루언서: influencer2024</p>
-                    <p>클라이언트: business2024</p>
-                    <p>관리자: admin2024</p>
+                    <p>모든 계정 비밀번호:</p>
+                    <p>• 인플루언서: influencer2024</p>
+                    <p>• 클라이언트: business2024</p>
+                    <p>• 관리자: admin2024</p>
                   </div>
                 </div>
               </div>

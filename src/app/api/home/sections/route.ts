@@ -1,16 +1,13 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 300 // ISR: 5분마다 재생성
 import { NextRequest, NextResponse } from 'next/server';
-import { UISectionService } from '@/lib/services/ui-section.service';
+import { getCachedSections } from '@/lib/cache/sections';
 import { logger } from '@/lib/logger';
 
-// GET: 홈페이지 섹션 데이터 가져오기
+// GET: 홈페이지 섹션 데이터 가져오기 (캐시된 데이터 사용)
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const language = searchParams.get('lang') || 'ko';
-
-    // DB에서 표시 가능한 섹션들 가져오기
-    const sections = await UISectionService.getVisibleSections(language);
+    // 캐시된 섹션 데이터 가져오기
+    const sections = await getCachedSections();
 
     return NextResponse.json({ 
       sections,

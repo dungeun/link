@@ -10,6 +10,13 @@ interface Section {
 
 const sections: Section[] = [
   {
+    id: 'main',
+    name: '🏠 메인 페이지 섹션',
+    description: '메인 페이지 전체 섹션 구성 및 순서 관리',
+    status: 'active',
+    editUrl: '/admin/ui-config/sections/main'
+  },
+  {
     id: 'hero',
     name: '히어로 배너',
     description: '메인 배너 슬라이드 (2단 구성)',
@@ -19,7 +26,7 @@ const sections: Section[] = [
   {
     id: 'category',
     name: '카테고리 메뉴',
-    description: '카테고리별 아이콘 그리드',
+    description: '카테고리별 아이콘 그리드 (DB 연동)',
     status: 'active',
     editUrl: '/admin/ui-config/sections/category'
   },

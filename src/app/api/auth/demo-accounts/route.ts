@@ -6,8 +6,8 @@ export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   try {
-    // 실제 시드 데이터에서 계정 가져오기
-    const influencer = await prisma.user.findFirst({
+    // 랜덤하게 계정 선택을 위한 시드 데이터에서 계정 가져오기
+    const influencers = await prisma.user.findMany({
       where: {
         type: 'INFLUENCER',
         status: 'ACTIVE'
@@ -24,11 +24,11 @@ export async function GET(request: NextRequest) {
         }
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'asc'
       }
     })
 
-    const business = await prisma.user.findFirst({
+    const businesses = await prisma.user.findMany({
       where: {
         type: 'BUSINESS',
         status: 'ACTIVE'
@@ -38,20 +38,19 @@ export async function GET(request: NextRequest) {
         email: true,
         name: true,
         type: true,
-        profile: {
+        businessProfile: {
           select: {
-            bio: true
+            companyName: true
           }
         }
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'asc'
       }
     })
 
-    const admin = await prisma.user.findFirst({
+    const admins = await prisma.user.findMany({
       where: {
-        email: 'admin@demo.com', // 시드 데이터의 실제 관리자 이메일
         type: 'ADMIN',
         status: 'ACTIVE'
       },
@@ -59,48 +58,51 @@ export async function GET(request: NextRequest) {
         id: true,
         email: true,
         name: true,
-        type: true,
-        profile: {
-          select: {
-            bio: true
-          }
-        }
+        type: true
+      },
+      orderBy: {
+        createdAt: 'asc'
       }
     })
+
+    // 랜덤 선택
+    const influencer = influencers.length > 0 ? influencers[Math.floor(Math.random() * influencers.length)] : null
+    const business = businesses.length > 0 ? businesses[Math.floor(Math.random() * businesses.length)] : null
+    const admin = admins.length > 0 ? admins[Math.floor(Math.random() * admins.length)] : null
 
     return NextResponse.json({
       influencer: influencer ? {
         email: influencer.email,
         name: influencer.name || '데모 인플루언서',
         type: 'influencer',
-        password: 'password123' // 시드 데이터의 인플루언서 비밀번호
+        password: 'influencer2024'
       } : {
-        email: '뷰티구루민지@demo.com',
-        name: '데모 인플루언서',
+        email: 'influencer@example.com',
+        name: 'Myron Legros-O\'Kon',
         type: 'influencer',
-        password: 'password123'
+        password: 'influencer2024'
       },
       business: business ? {
         email: business.email,
-        name: business.name || '데모 비즈니스',
+        name: business.businessProfile?.companyName || business.name || '데모 비즈니스',
         type: 'business',
-        password: 'password123' // 시드 데이터의 업체 비밀번호
+        password: 'business2024'
       } : {
-        email: 'CJ제일제당@demo.com',
-        name: '데모 비즈니스',
+        email: 'business@company.com',
+        name: '테스트 비즈니스',
         type: 'business',
-        password: 'password123'
+        password: 'business2024'
       },
       admin: admin ? {
         email: admin.email,
-        name: admin.name || 'LinkPick 관리자',
+        name: admin.name || 'Demo Admin',
         type: 'admin',
-        password: 'admin123!' // 시드 데이터의 관리자 비밀번호
+        password: 'admin2024'
       } : {
-        email: 'admin@demo.com',
-        name: 'LinkPick 관리자',
+        email: 'admin@linkpick.co.kr',
+        name: 'Demo Admin',
         type: 'admin',
-        password: 'admin123!'
+        password: 'admin2024'
       }
     })
   } catch (error) {
@@ -108,22 +110,22 @@ export async function GET(request: NextRequest) {
     // 에러 발생 시 기본값 반환
     return NextResponse.json({
       influencer: {
-        email: '뷰티구루민지@demo.com',
-        name: '데모 인플루언서',
+        email: 'influencer@example.com',
+        name: 'Myron Legros-O\'Kon',
         type: 'influencer',
-        password: 'password123'
+        password: 'influencer2024'
       },
       business: {
-        email: 'CJ제일제당@demo.com',
-        name: '데모 비즈니스',
+        email: 'business@company.com',
+        name: '테스트 비즈니스',
         type: 'business',
-        password: 'password123'
+        password: 'business2024'
       },
       admin: {
-        email: 'admin@demo.com',
-        name: 'LinkPick 관리자',
+        email: 'admin@linkpick.co.kr',
+        name: 'Demo Admin',
         type: 'admin',
-        password: 'admin123!'
+        password: 'admin2024'
       }
     })
   }

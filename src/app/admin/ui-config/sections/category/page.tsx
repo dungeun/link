@@ -2,31 +2,42 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Trash2, Eye, EyeOff, Image, Save, Globe } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Eye, EyeOff, Save, Globe, ChevronUp, ChevronDown, 
+  Shield, Tag, ShoppingCart, AlertTriangle, Smartphone, Heart, BookOpen, 
+  ThumbsUp, Users, Flower2, GraduationCap } from 'lucide-react';
 
 interface CategoryMenu {
   id: string;
   name: string;
-  categoryId: string;
+  link: string;
   icon?: string;
+  iconType?: 'emoji' | 'lucide';
   badge?: string;
+  badgeColor?: string;
   visible: boolean;
   order: number;
 }
 
-const categories = [
-  { id: 'beauty', name: '뷰티' },
-  { id: 'fashion', name: '패션' },
-  { id: 'food', name: '맛집' },
-  { id: 'travel', name: '여행' },
-  { id: 'tech', name: '테크' },
-  { id: 'fitness', name: '운동' },
-  { id: 'lifestyle', name: '라이프' },
-  { id: 'pet', name: '반려동물' },
-  { id: 'parenting', name: '육아' },
-  { id: 'game', name: '게임' },
-  { id: 'education', name: '교육' },
+// 고정된 카테고리 메뉴 목록 (스크린샷 기반)
+const defaultCategories: CategoryMenu[] = [
+  { id: '1', name: '뷰티', link: '/beauty', icon: 'Shield', iconType: 'lucide', badge: '', visible: true, order: 1 },
+  { id: '2', name: '패션', link: '/fashion', icon: 'Tag', iconType: 'lucide', badge: '', visible: true, order: 2 },
+  { id: '3', name: '맛집', link: '/food', icon: 'ShoppingCart', iconType: 'lucide', badge: 'HOT', badgeColor: 'red', visible: true, order: 3 },
+  { id: '4', name: '여행', link: '/travel', icon: 'AlertTriangle', iconType: 'lucide', badge: '', visible: true, order: 4 },
+  { id: '5', name: 'IT/테크', link: '/tech', icon: 'Smartphone', iconType: 'lucide', badge: '', visible: true, order: 5 },
+  { id: '6', name: '운동/헬스', link: '/fitness', icon: 'Heart', iconType: 'lucide', badge: '', visible: true, order: 6 },
+  { id: '7', name: '라이프', link: '/lifestyle', icon: 'BookOpen', iconType: 'lucide', badge: '신규', badgeColor: 'blue', visible: true, order: 7 },
+  { id: '8', name: '반려동물', link: '/pet', icon: 'ThumbsUp', iconType: 'lucide', badge: '', visible: true, order: 8 },
+  { id: '9', name: '육아', link: '/parenting', icon: 'Users', iconType: 'lucide', badge: '', visible: true, order: 9 },
+  { id: '10', name: '게임', link: '/game', icon: 'Flower2', iconType: 'lucide', badge: '', visible: true, order: 10 },
+  { id: '11', name: '교육', link: '/education', icon: 'GraduationCap', iconType: 'lucide', badge: '', visible: true, order: 11 },
 ];
+
+// Lucide 아이콘 컴포넌트 매핑
+const iconComponents: { [key: string]: any } = {
+  Shield, Tag, ShoppingCart, AlertTriangle, Smartphone, Heart, BookOpen, 
+  ThumbsUp, Users, Flower2, GraduationCap
+};
 
 export default function CategorySectionEditPage() {
   const router = useRouter();
@@ -53,6 +64,9 @@ export default function CategorySectionEditPage() {
           // content.categories 데이터를 categoryMenus 상태로 설정
           if (data.section.content?.categories) {
             setCategoryMenus(data.section.content.categories);
+          } else {
+            // 데이터가 없으면 기본값 사용
+            setCategoryMenus(defaultCategories);
           }
           if (data.section.content?.gridLayout) {
             setGridLayout(data.section.content.gridLayout);
@@ -61,25 +75,14 @@ export default function CategorySectionEditPage() {
         }
       } else if (response.status === 404) {
         // 섹션이 없으면 기본 데이터로 초기화
-        setCategoryMenus([
-          { id: '1', name: '뷰티', categoryId: 'beauty', visible: true, order: 1 },
-          { id: '2', name: '패션', categoryId: 'fashion', visible: true, order: 2, badge: 'HOT' },
-          { id: '3', name: '맛집', categoryId: 'food', visible: true, order: 3 },
-          { id: '4', name: '여행', categoryId: 'travel', visible: true, order: 4 },
-          { id: '5', name: '테크', categoryId: 'tech', visible: true, order: 5, badge: '신규' },
-          { id: '6', name: '운동', categoryId: 'fitness', visible: true, order: 6 },
-          { id: '7', name: '라이프', categoryId: 'lifestyle', visible: true, order: 7 },
-          { id: '8', name: '반려동물', categoryId: 'pet', visible: true, order: 8 },
-          { id: '9', name: '육아', categoryId: 'parenting', visible: true, order: 9 },
-          { id: '10', name: '게임', categoryId: 'game', visible: true, order: 10 },
-          { id: '11', name: '교육', categoryId: 'education', visible: true, order: 11 },
-        ]);
+        setCategoryMenus(defaultCategories);
       } else {
         console.error('Failed to load section');
+        setCategoryMenus(defaultCategories);
       }
     } catch (error) {
       console.error('Error loading section:', error);
-      alert('섹션 데이터를 불러오는데 실패했습니다.');
+      setCategoryMenus(defaultCategories);
     } finally {
       setLoading(false);
     }
@@ -89,7 +92,11 @@ export default function CategorySectionEditPage() {
     const newCategory: CategoryMenu = {
       id: Date.now().toString(),
       name: '새 카테고리',
-      categoryId: 'new',
+      link: '/new-category',
+      icon: 'Shield',
+      iconType: 'lucide',
+      badge: '',
+      badgeColor: '',
       visible: true,
       order: categoryMenus.length + 1
     };
@@ -106,18 +113,29 @@ export default function CategorySectionEditPage() {
     setCategoryMenus(categoryMenus.filter(cat => cat.id !== id));
   };
 
-  const handleReorder = (dragIndex: number, dropIndex: number) => {
-    const draggedItem = categoryMenus[dragIndex];
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
     const newMenus = [...categoryMenus];
-    newMenus.splice(dragIndex, 1);
-    newMenus.splice(dropIndex, 0, draggedItem);
+    [newMenus[index - 1], newMenus[index]] = [newMenus[index], newMenus[index - 1]];
     
     // 순서 재정렬
-    const reorderedMenus = newMenus.map((menu, index) => ({
+    const reorderedMenus = newMenus.map((menu, idx) => ({
       ...menu,
-      order: index + 1
+      order: idx + 1
     }));
+    setCategoryMenus(reorderedMenus);
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === categoryMenus.length - 1) return;
+    const newMenus = [...categoryMenus];
+    [newMenus[index], newMenus[index + 1]] = [newMenus[index + 1], newMenus[index]];
     
+    // 순서 재정렬
+    const reorderedMenus = newMenus.map((menu, idx) => ({
+      ...menu,
+      order: idx + 1
+    }));
     setCategoryMenus(reorderedMenus);
   };
 
@@ -154,12 +172,54 @@ export default function CategorySectionEditPage() {
   };
 
   const badgeOptions = [
-    { value: '', label: '없음' },
-    { value: 'HOT', label: 'HOT', color: 'bg-red-500' },
-    { value: '신규', label: '신규', color: 'bg-blue-500' },
-    { value: 'BEST', label: 'BEST', color: 'bg-green-500' },
-    { value: '인기', label: '인기', color: 'bg-purple-500' },
+    { value: '', label: '없음', color: '' },
+    { value: 'HOT', label: 'HOT', color: 'red' },
+    { value: '신규', label: '신규', color: 'blue' },
+    { value: 'NEW', label: 'NEW', color: 'green' },
+    { value: 'BEST', label: 'BEST', color: 'purple' },
+    { value: '인기', label: '인기', color: 'orange' },
+    { value: '추천', label: '추천', color: 'yellow' },
+    { value: 'SALE', label: 'SALE', color: 'pink' },
   ];
+
+  const iconOptions = [
+    { value: 'Shield', label: '방패 (뷰티)' },
+    { value: 'Tag', label: '태그 (패션)' },
+    { value: 'ShoppingCart', label: '장바구니 (맛집)' },
+    { value: 'AlertTriangle', label: '삼각형 (여행)' },
+    { value: 'Smartphone', label: '스마트폰 (IT/테크)' },
+    { value: 'Heart', label: '하트 (운동/헬스)' },
+    { value: 'BookOpen', label: '책 (라이프)' },
+    { value: 'ThumbsUp', label: '엄지 (반려동물)' },
+    { value: 'Users', label: '사용자 (육아)' },
+    { value: 'Flower2', label: '꽃 (게임)' },
+    { value: 'GraduationCap', label: '졸업모자 (교육)' },
+  ];
+
+  const renderIcon = (category: CategoryMenu) => {
+    if (category.iconType === 'emoji') {
+      return <span className="text-2xl">{category.icon}</span>;
+    } else if (category.iconType === 'lucide' && category.icon) {
+      const IconComponent = iconComponents[category.icon];
+      if (IconComponent) {
+        return <IconComponent className="w-6 h-6 text-indigo-600" />;
+      }
+    }
+    return <Shield className="w-6 h-6 text-indigo-600" />;
+  };
+
+  const getBadgeColorClass = (color?: string) => {
+    const colorMap: { [key: string]: string } = {
+      red: 'bg-red-500',
+      blue: 'bg-blue-500',
+      green: 'bg-green-500',
+      purple: 'bg-purple-500',
+      orange: 'bg-orange-500',
+      yellow: 'bg-yellow-500',
+      pink: 'bg-pink-500',
+    };
+    return colorMap[color || ''] || 'bg-gray-500';
+  };
 
   if (loading) {
     return (
@@ -187,7 +247,7 @@ export default function CategorySectionEditPage() {
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">카테고리 메뉴 관리</h1>
-                <p className="text-sm text-gray-600 mt-1">메인 페이지에 표시되는 카테고리 메뉴를 관리합니다</p>
+                <p className="text-sm text-gray-600 mt-1">메인 페이지에 표시되는 카테고리 아이콘 메뉴를 관리합니다</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -245,161 +305,201 @@ export default function CategorySectionEditPage() {
           </div>
         </div>
 
-        {/* 설정 옵션 */}
+        {/* 미리보기 */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">표시 설정</h2>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                그리드 레이아웃
-              </label>
-              <select 
-                value={gridLayout}
-                onChange={(e) => setGridLayout(e.target.value)}
-                className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="6x11">모바일 6열 / 데스크탑 11열 (기본)</option>
-                <option value="5x10">모바일 5열 / 데스크탑 10열</option>
-                <option value="4x8">모바일 4열 / 데스크탑 8열</option>
-              </select>
-            </div>
+          <h2 className="text-lg font-semibold mb-4">미리보기</h2>
+          <div className="flex flex-wrap gap-4 justify-center p-4 bg-gray-50 rounded-lg">
+            {categoryMenus
+              .filter(cat => cat.visible)
+              .sort((a, b) => a.order - b.order)
+              .map((category) => (
+              <div key={category.id} className="flex flex-col items-center gap-2">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center">
+                    {renderIcon(category)}
+                  </div>
+                  {category.badge && (
+                    <span className={`absolute -top-1 -right-1 text-[10px] px-2 py-0.5 rounded-full font-bold text-white ${
+                      getBadgeColorClass(category.badgeColor)
+                    }`}>
+                      {category.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-700">{category.name}</span>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* 카테고리 목록 */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold">카테고리 목록</h2>
-            <button
-              onClick={handleAddCategory}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              카테고리 추가
-            </button>
+            <h2 className="text-lg font-semibold">카테고리 설정</h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCategoryMenus(defaultCategories)}
+                className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+              >
+                기본값 복원
+              </button>
+              <button
+                onClick={handleAddCategory}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                카테고리 추가
+              </button>
+            </div>
           </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {categoryMenus
-            .sort((a, b) => a.order - b.order)
-            .map((category, index) => (
-            <div key={category.id} className="border rounded-lg p-4 bg-gray-50">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-gray-500">#{index + 1}</span>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handleUpdateCategory(category.id, { visible: !category.visible })}
-                    className={`p-1 rounded ${category.visible ? 'text-green-600' : 'text-gray-400'}`}
-                  >
-                    {category.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCategory(category.id)}
-                    className="p-1 text-red-600 hover:bg-red-50 rounded"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+          <div className="space-y-3">
+            {categoryMenus
+              .sort((a, b) => a.order - b.order)
+              .map((category, index) => (
+              <div key={category.id} className="border rounded-lg p-4 bg-gray-50">
+                <div className="flex items-center gap-4">
+                  {/* 순서 조절 */}
+                  <div className="flex flex-col">
+                    <button
+                      onClick={() => handleMoveUp(index)}
+                      disabled={index === 0}
+                      className="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      <ChevronUp className="w-4 h-4" />
+                    </button>
+                    <span className="text-xs text-center text-gray-500">{index + 1}</span>
+                    <button
+                      onClick={() => handleMoveDown(index)}
+                      disabled={index === categoryMenus.length - 1}
+                      className="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                  </div>
 
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    카테고리명
-                  </label>
-                  <input
-                    type="text"
-                    value={category.name}
-                    onChange={(e) => handleUpdateCategory(category.id, { name: e.target.value })}
-                    className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                  {/* 아이콘 미리보기 */}
+                  <div className="flex flex-col items-center">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border">
+                        {renderIcon(category)}
+                      </div>
+                      {category.badge && (
+                        <span className={`absolute -top-1 -right-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold text-white ${
+                          getBadgeColorClass(category.badgeColor)
+                        }`}>
+                          {category.badge}
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    카테고리 ID
-                  </label>
-                  <select
-                    value={category.categoryId}
-                    onChange={(e) => handleUpdateCategory(category.id, { categoryId: e.target.value })}
-                    className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">선택하세요</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
+                  {/* 카테고리 정보 입력 */}
+                  <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        카테고리명
+                      </label>
+                      <input
+                        type="text"
+                        value={category.name}
+                        onChange={(e) => handleUpdateCategory(category.id, { name: e.target.value })}
+                        className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    배지
-                  </label>
-                  <select
-                    value={category.badge || ''}
-                    onChange={(e) => handleUpdateCategory(category.id, { badge: e.target.value })}
-                    className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
-                  >
-                    {badgeOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        링크 URL
+                      </label>
+                      <input
+                        type="text"
+                        value={category.link}
+                        onChange={(e) => handleUpdateCategory(category.id, { link: e.target.value })}
+                        className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                        placeholder="/category-url"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    아이콘 (선택사항)
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      value={category.icon || ''}
-                      onChange={(e) => handleUpdateCategory(category.id, { icon: e.target.value })}
-                      className="flex-1 px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
-                      placeholder="이미지 URL 또는 이모지"
-                    />
-                    <button className="p-1.5 border rounded hover:bg-gray-100">
-                      <Image className="w-4 h-4" />
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        아이콘
+                      </label>
+                      <select
+                        value={category.icon || ''}
+                        onChange={(e) => handleUpdateCategory(category.id, { 
+                          icon: e.target.value,
+                          iconType: 'lucide'
+                        })}
+                        className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                      >
+                        {iconOptions.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        배지
+                      </label>
+                      <select
+                        value={category.badge || ''}
+                        onChange={(e) => handleUpdateCategory(category.id, { badge: e.target.value })}
+                        className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                      >
+                        {badgeOptions.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        배지 색상
+                      </label>
+                      <select
+                        value={category.badgeColor || ''}
+                        onChange={(e) => handleUpdateCategory(category.id, { badgeColor: e.target.value })}
+                        className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                      >
+                        {badgeOptions.map(option => (
+                          <option key={option.value} value={option.color}>
+                            {option.label} {option.color && `(${option.color})`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 액션 버튼 */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleUpdateCategory(category.id, { visible: !category.visible })}
+                      className={`p-2 rounded-lg transition-colors ${
+                        category.visible 
+                          ? 'text-green-600 hover:bg-green-50' 
+                          : 'text-gray-400 hover:bg-gray-200'
+                      }`}
+                    >
+                      {category.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(category.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-
-                {/* 미리보기 */}
-                <div className="pt-3 border-t">
-                  <p className="text-xs font-medium text-gray-700 mb-2">미리보기</p>
-                  <div className="flex justify-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-indigo-600 relative">
-                        {category.icon ? (
-                          category.icon.startsWith('http') ? (
-                            <img src={category.icon} alt={category.name} className="w-8 h-8 object-contain" />
-                          ) : (
-                            <span className="text-2xl">{category.icon}</span>
-                          )
-                        ) : (
-                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                          </svg>
-                        )}
-                        {category.badge && (
-                          <span className={`absolute -top-1 -right-1 text-[10px] px-2 py-0.5 rounded-full font-bold text-white ${
-                            badgeOptions.find(b => b.value === category.badge)?.color || 'bg-gray-500'
-                          }`}>
-                            {category.badge}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-sm">{category.name}</span>
-                    </div>
-                  </div>
-                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
         {/* 안내 메시지 */}
         {autoTranslate && (

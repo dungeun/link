@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface User {
@@ -230,7 +230,7 @@ export function useAuth() {
     }
   }, []); // 의존성 배열을 비워서 처음 마운트 시에만 실행
 
-  return {
+  return useMemo(() => ({
     user: authState.user,
     isAuthenticated: authState.isAuthenticated,
     isLoading: authState.isLoading,
@@ -238,5 +238,5 @@ export function useAuth() {
     register,
     logout,
     getCurrentUser,
-  };
+  }), [authState, login, register, logout, getCurrentUser]);
 }

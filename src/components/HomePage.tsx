@@ -178,6 +178,12 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
       .sort((a, b) => a.order - b.order),
     [allSections]
   )
+
+  // 디버깅 로그: 렌더링 시마다 상태를 확인합니다.
+  console.log("--- HomePage 렌더링 정보 ---");
+  console.log("DB에서 가져온 데이터 (sections):", sections);
+  console.log("Zustand에서 가져온 순서/필터 (visibleSections):", visibleSections);
+  console.log("---------------------------------");
   
   // 카테고리별 기본 픽토그램 - 메모이제이션 적용
   const defaultCategoryIcons = useMemo(() => ({
@@ -537,111 +543,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                   </div>
                 ) : null
 
-              case 'category':
-                return localizedContent?.categories ? (
-                  <div key={section.id} className="mb-12">
-                    {/* 데스크톱: 가로 스크롤, 모바일: 그리드 */}
-                    <div className="px-4">
-                      {/* 모바일: 그리드 레이아웃 */}
-                      <div className="grid grid-cols-4 gap-3 sm:hidden">
-                        {(localizedContent.categories as Array<{
-                          id: string;
-                          categoryId: string;
-                          name: string;
-                          icon?: string;
-                          badge?: string;
-                        }>).map((category) => (
-                          <Link
-                            key={category.id}
-                            href={`/campaigns?category=${category.categoryId}`}
-                            className="flex flex-col items-center gap-1.5 group"
-                          >
-                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative category-icon">
-                              {category.icon ? (
-                                category.icon.startsWith('http') ? (
-                                  <Image 
-                                    src={category.icon} 
-                                    alt={category.name} 
-                                    width={24}
-                                    height={24}
-                                    className="object-contain"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <span className="text-lg">{category.icon}</span>
-                                )
-                              ) : (
-                                (defaultCategoryIcons as any)[category.categoryId] || (
-                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                  </svg>
-                                )
-                              )}
-                              {category.badge && (
-                                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 bg-red-500 text-white rounded-full font-bold min-w-[14px] text-center leading-none">
-                                  {category.badge}
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-xs text-gray-700 text-center leading-tight">
-                              {category.name}
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-
-                      {/* 태블릿/데스크톱: 가로 스크롤 */}
-                      <div className="hidden sm:block overflow-x-auto">
-                        <div className="flex gap-3 lg:gap-2 pb-4 justify-center pt-4 pb-2 min-w-max">
-                          {(localizedContent.categories as Array<{
-                            id: string;
-                            categoryId: string;
-                            name: string;
-                            icon?: string;
-                            badge?: string;
-                          }>).map((category) => (
-                            <Link
-                              key={category.id}
-                              href={`/campaigns?category=${category.categoryId}`}
-                              className="flex flex-col items-center gap-2 min-w-[60px] lg:min-w-[70px] group"
-                            >
-                              <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative category-icon">
-                                {category.icon ? (
-                                  category.icon.startsWith('http') ? (
-                                    <Image 
-                                      src={category.icon} 
-                                      alt={category.name} 
-                                      width={32}
-                                      height={32}
-                                      className="object-contain"
-                                      loading="lazy"
-                                    />
-                                  ) : (
-                                    <span className="text-xl lg:text-2xl">{category.icon}</span>
-                                  )
-                                ) : (
-                                  (defaultCategoryIcons as any)[category.categoryId] || (
-                                    <svg className="w-7 h-7 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                    </svg>
-                                  )
-                                )}
-                                {category.badge && (
-                                  <span className="absolute -top-1.5 -right-1.5 text-[9px] lg:text-[10px] px-1.5 py-0.5 bg-red-500 text-white rounded-full font-bold min-w-[16px] lg:min-w-[18px] text-center leading-none">
-                                    {category.badge}
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-sm text-gray-700 text-center">
-                                {category.name}
-                              </span>
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : null
+              
 
               case 'quicklinks':
                 return localizedContent?.links ? (
@@ -802,6 +704,112 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                   </div>
                 ) : null
 
+                            case 'category':
+                return localizedContent?.categories ? (
+                  <div key={section.id} className="mb-12">
+                    {/* 데스크톱: 가로 스크롤, 모바일: 그리드 */}
+                    <div className="px-4">
+                      {/* 모바일: 그리드 레이아웃 */}
+                      <div className="grid grid-cols-4 gap-3 sm:hidden">
+                        {(localizedContent.categories as Array<{
+                          id: string;
+                          categoryId: string;
+                          name: string;
+                          icon?: string;
+                          badge?: string;
+                        }>).map((category) => (
+                          <Link
+                            key={category.id}
+                            href={`/campaigns?category=${category.categoryId}`}
+                            className="flex flex-col items-center gap-1.5 group"
+                          >
+                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative category-icon">
+                              {category.icon ? (
+                                category.icon.startsWith('http') ? (
+                                  <Image 
+                                    src={category.icon} 
+                                    alt={category.name} 
+                                    width={24}
+                                    height={24}
+                                    className="object-contain"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <span className="text-lg">{category.icon}</span>
+                                )
+                              ) : (
+                                (defaultCategoryIcons as any)[category.categoryId] || (
+                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                  </svg>
+                                )
+                              )}
+                              {category.badge && (
+                                <span className="absolute -top-1 -right-1 text-[8px] px-1 py-0.5 bg-red-500 text-white rounded-full font-bold min-w-[14px] text-center leading-none">
+                                  {category.badge}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-700 text-center leading-tight">
+                              {category.name}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+
+                      {/* 태블릿/데스크톱: 가로 스크롤 */}
+                      <div className="hidden sm:block overflow-x-auto">
+                        <div className="flex gap-3 lg:gap-2 pb-4 justify-center pt-4 pb-2 min-w-max">
+                          {(localizedContent.categories as Array<{
+                            id: string;
+                            categoryId: string;
+                            name: string;
+                            icon?: string;
+                            badge?: string;
+                          }>).map((category) => (
+                            <Link
+                              key={category.id}
+                              href={`/campaigns?category=${category.categoryId}`}
+                              className="flex flex-col items-center gap-2 min-w-[60px] lg:min-w-[70px] group"
+                            >
+                              <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative category-icon">
+                                {category.icon ? (
+                                  category.icon.startsWith('http') ? (
+                                    <Image 
+                                      src={category.icon} 
+                                      alt={category.name} 
+                                      width={32}
+                                      height={32}
+                                      className="object-contain"
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <span className="text-xl lg:text-2xl">{category.icon}</span>
+                                  )
+                                ) : (
+                                  (defaultCategoryIcons as any)[category.categoryId] || (
+                                    <svg className="w-7 h-7 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                  )
+                                )}
+                                {category.badge && (
+                                  <span className="absolute -top-1.5 -right-1.5 text-[9px] lg:text-[10px] px-1.5 py-0.5 bg-red-500 text-white rounded-full font-bold min-w-[16px] lg:min-w-[18px] text-center leading-none">
+                                    {category.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-sm text-gray-700 text-center">
+                                {category.name}
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : null
+
               case 'ranking':
                 return (
                   <RankingSection
@@ -821,15 +829,7 @@ function HomePage({ initialSections, initialLanguage = 'ko', initialLanguagePack
                     t={t}
                   />
                 )
-              case 'category':
-                return (
-                  <CategorySection
-                    key={section.id}
-                    section={section as any}
-                    localizedContent={localizedContent}
-                    t={t}
-                  />
-                )
+              
 
               default:
                 return null

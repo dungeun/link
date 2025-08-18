@@ -22,7 +22,9 @@ export async function GET(request: NextRequest) {
       'content',
       'notifications',
       'security',
-      'legal'
+      'legal',
+      'seo',
+      'metadata'
     ]
 
     const settings: Record<string, any> = {}
@@ -110,6 +112,31 @@ export async function GET(request: NextRequest) {
         privacyPolicy: '',
         termsLastUpdated: new Date().toISOString().split('T')[0],
         privacyLastUpdated: new Date().toISOString().split('T')[0]
+      },
+      seo: {
+        title: 'LinkPick - 인플루언서 마케팅 플랫폼',
+        description: '최고의 인플루언서와 브랜드를 연결하는 마케팅 플랫폼입니다.',
+        keywords: '인플루언서, 마케팅, 브랜드, 광고, 소셜미디어',
+        author: 'LinkPick',
+        robots: 'index, follow',
+        canonical: 'https://linkpick.com'
+      },
+      metadata: {
+        favicon: '/favicon.svg',
+        appleTouchIcon: '/apple-touch-icon.png',
+        ogImage: '/og-image.svg',
+        ogTitle: 'LinkPick - 인플루언서 마케팅 플랫폼',
+        ogDescription: '최고의 인플루언서와 브랜드를 연결하는 마케팅 플랫폼입니다.',
+        ogUrl: 'https://linkpick.com',
+        ogSiteName: 'LinkPick',
+        ogType: 'website',
+        ogLocale: 'ko_KR',
+        twitterCard: 'summary_large_image',
+        twitterSite: '@linkpick',
+        twitterCreator: '@linkpick',
+        twitterImage: '/og-image.svg',
+        themeColor: '#3B82F6',
+        msapplicationTileColor: '#3B82F6'
       }
     }
 

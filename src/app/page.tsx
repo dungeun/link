@@ -1,6 +1,5 @@
 import { headers } from 'next/headers'
 import HomePage from '@/components/HomePage'
-import { prisma } from '@/lib/db/prisma'
 import { 
   UISection, 
   LanguagePack, 
@@ -9,8 +8,13 @@ import {
   isJsonObject,
   UISectionContent 
 } from '@/types/global'
+import { getCachedSections } from '@/lib/cache/sections'
+import { getCachedLanguagePacks } from '@/lib/cache/language-packs'
 
-// 서버 컴포넌트로 변경 - 데이터를 서버에서 미리 가져옴
+// 정적 생성으로 변경 + ISR 적용 (5분마다 갱신)
+export const revalidate = 300
+
+// 서버 컴포넌트로 변경 - 캐시된 데이터를 서버에서 미리 가져옴
 export default async function Page() {
   // 서버에서 Accept-Language 헤더로 초기 언어 감지
   const headersList = headers()
@@ -23,86 +27,11 @@ export default async function Page() {
     initialLanguage = 'jp'
   }
   
-  // 서버에서 섹션 데이터 미리 가져오기
-  let sections: UISection[] = []
-  
-  try {
-    // 데이터베이스 연결 타임아웃 설정
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Database timeout')), 5000)
-    })
-    
-    const dbPromise = prisma.uISection.findMany({
-      where: { 
-        visible: true,
-        type: { in: ['hero', 'category', 'quicklinks', 'promo'] }
-      },
-      orderBy: { order: 'asc' }
-    })
-    
-    const dbSections = await Promise.race([dbPromise, timeoutPromise]) as any[]
-    
-    sections = dbSections.map(section => {
-      // 타입 안전한 content 처리
-      let content: UISectionContent = {}
-      if (section.content && isJsonObject(section.content)) {
-        content = section.content
-      }
-      
-      // 타입 안전한 translations 처리
-      let translations: Record<LanguageCode, UISectionContent> = {} as Record<LanguageCode, UISectionContent>
-      if (section.translations && isJsonObject(section.translations)) {
-        Object.entries(section.translations).forEach(([lang, trans]) => {
-          if (isLanguageCode(lang) && isJsonObject(trans)) {
-            translations[lang] = trans
-          }
-        })
-      }
-      
-      return {
-        id: section.id,
-        type: section.type as UISection['type'],
-        sectionId: section.sectionId,
-        title: section.title ? 
-          (isJsonObject(section.title) ? section.title as Record<LanguageCode, string> : undefined) : 
-          undefined,
-        subtitle: section.subtitle ? 
-          (isJsonObject(section.subtitle) ? section.subtitle as Record<LanguageCode, string> : undefined) : 
-          undefined,
-        content,
-        translations,
-        visible: section.visible,
-        order: section.order
-      }
-    })
-  } catch (error) {
-    console.error('Failed to load sections from DB:', error)
-  }
-
-  // 언어팩 데이터도 서버에서 미리 가져오기
-  let languagePacks: Record<string, LanguagePack> = {}
-  try {
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Language pack timeout')), 5000)
-    })
-    
-    const packsPromise = prisma.languagePack.findMany()
-    const packs = await Promise.race([packsPromise, timeoutPromise]) as any[]
-    languagePacks = packs.reduce((acc, pack) => {
-      acc[pack.key] = {
-        id: pack.id,
-        key: pack.key,
-        ko: pack.ko,
-        en: pack.en,
-        jp: pack.jp,
-        category: pack.category || undefined,
-        description: pack.description || undefined
-      }
-      return acc
-    }, {} as Record<string, LanguagePack>)
-  } catch (error) {
-    console.error('Failed to load language packs:', error)
-  }
+  // 병렬로 캐시된 데이터 가져오기 (Promise.all 사용)
+  const [sections, languagePacks] = await Promise.all([
+    getCachedSections(),
+    getCachedLanguagePacks()
+  ])
 
   // 클라이언트 컴포넌트에 데이터 전달
   return <HomePage 
@@ -110,4 +39,16 @@ export default async function Page() {
     initialLanguage={initialLanguage}
     initialLanguagePacks={languagePacks}
   />
+}
+
+// 메타데이터 최적화
+export const metadata = {
+  title: 'REVU - 리뷰 플랫폼',
+  description: '신뢰할 수 있는 리뷰 플랫폼',
+  keywords: ['리뷰', '병원', '캠페인', '구매평'],
+  openGraph: {
+    title: 'REVU - 리뷰 플랫폼',
+    description: '신뢰할 수 있는 리뷰 플랫폼',
+    images: ['/og-image.png'],
+  },
 }

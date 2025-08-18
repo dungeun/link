@@ -78,6 +78,31 @@ interface SystemSettings {
     termsLastUpdated: string
     privacyLastUpdated: string
   }
+  seo: {
+    title: string
+    description: string
+    keywords: string
+    author: string
+    robots: string
+    canonical: string
+  }
+  metadata: {
+    favicon: string
+    appleTouchIcon: string
+    ogImage: string
+    ogTitle: string
+    ogDescription: string
+    ogUrl: string
+    ogSiteName: string
+    ogType: string
+    ogLocale: string
+    twitterCard: string
+    twitterSite: string
+    twitterCreator: string
+    twitterImage: string
+    themeColor: string
+    msapplicationTileColor: string
+  }
 }
 
 export default function AdminSettingsPage() {
@@ -150,6 +175,31 @@ export default function AdminSettingsPage() {
       privacyPolicy: '',
       termsLastUpdated: new Date().toISOString().split('T')[0],
       privacyLastUpdated: new Date().toISOString().split('T')[0]
+    },
+    seo: {
+      title: 'LinkPick - 인플루언서 마케팅 플랫폼',
+      description: '최고의 인플루언서와 브랜드를 연결하는 마케팅 플랫폼입니다.',
+      keywords: '인플루언서, 마케팅, 브랜드, 광고, 소셜미디어',
+      author: 'LinkPick',
+      robots: 'index, follow',
+      canonical: 'https://linkpick.com'
+    },
+    metadata: {
+      favicon: '/favicon.svg',
+      appleTouchIcon: '/apple-touch-icon.png',
+      ogImage: '/og-image.svg',
+      ogTitle: 'LinkPick - 인플루언서 마케팅 플랫폼',
+      ogDescription: '최고의 인플루언서와 브랜드를 연결하는 마케팅 플랫폼입니다.',
+      ogUrl: 'https://linkpick.com',
+      ogSiteName: 'LinkPick',
+      ogType: 'website',
+      ogLocale: 'ko_KR',
+      twitterCard: 'summary_large_image',
+      twitterSite: '@linkpick',
+      twitterCreator: '@linkpick',
+      twitterImage: '/og-image.svg',
+      themeColor: '#3B82F6',
+      msapplicationTileColor: '#3B82F6'
     }
   })
   
@@ -157,7 +207,7 @@ export default function AdminSettingsPage() {
   const [initialLoading, setInitialLoading] = useState(true)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState<'general' | 'website' | 'payments' | 'content' | 'notifications' | 'legal' | 'api'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'website' | 'seo' | 'payments' | 'content' | 'notifications' | 'legal' | 'api'>('general')
   const [footerTextLang, setFooterTextLang] = useState<'ko' | 'en'>('ko')
 
   useEffect(() => {
@@ -283,6 +333,16 @@ export default function AdminSettingsPage() {
               }`}
             >
               웹사이트
+            </button>
+            <button
+              onClick={() => setActiveTab('seo')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'seo'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              SEO 및 메타데이터
             </button>
             <button
               onClick={() => setActiveTab('payments')}
@@ -905,6 +965,337 @@ export default function AdminSettingsPage() {
               </div>
             </div>
           </div>
+          </div>
+        )}
+
+        {/* SEO 및 메타데이터 설정 */}
+        {activeTab === 'seo' && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">SEO 및 메타데이터 설정</h2>
+            <div className="space-y-6">
+              {/* 기본 SEO 설정 */}
+              <div>
+                <h3 className="text-md font-medium text-gray-900 mb-4">기본 SEO 설정</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      페이지 제목
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.seo.title}
+                      onChange={(e) => handleInputChange('seo', 'title', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="LinkPick - 인플루언서 마케팅 플랫폼"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      페이지 설명
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={settings.seo.description}
+                      onChange={(e) => handleInputChange('seo', 'description', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="최고의 인플루언서와 브랜드를 연결하는 마케팅 플랫폼입니다."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      키워드
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.seo.keywords}
+                      onChange={(e) => handleInputChange('seo', 'keywords', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="인플루언서, 마케팅, 브랜드, 광고, 소셜미디어"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        작성자
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.seo.author}
+                        onChange={(e) => handleInputChange('seo', 'author', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="LinkPick"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Robots
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.seo.robots}
+                        onChange={(e) => handleInputChange('seo', 'robots', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="index, follow"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Canonical URL
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.seo.canonical}
+                        onChange={(e) => handleInputChange('seo', 'canonical', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="https://linkpick.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Open Graph 설정 */}
+              <div>
+                <h3 className="text-md font-medium text-gray-900 mb-4">Open Graph 설정</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      OG 제목
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.metadata.ogTitle}
+                      onChange={(e) => handleInputChange('metadata', 'ogTitle', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="LinkPick - 인플루언서 마케팅 플랫폼"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      OG 설명
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={settings.metadata.ogDescription}
+                      onChange={(e) => handleInputChange('metadata', 'ogDescription', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="최고의 인플루언서와 브랜드를 연결하는 마케팅 플랫폼입니다."
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        OG URL
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.metadata.ogUrl}
+                        onChange={(e) => handleInputChange('metadata', 'ogUrl', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="https://linkpick.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        OG 사이트명
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.metadata.ogSiteName}
+                        onChange={(e) => handleInputChange('metadata', 'ogSiteName', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="LinkPick"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        OG 타입
+                      </label>
+                      <select
+                        value={settings.metadata.ogType}
+                        onChange={(e) => handleInputChange('metadata', 'ogType', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="website">website</option>
+                        <option value="article">article</option>
+                        <option value="product">product</option>
+                        <option value="profile">profile</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        OG 로케일
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.metadata.ogLocale}
+                        onChange={(e) => handleInputChange('metadata', 'ogLocale', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="ko_KR"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      OG 이미지
+                    </label>
+                    <div className="max-w-md">
+                      <ImageUpload
+                        value={settings.metadata.ogImage}
+                        onChange={(value) => handleInputChange('metadata', 'ogImage', value)}
+                        category="seo"
+                        maxSize={5}
+                        className="w-full"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      소셜 미디어에서 공유될 때 표시되는 이미지입니다. 1200x630px 권장.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Twitter Card 설정 */}
+              <div>
+                <h3 className="text-md font-medium text-gray-900 mb-4">Twitter Card 설정</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        카드 타입
+                      </label>
+                      <select
+                        value={settings.metadata.twitterCard}
+                        onChange={(e) => handleInputChange('metadata', 'twitterCard', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="summary">summary</option>
+                        <option value="summary_large_image">summary_large_image</option>
+                        <option value="app">app</option>
+                        <option value="player">player</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        사이트 계정
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.metadata.twitterSite}
+                        onChange={(e) => handleInputChange('metadata', 'twitterSite', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="@linkpick"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        작성자 계정
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.metadata.twitterCreator}
+                        onChange={(e) => handleInputChange('metadata', 'twitterCreator', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="@linkpick"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Twitter 이미지
+                    </label>
+                    <div className="max-w-md">
+                      <ImageUpload
+                        value={settings.metadata.twitterImage}
+                        onChange={(value) => handleInputChange('metadata', 'twitterImage', value)}
+                        category="seo"
+                        maxSize={5}
+                        className="w-full"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Twitter에서 공유될 때 표시되는 이미지입니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 파비콘 및 아이콘 설정 */}
+              <div>
+                <h3 className="text-md font-medium text-gray-900 mb-4">파비콘 및 아이콘</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      파비콘
+                    </label>
+                    <div className="max-w-md">
+                      <ImageUpload
+                        value={settings.metadata.favicon}
+                        onChange={(value) => handleInputChange('metadata', 'favicon', value)}
+                        category="seo"
+                        maxSize={1}
+                        className="w-full"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      브라우저 탭에 표시되는 아이콘입니다. ICO, PNG 형식 권장.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Apple Touch Icon
+                    </label>
+                    <div className="max-w-md">
+                      <ImageUpload
+                        value={settings.metadata.appleTouchIcon}
+                        onChange={(value) => handleInputChange('metadata', 'appleTouchIcon', value)}
+                        category="seo"
+                        maxSize={1}
+                        className="w-full"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      iOS 기기에서 북마크 시 표시되는 아이콘입니다. 180x180px 권장.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 테마 설정 */}
+              <div>
+                <h3 className="text-md font-medium text-gray-900 mb-4">테마 색상</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      테마 색상
+                    </label>
+                    <input
+                      type="color"
+                      value={settings.metadata.themeColor}
+                      onChange={(e) => handleInputChange('metadata', 'themeColor', e.target.value)}
+                      className="w-full h-10 px-2 py-1 border border-gray-300 rounded-lg cursor-pointer"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      모바일 브라우저 주소창 색상
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      MS 타일 색상
+                    </label>
+                    <input
+                      type="color"
+                      value={settings.metadata.msapplicationTileColor}
+                      onChange={(e) => handleInputChange('metadata', 'msapplicationTileColor', e.target.value)}
+                      className="w-full h-10 px-2 py-1 border border-gray-300 rounded-lg cursor-pointer"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Windows 타일 배경 색상
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

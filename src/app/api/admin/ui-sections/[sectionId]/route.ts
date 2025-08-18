@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { translateText } from '@/lib/services/translation.service';
+import { invalidateSectionsCache } from '@/lib/cache/sections';
 
 // GET: 특정 섹션 가져오기
 export async function GET(
@@ -145,6 +146,9 @@ export async function PUT(
         translations: translations as any
       }
     });
+
+    // 캐시 무효화
+    invalidateSectionsCache();
 
     return NextResponse.json({ 
       section,

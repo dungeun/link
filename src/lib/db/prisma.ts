@@ -36,6 +36,17 @@ function createPrismaClient() {
       db: {
         url: process.env.DATABASE_URL
       }
+    },
+    // 연결 풀 최적화 설정
+    __internal: {
+      engine: {
+        // 연결 풀 크기 설정 (기본값보다 작게)
+        connectionLimit: 10,
+        // 연결 타임아웃 설정
+        connectionTimeout: 5000,
+        // 쿼리 타임아웃 설정
+        queryTimeout: 10000
+      }
     }
   });
 
