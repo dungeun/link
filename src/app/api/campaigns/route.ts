@@ -316,27 +316,24 @@ export async function GET(request: NextRequest) {
         where.platform = platform.toUpperCase();
       }
 
-      // 정렬 옵션 최적화
+      // 정렬 옵션 최적화 - 인덱스 활용
       let orderBy: any[] = [
-        { status: 'desc' },
-        { createdAt: 'desc' }
+        { createdAt: 'desc' } // status 정렬 제거 (WHERE 절에서 이미 필터링)
       ];
 
       // 정렬 최적화 (인덱스 활용)
       if (ranking || recommended) {
         if (sort === 'applicants') {
+          // 서브쿼리 대신 직접 정렬 사용 불가 - 별도 처리 필요
           orderBy = [
-            { status: 'desc' },
-            { applications: { _count: 'desc' } }
+            { createdAt: 'desc' }
           ];
         } else if (sort === 'deadline') {
           orderBy = [
-            { status: 'desc' },
             { endDate: 'asc' }
           ];
         } else if (sort === 'budget') {
           orderBy = [
-            { status: 'desc' },
             { budget: 'desc' }
           ];
         }
@@ -347,23 +344,20 @@ export async function GET(request: NextRequest) {
         switch (type) {
           case 'trending':
             orderBy = [
-              { status: 'desc' },
-              { applications: { _count: 'desc' } },
+              { viewCount: 'desc' }, // viewCount 사용 (인덱스 있음)
               { createdAt: 'desc' }
             ];
             break;
           case 'latest':
             orderBy = [
-              { status: 'desc' },
               { createdAt: 'desc' }
             ];
             break;
           case 'recommended':
           default:
             orderBy = [
-              { status: 'desc' },
-              { applications: { _count: 'desc' } },
-              { rewardAmount: 'desc' }
+              { rewardAmount: 'desc' },
+              { createdAt: 'desc' }
             ];
             break;
         }

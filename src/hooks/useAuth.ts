@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { fetchAuthMe } from '@/lib/utils/api-cache';
 
 interface User {
   id: string;
@@ -57,7 +58,7 @@ export function useAuth() {
     document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
   }, []);
 
-  // 현재 사용자 정보 가져오기
+  // 현재 사용자 정보 가져오기 - 캐싱 적용
   const getCurrentUser = useCallback(async () => {
     const token = getAccessToken();
     if (!token) {
@@ -66,33 +67,20 @@ export function useAuth() {
     }
 
     try {
-      const response = await fetch('/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      // 캐싱된 fetchAuthMe 사용 - 중복 호출 방지
+      const data = await fetchAuthMe(token);
+      const userData = data.user || data; // handle both { user: {...} } and direct user object
+      setAuthState({
+        user: userData,
+        isAuthenticated: true,
+        isLoading: false,
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        const userData = data.user || data; // handle both { user: {...} } and direct user object
-        setAuthState({
-          user: userData,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-        // Sync with localStorage
-        localStorage.setItem('user', JSON.stringify(userData));
-      } else {
-        // 토큰이 유효하지 않음
-        clearTokens();
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
-      }
+      // Sync with localStorage
+      localStorage.setItem('user', JSON.stringify(userData));
     } catch (error) {
       console.error('Auth error:', error);
+      // 토큰이 유효하지 않음
+      clearTokens();
       setAuthState({
         user: null,
         isAuthenticated: false,

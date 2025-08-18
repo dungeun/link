@@ -133,75 +133,53 @@ model Campaign {
   businessId             String
   title                  String
   description            String
-  
-  // 플랫폼 정보 (표준화)
-  platform               String                @default("INSTAGRAM") // 기본 플랫폼 (하위 호환성)
-  platforms              Json?                 // 다중 플랫폼 지원 (우선 사용)
-  
-  // 예산 정보 (표준화)
+  platform               String                @default("INSTAGRAM")
   budget                 Float?
-  budgetType             String?               @default("FREE") // FREE, PAID, REVIEW
-  rewardAmount           Float                 @default(0)
-  
-  // 타겟 정보 (표준화)
   targetFollowers        Int?
-  maxApplicants          Int                   @default(100)
-  location               String                @default("전국")
-  
-  // 일정 정보 (표준화)
   startDate              DateTime
   endDate                DateTime
-  applicationStartDate   DateTime?
-  applicationEndDate     DateTime?
-  contentStartDate       DateTime?
-  contentEndDate         DateTime?
-  announcementDate       DateTime?
-  resultAnnouncementDate DateTime?
-  
-  // 콘텐츠 정보 (표준화)
   requirements           String?
-  hashtags               Json?                 // 배열로 저장
-  keywords               String?
-  campaignMission        String?
-  provisionDetails       String?
-  additionalNotes        String?
-  
-  // 미디어 정보 (표준화) - 신규 추가된 필드
-  youtubeUrl             String?               // 🆕 YouTube URL 필드
-  imageUrl               String?               // 기본 이미지 (하위 호환성)
+  imageUrl               String?
+  imageId                String?
   headerImageUrl         String?
   thumbnailImageUrl      String?
-  detailImages           Json?                 // 상세 이미지 배열
-  productImages          Json?                 // 제품 이미지 배열
-  
-  // 상태 및 메타데이터
+  announcementDate       DateTime?
   status                 String                @default("DRAFT")
   isPaid                 Boolean               @default(false)
-  isPublished            Boolean               @default(false)
-  viewCount              Int                   @default(0)
-  
-  // 추가 설정
+  reviewFeedback         String?
+  reviewedAt             DateTime?
+  maxApplicants          Int                   @default(100)
+  rewardAmount           Float                 @default(0)
+  detailImages           Json?
+  productImages          Json?
   questions              Json?
-  platformFeeRate        Float                 @default(0.2)
-  translations           Json?
-  
-  // 시스템 필드
   createdAt              DateTime              @default(now())
   updatedAt              DateTime              @updatedAt
+  deliverables           String?
+  detailedRequirements   String?
+  platformFeeRate        Float                 @default(0.2)
+  location               String                @default("전국")
+  productIntro           String?
+  viewCount              Int                   @default(0)
+  translations           Json?
+  additionalNotes        String?
+  applicationEndDate     DateTime?
+  applicationStartDate   DateTime?
+  campaignMission        String?
+  contentEndDate         DateTime?
+  contentStartDate       DateTime?
+  keywords               String?
+  provisionDetails       String?
+  resultAnnouncementDate DateTime?
+  category               String?
+  mainCategory           String?
   deletedAt              DateTime?
-  
-  // 🗑️ 레거시 필드들 - 추후 제거 예정 (하위 호환성 유지)
-  campaignType           String?               // @deprecated - 기존 데이터 보존 위해 유지
-  imageId                String?               // @deprecated - imageUrl로 통합
-  deliverables           String?               // @deprecated - requirements로 통합
-  detailedRequirements   String?               // @deprecated - requirements로 통합
-  productIntro           String?               // @deprecated - description으로 통합
-  reviewFeedback         String?               // @deprecated - 별도 테이블로 분리
-  reviewedAt             DateTime?             // @deprecated - 별도 테이블로 분리
-  category               String?               // @deprecated - categories 관계로 대체
-  mainCategory           String?               // @deprecated - categories 관계로 대체
-  
-  // 관계 설정
+  budgetType             String?               @default("FREE")
+  isPublished            Boolean               @default(false)
+  youtubeUrl             String?
+  hashtags               Json?
+  platforms              Json?
+  campaignType           String?
   applications           CampaignApplication[]
   categories             CampaignCategory[]
   campaignLikes          CampaignLike[]
@@ -210,7 +188,6 @@ model Campaign {
   payments               Payment[]
   savedByUsers           SavedCampaign[]
 
-  // 인덱스 최적화
   @@index([status, deletedAt])
   @@index([businessId, status])
   @@index([createdAt])
@@ -754,7 +731,22 @@ model CampaignCategory {
   @@unique([campaignId, categoryId])
   @@index([campaignId])
   @@index([categoryId])
+  @@index([campaignId], map: "idx_campaign_categories_campaign_id")
+  @@index([categoryId], map: "idx_campaign_categories_category_id")
   @@map("campaign_categories")
+}
+
+model WithdrawalAccount {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  bankName      String
+  accountNumber String
+  accountHolder String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("withdrawal_accounts")
 }
 
 enum UserType {
@@ -785,17 +777,4 @@ enum PaymentStatus {
   CANCELLED
   PARTIAL_REFUNDED
   REFUNDED
-}
-
-model WithdrawalAccount {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  bankName      String
-  accountNumber String
-  accountHolder String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("withdrawal_accounts")
 }

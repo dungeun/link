@@ -14,6 +14,10 @@ interface HeroSlide {
   backgroundImage?: string;
   visible: boolean;
   order: number;
+  useFullImage?: boolean;
+  fullImageUrl?: string;
+  fullImageWidth?: number;
+  fullImageHeight?: number;
 }
 
 export default function HeroSectionEditPage() {
@@ -91,6 +95,37 @@ export default function HeroSectionEditPage() {
     } catch (error) {
       console.error('Image upload failed:', error);
       alert('이미지 업로드에 실패했습니다.');
+    }
+  };
+
+  const handleFullImageUpload = async (slideId: string, file: File) => {
+    // 전체 이미지 업로드 로직
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // 이미지 크기 정보 가져오기
+        const img = new Image();
+        img.onload = () => {
+          handleUpdateSlide(slideId, { 
+            fullImageUrl: data.url,
+            fullImageWidth: img.width,
+            fullImageHeight: img.height
+          });
+        };
+        img.src = data.url;
+      }
+    } catch (error) {
+      console.error('Full image upload failed:', error);
+      alert('전체 이미지 업로드에 실패했습니다.');
     }
   };
 
@@ -301,66 +336,148 @@ export default function HeroSectionEditPage() {
                 </div>
 
                 <div className="space-y-4">
+                  {/* 전체 이미지 사용 체크박스 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">배경 색상</label>
-                    <select
-                      value={slide.bgColor}
-                      onChange={(e) => handleUpdateSlide(slide.id, { bgColor: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      {presetColors.map(color => (
-                        <option key={color.value} value={color.value}>{color.name}</option>
-                      ))}
-                    </select>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={slide.useFullImage || false}
+                        onChange={(e) => handleUpdateSlide(slide.id, { useFullImage: e.target.checked })}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                      />
+                      <span className="text-sm font-medium text-gray-700">전체 이미지로 표시</span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1 ml-6">체크 시 그리드 1개가 전체 이미지로 대체됩니다</p>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">배경 이미지</label>
-                    <div className="flex items-center gap-4">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleImageUpload(slide.id, file);
-                        }}
-                        className="hidden"
-                        id={`image-${slide.id}`}
-                      />
-                      <label
-                        htmlFor={`image-${slide.id}`}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center gap-2"
-                      >
-                        <Upload className="w-4 h-4" />
-                        이미지 업로드
-                      </label>
-                      {slide.backgroundImage && (
-                        <span className="text-sm text-gray-600">이미지 업로드됨</span>
-                      )}
+                  {!slide.useFullImage ? (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">배경 색상</label>
+                        <select
+                          value={slide.bgColor}
+                          onChange={(e) => handleUpdateSlide(slide.id, { bgColor: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          {presetColors.map(color => (
+                            <option key={color.value} value={color.value}>{color.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">배경 이미지</label>
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(slide.id, file);
+                            }}
+                            className="hidden"
+                            id={`image-${slide.id}`}
+                          />
+                          <label
+                            htmlFor={`image-${slide.id}`}
+                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center gap-2"
+                          >
+                            <Upload className="w-4 h-4" />
+                            이미지 업로드
+                          </label>
+                          {slide.backgroundImage && (
+                            <span className="text-sm text-gray-600">이미지 업로드됨</span>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">전체 이미지</label>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFullImageUpload(slide.id, file);
+                            }}
+                            className="hidden"
+                            id={`full-image-${slide.id}`}
+                          />
+                          <label
+                            htmlFor={`full-image-${slide.id}`}
+                            className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 cursor-pointer flex items-center gap-2"
+                          >
+                            <Upload className="w-4 h-4" />
+                            전체 이미지 업로드
+                          </label>
+                          {slide.fullImageUrl && (
+                            <span className="text-sm text-green-600">✓ 업로드 완료</span>
+                          )}
+                        </div>
+                        
+                        {slide.fullImageUrl && slide.fullImageWidth && slide.fullImageHeight && (
+                          <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                            <strong>이미지 정보:</strong> {slide.fullImageWidth} × {slide.fullImageHeight}px
+                            <br />
+                            <strong>권장 크기:</strong> 1200 × 600px 이상 (2:1 비율)
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* 미리보기 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">미리보기</label>
-                    <div
-                      className={`${slide.bgColor} text-white p-4 rounded-lg h-32 flex flex-col justify-center`}
-                      style={{
-                        backgroundImage: slide.backgroundImage ? `url(${slide.backgroundImage})` : undefined,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                      }}
-                    >
-                      <div className={slide.backgroundImage ? 'bg-black/30 p-2 rounded' : ''}>
-                        {slide.tag && (
-                          <span className="inline-block bg-white/20 backdrop-blur px-2 py-1 rounded-full text-xs font-medium mb-1">
-                            {slide.tag}
-                          </span>
+                    {slide.useFullImage ? (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg h-32 flex items-center justify-center">
+                        {slide.fullImageUrl ? (
+                          <div
+                            className="w-full h-full rounded-lg flex items-center justify-center relative overflow-hidden"
+                            style={{
+                              backgroundImage: `url(${slide.fullImageUrl})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
+                            }}
+                          >
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                              <div className="text-white text-center">
+                                <h4 className="text-sm font-bold">{slide.title}</h4>
+                                <p className="text-xs opacity-90">{slide.subtitle}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center text-gray-500">
+                            <Upload className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">전체 이미지 모드</p>
+                            <p className="text-xs">이미지를 업로드해주세요</p>
+                          </div>
                         )}
-                        <h4 className="text-lg font-bold whitespace-pre-line">{slide.title}</h4>
-                        <p className="text-sm opacity-90">{slide.subtitle}</p>
                       </div>
-                    </div>
+                    ) : (
+                      <div
+                        className={`${slide.bgColor} text-white p-4 rounded-lg h-32 flex flex-col justify-center`}
+                        style={{
+                          backgroundImage: slide.backgroundImage ? `url(${slide.backgroundImage})` : undefined,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center'
+                        }}
+                      >
+                        <div className={slide.backgroundImage ? 'bg-black/30 p-2 rounded' : ''}>
+                          {slide.tag && (
+                            <span className="inline-block bg-white/20 backdrop-blur px-2 py-1 rounded-full text-xs font-medium mb-1">
+                              {slide.tag}
+                            </span>
+                          )}
+                          <h4 className="text-lg font-bold whitespace-pre-line">{slide.title}</h4>
+                          <p className="text-sm opacity-90">{slide.subtitle}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

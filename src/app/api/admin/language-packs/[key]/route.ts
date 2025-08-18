@@ -21,8 +21,11 @@ export async function GET(
       return authResult.error
     }
 
+    // category-campaign -> category.campaign 변환
+    const actualKey = params.key.replace('category-', 'category.')
+
     const languagePack = await prisma.languagePack.findUnique({
-      where: { key: params.key }
+      where: { key: actualKey }
     })
 
     if (!languagePack) {
@@ -66,9 +69,12 @@ export async function PUT(
     const body = await request.json()
     const { ko, en, jp, autoTranslate } = body
 
+    // category-campaign -> category.campaign 변환
+    const actualKey = params.key.replace('category-', 'category.')
+
     // 기존 언어팩 확인
     const existingPack = await prisma.languagePack.findUnique({
-      where: { key: params.key }
+      where: { key: actualKey }
     })
 
     if (!existingPack) {
@@ -112,7 +118,7 @@ export async function PUT(
 
     // 언어팩 업데이트
     const updatedPack = await prisma.languagePack.update({
-      where: { key: params.key },
+      where: { key: actualKey },
       data: {
         ...updateData,
         updatedAt: new Date()
@@ -150,9 +156,12 @@ export async function DELETE(
       return authResult.error
     }
 
+    // category-campaign -> category.campaign 변환
+    const actualKey = params.key.replace('category-', 'category.')
+
     // 기존 언어팩 확인
     const existingPack = await prisma.languagePack.findUnique({
-      where: { key: params.key }
+      where: { key: actualKey }
     })
 
     if (!existingPack) {
@@ -163,7 +172,7 @@ export async function DELETE(
     }
 
     // 수정 가능 여부 확인 (커스텀 메뉴만 삭제 가능)
-    if (!existingPack.isEditable || !params.key.includes('custom_')) {
+    if (!existingPack.isEditable || !actualKey.includes('custom_')) {
       return NextResponse.json(
         { error: 'This language pack cannot be deleted' },
         { status: 403 }
@@ -172,7 +181,7 @@ export async function DELETE(
 
     // 언어팩 삭제
     await prisma.languagePack.delete({
-      where: { key: params.key }
+      where: { key: actualKey }
     })
 
     console.log('Language pack deleted:', params.key)

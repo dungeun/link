@@ -10,8 +10,8 @@ interface CacheItem<T = any> {
 
 class MemoryCache {
   private cache = new Map<string, CacheItem>();
-  private readonly defaultTtl = 5 * 60 * 1000; // 5분
-  private readonly maxSize = 1000; // 최대 캐시 항목 수
+  private readonly defaultTtl = 2 * 60 * 1000; // 2분으로 단축 (메모리 절약)
+  private readonly maxSize = 500; // 최대 캐시 항목 수 감소 (메모리 절약)
 
   set<T>(key: string, data: T, ttl?: number): void {
     // 캐시 크기 제한
@@ -98,7 +98,7 @@ if (typeof window === 'undefined') { // 서버사이드에서만
  */
 export class CampaignCache {
   private static readonly CACHE_PREFIX = 'campaigns:';
-  private static readonly TTL = 3 * 60 * 1000; // 3분
+  private static readonly TTL = 1 * 60 * 1000; // 1분으로 단축 (더 빠른 데이터 갱신)
 
   static generateKey(filters: any, pagination: any): string {
     const key = `${this.CACHE_PREFIX}${JSON.stringify({ filters, pagination })}`;

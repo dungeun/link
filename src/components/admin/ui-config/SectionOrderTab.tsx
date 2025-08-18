@@ -15,7 +15,7 @@ interface Section {
   visible: boolean;
   fixed?: boolean;
   order: number;
-  type: 'hero' | 'category' | 'quicklinks' | 'promo' | 'ranking' | 'custom' | 'recommended';
+  type: 'hero' | 'category' | 'quicklinks' | 'promo' | 'ranking' | 'custom' | 'recommended' | 'activeCampaigns';
 }
 
 interface SortableSectionItemProps {
@@ -109,6 +109,10 @@ export function SectionOrderTab() {
       name: '추천 캠페인',
       description: '큐레이션된 캠페인 목록'
     },
+    activeCampaigns: {
+      name: '진행 중인 캠페인',
+      description: '현재 진행 중인 캠페인 목록'
+    },
     cta: {
       name: '하단 CTA',
       description: '회원가입 유도 영역',
@@ -144,7 +148,8 @@ export function SectionOrderTab() {
         { id: 'quicklinks', type: 'quicklinks' as const, order: 3, visible: true },
         { id: 'promo', type: 'promo' as const, order: 4, visible: true },
         { id: 'ranking', type: 'ranking' as const, order: 5, visible: true },
-        { id: 'recommended', type: 'recommended' as const, order: 6, visible: true }
+        { id: 'recommended', type: 'recommended' as const, order: 6, visible: true },
+        { id: 'activeCampaigns', type: 'activeCampaigns' as const, order: 7, visible: true }
       ];
       
       // Store 업데이트
@@ -360,7 +365,8 @@ export function SectionOrderTab() {
       { id: 'quicklinks', type: 'quicklinks' as const, order: 3, visible: true },
       { id: 'promo', type: 'promo' as const, order: 4, visible: true },
       { id: 'ranking', type: 'ranking' as const, order: 5, visible: true },
-      { id: 'recommended', type: 'recommended' as const, order: 6, visible: true }
+      { id: 'recommended', type: 'recommended' as const, order: 6, visible: true },
+      { id: 'activeCampaigns', type: 'activeCampaigns' as const, order: 7, visible: true }
     ];
     
     // 커스텀 섹션은 중복 제거하여 유지

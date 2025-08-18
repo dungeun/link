@@ -16,8 +16,18 @@ export function useCampaignData(campaignId: string) {
       if (!response.ok) throw new Error('Failed to fetch campaign')
       const data = await response.json()
       // 표준화된 API 응답 처리
-      if (data.success && data.data?.campaign) {
-        return data.data.campaign
+      if (data.success && data.data) {
+        // userInteractions 데이터를 campaign 객체에 병합
+        const campaign = data.data.campaign || {}
+        const userInteractions = data.data.userInteractions || {}
+        
+        return {
+          ...campaign,
+          hasApplied: userInteractions.hasApplied || false,
+          applicationStatus: userInteractions.applicationStatus,
+          isLiked: userInteractions.isLiked || false,
+          isSaved: userInteractions.isSaved || false
+        }
       }
       // 이전 API 구조 지원 (하위 호환성)
       return data.campaign || data

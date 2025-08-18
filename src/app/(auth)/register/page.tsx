@@ -161,11 +161,11 @@ function RegisterForm() {
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
               <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-                LinkPick
+                Revu
               </h1>
             </Link>
             <h2 className="text-2xl text-gray-800 mb-2">환영합니다!</h2>
-            <p className="text-gray-600">어떤 목적으로 LinkPick을 사용하시나요?</p>
+            <p className="text-gray-600">어떤 목적으로 Revu를 사용하시나요?</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -218,7 +218,7 @@ function RegisterForm() {
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                LinkPick
+                Revu
               </h1>
             </Link>
             <h2 className="text-xl text-gray-600">

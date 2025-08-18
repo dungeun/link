@@ -819,7 +819,7 @@ function HomePage({
                     t={t}
                   />
                 )
-              case 'active-campaigns':
+              case 'activeCampaigns':
                 return (
                   <ActiveCampaignsSection
                     key={section.id}

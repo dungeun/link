@@ -19,10 +19,10 @@ export interface PreloadedData {
   };
 }
 
-// 메모리 캐시
+// 메모리 캐시 - TTL 단축 및 메모리 효율화
 let preloadedCache: PreloadedData | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_TTL = 30 * 60 * 1000; // 30분
+const CACHE_TTL = 5 * 60 * 1000; // 5분으로 단축 (메모리 절약)
 
 /**
  * 모든 홈페이지 데이터를 단일 트랜잭션으로 프리로드
@@ -56,16 +56,13 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
         select: {
           id: true,
           title: true,
-          description: true,
-          platform: true,
+          platform: true, // description 제거 (메모리 절약)
           budget: true,
           targetFollowers: true,
           endDate: true,
           rewardAmount: true,
           maxApplicants: true,
           thumbnailImageUrl: true,
-          headerImageUrl: true,
-          imageUrl: true,
           hashtags: true,
           createdAt: true,
           // JOIN 최적화: 필요한 필드만 선택

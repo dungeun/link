@@ -108,9 +108,9 @@ interface SystemSettings {
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SystemSettings>({
     general: {
-      siteName: 'LinkPick',
-      siteDescription: '인플루언서 마케팅 플랫폼',
-      supportEmail: 'support@linkpick.com',
+      siteName: 'Revu',
+      siteDescription: '리뷰 플랫폼 - 인플루언서와 브랜드를 연결하는 리뷰 마케팅 플랫폼',
+      supportEmail: 'support@revu.com',
       maintenanceMode: false,
       registrationEnabled: true,
       emailVerificationRequired: true

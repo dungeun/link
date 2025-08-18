@@ -78,8 +78,8 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
         }
       case 4:
         return {
-          borderColor: 'border-l-gray-300',
-          badgeColor: 'bg-gray-400 text-white',
+          borderColor: 'border-l-orange-200',
+          badgeColor: 'bg-orange-200 text-white',
           borderWidth: 'border-l-4'
         }
       default: 
@@ -152,13 +152,13 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
               <Link
                 key={campaign.id}
                 href={`/campaigns/${campaign.id}`}
-                className={`bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all relative cursor-pointer ${rankStyles.borderWidth} ${rankStyles.borderColor} hover:scale-105`}
+                className={`bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all relative cursor-pointer hover:scale-105`}
                 style={{ pointerEvents: 'auto' }}
               >
                 {/* 랭킹 뱃지 */}
                 {showBadge && campaign.rank && (
-                  <div className="absolute top-3 left-3 z-10">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${rankStyles.badgeColor} shadow-lg`}>
+                  <div className="absolute top-0 left-0 z-10">
+                    <div className={`px-2 py-1 flex items-center justify-center text-sm font-bold ${rankStyles.badgeColor} min-w-[24px] h-6`}>
                       {campaign.rank}
                     </div>
                   </div>
@@ -174,7 +174,7 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
                   />
                 )}
                 <div className="absolute top-3 right-3">
-                  <span className="bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-medium">
+                  <span className="bg-white px-2 py-1 rounded text-xs font-medium">
                     D-{campaign.deadline}
                   </span>
                 </div>

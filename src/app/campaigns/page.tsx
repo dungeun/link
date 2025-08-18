@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import PageLayout from '@/components/layouts/PageLayout'
 import { AuthService } from '@/lib/auth'
 import { useLanguage } from '@/hooks/useLanguage'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
+import { logger } from '@/lib/logger'
 
 interface Campaign {
   id: string;
@@ -41,16 +43,13 @@ export default function CampaignsPage() {
   
   // 언어팩 사용
   const { t } = useLanguage()
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 20, // 5 rows * 4 columns = 20 items per page
-    total: 0,
-    totalPages: 0
-  })
+  const [cursor, setCursor] = useState<string | null>(null)
+  const [hasMore, setHasMore] = useState(true)
   const [categoryStats, setCategoryStats] = useState<{[key: string]: number}>({})
+  const [totalCount, setTotalCount] = useState(0)
 
   const categories = [
-    { id: 'all', name: t('campaigns.category.all', '전체'), count: pagination.total },
+    { id: 'all', name: t('campaigns.category.all', '전체'), count: totalCount },
     { id: '패션', name: t('campaigns.category.fashion', '패션'), count: categoryStats['패션'] || 0 },
     { id: '뷰티', name: t('campaigns.category.beauty', '뷰티'), count: categoryStats['뷰티'] || 0 },
     { id: '음식', name: t('campaigns.category.food', '음식'), count: categoryStats['음식'] || 0 },
@@ -63,16 +62,19 @@ export default function CampaignsPage() {
     { id: '헬스', name: t('campaigns.category.health', '헬스'), count: categoryStats['헬스'] || 0 }
   ]
 
-  // 캠페인 데이터 가져오기
-  const fetchCampaigns = async () => {
+  // 캠페인 데이터 가져오기 (커서 기반 무한 스크롤)
+  const fetchCampaigns = useCallback(async (isInitial = false) => {
+    if (loading || (!isInitial && !hasMore)) return
+
     try {
       setLoading(true)
       setError(null)
       
-      const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
-      })
+      const params = new URLSearchParams()
+      if (!isInitial && cursor) {
+        params.append('cursor', cursor)
+      }
+      params.append('limit', '20')
       
       if (selectedCategory !== 'all') {
         params.append('category', selectedCategory)
@@ -82,7 +84,12 @@ export default function CampaignsPage() {
         params.append('platform', selectedPlatform)
       }
       
-      const response = await fetch(`/api/campaigns?${params}`)
+      if (selectedSort) {
+        params.append('sort', selectedSort)
+      }
+      
+      // 최적화된 API 엔드포인트 사용
+      const response = await fetch(`/api/campaigns/optimized?${params}`)
       
       if (!response.ok) {
         throw new Error(t('error.campaigns_fetch_failed', '캠페인 데이터를 가져오는데 실패했습니다.'))
@@ -94,22 +101,37 @@ export default function CampaignsPage() {
         throw new Error(data.error)
       }
       
-      setCampaigns(data.campaigns || [])
-      setPagination(data.pagination || {
-        page: 1,
-        limit: 20,
-        total: 0,
-        totalPages: 0
+      // 커서 기반 페이징 데이터 처리
+      if (isInitial) {
+        setCampaigns(data.items || [])
+      } else {
+        setCampaigns(prev => [...prev, ...(data.items || [])])
+      }
+      
+      setCursor(data.nextCursor || null)
+      setHasMore(data.hasMore || false)
+      
+      // 카테고리 통계는 초기 로드에서만 업데이트
+      if (isInitial) {
+        // 별도로 카테고리 통계 API 호출 (필요시)
+        setTotalCount(data.totalCount || campaigns.length)
+      }
+      
+      logger.info('Campaigns loaded', {
+        count: data.items?.length || 0,
+        cursor: data.nextCursor,
+        hasMore: data.hasMore
       })
-      setCategoryStats(data.categoryStats || {})
     } catch (err) {
       console.error('캠페인 데이터 조회 오류:', err)
       setError(err instanceof Error ? err.message : t('error.unknown_error_occurred', '알 수 없는 오류가 발생했습니다.'))
-      setCampaigns([])
+      if (isInitial) {
+        setCampaigns([])
+      }
     } finally {
       setLoading(false)
     }
-  }
+  }, [cursor, hasMore, loading, selectedCategory, selectedPlatform, selectedSort, t, campaigns.length])
 
   // 사용자가 좋아요한 캠페인 목록 가져오기
   const fetchLikedCampaigns = async () => {
@@ -134,11 +156,22 @@ export default function CampaignsPage() {
     }
   }
 
-  // 페이지 로드 시 및 필터 변경 시 데이터 가져오기
+  // 무한 스크롤 Hook 사용
+  const { sentinelRef } = useInfiniteScroll({
+    onLoadMore: () => fetchCampaigns(false),
+    hasMore,
+    loading,
+    threshold: 300 // 하단 300px 전에 로드 시작
+  })
+
+  // 필터 변경 시 초기화
   useEffect(() => {
-    fetchCampaigns()
+    setCampaigns([])
+    setCursor(null)
+    setHasMore(true)
+    fetchCampaigns(true)
     fetchLikedCampaigns()
-  }, [pagination.page, selectedCategory, selectedPlatform])
+  }, [selectedCategory, selectedPlatform, selectedSort])
 
   // 즐겨찾기 토글 함수
   const toggleFavorite = async (campaignId: string) => {
@@ -189,27 +222,13 @@ export default function CampaignsPage() {
   // 필터 변경 핸들러
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category)
-    setPagination(prev => ({ ...prev, page: 1 }))
   }
 
   const handlePlatformChange = (platform: string) => {
     setSelectedPlatform(platform)
-    setPagination(prev => ({ ...prev, page: 1 }))
   }
 
-  // 정렬 (클라이언트 사이드에서 수행)
-  const sortedCampaigns = [...campaigns].sort((a, b) => {
-    switch(selectedSort) {
-      case 'latest': 
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      case 'deadline': 
-        return new Date(a.application_deadline).getTime() - new Date(b.application_deadline).getTime();
-      case 'popular': 
-        return b.applicant_count - a.applicant_count;
-      default: 
-        return 0;
-    }
-  });
+  // 캠페인은 이미 API에서 정렬되어 옴
 
   return (
     <PageLayout>
@@ -315,7 +334,7 @@ export default function CampaignsPage() {
             <>
               <div className="mb-8">
                 <p className="text-gray-600">
-                  {t('campaigns.status.total_campaigns_count', '총 {count}개의 캠페인이 있습니다.').replace('{count}', `${pagination.total}`)}
+                  {t('campaigns.status.total_campaigns_count', '총 {count}개의 캠페인이 있습니다.').replace('{count}', `${totalCount || campaigns.length}`)}
                 </p>
               </div>
 
@@ -346,7 +365,7 @@ export default function CampaignsPage() {
           {/* 쇼핑몰 스타일 이미지 뷰 */}
           {/* 모바일 최적화된 캠페인 그리드 - 4열 그리드로 변경 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {sortedCampaigns.map((campaign, index) => {
+            {campaigns.map((campaign, index) => {
               // 가상 이미지 URL 배열
               const virtualImages = [
                 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80', // 화장품
@@ -481,30 +500,23 @@ export default function CampaignsPage() {
             })}
           </div>
 
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="text-center mt-12">
-              <div className="flex justify-center items-center gap-2">
-                <button
-                  onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
-                  disabled={pagination.page === 1}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {t('pagination.previous', '이전')}
-                </button>
-                
-                <span className="px-4 py-2 text-gray-700">
-                  {pagination.page} / {pagination.totalPages}
-                </span>
-                
-                <button
-                  onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.totalPages, prev.page + 1) }))}
-                  disabled={pagination.page === pagination.totalPages}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {t('pagination.next', '다음')}
-                </button>
-              </div>
+          {/* 무한 스크롤 센티널 및 로딩 상태 */}
+          {hasMore && !error && (
+            <div 
+              ref={sentinelRef} 
+              className="h-20 flex items-center justify-center"
+              aria-hidden="true"
+            >
+              {loading && (
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-600"></div>
+              )}
+            </div>
+          )}
+
+          {/* 더 이상 로드할 캠페인이 없을 때 */}
+          {!hasMore && campaigns.length > 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <p>{t('campaigns.status.all_campaigns_loaded', '모든 캠페인을 불러왔습니다.')}</p>
             </div>
           )}
                 </>

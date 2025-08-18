@@ -20,8 +20,8 @@ export default function AboutPage() {
               </span>
             </h1>
             <p className="text-xl text-white/80 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-800" style={{ animationDelay: '200ms' }}>
-              LinkPick는 AI 기술과 데이터 분석을 통해 브랜드와 인플루언서를 연결하는
-              혁신적인 마케팅 플랫폼입니다.
+              Revu는 AI 기술과 데이터 분석을 통해 브랜드와 인플루언서를 연결하는
+              혁신적인 리뷰 마케팅 플랫폼입니다.
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function AboutPage() {
             <h2 className="text-4xl font-bold text-center mb-12">우리의 이야기</h2>
             <div className="prose prose-lg mx-auto">
               <p className="text-gray-700 mb-6">
-                2024년, 인플루언서 마케팅 시장의 불투명성과 비효율성을 해결하고자 LinkPick가 탄생했습니다.
+                2024년, 리뷰 마케팅 시장의 불투명성과 비효율성을 해결하고자 Revu가 탄생했습니다.
                 우리는 브랜드가 적합한 인플루언서를 찾기 어렵고, 인플루언서가 공정한 대우를 받지 못하는
                 현실을 목격했습니다.
               </p>
@@ -88,7 +88,7 @@ export default function AboutPage() {
                 인플루언서 마케팅의 새로운 표준을 제시하고 있습니다.
               </p>
               <p className="text-gray-700">
-                현재 50,000명 이상의 인플루언서와 2,500개 이상의 브랜드가 LinkPick를 통해
+                현재 50,000명 이상의 인플루언서와 2,500개 이상의 브랜드가 Revu를 통해
                 성공적인 캠페인을 진행하고 있으며, 매달 30% 이상의 성장을 기록하고 있습니다.
               </p>
             </div>
@@ -208,7 +208,7 @@ export default function AboutPage() {
             함께 성장하고 싶으신가요?
           </h2>
           <p className="text-xl text-white/80 mb-8">
-            LinkPick와 함께 인플루언서 마케팅의 미래를 만들어갑니다.
+            Revu와 함께 리뷰 마케팅의 미래를 만들어갑니다.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register" className="px-8 py-4 bg-white text-blue-600 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-200">

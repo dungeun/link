@@ -11,6 +11,7 @@ interface HomeSectionsProps {
     promo?: ReactNode
     ranking?: ReactNode
     recommended?: ReactNode
+    activeCampaigns?: ReactNode
     custom?: Record<string, ReactNode>
   }
 }
@@ -26,6 +27,7 @@ function HomeSectionsComponent({ children }: HomeSectionsProps) {
     { id: 'promo', type: 'promo', order: 4, visible: true },
     { id: 'ranking', type: 'ranking', order: 5, visible: true },
     { id: 'recommended', type: 'recommended', order: 6, visible: true },
+    { id: 'activeCampaigns', type: 'activeCampaigns', order: 7, visible: true },
   ], [])
   
   // 섹션 순서 가져오기 - 메모이제이션
@@ -78,6 +80,8 @@ function HomeSectionsComponent({ children }: HomeSectionsProps) {
             return children.ranking || null
           case 'recommended':
             return children.recommended || null
+          case 'activeCampaigns':
+            return children.activeCampaigns || null
           case 'custom':
             return children.custom?.[section.id] || null
           default:

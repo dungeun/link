@@ -150,7 +150,7 @@ function Header({ variant = 'default' }: HeaderProps) {
                 </div>
               ) : (
                 <h1 className="text-lg sm:text-xl lg:text-3xl font-black text-white truncate">
-                  {siteSettings.general.siteName || 'LinkPick'}
+                  {siteSettings.general.siteName || 'Revu'}
                 </h1>
               )}
             </Link>
