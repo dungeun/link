@@ -91,7 +91,6 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         description,
-        categoryId,  // 카테고리 ID 추가
         platform: platform || (platforms && platforms[0]) || 'INSTAGRAM',
         platforms: platforms ? JSON.stringify(platforms) : null,
         budget: budget !== undefined ? budget : 0,  // budget 필드 추가
@@ -120,7 +119,14 @@ export async function POST(request: NextRequest) {
         additionalNotes: additionalNotes || null,
         status: 'DRAFT', // 결제 전에는 DRAFT 상태
         isPaid: false,
-        businessId: user.id
+        businessId: user.id,
+        // 카테고리 연결 (다대다 관계)
+        categories: categoryId ? {
+          create: {
+            categoryId: categoryId,
+            isPrimary: true
+          }
+        } : undefined
       }
     });
 
