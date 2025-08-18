@@ -728,20 +728,53 @@ export default function CampaignDetailPage() {
                   {campaign.detailImages && (
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">상세 이미지</h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-4">
                         {(() => {
-                          // detailImages가 문자열인 경우 파싱, 배열인 경우 그대로 사용
-                          const images = typeof campaign.detailImages === 'string' 
-                            ? JSON.parse(campaign.detailImages) 
-                            : campaign.detailImages || [];
+                          // detailImages 처리: 문자열, 배열, JSON 문자열 모두 대응
+                          let images: string[] = [];
                           
-                          return images.map((image: any, index: number) => (
-                            <div key={image.id || index} className="relative aspect-video rounded-lg overflow-hidden">
-                              <Image
-                                src={image.url || image}
+                          try {
+                            if (typeof campaign.detailImages === 'string') {
+                              // JSON 문자열인 경우
+                              if (campaign.detailImages.startsWith('[') || campaign.detailImages.startsWith('{')) {
+                                const parsed = JSON.parse(campaign.detailImages);
+                                images = Array.isArray(parsed) ? parsed : [parsed];
+                              } else {
+                                // 단일 URL 문자열인 경우
+                                images = [campaign.detailImages];
+                              }
+                            } else if (Array.isArray(campaign.detailImages)) {
+                              // 이미 배열인 경우
+                              images = campaign.detailImages;
+                            } else if (campaign.detailImages && typeof campaign.detailImages === 'object') {
+                              // 객체인 경우 (url 속성을 가진 객체 배열일 수 있음)
+                              images = [campaign.detailImages];
+                            }
+                          } catch (e) {
+                            console.error('Detail images parsing error:', e);
+                            // 파싱 실패 시 빈 배열
+                            images = [];
+                          }
+                          
+                          // 유효한 이미지만 필터링
+                          const validImages = images
+                            .map(img => typeof img === 'string' ? img : img?.url || img)
+                            .filter(url => url && typeof url === 'string');
+                          
+                          if (validImages.length === 0) {
+                            return <p className="text-gray-500">상세 이미지가 없습니다.</p>;
+                          }
+                          
+                          return validImages.map((imageUrl: string, index: number) => (
+                            <div key={index} className="relative w-full">
+                              <img
+                                src={imageUrl}
                                 alt={`상세 이미지 ${index + 1}`}
-                                fill
-                                className="object-cover"
+                                className="w-full h-auto rounded-lg"
+                                onError={(e) => {
+                                  console.error(`Failed to load detail image ${index + 1}:`, imageUrl);
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
                               />
                             </div>
                           ));

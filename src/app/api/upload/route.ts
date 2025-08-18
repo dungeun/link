@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // 60초 타임아웃
+export const runtime = 'nodejs'; // Node.js runtime 사용
+
 import { uploadService } from '@/lib/services/upload.service';
 
 // Dynamic route configuration
@@ -15,7 +18,7 @@ import { PerformanceTimer } from '@/lib/utils/performance';
 
 // 허용된 파일 타입 상수
 const ALLOWED_FILE_TYPES = ['profile', 'campaign', 'content', 'document'] as const;
-const MAX_FILE_SIZE_MB = 15;
+const MAX_FILE_SIZE_MB = 20; // 20MB로 증가
 
 type FileType = typeof ALLOWED_FILE_TYPES[number];
 

@@ -213,21 +213,30 @@ export default function EditCampaignPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        {/* 헤더 */}
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            뒤로가기
-          </Button>
-          <h1 className="text-2xl font-bold">캠페인 수정</h1>
-          <p className="text-gray-600 mt-2">캠페인 정보를 수정할 수 있습니다.</p>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 pb-24">
+        <div className="max-w-4xl mx-auto">
+          {/* 헤더 영역 개선 */}
+          <div className="bg-white rounded-lg shadow mb-6 p-6">
+            <Button
+              variant="ghost"
+              onClick={() => router.back()}
+              className="mb-4 -ml-2"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              뒤로가기
+            </Button>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">캠페인 수정</h1>
+                <p className="text-gray-600 mt-2">캠페인 정보를 수정하고 업데이트합니다.</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500">캠페인 ID</p>
+                <p className="font-mono text-xs text-gray-600">{id}</p>
+              </div>
+            </div>
+          </div>
 
         {/* 수정 폼 */}
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -544,86 +553,145 @@ export default function EditCampaignPage() {
 
               <div>
                 <Label>제품 이미지</Label>
-                <div className="grid grid-cols-4 gap-4 mt-2">
-                  {productImages.map((img, idx) => (
-                    <div key={idx} className="relative">
-                      <img src={img} alt={`Product ${idx + 1}`} className="w-full h-24 object-cover rounded" />
-                      <button
-                        type="button"
-                        onClick={() => setProductImages(productImages.filter((_, i) => i !== idx))}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  <ImageUpload
-                    value=""
-                    onChange={(value) => {
-                      const url = Array.isArray(value) ? value[0] || '' : value;
-                      if (url) setProductImages([...productImages, url]);
-                    }}
-                    className="h-24"
-                  />
+                <div className="space-y-4 mt-2">
+                  {/* 썸네일 그리드 뷰 */}
+                  <div className="grid grid-cols-4 gap-4">
+                    {productImages.map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        <img 
+                          src={img} 
+                          alt={`Product ${idx + 1}`} 
+                          className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-90" 
+                          onClick={() => window.open(img, '_blank')}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setProductImages(productImages.filter((_, i) => i !== idx))}
+                          className="absolute top-1 right-1 bg-red-500/90 backdrop-blur text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <ImageUpload
+                      value=""
+                      onChange={(value) => {
+                        const url = Array.isArray(value) ? value[0] || '' : value;
+                        if (url) setProductImages([...productImages, url]);
+                      }}
+                      className="h-24"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div>
                 <Label>상세 이미지</Label>
-                <div className="grid grid-cols-4 gap-4 mt-2">
-                  {detailImages.map((img, idx) => (
-                    <div key={idx} className="relative">
-                      <img src={img} alt={`Detail ${idx + 1}`} className="w-full h-24 object-cover rounded" />
-                      <button
-                        type="button"
-                        onClick={() => setDetailImages(detailImages.filter((_, i) => i !== idx))}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                      >
-                        ×
-                      </button>
+                <div className="space-y-4 mt-2">
+                  {/* 이미지 미리보기 영역 - 스크롤 가능한 컨테이너 */}
+                  {detailImages.length > 0 && (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="max-h-96 overflow-y-auto space-y-4">
+                        {detailImages.map((img, idx) => (
+                          <div key={idx} className="relative group">
+                            <img 
+                              src={img} 
+                              alt={`Detail ${idx + 1}`} 
+                              className="w-full rounded border bg-white cursor-pointer transition-opacity hover:opacity-90"
+                              onClick={() => window.open(img, '_blank')}
+                            />
+                            <div className="absolute top-2 right-2 flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => window.open(img, '_blank')}
+                                className="bg-white/90 backdrop-blur text-gray-700 rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-white"
+                                title="원본 보기"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDetailImages(detailImages.filter((_, i) => i !== idx))}
+                                className="bg-red-500/90 backdrop-blur text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-red-500"
+                                title="삭제"
+                              >
+                                ×
+                              </button>
+                            </div>
+                            <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                              이미지 {idx + 1}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        클릭하여 원본 크기로 보기 • 스크롤하여 더 많은 이미지 보기
+                      </p>
                     </div>
-                  ))}
-                  <ImageUpload
-                    value=""
-                    onChange={(value) => {
-                      const url = Array.isArray(value) ? value[0] || '' : value;
-                      if (url) setDetailImages([...detailImages, url]);
-                    }}
-                    className="h-24"
-                  />
+                  )}
+                  
+                  {/* 이미지 추가 버튼 */}
+                  <div>
+                    <ImageUpload
+                      value=""
+                      onChange={(value) => {
+                        const url = Array.isArray(value) ? value[0] || '' : value;
+                        if (url) setDetailImages([...detailImages, url]);
+                      }}
+                      className="w-full"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      상세 이미지를 추가하려면 클릭하세요 (긴 이미지도 지원됩니다)
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 제출 버튼 */}
-          <div className="flex justify-end space-x-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={loading}
-            >
-              취소
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  수정 중...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  캠페인 수정
-                </>
-              )}
-            </Button>
+          {/* 제출 버튼 영역 - 개선된 레이아웃 */}
+          <div className="bg-white rounded-lg shadow-lg p-6 mt-8 border-l-4 border-indigo-500">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-600 text-center sm:text-left">
+                <span className="font-medium">변경사항을 저장하시겠습니까?</span>
+                <p className="text-xs text-gray-500 mt-1">수정된 내용은 즉시 적용됩니다.</p>
+              </div>
+              <div className="flex space-x-4 w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                  size="lg"
+                  className="flex-1 sm:flex-none"
+                >
+                  취소
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  size="lg"
+                  className="flex-1 sm:flex-none min-w-[150px]"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      수정 중...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      캠페인 수정
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         </form>
+        </div>
       </div>
     </div>
   )

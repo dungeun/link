@@ -20,6 +20,7 @@ export default function CampaignCreateModal({ isOpen, onClose, onSuccess }: Camp
     platform: 'INSTAGRAM',
     budget: '',
     targetFollowers: '',
+    maxApplicants: '100',
     startDate: '',
     endDate: '',
     requirements: '',
@@ -59,6 +60,7 @@ export default function CampaignCreateModal({ isOpen, onClose, onSuccess }: Camp
         businessId,
         budget: Number(formData.budget),
         targetFollowers: Number(formData.targetFollowers),
+        maxApplicants: Number(formData.maxApplicants || 100),
         hashtags: formData.hashtags ? formData.hashtags.split(',').map(tag => tag.trim()) : [],
         status: 'pending' // 기본값은 승인대기
       })
@@ -75,6 +77,7 @@ export default function CampaignCreateModal({ isOpen, onClose, onSuccess }: Camp
           platform: 'INSTAGRAM',
           budget: '',
           targetFollowers: '',
+          maxApplicants: '100',
           startDate: '',
           endDate: '',
           requirements: '',
@@ -219,17 +222,33 @@ export default function CampaignCreateModal({ isOpen, onClose, onSuccess }: Camp
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        목표 팔로워 수 *
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        value={formData.targetFollowers}
-                        onChange={(e) => setFormData({ ...formData, targetFollowers: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          목표 팔로워 수 *
+                        </label>
+                        <input
+                          type="number"
+                          required
+                          value={formData.targetFollowers}
+                          onChange={(e) => setFormData({ ...formData, targetFollowers: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="1000"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          최대 지원자 수
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.maxApplicants || 100}
+                          onChange={(e) => setFormData({ ...formData, maxApplicants: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="100"
+                        />
+                      </div>
                     </div>
 
                     <div>

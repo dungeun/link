@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useDropzone } from 'react-dropzone'
 import { Button } from './Button'
 import { Upload, X, ImageIcon, FileImage, AlertCircle } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
 
 interface ImageUploadProps {
   value?: string | string[]
@@ -32,8 +33,8 @@ export function ImageUpload({
   multiple = false,
   category = 'temp',
   maxFiles = 5,
-  acceptedTypes = ['image/jpeg', 'image/png', 'image/webp'],
-  maxSize = 5, // 5MB
+  acceptedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+  maxSize = 20, // 20MB로 증가
   className = '',
   disabled = false,
   enableDragDrop = true,
@@ -86,7 +87,36 @@ export function ImageUpload({
       const uploadedUrls: string[] = []
 
       for (let i = 0; i < files.length; i++) {
-        const file = files[i]
+        let file = files[i]
+        
+        // 이미지 압축 (5MB 이상인 경우)
+        if (file.size > 5 * 1024 * 1024) {
+          console.log(`Compressing large image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
+          
+          const options = {
+            maxSizeMB: 4.5, // 최대 4.5MB로 압축
+            maxWidthOrHeight: 1920, // 최대 너비/높이
+            useWebWorker: true,
+            fileType: 'image/webp', // WebP로 변환
+            initialQuality: 0.8 // 초기 품질 80%
+          }
+          
+          try {
+            const compressedFile = await imageCompression(file, options)
+            // WebP로 변환된 파일 이름 변경
+            const webpFile = new File(
+              [compressedFile], 
+              file.name.replace(/\.[^/.]+$/, '.webp'),
+              { type: 'image/webp' }
+            )
+            console.log(`Compression complete: ${(webpFile.size / 1024 / 1024).toFixed(2)}MB (WebP)`)
+            file = webpFile
+          } catch (compressionError) {
+            console.error('Image compression failed:', compressionError)
+            // 압축 실패 시 원본 파일 사용
+          }
+        }
+        
         const formData = new FormData()
         formData.append('file', file)
         formData.append('type', category === 'campaigns' ? 'campaign' : category)

@@ -365,7 +365,7 @@ export class UploadService {
   /**
    * 파일 크기 제한 체크
    */
-  validateFileSize(file: File, maxSizeInMB: number = 15): boolean {
+  validateFileSize(file: File, maxSizeInMB: number = 20): boolean {
     const maxSizeInBytes = maxSizeInMB * 1024 * 1024
     return file.size <= maxSizeInBytes
   }
@@ -373,7 +373,7 @@ export class UploadService {
   /**
    * 허용된 파일 타입 체크
    */
-  validateFileType(file: File, allowedTypes: string[] = ['image/jpeg', 'image/png', 'image/webp']): boolean {
+  validateFileType(file: File, allowedTypes: string[] = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']): boolean {
     return allowedTypes.includes(file.type)
   }
 }
