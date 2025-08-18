@@ -55,13 +55,39 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
   const title = useMemo(() => localizedContent?.title || section.title || '인기 랭킹', [localizedContent?.title, section.title])
   const subtitle = useMemo(() => localizedContent?.subtitle || section.subtitle || '실시간 인기 캠페인', [localizedContent?.subtitle, section.subtitle])
 
-  // 랭킹 뱃지 색상 - 메모이제이션
-  const getRankBadgeColor = useCallback((rank: number) => {
+  // 랭킹별 모서리 컬러 및 뱃지 색상 - 메모이제이션
+  const getRankStyles = useCallback((rank: number) => {
     switch (rank) {
-      case 1: return 'bg-yellow-500 text-white' // 금
-      case 2: return 'bg-gray-400 text-white'  // 은
-      case 3: return 'bg-amber-600 text-white' // 동
-      default: return 'bg-blue-500 text-white'
+      case 1: 
+        return {
+          borderColor: 'border-l-orange-500',
+          badgeColor: 'bg-orange-500 text-white',
+          borderWidth: 'border-l-4'
+        }
+      case 2: 
+        return {
+          borderColor: 'border-l-orange-400',
+          badgeColor: 'bg-orange-400 text-white', 
+          borderWidth: 'border-l-4'
+        }
+      case 3: 
+        return {
+          borderColor: 'border-l-orange-300',
+          badgeColor: 'bg-orange-300 text-white',
+          borderWidth: 'border-l-4'
+        }
+      case 4:
+        return {
+          borderColor: 'border-l-gray-300',
+          badgeColor: 'bg-gray-400 text-white',
+          borderWidth: 'border-l-4'
+        }
+      default: 
+        return {
+          borderColor: 'border-l-gray-200',
+          badgeColor: 'bg-gray-500 text-white',
+          borderWidth: 'border-l-2'
+        }
     }
   }, [])
 
@@ -120,21 +146,23 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
         </div>
       ) : campaigns.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {campaigns.map((campaign) => (
-            <Link
-              key={campaign.id}
-              href={`/campaigns/${campaign.id}`}
-              className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow relative cursor-pointer"
-              style={{ pointerEvents: 'auto' }}
-            >
-              {/* 랭킹 뱃지 */}
-              {showBadge && campaign.rank && (
-                <div className="absolute top-3 left-3 z-10">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${getRankBadgeColor(campaign.rank)}`}>
-                    {campaign.rank}
+          {campaigns.map((campaign) => {
+            const rankStyles = campaign.rank ? getRankStyles(campaign.rank) : getRankStyles(0)
+            return (
+              <Link
+                key={campaign.id}
+                href={`/campaigns/${campaign.id}`}
+                className={`bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all relative cursor-pointer ${rankStyles.borderWidth} ${rankStyles.borderColor} hover:scale-105`}
+                style={{ pointerEvents: 'auto' }}
+              >
+                {/* 랭킹 뱃지 */}
+                {showBadge && campaign.rank && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${rankStyles.badgeColor} shadow-lg`}>
+                      {campaign.rank}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* 캠페인 이미지 */}
               <div className="aspect-square bg-gradient-to-br from-indigo-500 to-purple-600 relative">
@@ -181,8 +209,9 @@ function RankingSection({ section, localizedContent, t }: RankingSectionProps) {
                   </div>
                 </div>
               </div>
-            </Link>
-          ))}
+              </Link>
+            )
+          })}
         </div>
       ) : (
         <div className="text-center py-16 bg-gray-50 rounded-xl">
