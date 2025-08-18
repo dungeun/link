@@ -108,7 +108,7 @@ export interface CustomSection {
 
 export interface SectionOrder {
   id: string;
-  type: 'hero' | 'category' | 'quicklinks' | 'promo' | 'ranking' | 'custom' | 'recommended';
+  type: 'hero' | 'category' | 'quicklinks' | 'promo' | 'ranking' | 'custom' | 'recommended' | 'activeCampaigns';
   order: number;
   visible: boolean;
 }

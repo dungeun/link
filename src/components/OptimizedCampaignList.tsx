@@ -93,13 +93,9 @@ function OptimizedCampaignList({
         setHasMore(data.hasMore);
       }
 
-      logger.info('Loaded campaigns', {
-        count: data.items?.length || data.length,
-        hasMore: data.hasMore,
-        cursor: data.nextCursor
-      });
+      logger.info(`Loaded campaigns - count: ${data.items?.length || data.length}, hasMore: ${data.hasMore}, cursor: ${data.nextCursor}`);
     } catch (err) {
-      logger.error('Failed to load campaigns', err);
+      logger.error(`Failed to load campaigns - error: ${err instanceof Error ? err.message : String(err)}`);
       setError('캠페인을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
@@ -145,10 +141,6 @@ function OptimizedCampaignList({
                 applicants: campaign._count.applications,
                 maxApplicants: campaign.maxApplicants,
                 deadline: Math.ceil((new Date(campaign.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
-                category: campaign.categories?.[0]?.category?.name || '',
-                platforms: ['instagram'], // API에서 실제 플랫폼 정보가 필요
-                description: '',
-                createdAt: '',
                 budget: campaign.budget.toString(),
                 imageUrl: campaign.thumbnailImageUrl || undefined
               }}

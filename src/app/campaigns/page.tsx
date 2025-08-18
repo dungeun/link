@@ -117,11 +117,7 @@ export default function CampaignsPage() {
         setTotalCount(data.totalCount || campaigns.length)
       }
       
-      logger.info('Campaigns loaded', {
-        count: data.items?.length || 0,
-        cursor: data.nextCursor,
-        hasMore: data.hasMore
-      })
+      logger.info(`Campaigns loaded: count=${data.items?.length || 0}, cursor=${data.nextCursor}, hasMore=${data.hasMore}`)
     } catch (err) {
       console.error('캠페인 데이터 조회 오류:', err)
       setError(err instanceof Error ? err.message : t('error.unknown_error_occurred', '알 수 없는 오류가 발생했습니다.'))
@@ -320,7 +316,7 @@ export default function CampaignsPage() {
                   <h3 className="font-medium">{t('error.data_loading_failed_title', '데이터 로딩 실패')}</h3>
                   <p className="text-sm mt-1">{error}</p>
                   <button 
-                    onClick={fetchCampaigns}
+                    onClick={() => fetchCampaigns()}
                     className="mt-2 text-sm bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors"
                   >
                     {t('action.retry', '다시 시도')}
@@ -350,7 +346,9 @@ export default function CampaignsPage() {
                       onClick={() => {
                         setSelectedCategory('all')
                         setSelectedPlatform('all')
-                        setPagination(prev => ({ ...prev, page: 1 }))
+                        setCursor(null)
+                        setHasMore(true)
+                        fetchCampaigns(true)
                       }}
                       className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700"
                     >

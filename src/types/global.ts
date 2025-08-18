@@ -166,7 +166,8 @@ export type UISectionType =
   | 'quicklinks' 
   | 'promo' 
   | 'recommended' 
-  | 'ranking';
+  | 'ranking'
+  | 'activeCampaigns';
 
 export interface UISectionContent {
   [key: string]: JsonValue;

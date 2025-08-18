@@ -293,12 +293,9 @@ function HomePage({
       setCursor(data.nextCursor)
       setHasMore(data.hasMore)
       
-      logger.info('HomePage: Loaded more campaigns', {
-        count: data.items?.length,
-        total: campaigns.length + data.items?.length
-      })
+      logger.info(`HomePage: Loaded more campaigns - count: ${data.items?.length}, total: ${campaigns.length + data.items?.length}`)
     } catch (error) {
-      logger.error('HomePage: Failed to load campaigns', error)
+      logger.error(`HomePage: Failed to load campaigns - error: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
       setLoading(false)
     }

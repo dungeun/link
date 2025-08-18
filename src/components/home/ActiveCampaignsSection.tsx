@@ -115,10 +115,12 @@ function ActiveCampaignsSection({ section, localizedContent, t }: ActiveCampaign
         </div>
       ) : campaigns.length > 0 ? (
         <div className={`grid ${gridClasses} gap-4 md:gap-6`}>
-          {campaigns.slice(0, count).map((campaign) => (
+          {campaigns.slice(0, count).map((campaign, index) => (
             <CampaignCard 
               key={campaign.id} 
               campaign={campaign}
+              index={index}
+              onClick={() => {}}
             />
           ))}
         </div>

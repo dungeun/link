@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest) {
           title: '카테고리 메뉴',
           subtitle: '다양한 카테고리를 둘러보세요',
           content: content || {},
-          translations,
+          translations: translations as any,
           visible: visible !== undefined ? visible : true,
           order: existingSection.order || 2,
           updatedAt: new Date()
@@ -109,7 +109,7 @@ export async function PUT(request: NextRequest) {
           title: '카테고리 메뉴',
           subtitle: '다양한 카테고리를 둘러보세요',
           content: content || {},
-          translations,
+          translations: translations as any,
           visible: visible !== undefined ? visible : true,
           order: 2
         }

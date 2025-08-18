@@ -7,7 +7,7 @@ import Image from 'next/image'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import {
   User,
   Heart,
@@ -89,9 +89,9 @@ const OptimizedMyPage = memo(({
       setAppCursor(data.nextCursor)
       setAppHasMore(data.hasMore)
       
-      logger.info('Loaded more applications', { count: data.items?.length })
+      logger.info(`Loaded more applications - count: ${data.items?.length}`)
     } catch (error) {
-      logger.error('Failed to load applications', error)
+      logger.error(`Failed to load applications - error: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
       setAppLoading(false)
     }
@@ -122,9 +122,9 @@ const OptimizedMyPage = memo(({
       setLikeCursor(data.nextCursor)
       setLikeHasMore(data.hasMore)
       
-      logger.info('Loaded more liked campaigns', { count: data.items?.length })
+      logger.info(`Loaded more liked campaigns - count: ${data.items?.length}`)
     } catch (error) {
-      logger.error('Failed to load liked campaigns', error)
+      logger.error(`Failed to load liked campaigns - error: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
       setLikeLoading(false)
     }
