@@ -256,7 +256,7 @@ export default function ActiveCampaignsSectionEditPage() {
                     onChange={(e) => handleUpdate({ showViewAll: e.target.checked })}
                     className="mr-2 h-4 w-4 text-blue-600 rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700">"전체보기" 버튼 표시</span>
+                  <span className="text-sm font-medium text-gray-700">&quot;전체보기&quot; 버튼 표시</span>
                 </label>
               </div>
             </div>
