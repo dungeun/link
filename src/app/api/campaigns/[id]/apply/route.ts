@@ -75,16 +75,27 @@ export async function POST(
       where: { userId: user.id }
     })
 
+    // 프로필이 없으면 기본 프로필 생성
     if (!influencerProfile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 400 })
+      // 프로필이 없더라도 지원은 가능하도록 처리
+      console.log('Profile not found for user:', user.id, '- Creating basic profile');
+      await prisma.profile.create({
+        data: {
+          userId: user.id,
+          bio: '',
+          profileCompleted: false
+        }
+      });
     }
 
-    // 팔로워 수 확인
-    const followers = influencerProfile.instagramFollowers || 0
-    if (campaign.targetFollowers && followers < campaign.targetFollowers) {
-      return NextResponse.json({ 
-        error: `Minimum ${campaign.targetFollowers} followers required. You have ${followers} followers.` 
-      }, { status: 400 })
+    // 팔로워 수 확인 (필수 아님 - 최소 팔로워 요구사항이 있을 경우만)
+    if (campaign.targetFollowers && campaign.targetFollowers > 0) {
+      const followers = influencerProfile?.instagramFollowers || 0;
+      if (followers < campaign.targetFollowers) {
+        return NextResponse.json({ 
+          error: `Minimum ${campaign.targetFollowers} followers required. You have ${followers} followers.` 
+        }, { status: 400 })
+      }
     }
 
     // request body에서 메시지 가져오기

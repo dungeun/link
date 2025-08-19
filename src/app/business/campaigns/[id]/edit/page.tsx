@@ -12,15 +12,10 @@ import { ArrowLeft, Save, Calendar, Image } from 'lucide-react'
 import { ImageUpload } from '@/components/ui/ImageUpload'
 import { cn } from '@/lib/utils'
 
-// 플랫폼 옵션
-const PLATFORMS = [
-  { value: 'INSTAGRAM', label: '인스타그램' },
-  { value: 'YOUTUBE', label: '유튜브' },
-  { value: 'TIKTOK', label: '틱톡' },
-  { value: 'FACEBOOK', label: '페이스북' },
-  { value: 'X', label: 'X (트위터)' },
-  { value: 'NAVERBLOG', label: '네이버 블로그' }
-]
+import { PLATFORM_OPTIONS } from '@/constants/platforms'
+
+// 플랫폼 옵션은 통합 상수에서 가져옴
+const PLATFORMS = PLATFORM_OPTIONS
 
 // 캠페인 상태 옵션
 const CAMPAIGN_STATUS = [
@@ -75,14 +70,39 @@ export default function EditCampaignPage() {
   useEffect(() => {
     const loadCampaign = async () => {
       try {
+        const token = localStorage.getItem('accessToken')
+        if (!token) {
+          toast({
+            title: '인증 필요',
+            description: '로그인이 필요합니다.',
+            variant: 'destructive'
+          })
+          router.push('/login')
+          return
+        }
+
         const response = await fetch(`/api/campaigns/${campaignId}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
+            'Authorization': `Bearer ${token}`
           }
         })
 
+        if (response.status === 401) {
+          // 토큰이 만료되었거나 유효하지 않음
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('refreshToken')
+          toast({
+            title: '세션 만료',
+            description: '다시 로그인해주세요.',
+            variant: 'destructive'
+          })
+          router.push('/login')
+          return
+        }
+
         if (!response.ok) {
-          throw new Error('캠페인을 불러올 수 없습니다.')
+          const errorData = await response.json()
+          throw new Error(errorData.error || '캠페인을 불러올 수 없습니다.')
         }
 
         const data = await response.json()
@@ -123,10 +143,14 @@ export default function EditCampaignPage() {
       } catch (error) {
         console.error('Failed to load campaign:', error)
         toast({
-          title: '캠페인을 불러올 수 없습니다.',
+          title: '오류',
+          description: error instanceof Error ? error.message : '캠페인을 불러올 수 없습니다.',
           variant: 'destructive'
         })
-        router.push('/business/campaigns')
+        // 로그인 관련 오류가 아닌 경우에만 캠페인 목록으로 이동
+        if (error instanceof Error && !error.message.includes('로그인') && !error.message.includes('세션')) {
+          router.push('/business/campaigns')
+        }
       } finally {
         setLoadingCampaign(false)
       }

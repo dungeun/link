@@ -675,20 +675,63 @@ export default function CampaignDetailPage() {
                       <h2 className="text-xl font-semibold text-gray-900">제품 소개</h2>
                       <div className="space-y-6">
                         {(() => {
-                          // productImages가 문자열인 경우 파싱, 배열인 경우 그대로 사용
-                          const images = typeof campaign.productImages === 'string' 
-                            ? JSON.parse(campaign.productImages) 
-                            : campaign.productImages || [];
+                          // productImages 파싱 및 정규화
+                          let images: any[] = [];
                           
-                          // detail 타입의 이미지들만 필터링 (02 이미지들)
-                          const detailImages = images.filter((img: any) => img.type === 'detail');
+                          try {
+                            if (typeof campaign.productImages === 'string') {
+                              // JSON 문자열인 경우 파싱
+                              const parsed = JSON.parse(campaign.productImages);
+                              images = Array.isArray(parsed) ? parsed : [parsed];
+                            } else if (Array.isArray(campaign.productImages)) {
+                              // 이미 배열인 경우
+                              images = campaign.productImages;
+                            }
+                          } catch (e) {
+                            console.error('Product images parsing error:', e);
+                            images = [];
+                          }
                           
-                          return detailImages.map((image: any, index: number) => (
-                            <div key={image.id || index} className="relative w-full rounded-lg overflow-hidden">
+                          // 이미지 URL 추출 및 필터링
+                          const validImages = images
+                            .map((img: any) => {
+                              // 문자열인 경우 그대로 사용
+                              if (typeof img === 'string') return img;
+                              // 객체인 경우 url 속성 사용
+                              if (img && typeof img === 'object') return img.url || img.imageUrl;
+                              return null;
+                            })
+                            .filter((url: any) => url && typeof url === 'string' && url.trim() !== '');
+                          
+                          if (validImages.length === 0) {
+                            return (
+                              <div className="text-center py-12 text-gray-500">
+                                <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                                <p>제품 이미지가 없습니다.</p>
+                              </div>
+                            );
+                          }
+                          
+                          return validImages.map((imageUrl: string, index: number) => (
+                            <div key={index} className="relative w-full rounded-lg overflow-hidden bg-gray-100">
                               <img
-                                src={image.url || image}
+                                src={imageUrl}
                                 alt={`제품 이미지 ${index + 1}`}
                                 className="w-full h-auto object-cover"
+                                loading="lazy"
+                                onError={(e) => {
+                                  console.error(`Failed to load product image ${index + 1}:`, imageUrl);
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  // 대체 이미지 표시
+                                  const parent = target.parentElement;
+                                  if (parent && !parent.querySelector('.error-message')) {
+                                    const errorDiv = document.createElement('div');
+                                    errorDiv.className = 'error-message flex items-center justify-center h-48 text-gray-400';
+                                    errorDiv.innerHTML = '<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>';
+                                    parent.appendChild(errorDiv);
+                                  }
+                                }}
                               />
                             </div>
                           ));

@@ -115,6 +115,32 @@ export async function GET(request: NextRequest) {
       }
     });
     
+    // 카테고리별 통계 계산
+    const categoryStats: Record<string, number> = {};
+    const allCategories = await prisma.category.findMany({
+      select: {
+        slug: true,
+        name: true,
+        _count: {
+          select: {
+            campaigns: {
+              where: {
+                campaign: {
+                  status: 'ACTIVE',
+                  deletedAt: null
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    // 카테고리별 카운트 설정
+    allCategories.forEach(cat => {
+      categoryStats[cat.slug] = cat._count.campaigns;
+    });
+    
     // 캠페인 데이터 포맷팅
     const formattedCampaigns = campaigns.map((campaign: any, index) => {
       const business = businesses.find(b => b.id === campaign.businessId);
@@ -127,8 +153,8 @@ export async function GET(request: NextRequest) {
       
       // 카테고리 정보 가져오기
       const primaryCategory = campaign.categories?.find((c: any) => c.isPrimary)?.category;
-      const categorySlug = primaryCategory?.slug || 'other';
-      const categoryName = primaryCategory?.name || 'Other';
+      const categorySlug = primaryCategory?.slug || campaign.categories?.[0]?.category?.slug || 'other';
+      const categoryName = primaryCategory?.name || campaign.categories?.[0]?.category?.name || 'Other';
       
       return {
         id: campaign.id,
@@ -136,24 +162,24 @@ export async function GET(request: NextRequest) {
         brand: business?.businessProfile?.companyName || business?.name || 'Unknown',
         brand_name: business?.businessProfile?.companyName || business?.name || 'Unknown',
         description: campaign.description || '',
-        budget: campaign.budget,
+        budget: campaign.budget || 0,
         deadline: Math.max(0, daysDiff),
         category: categorySlug,
         categoryName: categoryName,
-        platforms: [campaign.platform.toLowerCase()],
-        required_followers: campaign.targetFollowers,
+        platforms: [campaign.platform?.toLowerCase() || 'instagram'],
+        required_followers: campaign.targetFollowers || 0,
         location: '전국',
         view_count: 0,
-        applicants: campaign._count.applications,
-        applicant_count: campaign._count.applications,
-        maxApplicants: campaign.maxApplicants,
-        rewardAmount: campaign.rewardAmount,
+        applicants: campaign._count?.applications || 0,
+        applicant_count: campaign._count?.applications || 0,
+        maxApplicants: campaign.maxApplicants || 100,
+        rewardAmount: campaign.rewardAmount || 0,
         imageUrl: campaign.imageUrl || '/images/campaigns/default.jpg',
         image_url: campaign.imageUrl || '/images/campaigns/default.jpg',
         tags: [],
-        status: campaign.status.toLowerCase(),
-        created_at: campaign.createdAt.toISOString(),
-        createdAt: campaign.createdAt.toISOString(),
+        status: campaign.status?.toLowerCase() || 'active',
+        created_at: campaign.createdAt?.toISOString() || new Date().toISOString(),
+        createdAt: campaign.createdAt?.toISOString() || new Date().toISOString(),
         start_date: campaign.startDate,
         end_date: campaign.endDate,
         requirements: '',
@@ -169,7 +195,7 @@ export async function GET(request: NextRequest) {
         total,
         totalPages: Math.ceil(total / limit)
       },
-      categoryStats: {}
+      categoryStats
     });
   } catch (error) {
     console.error('Simple API error:', error);

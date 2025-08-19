@@ -89,16 +89,18 @@ export function ImageUpload({
       for (let i = 0; i < files.length; i++) {
         let file = files[i]
         
-        // 이미지 압축 (5MB 이상인 경우)
-        if (file.size > 5 * 1024 * 1024) {
-          console.log(`Compressing large image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
+        // 모든 이미지를 WebP로 변환 (GIF 제외)
+        if (file.type !== 'image/gif') {
+          console.log(`Converting image to WebP: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
           
+          // 이미지 크기에 따라 다른 압축 옵션 적용
+          const isLargeFile = file.size > 5 * 1024 * 1024
           const options = {
-            maxSizeMB: 4.5, // 최대 4.5MB로 압축
+            maxSizeMB: isLargeFile ? 4.5 : 10, // 큰 파일은 더 압축
             maxWidthOrHeight: 1920, // 최대 너비/높이
             useWebWorker: true,
             fileType: 'image/webp', // WebP로 변환
-            initialQuality: 0.8 // 초기 품질 80%
+            initialQuality: isLargeFile ? 0.8 : 0.9 // 큰 파일은 품질 낮춤
           }
           
           try {
@@ -109,12 +111,15 @@ export function ImageUpload({
               file.name.replace(/\.[^/.]+$/, '.webp'),
               { type: 'image/webp' }
             )
-            console.log(`Compression complete: ${(webpFile.size / 1024 / 1024).toFixed(2)}MB (WebP)`)
+            console.log(`Conversion complete: ${file.name} → ${webpFile.name} (${(webpFile.size / 1024 / 1024).toFixed(2)}MB)`)
             file = webpFile
           } catch (compressionError) {
-            console.error('Image compression failed:', compressionError)
-            // 압축 실패 시 원본 파일 사용
+            console.error('Image conversion to WebP failed:', compressionError)
+            // 변환 실패 시 원본 파일 사용
+            console.log('Using original file format')
           }
+        } else {
+          console.log(`Skipping WebP conversion for GIF: ${file.name}`)
         }
         
         const formData = new FormData()

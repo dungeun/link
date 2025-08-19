@@ -155,6 +155,8 @@ export async function PUT(
     const body = await request.json();
     const { name, status, type, phone, verified, statusReason } = body;
 
+    console.log('User update request:', { userId: params.id, body });
+
     // 사용자 기본 정보 업데이트
     const updateData: Record<string, unknown> = {};
     
@@ -163,16 +165,35 @@ export async function PUT(
     }
     
     if (status !== undefined) {
-      updateData.status = status.toUpperCase();
-      updateData.statusUpdatedAt = new Date();
+      // status를 대문자로 변환하고 유효성 검사
+      const normalizedStatus = status.toUpperCase();
+      if (['ACTIVE', 'INACTIVE', 'SUSPENDED'].includes(normalizedStatus)) {
+        updateData.status = normalizedStatus;
+        updateData.statusUpdatedAt = new Date();
+      } else {
+        console.error('Invalid status value:', status);
+        return NextResponse.json(
+          { error: `잘못된 상태 값입니다: ${status}` },
+          { status: 400 }
+        );
+      }
     }
     
     if (type !== undefined) {
-      updateData.type = type.toUpperCase();
+      const normalizedType = type.toUpperCase();
+      if (['ADMIN', 'BUSINESS', 'INFLUENCER'].includes(normalizedType)) {
+        updateData.type = normalizedType;
+      } else {
+        console.error('Invalid type value:', type);
+        return NextResponse.json(
+          { error: `잘못된 사용자 유형입니다: ${type}` },
+          { status: 400 }
+        );
+      }
     }
     
     if (verified !== undefined) {
-      updateData.verified = verified;
+      updateData.verified = Boolean(verified);
     }
     
     if (statusReason !== undefined) {
