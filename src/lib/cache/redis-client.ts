@@ -1,5 +1,8 @@
 import { redis } from '@/lib/db/redis'
 
+// Redis 클라이언트 직접 export
+export { redis }
+
 // 기존 redis 클라이언트 재사용
 export const getRedisClient = () => {
   return redis

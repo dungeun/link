@@ -254,6 +254,11 @@ export class GoogleTranslateService {
       return { valid: false, reason: 'OAUTH_CLIENT_ID' }
     }
     
+    // OAuth 클라이언트 시크릿 형식 감지
+    if (apiKey.startsWith('GOCSPX-')) {
+      return { valid: false, reason: 'OAUTH_CLIENT_SECRET' }
+    }
+    
     // 기타 잘못된 형식
     if (apiKey.length < 30 || apiKey.length > 50) {
       return { valid: false, reason: 'INVALID_LENGTH' }
@@ -278,6 +283,8 @@ export class GoogleTranslateService {
       console.error('[Google Translate] API 키 형식 오류:', formatCheck.reason)
       if (formatCheck.reason === 'OAUTH_CLIENT_ID') {
         console.error('[Google Translate] OAuth 클라이언트 ID가 아닌 Google Translate API 키가 필요합니다')
+      } else if (formatCheck.reason === 'OAUTH_CLIENT_SECRET') {
+        console.error('[Google Translate] OAuth 클라이언트 시크릿이 아닌 Google Translate API 키가 필요합니다')
       }
       return false
     }

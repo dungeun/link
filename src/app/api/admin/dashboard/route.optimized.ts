@@ -206,7 +206,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(responseData);
 
   } catch (error) {
-    logger.error('Dashboard API error:', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Dashboard API error:', error);
     return NextResponse.json(
       { error: '대시보드 데이터를 불러오는데 실패했습니다.' },
       { status: 500 }

@@ -103,6 +103,16 @@ export async function POST(request: NextRequest) {
         )
       }
       
+      if (apiKey.startsWith('GOCSPX-')) {
+        return NextResponse.json(
+          { 
+            error: '❌ OAuth 클라이언트 시크릿이 아닌 Google Translate API 키가 필요합니다.\n\n올바른 API 키 생성 방법:\n1. Google Cloud Console → API 및 서비스 → 사용자 인증 정보\n2. "사용자 인증 정보 만들기" → "API 키" 선택 (OAuth 아님!)\n3. 생성된 키는 "AIza..."로 시작합니다\n\n현재 입력된 값은 OAuth 클라이언트 시크릿입니다.',
+            success: false 
+          },
+          { status: 400 }
+        )
+      }
+      
       if (!apiKey.startsWith('AIza') || apiKey.length !== 39) {
         return NextResponse.json(
           { 
