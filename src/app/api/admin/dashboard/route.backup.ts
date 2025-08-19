@@ -181,7 +181,7 @@ export async function GET(request: NextRequest) {
         description: `${app.influencer.name}님이 "${app.campaign.title}" 캠페인에 지원했습니다.`,
         time: getRelativeTime(app.createdAt),
         icon: '📝'
-      })
+      }))
     ].slice(0, 5); // 5개만 표시 (성능 최적화)
 
     // 시스템 알림 (예시)
