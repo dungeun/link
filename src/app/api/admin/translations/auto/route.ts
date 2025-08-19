@@ -65,15 +65,25 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // 테스트 모드가 아닌 경우에만 실제 API 키 검증
-      if (!testMode) {
-        const isApiKeyValid = await googleTranslateService.validateApiKey()
-        if (!isApiKeyValid) {
-          return NextResponse.json(
-            { error: 'Google Translate API 키가 설정되지 않았거나 유효하지 않습니다.' },
-            { status: 500 }
-          )
+      // API 키 검증 (테스트 모드에서는 testApiKey를 사용)
+      const apiKeyToValidate = testMode ? testApiKey : undefined
+      const isApiKeyValid = await googleTranslateService.validateApiKey(apiKeyToValidate)
+      
+      if (!isApiKeyValid) {
+        // 테스트 모드에서 원래 키 복원
+        if (testMode && originalApiKey !== undefined) {
+          process.env.GOOGLE_TRANSLATE_API_KEY = originalApiKey
         }
+        
+        return NextResponse.json(
+          { 
+            error: testMode 
+              ? 'API 키가 유효하지 않습니다. Google Cloud Console에서 API 키와 Translation API 활성화 상태를 확인해주세요.'
+              : 'Google Translate API 키가 설정되지 않았거나 유효하지 않습니다.',
+            success: false 
+          },
+          { status: testMode ? 400 : 500 }
+        )
       }
 
       const translations: Record<string, unknown> = {}
@@ -83,33 +93,13 @@ export async function POST(request: NextRequest) {
       try {
         let result
         
-        // 테스트 모드에서는 모킹된 번역 결과 반환
-        if (testMode) {
-          console.log(`[API Test] 모킹된 번역: ${text} -> ${targetLang}`)
-          
-          // 간단한 모킹 번역 결과
-          const mockTranslations: Record<string, string> = {
-            'en': 'Hello (Test Translation)',
-            'ja': 'こんにちは (テスト翻訳)',
-            'zh': '你好 (测试翻译)',
-            'es': 'Hola (Traducción de prueba)',
-            'fr': 'Bonjour (Traduction de test)'
-          }
-          
-          result = {
-            text: mockTranslations[targetLang] || `${text} (Mock Translation)`,
-            source: sourceLanguage,
-            target: targetLang,
-            confidence: 0.95
-          }
-        } else {
-          // 실제 번역 수행
-          result = await googleTranslateService.translateText(
-            text,
-            targetLang,
-            sourceLanguage
-          )
-        }
+        // 실제 번역 수행 (테스트 모드든 일반 모드든 실제 API 호출)
+        console.log(`[API ${testMode ? 'Test' : 'Normal'}] 번역 수행: ${text} -> ${targetLang}`)
+        result = await googleTranslateService.translateText(
+          text,
+          targetLang,
+          sourceLanguage
+        )
 
         if (result) {
           translations[targetLang] = {

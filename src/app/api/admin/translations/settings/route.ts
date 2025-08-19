@@ -92,25 +92,29 @@ export async function POST(request: NextRequest) {
 
     // API 키 유효성 검사 (새 키가 제공된 경우)
     if (apiKey && !apiKey.startsWith('****')) {
-      // 임시로 환경변수 설정해서 API 키 테스트
-      const originalKey = process.env.GOOGLE_TRANSLATE_API_KEY
-      process.env.GOOGLE_TRANSLATE_API_KEY = apiKey
-      
       try {
-        const isValid = await googleTranslateService.validateApiKey()
+        console.log('[API Settings] API 키 검증 시작...')
+        const isValid = await googleTranslateService.validateApiKey(apiKey)
+        
         if (!isValid) {
-          // 원래 키 복원
-          process.env.GOOGLE_TRANSLATE_API_KEY = originalKey
+          console.log('[API Settings] API 키 검증 실패')
           return NextResponse.json(
-            { error: '유효하지 않은 Google Translate API 키입니다.' },
+            { 
+              error: '유효하지 않은 Google Translate API 키입니다. API 키를 확인하고 Translation API가 활성화되어 있는지 검토해주세요.',
+              success: false 
+            },
             { status: 400 }
           )
         }
+        
+        console.log('[API Settings] API 키 검증 성공')
       } catch (error) {
-        // 원래 키 복원
-        process.env.GOOGLE_TRANSLATE_API_KEY = originalKey
+        console.error('[API Settings] API 키 검증 오류:', error)
         return NextResponse.json(
-          { error: 'API 키 검증에 실패했습니다.' },
+          { 
+            error: `API 키 검증 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+            success: false 
+          },
           { status: 400 }
         )
       }
@@ -128,9 +132,6 @@ export async function POST(request: NextRequest) {
           create: { key: 'google_translate_api_key', value: apiKey }
         })
       )
-      
-      // 환경변수도 업데이트 (런타임에서 사용하기 위해)
-      process.env.GOOGLE_TRANSLATE_API_KEY = apiKey
     }
 
     updates.push(

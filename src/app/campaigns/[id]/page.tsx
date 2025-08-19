@@ -449,11 +449,32 @@ export default function CampaignDetailPage() {
 
 
   const calculateDaysLeft = (endDate: string) => {
+    if (!endDate || endDate === 'null' || endDate === 'undefined') return 0;
+    
     const end = new Date(endDate)
+    if (isNaN(end.getTime())) return 0; // Invalid Date 체크
+    
     const now = new Date()
     const diff = end.getTime() - now.getTime()
     const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
     return days > 0 ? days : 0
+  }
+
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString || dateString === 'null' || dateString === 'undefined') {
+      return '미정';
+    }
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '미정';
+    }
+    
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
 
   const getPlatformIcon = (platform: string) => {
@@ -526,39 +547,31 @@ export default function CampaignDetailPage() {
       <div className="min-h-screen bg-gray-50">
       {/* 헤더 이미지 */}
       <div className="relative h-96 bg-gray-900">
-        {campaign.headerImageUrl ? (
-          <Image
-            src={campaign.headerImageUrl}
-            alt={campaign.title}
-            fill
-            className="object-cover opacity-80"
-            priority={true}
-            quality={85}
-            sizes="100vw"
-          />
-        ) : campaign.thumbnailImageUrl ? (
-          <Image
-            src={campaign.thumbnailImageUrl}
-            alt={campaign.title}
-            fill
-            className="object-cover opacity-80"
-            priority={true}
-            quality={85}
-            sizes="100vw"
-          />
-        ) : campaign.imageUrl ? (
-          <Image
-            src={campaign.imageUrl}
-            alt={campaign.title}
-            fill
-            className="object-cover opacity-80"
-            priority={true}
-            quality={85}
-            sizes="100vw"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600" />
-        )}
+        {(() => {
+          // 이미지 URL 우선순위: headerImageUrl > thumbnailImageUrl > imageUrl
+          const imageUrl = campaign.headerImageUrl || campaign.thumbnailImageUrl || campaign.imageUrl;
+          
+          if (imageUrl && imageUrl.trim() && imageUrl !== 'null' && imageUrl !== 'undefined') {
+            return (
+              <Image
+                src={imageUrl}
+                alt={campaign.title}
+                fill
+                className="object-cover opacity-80"
+                priority={true}
+                quality={85}
+                sizes="100vw"
+                onError={(e) => {
+                  console.error('Failed to load header image:', imageUrl);
+                  // 이미지 로드 실패 시 숨김
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            );
+          } else {
+            return <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600" />;
+          }
+        })()}
         
         {/* 오버레이 */}
         <div className="absolute inset-0 bg-black/40" />
@@ -695,11 +708,16 @@ export default function CampaignDetailPage() {
                   {/* 캠페인 설명 */}
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900 mb-3">캠페인 소개</h2>
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{campaign.description}</p>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {campaign.description && campaign.description.trim() 
+                        ? campaign.description 
+                        : '캠페인 설명이 제공되지 않았습니다.'
+                      }
+                    </p>
                   </div>
 
                   {/* 요구사항 */}
-                  {campaign.requirements && (
+                  {campaign.requirements && campaign.requirements.trim() && (
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">요구사항</h2>
                       <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{campaign.requirements}</p>
@@ -707,7 +725,7 @@ export default function CampaignDetailPage() {
                   )}
 
                   {/* 제공 내역 */}
-                  {campaign.provisionDetails && (
+                  {campaign.provisionDetails && campaign.provisionDetails.trim() && (
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">제공 내역</h2>
                       <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{campaign.provisionDetails}</p>
@@ -715,7 +733,7 @@ export default function CampaignDetailPage() {
                   )}
 
                   {/* 캠페인 미션 */}
-                  {campaign.campaignMission && (
+                  {campaign.campaignMission && campaign.campaignMission.trim() && (
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">캠페인 미션</h2>
                       <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{campaign.campaignMission}</p>
@@ -723,7 +741,7 @@ export default function CampaignDetailPage() {
                   )}
 
                   {/* 키워드 */}
-                  {campaign.keywords && (
+                  {campaign.keywords && campaign.keywords.trim() && (
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">키워드</h2>
                       <p className="text-gray-700">{campaign.keywords}</p>
@@ -731,7 +749,7 @@ export default function CampaignDetailPage() {
                   )}
 
                   {/* 추가 안내사항 */}
-                  {campaign.additionalNotes && (
+                  {campaign.additionalNotes && campaign.additionalNotes.trim() && (
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">추가 안내사항</h2>
                       <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{campaign.additionalNotes}</p>
@@ -862,7 +880,7 @@ export default function CampaignDetailPage() {
                     캠페인 기간
                   </span>
                   <span className="font-semibold text-sm">
-                    {new Date(campaign.startDate).toLocaleDateString()} ~ {new Date(campaign.endDate).toLocaleDateString()}
+                    {formatDate(campaign.startDate)} ~ {formatDate(campaign.endDate)}
                   </span>
                 </div>
 
@@ -874,8 +892,7 @@ export default function CampaignDetailPage() {
                       신청 기간
                     </span>
                     <span className="font-semibold text-sm">
-                      {campaign.applicationStartDate ? new Date(campaign.applicationStartDate).toLocaleDateString() : '시작일 미정'} ~ 
-                      {campaign.applicationEndDate ? new Date(campaign.applicationEndDate).toLocaleDateString() : '종료일 미정'}
+                      {formatDate(campaign.applicationStartDate)} ~ {formatDate(campaign.applicationEndDate)}
                     </span>
                   </div>
                 )}
@@ -888,7 +905,7 @@ export default function CampaignDetailPage() {
                       인플루언서 발표
                     </span>
                     <span className="font-semibold text-sm">
-                      {new Date(campaign.announcementDate).toLocaleDateString()}
+                      {formatDate(campaign.announcementDate)}
                     </span>
                   </div>
                 )}
@@ -901,8 +918,7 @@ export default function CampaignDetailPage() {
                       콘텐츠 등록
                     </span>
                     <span className="font-semibold text-sm">
-                      {campaign.contentStartDate ? new Date(campaign.contentStartDate).toLocaleDateString() : '시작일 미정'} ~ 
-                      {campaign.contentEndDate ? new Date(campaign.contentEndDate).toLocaleDateString() : '종료일 미정'}
+                      {formatDate(campaign.contentStartDate)} ~ {formatDate(campaign.contentEndDate)}
                     </span>
                   </div>
                 )}
@@ -915,7 +931,7 @@ export default function CampaignDetailPage() {
                       결과 발표
                     </span>
                     <span className="font-semibold text-sm">
-                      {new Date(campaign.resultAnnouncementDate).toLocaleDateString()}
+                      {formatDate(campaign.resultAnnouncementDate)}
                     </span>
                   </div>
                 )}
@@ -973,15 +989,26 @@ export default function CampaignDetailPage() {
                             setShowApplyModal(true)
                           }
                         }}
-                        disabled={campaign.status !== 'ACTIVE' || daysLeft === 0}
+                        disabled={
+                          campaign.status !== 'ACTIVE' || 
+                          daysLeft === 0 || 
+                          (campaign._count?.applications || 0) >= (campaign.maxApplicants || 0)
+                        }
                       >
-                        캠페인 지원하기
+                        {campaign.status !== 'ACTIVE' 
+                          ? '캠페인 종료됨' 
+                          : daysLeft === 0 
+                          ? '모집 마감됨' 
+                          : (campaign._count?.applications || 0) >= (campaign.maxApplicants || 0)
+                          ? '모집 완료됨'
+                          : '캠페인 지원하기'
+                        }
                       </Button>
                     )}
                   </>
                 )}
                 
-                {user?.type === 'BUSINESS' && user?.id === campaign.business.id && (
+                {user?.type === 'BUSINESS' && campaign.business && user?.id === campaign.business.id && (
                   <>
                     <Link
                       href={`/business/campaigns/${campaign.id}/edit`}

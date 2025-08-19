@@ -45,17 +45,20 @@ export class GoogleTranslateService {
    * 현재 API 키 가져오기 (DB 우선, 환경변수 fallback)
    */
   private async getApiKey(): Promise<string> {
-    // testMode에서는 환경변수에서 직접 가져오기 (임시 키가 설정된 상태)
-    if (process.env.NODE_ENV === 'development' && process.env.GOOGLE_TRANSLATE_API_KEY) {
-      console.log('[Google Translate] 환경변수에서 API 키 사용:', process.env.GOOGLE_TRANSLATE_API_KEY ? '설정됨' : '없음')
-      return process.env.GOOGLE_TRANSLATE_API_KEY || ''
+    // 환경변수에서 임시 키가 설정된 경우 사용 (테스트 모드)
+    if (process.env.GOOGLE_TRANSLATE_API_KEY && 
+        process.env.GOOGLE_TRANSLATE_API_KEY !== this.apiKey) {
+      console.log('[Google Translate] 환경변수 임시 키 사용')
+      return process.env.GOOGLE_TRANSLATE_API_KEY
     }
     
+    // DB에서 API 키 로드 (캐시되지 않은 경우)
     if (!this.apiKey) {
       this.apiKey = await this.loadApiKeyFromDB()
       console.log('[Google Translate] DB에서 API 키 로드:', this.apiKey ? '성공' : '실패')
     }
-    return this.apiKey
+    
+    return this.apiKey || process.env.GOOGLE_TRANSLATE_API_KEY || ''
   }
 
   /**
@@ -238,19 +241,52 @@ export class GoogleTranslateService {
   }
 
   /**
-   * API 키 유효성 검사
+   * API 키 유효성 검사 (무한 재귀 방지를 위해 직접 API 호출)
    */
-  async validateApiKey(): Promise<boolean> {
-    const apiKey = await this.getApiKey()
+  async validateApiKey(testApiKey?: string): Promise<boolean> {
+    const apiKey = testApiKey || await this.getApiKey()
     if (!apiKey) {
+      console.log('[Google Translate] validateApiKey: API 키가 없음')
       return false
     }
 
     try {
-      const result = await this.translateText('Hello', 'ko', 'en')
-      return !!result
+      console.log('[Google Translate] validateApiKey 시작:', `${apiKey.substring(0, 8)}...`)
+      
+      const requestBody = {
+        q: 'Hello',
+        source: 'en',
+        target: 'ko',
+        format: 'text'
+      }
+
+      const response = await fetch(`${this.baseUrl}?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      console.log('[Google Translate] validateApiKey 응답 상태:', response.status)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('[Google Translate] API 키 검증 실패:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText
+        })
+        return false
+      }
+
+      const result: GoogleTranslateResponse = await response.json()
+      const isValid = !!(result.data?.translations?.length && result.data.translations[0].translatedText)
+      
+      console.log('[Google Translate] API 키 검증 결과:', isValid)
+      return isValid
     } catch (error) {
-      console.error('API key validation failed:', error)
+      console.error('[Google Translate] API key validation failed:', error)
       return false
     }
   }
