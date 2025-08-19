@@ -241,12 +241,44 @@ export class GoogleTranslateService {
   }
 
   /**
+   * API 키 형식 검사
+   */
+  private validateApiKeyFormat(apiKey: string): { valid: boolean; reason?: string } {
+    // Google Translate API 키는 일반적으로 AIza로 시작하고 39자 길이
+    if (apiKey.startsWith('AIza') && apiKey.length === 39) {
+      return { valid: true }
+    }
+    
+    // OAuth 클라이언트 ID 형식 감지
+    if (apiKey.includes('-') && apiKey.includes('.apps.googleusercontent.com')) {
+      return { valid: false, reason: 'OAUTH_CLIENT_ID' }
+    }
+    
+    // 기타 잘못된 형식
+    if (apiKey.length < 30 || apiKey.length > 50) {
+      return { valid: false, reason: 'INVALID_LENGTH' }
+    }
+    
+    return { valid: true } // 다른 유효한 형식일 수 있음
+  }
+
+  /**
    * API 키 유효성 검사 (무한 재귀 방지를 위해 직접 API 호출)
    */
   async validateApiKey(testApiKey?: string): Promise<boolean> {
     const apiKey = testApiKey || await this.getApiKey()
     if (!apiKey) {
       console.log('[Google Translate] validateApiKey: API 키가 없음')
+      return false
+    }
+
+    // 먼저 API 키 형식 검사
+    const formatCheck = this.validateApiKeyFormat(apiKey)
+    if (!formatCheck.valid) {
+      console.error('[Google Translate] API 키 형식 오류:', formatCheck.reason)
+      if (formatCheck.reason === 'OAUTH_CLIENT_ID') {
+        console.error('[Google Translate] OAuth 클라이언트 ID가 아닌 Google Translate API 키가 필요합니다')
+      }
       return false
     }
 

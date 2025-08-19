@@ -92,6 +92,27 @@ export async function POST(request: NextRequest) {
 
     // API 키 유효성 검사 (새 키가 제공된 경우)
     if (apiKey && !apiKey.startsWith('****')) {
+      // API 키 형식 사전 검사
+      if (apiKey.includes('-') && apiKey.includes('.apps.googleusercontent.com')) {
+        return NextResponse.json(
+          { 
+            error: '❌ OAuth 클라이언트 ID가 아닌 Google Translate API 키가 필요합니다.\n\n올바른 API 키 생성 방법:\n1. Google Cloud Console → API 및 서비스 → 사용자 인증 정보\n2. "사용자 인증 정보 만들기" → "API 키" 선택\n3. 생성된 키는 "AIza..."로 시작합니다\n\n현재 입력된 값은 OAuth 클라이언트 ID입니다.',
+            success: false 
+          },
+          { status: 400 }
+        )
+      }
+      
+      if (!apiKey.startsWith('AIza') || apiKey.length !== 39) {
+        return NextResponse.json(
+          { 
+            error: '❌ Google Translate API 키 형식이 올바르지 않습니다.\n\n올바른 형식:\n- "AIza"로 시작\n- 총 39자 길이\n- 예: AIzaSyD...\n\nGoogle Cloud Console에서 올바른 API 키를 생성하세요.',
+            success: false 
+          },
+          { status: 400 }
+        )
+      }
+
       try {
         console.log('[API Settings] API 키 검증 시작...')
         const isValid = await googleTranslateService.validateApiKey(apiKey)
@@ -100,7 +121,7 @@ export async function POST(request: NextRequest) {
           console.log('[API Settings] API 키 검증 실패')
           return NextResponse.json(
             { 
-              error: '유효하지 않은 Google Translate API 키입니다. API 키를 확인하고 Translation API가 활성화되어 있는지 검토해주세요.',
+              error: '❌ API 키가 유효하지 않거나 Translation API가 비활성화되어 있습니다.\n\n확인사항:\n1. Google Cloud Console에서 Translation API가 활성화되어 있는지 확인\n2. API 키에 Translation API 권한이 있는지 확인\n3. 결제 계정이 연결되어 있는지 확인\n4. API 키 제한 설정 확인',
               success: false 
             },
             { status: 400 }
