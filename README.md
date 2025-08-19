@@ -289,12 +289,40 @@ pnpm prisma migrate reset
 
 ### Vercel 배포
 
+#### 1. 환경 변수 설정 (필수)
+
+⚠️ **중요**: 환경 변수가 없으면 빌드가 실패합니다!
+
+```bash
+# 시크릿 키 생성
+node scripts/generate-secrets.js
+```
+
+생성된 키들을 Vercel 대시보드에 추가:
+1. https://vercel.com 로그인
+2. 프로젝트 선택
+3. Settings → Environment Variables
+4. 다음 필수 변수 추가:
+   - `JWT_SECRET` (생성된 값 사용)
+   - `JWT_REFRESH_SECRET` (생성된 값 사용)
+   - `DATABASE_URL` (Supabase URL)
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+
+📖 자세한 가이드: [VERCEL_ENV_SETUP.md](./VERCEL_ENV_SETUP.md)
+
+#### 2. 배포 실행
+
 ```bash
 # Vercel CLI 설치
 npm i -g vercel
 
 # 배포
-vercel
+vercel --prod
+
+# 또는 Git Push로 자동 배포
+git push origin main
 ```
 
 ### Docker 배포
