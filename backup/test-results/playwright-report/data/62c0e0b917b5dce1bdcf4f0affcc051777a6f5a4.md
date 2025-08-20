@@ -1,0 +1,78 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - link "LinkPick3":
+    - /url: /
+    - heading "LinkPick3" [level=1]
+  - navigation:
+    - link "병원":
+      - /url: /category/hospital
+    - link "캠페인":
+      - /url: /category/campaign
+    - link "구매평":
+      - /url: /category/review
+    - link "커뮤니티":
+      - /url: /community
+  - navigation:
+    - button "Select Language":
+      - text: 🇺🇸 EN
+      - img
+    - link "Login":
+      - /url: /login
+    - link "Sign Up":
+      - /url: /register
+- main:
+  - heading "캠페인을 찾을 수 없습니다" [level=1]
+  - paragraph: 요청하신 캠페인이 존재하지 않거나 삭제되었습니다.
+  - link "캠페인 목록으로 돌아가기":
+    - /url: /campaigns
+- contentinfo:
+  - link "LinkPick3":
+    - /url: /
+    - heading "LinkPick3" [level=3]
+  - paragraph: 인플루언서 마케팅 플랫폼
+  - link "facebook":
+    - /url: https://facebook.com/linkpick
+    - img
+  - link "twitter":
+    - /url: https://twitter.com/linkpick
+    - img
+  - link "instagram":
+    - /url: https://instagram.com/linkpick
+    - img
+  - link "youtube":
+    - /url: https://youtube.com/linkpick
+    - img
+  - link "linkedin":
+    - /url: https://linkedin.com/company/linkpick
+    - img
+  - paragraph: Revu
+  - text: "대표: 홍길동 사업자등록번호: 123-45-67890 통신판매업: 2024-서울강남-1234"
+  - img
+  - text: 서울특별시 강남구 테헤란로 123, 456호
+  - paragraph: Support
+  - img
+  - text: 1588-1234 |
+  - img
+  - text: support@revu.com
+  - paragraph: 평일 09:00~18:00 (주말/공휴일 휴무)
+  - paragraph: © 2024 LinkPick. All rights reserved.
+  - heading "바로가기" [level=4]
+  - list:
+    - listitem:
+      - link "ㅇ":
+        - /url: /terms
+    - listitem:
+      - link "개인정보처리방침":
+        - /url: /privacy
+    - listitem:
+      - link "고객지원":
+        - /url: /support
+    - listitem:
+      - link "회사소개":
+        - /url: /about
+- region "Notifications (F8)":
+  - list
+- alert
+```

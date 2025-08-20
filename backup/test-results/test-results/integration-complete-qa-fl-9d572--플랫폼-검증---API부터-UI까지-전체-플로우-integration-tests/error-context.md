@@ -1,0 +1,101 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - link "LinkPick3":
+    - /url: /
+    - heading "LinkPick3" [level=1]
+  - navigation:
+    - link "병원":
+      - /url: /category/hospital
+    - link "캠페인":
+      - /url: /category/campaign
+    - link "구매평":
+      - /url: /category/review
+    - link "커뮤니티":
+      - /url: /community
+  - navigation:
+    - button "Select Language":
+      - text: 🇺🇸 EN
+      - img
+    - link "Login":
+      - /url: /login
+    - link "Sign Up":
+      - /url: /register
+- main:
+  - heading "진행 중인 캠페인" [level=1]
+  - paragraph: 당신에게 맞는 브랜드 캠페인을 찾아보세요
+  - button "전체 (0)"
+  - button "패션 (0)"
+  - button "뷰티 (0)"
+  - button "음식 (0)"
+  - button "여행 (0)"
+  - button "기술 (0)"
+  - button "라이프스타일 (0)"
+  - button "스포츠 (0)"
+  - button "게임 (0)"
+  - button "교육 (0)"
+  - button "헬스 (0)"
+  - combobox:
+    - option "모든 플랫폼" [selected]
+    - option "Instagram"
+    - option "YouTube"
+    - option "TikTok"
+    - option "Blog"
+  - combobox:
+    - option "최신순" [selected]
+    - option "마감임박순"
+    - option "인기순"
+  - heading "원하는 캠페인을 찾지 못하셨나요?" [level=2]
+  - paragraph: 프로필을 등록하면 맞춤 캠페인 추천을 받을 수 있습니다.
+  - link "인플루언서로 등록하기":
+    - /url: /register?type=influencer
+- contentinfo:
+  - link "LinkPick3":
+    - /url: /
+    - heading "LinkPick3" [level=3]
+  - paragraph: 인플루언서 마케팅 플랫폼
+  - link "facebook":
+    - /url: https://facebook.com/linkpick
+    - img
+  - link "twitter":
+    - /url: https://twitter.com/linkpick
+    - img
+  - link "instagram":
+    - /url: https://instagram.com/linkpick
+    - img
+  - link "youtube":
+    - /url: https://youtube.com/linkpick
+    - img
+  - link "linkedin":
+    - /url: https://linkedin.com/company/linkpick
+    - img
+  - paragraph: Revu
+  - text: "대표: 홍길동 사업자등록번호: 123-45-67890 통신판매업: 2024-서울강남-1234"
+  - img
+  - text: 서울특별시 강남구 테헤란로 123, 456호
+  - paragraph: Support
+  - img
+  - text: 1588-1234 |
+  - img
+  - text: support@revu.com
+  - paragraph: 평일 09:00~18:00 (주말/공휴일 휴무)
+  - paragraph: © 2024 LinkPick. All rights reserved.
+  - heading "바로가기" [level=4]
+  - list:
+    - listitem:
+      - link "ㅇ":
+        - /url: /terms
+    - listitem:
+      - link "개인정보처리방침":
+        - /url: /privacy
+    - listitem:
+      - link "고객지원":
+        - /url: /support
+    - listitem:
+      - link "회사소개":
+        - /url: /about
+- region "Notifications (F8)":
+  - list
+- alert
+```

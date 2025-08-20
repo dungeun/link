@@ -37,7 +37,16 @@
     "studio": "STUDIO_PORT=$(node scripts/find-free-port.js 5555) && echo \"📊 Starting Prisma Studio on port $STUDIO_PORT\" && prisma studio --port $STUDIO_PORT",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:qa": "TEST_BUSINESS_EMAIL=business@demo.com TEST_BUSINESS_PASSWORD=password123 TEST_INFLUENCER_EMAIL=influencer@demo.com TEST_INFLUENCER_PASSWORD=password123 TEST_ADMIN_EMAIL=admin@demo.com TEST_ADMIN_PASSWORD=admin123! npx playwright test",
+    "test:qa:headed": "npm run test:qa -- --headed",
+    "test:qa:debug": "npm run test:qa -- --debug",
+    "test:api": "npm run test:qa -- --project=api-tests",
+    "test:ui": "npm run test:qa -- --project=ui-tests", 
+    "test:admin": "npm run test:qa -- --project=admin-tests",
+    "test:auth": "npm run test:qa -- --project=auth-setup",
+    "test:integration": "npm run test:qa -- --project=integration-tests",
+    "test:e2e:cetimil": "npm run test:qa -- tests/e2e/cetimil-campaign-flow.spec.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",

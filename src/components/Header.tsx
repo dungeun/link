@@ -268,11 +268,11 @@ function Header({ variant = 'default' }: HeaderProps) {
             <div className="flex flex-col h-full">
               {/* 헤더 */}
               <div className="flex items-center justify-between p-6 border-b border-white/20">
-                <h2 className="text-2xl font-bold text-white">메뉴</h2>
+                <h2 className="text-2xl font-bold text-white">{t('menu.menu', '메뉴')}</h2>
                 <button
                   onClick={() => setShowMobileMenu(false)}
                   className="p-2 hover:bg-white/10 rounded-xl transition-all duration-200"
-                  aria-label="메뉴 닫기"
+                  aria-label={t('menu.close_menu', '메뉴 닫기')}
                 >
                   <X className="w-7 h-7 text-white" />
                 </button>
@@ -305,7 +305,7 @@ function Header({ variant = 'default' }: HeaderProps) {
                   {isAdmin && (
                     <>
                       <div className="px-4 py-2 text-white/60 text-sm font-medium uppercase tracking-wider">
-                        관리자 메뉴
+                        {t('menu.admin_menu', '관리자 메뉴')}
                       </div>
                       <Link 
                         href="/admin/users" 
@@ -330,7 +330,7 @@ function Header({ variant = 'default' }: HeaderProps) {
                   {isInfluencer && user && (
                     <>
                       <div className="px-4 py-2 text-white/60 text-sm font-medium uppercase tracking-wider">
-                        개인 메뉴
+                        {t('menu.personal_menu', '개인 메뉴')}
                       </div>
                       <Link 
                         href="/mypage" 
@@ -347,7 +347,7 @@ function Header({ variant = 'default' }: HeaderProps) {
                   {isBusiness && (
                     <>
                       <div className="px-4 py-2 text-white/60 text-sm font-medium uppercase tracking-wider">
-                        비즈니스 메뉴
+                        {t('menu.business_menu', '비즈니스 메뉴')}
                       </div>
                       <Link 
                         href="/business/dashboard" 

@@ -36,6 +36,7 @@ interface OptimizedCampaignListProps {
   category?: string
   sort?: string
   search?: string
+  t?: (key: string, fallback?: string) => string
 }
 
 /**
@@ -46,7 +47,8 @@ function OptimizedCampaignList({
   initialCampaigns = [],
   category,
   sort = 'latest',
-  search
+  search,
+  t
 }: OptimizedCampaignListProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns)
   const [cursor, setCursor] = useState<string | null>(null)
@@ -146,6 +148,7 @@ function OptimizedCampaignList({
               }}
               index={index}
               onClick={handleCampaignClick}
+              t={t}
             />
           ))}
         </div>

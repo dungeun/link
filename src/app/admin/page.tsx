@@ -45,6 +45,9 @@ interface DashboardStats {
   growth: number
   newUsers: number
   pendingApprovals: number
+  userGrowthRate?: number
+  campaignGrowthRate?: number
+  revenueTargetAchievement?: number
 }
 
 interface Activity {
@@ -77,7 +80,10 @@ export default function AdminDashboard() {
     revenue: 0,
     growth: 0,
     newUsers: 0,
-    pendingApprovals: 0
+    pendingApprovals: 0,
+    userGrowthRate: 0,
+    campaignGrowthRate: 0,
+    revenueTargetAchievement: 0
   })
   const [recentActivities, setRecentActivities] = useState<Activity[]>([])
   const [systemAlerts, setSystemAlerts] = useState<SystemAlert[]>([])
@@ -155,7 +161,10 @@ export default function AdminDashboard() {
               revenue: 0,
               growth: 0,
               newUsers: 0,
-              pendingApprovals: 0
+              pendingApprovals: 0,
+              userGrowthRate: 0,
+              campaignGrowthRate: 0,
+              revenueTargetAchievement: 0
             })
             setRecentActivities(data.recentActivities || [])
             setSystemAlerts(data.systemAlerts || [])

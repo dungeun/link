@@ -1,0 +1,190 @@
+# Page snapshot
+
+```yaml
+- link "LinkPick Admin":
+  - /url: /admin
+- navigation:
+  - link "대시보드":
+    - /url: /admin
+    - img
+    - text: 대시보드
+  - link "사용자 관리":
+    - /url: /admin/users
+    - img
+    - text: 사용자 관리
+  - link "캠페인 관리":
+    - /url: /admin/campaigns
+    - img
+    - text: 캠페인 관리
+  - link "결제 관리":
+    - /url: /admin/payments
+    - img
+    - text: 결제 관리
+  - link "정산 관리":
+    - /url: /admin/settlements
+    - img
+    - text: 정산 관리
+  - link "매출 관리":
+    - /url: /admin/revenue
+    - img
+    - text: 매출 관리
+  - link "통계 분석":
+    - /url: /admin/analytics
+    - img
+    - text: 통계 분석
+  - link "콘텐츠 관리":
+    - /url: /admin/content
+    - img
+    - text: 콘텐츠 관리
+  - link "언어팩":
+    - /url: /admin/translations
+    - img
+    - text: 언어팩
+  - link "시스템 설정":
+    - /url: /admin/settings
+    - img
+    - text: 시스템 설정
+  - link "카테고리 관리":
+    - /url: /admin/categories
+    - img
+    - text: 카테고리 관리
+  - link "UI 설정":
+    - /url: /admin/ui-config
+    - img
+    - text: UI 설정
+  - link "신고 관리":
+    - /url: /admin/reports
+    - img
+    - text: 신고 관리
+- text: L
+- paragraph: LinkPick 관리자
+- paragraph: 관리자
+- button "로그아웃":
+  - img
+  - text: 로그아웃
+- heading "대시보드" [level=1]
+- paragraph: 2025년 8월 20일 수요일
+- button "언어 선택":
+  - img
+  - text: 🇰🇷 한국어
+  - img
+- main:
+  - heading "대시보드" [level=1]
+  - link "메인페이지로 이동 (새 창)":
+    - /url: /
+    - img
+  - paragraph: 플랫폼 전체 현황을 한눈에 확인하세요
+  - button "새로고침":
+    - img
+    - text: 새로고침
+  - paragraph: 총 사용자
+  - paragraph: "18"
+  - paragraph: "활성: 15명"
+  - img
+  - text: +0%지난달 대비
+  - paragraph: 전체 캠페인
+  - paragraph: "30"
+  - paragraph: "진행중: 28개"
+  - img
+  - text: +0%지난달 대비
+  - paragraph: 월 매출
+  - paragraph: ₩455,000
+  - paragraph: "목표 달성률: 0%"
+  - img
+  - text: +0%지난달 대비
+  - paragraph: 대기중 승인
+  - paragraph: "4"
+  - paragraph: 즉시 처리 필요
+  - img
+  - link "승인 관리 →":
+    - /url: /admin/approvals
+  - heading "시스템 알림" [level=2]
+  - img
+  - paragraph: 4개의 프로필이 승인 대기 중입니다.
+  - paragraph: 지금
+  - heading "UI 설정" [level=2]
+  - link "설정 페이지로 →":
+    - /url: /admin/ui-config
+  - link "헤더 커스터마이징 로고, 메뉴, CTA 버튼 설정":
+    - /url: /admin/ui-config
+    - img
+    - paragraph: 헤더 커스터마이징
+    - paragraph: 로고, 메뉴, CTA 버튼 설정
+    - img
+  - link "푸터 커스터마이징 콜럼 및 링크 관리":
+    - /url: /admin/ui-config
+    - img
+    - paragraph: 푸터 커스터마이징
+    - paragraph: 콜럼 및 링크 관리
+    - img
+  - link "메뉴 관리 드래그 앤 드롭으로 순서 변경":
+    - /url: /admin/ui-config
+    - img
+    - paragraph: 메뉴 관리
+    - paragraph: 드래그 앤 드롭으로 순서 변경
+    - img
+  - heading "시스템 설정" [level=2]
+  - link "설정 페이지로 →":
+    - /url: /admin/settings
+  - link "일반 설정 사이트 정보, 유지보수 모드":
+    - /url: /admin/settings
+    - img
+    - paragraph: 일반 설정
+    - paragraph: 사이트 정보, 유지보수 모드
+    - img
+  - link "결제 설정 수수료, 결제 방법, 정산 주기":
+    - /url: /admin/settings
+    - img
+    - paragraph: 결제 설정
+    - paragraph: 수수료, 결제 방법, 정산 주기
+    - img
+  - link "알림 설정 이메일, SMS, 푸시 알림":
+    - /url: /admin/settings
+    - img
+    - paragraph: 알림 설정
+    - paragraph: 이메일, SMS, 푸시 알림
+    - img
+  - heading "최근 활동" [level=2]
+  - link "전체보기 →":
+    - /url: /admin/activities
+  - text: 👤
+  - paragraph: 새 사용자 가입
+  - paragraph: 비즈니스 "Demo Business"
+  - paragraph: 19분 전
+  - text: 👤
+  - paragraph: 새 사용자 가입
+  - paragraph: 인플루언서 "Demo Influencer"
+  - paragraph: 19분 전
+  - text: 👤
+  - paragraph: 새 사용자 가입
+  - paragraph: 비즈니스 "CJ제일제당"
+  - paragraph: 19분 전
+  - text: 📢
+  - paragraph: 새 캠페인
+  - paragraph: "\"[MOOS]무스 글라스에어프라이어4L\""
+  - paragraph: 10시간 전
+  - text: 📢
+  - paragraph: 새 캠페인
+  - paragraph: "\"[디월트 헤리티지]베이직 루즈핏 데님\""
+  - paragraph: 14시간 전
+  - heading "빠른 작업" [level=2]
+  - link "사용자 관리":
+    - /url: /admin/users
+    - img
+    - paragraph: 사용자 관리
+  - link "캠페인 관리":
+    - /url: /admin/campaigns
+    - img
+    - paragraph: 캠페인 관리
+  - link "신고 처리":
+    - /url: /admin/reports
+    - img
+    - paragraph: 신고 처리
+  - link "통계 분석":
+    - /url: /admin/analytics
+    - img
+    - paragraph: 통계 분석
+- region "Notifications (F8)":
+  - list
+- alert
+```

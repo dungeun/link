@@ -1,0 +1,57 @@
+{
+  "cookies": [
+    {
+      "name": "auth-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ1c2VySWQiOiJjbWVqNml3NTgwMDAwamllOTF5OWU1bWZ4IiwiZW1haWwiOiJhZG1pbkBkZW1vLmNvbSIsInR5cGUiOiJBRE1JTiIsIm5hbWUiOiJMaW5rUGljayDqtIDrpqzsnpAiLCJpYXQiOjE3NTU2NTE0MDAsImV4cCI6MTc1NjI1NjIwMH0.SXwKs74xDjm61c9AE0OTbHi-2wbyDCQEYOzpyl9Pm1s",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "refresh-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc1NTY1MTQwMCwiZXhwIjoxNzU4MjQzNDAwfQ.o078E0v7eKnO1ScZpChARHXjBdG2qmc1j_UuesYacgE",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1758243400.94,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "accessToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ1c2VySWQiOiJjbWVqNml3NTgwMDAwamllOTF5OWU1bWZ4IiwiZW1haWwiOiJhZG1pbkBkZW1vLmNvbSIsInR5cGUiOiJBRE1JTiIsIm5hbWUiOiJMaW5rUGljayDqtIDrpqzsnpAiLCJpYXQiOjE3NTU2NTE0MDAsImV4cCI6MTc1NjI1NjIwMH0.SXwKs74xDjm61c9AE0OTbHi-2wbyDCQEYOzpyl9Pm1s",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3001",
+      "localStorage": [
+        {
+          "name": "accessToken",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ1c2VySWQiOiJjbWVqNml3NTgwMDAwamllOTF5OWU1bWZ4IiwiZW1haWwiOiJhZG1pbkBkZW1vLmNvbSIsInR5cGUiOiJBRE1JTiIsIm5hbWUiOiJMaW5rUGljayDqtIDrpqzsnpAiLCJpYXQiOjE3NTU2NTE0MDAsImV4cCI6MTc1NjI1NjIwMH0.SXwKs74xDjm61c9AE0OTbHi-2wbyDCQEYOzpyl9Pm1s"
+        },
+        {
+          "name": "auth-token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ1c2VySWQiOiJjbWVqNml3NTgwMDAwamllOTF5OWU1bWZ4IiwiZW1haWwiOiJhZG1pbkBkZW1vLmNvbSIsInR5cGUiOiJBRE1JTiIsIm5hbWUiOiJMaW5rUGljayDqtIDrpqzsnpAiLCJpYXQiOjE3NTU2NTE0MDAsImV4cCI6MTc1NjI1NjIwMH0.SXwKs74xDjm61c9AE0OTbHi-2wbyDCQEYOzpyl9Pm1s"
+        },
+        {
+          "name": "user",
+          "value": "{\"user\":{\"id\":\"cmej6iw580000jie91y9e5mfx\",\"email\":\"admin@demo.com\",\"name\":\"LinkPick 관리자\",\"type\":\"ADMIN\",\"verified\":true,\"profile\":null},\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ1c2VySWQiOiJjbWVqNml3NTgwMDAwamllOTF5OWU1bWZ4IiwiZW1haWwiOiJhZG1pbkBkZW1vLmNvbSIsInR5cGUiOiJBRE1JTiIsIm5hbWUiOiJMaW5rUGljayDqtIDrpqzsnpAiLCJpYXQiOjE3NTU2NTE0MDAsImV4cCI6MTc1NjI1NjIwMH0.SXwKs74xDjm61c9AE0OTbHi-2wbyDCQEYOzpyl9Pm1s\",\"accessToken\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ1c2VySWQiOiJjbWVqNml3NTgwMDAwamllOTF5OWU1bWZ4IiwiZW1haWwiOiJhZG1pbkBkZW1vLmNvbSIsInR5cGUiOiJBRE1JTiIsIm5hbWUiOiJMaW5rUGljayDqtIDrpqzsnpAiLCJpYXQiOjE3NTU2NTE0MDAsImV4cCI6MTc1NjI1NjIwMH0.SXwKs74xDjm61c9AE0OTbHi-2wbyDCQEYOzpyl9Pm1s\"}"
+        },
+        {
+          "name": "ally-supports-cache",
+          "value": "{\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36\",\"version\":\"1.4.1\",\"focusAreaImgTabindex\":false,\"focusAreaTabindex\":false,\"focusAreaWithoutHref\":false,\"focusAudioWithoutControls\":false,\"focusBrokenImageMap\":true,\"focusChildrenOfFocusableFlexbox\":false,\"focusFieldsetDisabled\":true,\"focusFieldset\":false,\"focusFlexboxContainer\":false,\"focusFormDisabled\":true,\"focusImgIsmap\":false,\"focusImgUsemapTabindex\":true,\"focusInHiddenIframe\":true,\"focusInvalidTabindex\":false,\"focusLabelTabindex\":true,\"focusObjectSvg\":false,\"focusObjectSvgHidden\":false,\"focusRedirectImgUsemap\":false,\"focusRedirectLegend\":\"\",\"focusScrollBody\":false,\"focusScrollContainerWithoutOverflow\":false,\"focusScrollContainer\":true,\"focusSummary\":true,\"focusSvgFocusableAttribute\":false,\"focusSvgTabindexAttribute\":true,\"focusSvgNegativeTabindexAttribute\":true,\"focusSvgUseTabindex\":true,\"focusSvgForeignobjectTabindex\":true,\"focusSvg\":false,\"focusTabindexTrailingCharacters\":true,\"focusTable\":false,\"focusVideoWithoutControls\":false,\"cssShadowPiercingDeepCombinator\":\"\",\"focusInZeroDimensionObject\":true,\"focusObjectSwf\":true,\"focusSvgInIframe\":false,\"tabsequenceAreaAtImgPosition\":false,\"time\":\"2025-08-20T00:56:41.480Z\"}"
+        }
+      ]
+    }
+  ]
+}

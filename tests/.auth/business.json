@@ -1,0 +1,69 @@
+{
+  "cookies": [
+    {
+      "name": "auth-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWdyZ2xlODAwMDNwMjdsNjFsN3FkamkiLCJ1c2VySWQiOiJjbWVncmdsZTgwMDAzcDI3bDYxbDdxZGppIiwiZW1haWwiOiJidXNpbmVzc0Bjb21wYW55LmNvbSIsInR5cGUiOiJCVVNJTkVTUyIsIm5hbWUiOiLthYzsiqTtirgg67mE7KaI64uI7IqkIiwiaWF0IjoxNzU1NjUwMjY3LCJleHAiOjE3NTYyNTUwNjd9.tnwiXWEYZOBygR11KEJez3N9uJO9Elybk2pzUPbwcMA",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1756255067.819027,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "refresh-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWdyZ2xlODAwMDNwMjdsNjFsN3FkamkiLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc1NTY1MDI2NywiZXhwIjoxNzU4MjQyMjY3fQ.xsa9wriU281nHwTrvnfibDZz0ACRJzE1I-G9d1LcoDU",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1758242267.819137,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "accessToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWdyZ2xlODAwMDNwMjdsNjFsN3FkamkiLCJ1c2VySWQiOiJjbWVncmdsZTgwMDAzcDI3bDYxbDdxZGppIiwiZW1haWwiOiJidXNpbmVzc0Bjb21wYW55LmNvbSIsInR5cGUiOiJCVVNJTkVTUyIsIm5hbWUiOiLthYzsiqTtirgg67mE7KaI64uI7IqkIiwiaWF0IjoxNzU1NjUwMjY3LCJleHAiOjE3NTYyNTUwNjd9.tnwiXWEYZOBygR11KEJez3N9uJO9Elybk2pzUPbwcMA",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1756255067.8202,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3001",
+      "localStorage": [
+        {
+          "name": "accessToken",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWdyZ2xlODAwMDNwMjdsNjFsN3FkamkiLCJ1c2VySWQiOiJjbWVncmdsZTgwMDAzcDI3bDYxbDdxZGppIiwiZW1haWwiOiJidXNpbmVzc0Bjb21wYW55LmNvbSIsInR5cGUiOiJCVVNJTkVTUyIsIm5hbWUiOiLthYzsiqTtirgg67mE7KaI64uI7IqkIiwiaWF0IjoxNzU1NjUwMjY3LCJleHAiOjE3NTYyNTUwNjd9.tnwiXWEYZOBygR11KEJez3N9uJO9Elybk2pzUPbwcMA"
+        },
+        {
+          "name": "cachedProfile",
+          "value": "{\"id\":\"cmegrgle80003p27l61l7qdji\",\"email\":\"business@company.com\",\"name\":\"테스트 비즈니스\",\"type\":\"BUSINESS\",\"status\":\"ACTIVE\",\"businessProfile\":{\"id\":\"cmegrgle80004p27lxklorkxb\",\"companyName\":\"(주)테스트기업\",\"businessNumber\":\"123-45-67890\",\"representativeName\":\"홍길동\",\"businessAddress\":\"서울시 강남구 테헤란로 123\",\"businessCategory\":\"마케팅\",\"isVerified\":true,\"verifiedAt\":null,\"createdAt\":\"2025-08-18T06:55:45.489Z\",\"updatedAt\":\"2025-08-19T22:14:14.638Z\"}}"
+        },
+        {
+          "name": "auth-token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWdyZ2xlODAwMDNwMjdsNjFsN3FkamkiLCJ1c2VySWQiOiJjbWVncmdsZTgwMDAzcDI3bDYxbDdxZGppIiwiZW1haWwiOiJidXNpbmVzc0Bjb21wYW55LmNvbSIsInR5cGUiOiJCVVNJTkVTUyIsIm5hbWUiOiLthYzsiqTtirgg67mE7KaI64uI7IqkIiwiaWF0IjoxNzU1NjUwMjY3LCJleHAiOjE3NTYyNTUwNjd9.tnwiXWEYZOBygR11KEJez3N9uJO9Elybk2pzUPbwcMA"
+        },
+        {
+          "name": "user",
+          "value": "{\"id\":\"cmegrgle80003p27l61l7qdji\",\"email\":\"business@company.com\",\"name\":\"테스트 비즈니스\",\"type\":\"BUSINESS\"}"
+        },
+        {
+          "name": "ui-config-storage",
+          "value": "{\"state\":{\"config\":{\"header\":{\"logo\":{\"text\":\"LinkPick\",\"imageUrl\":null},\"menus\":[{\"id\":\"admin-cmegin3zi0001qziyo18dtbkg\",\"label\":\"병원\",\"languageKey\":\"category.hospital\",\"href\":\"/category/hospital\",\"order\":1,\"visible\":true,\"displayName\":\"병원\"},{\"id\":\"admin-cmegin3y40000qziy0f3zokp0\",\"label\":\"캠페인\",\"languageKey\":\"category.campaign\",\"href\":\"/category/campaign\",\"order\":2,\"visible\":true,\"displayName\":\"캠페인\"},{\"id\":\"admin-cmegin4160002qziymh70kpb6\",\"label\":\"구매평\",\"languageKey\":\"category.review\",\"href\":\"/category/review\",\"order\":3,\"visible\":true,\"displayName\":\"구매평\"},{\"id\":\"admin-cmegj4wg80000irb0t7g8stf8\",\"label\":\"커뮤니티\",\"languageKey\":\"header.menu.custom__1755486162949\",\"href\":\"/community\",\"order\":4,\"visible\":true,\"displayName\":\"커뮤니티\"}],\"ctaButton\":{\"text\":\"header.cta.start\",\"href\":\"/register\",\"visible\":true}},\"footer\":{\"columns\":[{\"id\":\"column-1\",\"title\":\"footer.service.title\",\"order\":1,\"links\":[{\"id\":\"link-1\",\"label\":\"footer.service.find_influencers\",\"href\":\"/influencers\",\"order\":1,\"visible\":true},{\"id\":\"link-2\",\"label\":\"footer.service.create_campaign\",\"href\":\"/campaigns/create\",\"order\":2,\"visible\":true}]},{\"id\":\"column-2\",\"title\":\"footer.company.title\",\"order\":2,\"links\":[{\"id\":\"link-3\",\"label\":\"footer.company.about\",\"href\":\"/about\",\"order\":1,\"visible\":true},{\"id\":\"link-4\",\"label\":\"footer.company.contact\",\"href\":\"/contact\",\"order\":2,\"visible\":true}]},{\"id\":\"column-3\",\"title\":\"footer.legal.title\",\"order\":3,\"links\":[{\"id\":\"link-5\",\"label\":\"footer.legal.terms\",\"href\":\"/terms\",\"order\":1,\"visible\":true},{\"id\":\"link-6\",\"label\":\"footer.legal.privacy\",\"href\":\"/privacy\",\"order\":2,\"visible\":true}]}],\"social\":[{\"platform\":\"twitter\",\"url\":\"https://twitter.com/linkpick\",\"visible\":true},{\"platform\":\"facebook\",\"url\":\"https://facebook.com/linkpick\",\"visible\":true},{\"platform\":\"instagram\",\"url\":\"https://instagram.com/linkpick\",\"visible\":true}],\"copyright\":\"footer.copyright\"},\"mainPage\":{\"heroSlides\":[{\"id\":\"slide-1\",\"type\":\"blue\",\"tag\":\"🎯 NEW\",\"title\":\"인플루언서와 브랜드를\\n연결하는 가장 쉬운 방법\",\"subtitle\":\"리뷰와 함께 성장의 기회를 만나보세요\",\"bgColor\":\"bg-gradient-to-br from-blue-400 to-blue-600\",\"order\":1,\"visible\":true},{\"id\":\"slide-2\",\"type\":\"dark\",\"title\":\"hero.slide2.title\",\"subtitle\":\"hero.slide2.subtitle\",\"bgColor\":\"bg-gradient-to-br from-gray-800 to-gray-900\",\"order\":2,\"visible\":true},{\"id\":\"slide-3\",\"type\":\"green\",\"title\":\"hero.slide3.title\",\"subtitle\":\"hero.slide3.subtitle\",\"bgColor\":\"bg-gradient-to-br from-green-400 to-green-600\",\"order\":3,\"visible\":true},{\"id\":\"slide-4\",\"type\":\"pink\",\"tag\":\"hero.slide4.tag\",\"title\":\"hero.slide4.title\",\"subtitle\":\"hero.slide4.subtitle\",\"bgColor\":\"bg-gradient-to-br from-pink-400 to-pink-600\",\"order\":4,\"visible\":true},{\"id\":\"slide-5\",\"type\":\"blue\",\"title\":\"hero.slide5.title\",\"subtitle\":\"hero.slide5.subtitle\",\"bgColor\":\"bg-gradient-to-br from-indigo-400 to-indigo-600\",\"order\":5,\"visible\":true},{\"id\":\"slide-6\",\"type\":\"dark\",\"tag\":\"hero.slide6.tag\",\"title\":\"hero.slide6.title\",\"subtitle\":\"hero.slide6.subtitle\",\"bgColor\":\"bg-gradient-to-br from-gray-700 to-gray-900\",\"order\":6,\"visible\":true}],\"categoryMenus\":[{\"id\":\"cat-cmegigprq0000ldk0ht2s86jx\",\"name\":\"캠페인\",\"categoryId\":\"campaign\",\"icon\":\"📢\",\"href\":\"/category/campaign\",\"order\":1,\"visible\":true},{\"id\":\"cat-cmegssrz7000pkuzf4xw5rjo6\",\"name\":\"맛집\",\"categoryId\":\"restaurant-review\",\"icon\":\"🍴\",\"href\":\"/category/restaurant-review\",\"order\":2,\"visible\":true},{\"id\":\"cat-cmegigpty0001ldk0lpmjr3im\",\"name\":\"병원\",\"categoryId\":\"hospital\",\"icon\":\"🏥\",\"href\":\"/category/hospital\",\"order\":2,\"visible\":true},{\"id\":\"cat-cmegsrtpz0003kuzfkx9hcb4s\",\"name\":\"맛집\",\"categoryId\":\"restaurant\",\"icon\":\"🍽️\",\"href\":\"/category/restaurant\",\"order\":2,\"visible\":true},{\"id\":\"cat-cmegigpwq0002ldk0oxn9fqzc\",\"name\":\"구매평\",\"categoryId\":\"review\",\"icon\":\"⭐\",\"href\":\"/category/review\",\"order\":3,\"visible\":true},{\"id\":\"cat-cmegssul0000rkuzfjh0vw4l6\",\"name\":\"뷰티\",\"categoryId\":\"beauty-review\",\"icon\":\"💋\",\"href\":\"/category/beauty-review\",\"order\":3,\"visible\":true},{\"id\":\"cat-cmegsrw8j0005kuzf5oz6fs4j\",\"name\":\"뷰티\",\"categoryId\":\"beauty\",\"icon\":\"💄\",\"href\":\"/category/beauty\",\"order\":3,\"visible\":true},{\"id\":\"cat-cmegsn6c40005jutsv13arj0v\",\"name\":\"성형외과\",\"categoryId\":\"plastic-surgery\",\"icon\":\"✨\",\"href\":\"/category/plastic-surgery\",\"order\":3,\"visible\":true},{\"id\":\"cat-cmegsrzbq0007kuzf3o8m846q\",\"name\":\"여행\",\"categoryId\":\"travel\",\"icon\":\"✈️\",\"href\":\"/category/travel\",\"order\":4,\"visible\":true},{\"id\":\"cat-cmegsswlt000tkuzft46muyt1\",\"name\":\"여행\",\"categoryId\":\"travel-review\",\"icon\":\"🧳\",\"href\":\"/category/travel-review\",\"order\":4,\"visible\":true},{\"id\":\"cat-cmegsn6ss0007juts8spmpv6i\",\"name\":\"피부과\",\"categoryId\":\"dermatology\",\"icon\":\"🧴\",\"href\":\"/category/dermatology\",\"order\":4,\"visible\":true},{\"id\":\"cat-cmegss1xi0009kuzfxja6riw7\",\"name\":\"문화\",\"categoryId\":\"culture\",\"icon\":\"🎭\",\"href\":\"/category/culture\",\"order\":5,\"visible\":true},{\"id\":\"cat-cmegsn7820009jutsj4zglujo\",\"name\":\"치과\",\"categoryId\":\"dentistry\",\"icon\":\"🦷\",\"href\":\"/category/dentistry\",\"order\":5,\"visible\":true},{\"id\":\"cat-cmegssyl6000vkuzftccexw3f\",\"name\":\"문화\",\"categoryId\":\"culture-review\",\"icon\":\"🎨\",\"href\":\"/category/culture-review\",\"order\":5,\"visible\":true},{\"id\":\"cat-cmegss432000bkuzf3nfvsqad\",\"name\":\"식품\",\"categoryId\":\"food\",\"icon\":\"🥘\",\"href\":\"/category/food\",\"order\":6,\"visible\":true},{\"id\":\"cat-cmegsn7mi000bjutsqbbjtygm\",\"name\":\"안과\",\"categoryId\":\"ophthalmology\",\"icon\":\"👁️\",\"href\":\"/category/ophthalmology\",\"order\":6,\"visible\":true},{\"id\":\"cat-cmegst0l9000xkuzf2xusyh02\",\"name\":\"식품\",\"categoryId\":\"food-review\",\"icon\":\"🍎\",\"href\":\"/category/food-review\",\"order\":6,\"visible\":true},{\"id\":\"cat-cmegst2mn000zkuzfqj1tuswo\",\"name\":\"생활\",\"categoryId\":\"daily-review\",\"icon\":\"🛍️\",\"href\":\"/category/daily-review\",\"order\":7,\"visible\":true},{\"id\":\"cat-cmegss6ym000dkuzfbz47y1h4\",\"name\":\"생활\",\"categoryId\":\"lifestyle\",\"icon\":\"🏡\",\"href\":\"/category/lifestyle\",\"order\":7,\"visible\":true},{\"id\":\"cat-cmegst5k60011kuzf4r4z9tmp\",\"name\":\"디지털\",\"categoryId\":\"digital-review\",\"icon\":\"💻\",\"href\":\"/category/digital-review\",\"order\":8,\"visible\":true},{\"id\":\"cat-cmegss8r3000fkuzfkp639r91\",\"name\":\"디지털\",\"categoryId\":\"digital\",\"icon\":\"📱\",\"href\":\"/category/digital\",\"order\":8,\"visible\":true}],\"quickLinks\":[{\"id\":\"quick-1\",\"title\":\"quicklink.events\",\"icon\":\"🎁\",\"link\":\"/events\",\"order\":1,\"visible\":true},{\"id\":\"quick-2\",\"title\":\"quicklink.coupons\",\"icon\":\"🎟️\",\"link\":\"/coupons\",\"order\":2,\"visible\":true},{\"id\":\"quick-3\",\"title\":\"quicklink.ranking\",\"icon\":\"🏆\",\"link\":\"/ranking\",\"order\":3,\"visible\":true}],\"promoBanner\":{\"title\":\"promo.title\",\"subtitle\":\"promo.subtitle\",\"icon\":\"📦\",\"visible\":true},\"sectionOrder\":[{\"id\":\"category\",\"type\":\"category\",\"order\":1,\"visible\":true},{\"id\":\"hero\",\"type\":\"hero\",\"order\":2,\"visible\":true},{\"id\":\"ranking\",\"type\":\"ranking\",\"order\":3,\"visible\":true},{\"id\":\"quicklinks\",\"type\":\"quicklinks\",\"order\":4,\"visible\":true},{\"id\":\"recommended\",\"type\":\"recommended\",\"order\":5,\"visible\":true},{\"id\":\"promo\",\"type\":\"promo\",\"order\":6,\"visible\":true}]}},\"websiteSettings\":{\"logo\":\"/logo.png\",\"favicon\":\"/favicon.ico\",\"primaryColor\":\"#3B82F6\",\"secondaryColor\":\"#10B981\",\"footerEnabled\":true,\"footerText\":\"© 2024 LinkPick. All rights reserved.\",\"footerLinks\":[{\"title\":\"이용약관\",\"url\":\"/terms\",\"newWindow\":false},{\"title\":\"개인정보처리방침\",\"url\":\"/privacy\",\"newWindow\":false},{\"title\":\"고객지원\",\"url\":\"/support\",\"newWindow\":false},{\"title\":\"회사소개\",\"url\":\"/about\",\"newWindow\":false}],\"socialLinks\":{\"facebook\":\"https://facebook.com/linkpick\",\"twitter\":\"https://twitter.com/linkpick\",\"instagram\":\"https://instagram.com/linkpick\",\"youtube\":\"https://youtube.com/linkpick\",\"linkedin\":\"https://linkedin.com/company/linkpick\"},\"seo\":{\"metaTitle\":\"LinkPick - 인플루언서 마케팅 플랫폼\",\"metaDescription\":\"최고의 인플루언서와 브랜드를 연결하는 마케팅 플랫폼입니다.\",\"metaKeywords\":\"인플루언서, 마케팅, 브랜드, 광고, 소셜미디어\",\"ogImage\":\"/og-image.jpg\"}}},\"version\":0}"
+        },
+        {
+          "name": "lastProfileFetch",
+          "value": "1755650270128"
+        },
+        {
+          "name": "cache_business_stats_undefined",
+          "value": "{\"data\":{\"totalCampaigns\":29,\"activeCampaigns\":27,\"totalApplications\":0,\"totalSpent\":0},\"timestamp\":1755650270602}"
+        }
+      ]
+    }
+  ]
+}

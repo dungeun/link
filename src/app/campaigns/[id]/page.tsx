@@ -55,6 +55,7 @@ import {
   Package,
   FileText
 } from 'lucide-react'
+import { getOptimizedImageUrl, normalizeImageArray, BLUR_DATA_URL } from '@/lib/utils/image-optimizer'
 
 // 플랫폼 아이콘 컴포넌트들
 const TikTokIcon = () => (
@@ -80,7 +81,7 @@ interface Campaign {
     category: string
   }
   platforms: string[]
-  budget: number
+  budget: number | { amount: number; type: string; currency: string }
   targetFollowers: number
   maxApplicants: number
   startDate: string
@@ -670,40 +671,30 @@ export default function CampaignDetailPage() {
 
                 {/* 제품 소개 탭 */}
                 <TabsContent value="product" className="mt-6">
-                  {campaign.productImages ? (
+                  {campaign?.media?.images ? (
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold text-gray-900">제품 소개</h2>
                       <div className="space-y-6">
                         {(() => {
-                          // productImages 파싱 및 정규화
-                          let images: any[] = [];
+                          // media.images가 배열인지 확인
+                          let images: string[] = [];
                           
-                          try {
-                            if (typeof campaign.productImages === 'string') {
-                              // JSON 문자열인 경우 파싱
-                              const parsed = JSON.parse(campaign.productImages);
-                              images = Array.isArray(parsed) ? parsed : [parsed];
-                            } else if (Array.isArray(campaign.productImages)) {
-                              // 이미 배열인 경우
-                              images = campaign.productImages;
-                            }
-                          } catch (e) {
-                            console.error('Product images parsing error:', e);
-                            images = [];
+                          if (Array.isArray(campaign.media.images)) {
+                            // 이미 배열인 경우 그대로 사용
+                            images = campaign.media.images.map((img: any) => {
+                              // MediaFile 객체에서 URL 추출
+                              if (typeof img === 'object' && img.url) return img.url;
+                              if (typeof img === 'string') return img;
+                              return '';
+                            }).filter((url: string) => url.trim() !== '');
+                          } else if (campaign.media.images) {
+                            // 배열이 아닌 경우 normalizeImageArray 사용
+                            images = normalizeImageArray(campaign.media.images);
                           }
                           
-                          // 이미지 URL 추출 및 필터링
-                          const validImages = images
-                            .map((img: any) => {
-                              // 문자열인 경우 그대로 사용
-                              if (typeof img === 'string') return img;
-                              // 객체인 경우 url 속성 사용
-                              if (img && typeof img === 'object') return img.url || img.imageUrl;
-                              return null;
-                            })
-                            .filter((url: any) => url && typeof url === 'string' && url.trim() !== '');
+                          console.log('[ProductImages] Processed images:', images);
                           
-                          if (validImages.length === 0) {
+                          if (images.length === 0) {
                             return (
                               <div className="text-center py-12 text-gray-500">
                                 <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -712,7 +703,7 @@ export default function CampaignDetailPage() {
                             );
                           }
                           
-                          return validImages.map((imageUrl: string, index: number) => (
+                          return images.map((imageUrl: string, index: number) => (
                             <div key={index} className="relative w-full rounded-lg overflow-hidden bg-gray-100">
                               <img
                                 src={imageUrl}
@@ -723,7 +714,7 @@ export default function CampaignDetailPage() {
                                   console.error(`Failed to load product image ${index + 1}:`, imageUrl);
                                   const target = e.target as HTMLImageElement;
                                   target.style.display = 'none';
-                                  // 대체 이미지 표시
+                                  // 이미지 로드 실패 시 플레이스홀더 표시
                                   const parent = target.parentElement;
                                   if (parent && !parent.querySelector('.error-message')) {
                                     const errorDiv = document.createElement('div');
@@ -814,47 +805,34 @@ export default function CampaignDetailPage() {
                   )}
 
                   {/* 상세 이미지 */}
-                  {campaign.detailImages && (
+                  {campaign?.media?.detailImages && (
                     <div className="pt-6 border-t">
                       <h2 className="text-xl font-semibold text-gray-900 mb-3">상세 이미지</h2>
                       <div className="space-y-4">
                         {(() => {
-                          // detailImages 처리: 문자열, 배열, JSON 문자열 모두 대응
+                          // detailImages가 배열인지 확인
                           let images: string[] = [];
                           
-                          try {
-                            if (typeof campaign.detailImages === 'string') {
-                              // JSON 문자열인 경우
-                              if (campaign.detailImages.startsWith('[') || campaign.detailImages.startsWith('{')) {
-                                const parsed = JSON.parse(campaign.detailImages);
-                                images = Array.isArray(parsed) ? parsed : [parsed];
-                              } else {
-                                // 단일 URL 문자열인 경우
-                                images = [campaign.detailImages];
-                              }
-                            } else if (Array.isArray(campaign.detailImages)) {
-                              // 이미 배열인 경우
-                              images = campaign.detailImages;
-                            } else if (campaign.detailImages && typeof campaign.detailImages === 'object') {
-                              // 객체인 경우 (url 속성을 가진 객체 배열일 수 있음)
-                              images = [campaign.detailImages];
-                            }
-                          } catch (e) {
-                            console.error('Detail images parsing error:', e);
-                            // 파싱 실패 시 빈 배열
-                            images = [];
+                          if (Array.isArray(campaign.media.detailImages)) {
+                            // 이미 배열인 경우 그대로 사용
+                            images = campaign.media.detailImages.map((img: any) => {
+                              // MediaFile 객체에서 URL 추출
+                              if (typeof img === 'object' && img.url) return img.url;
+                              if (typeof img === 'string') return img;
+                              return '';
+                            }).filter((url: string) => url.trim() !== '');
+                          } else if (campaign.media.detailImages) {
+                            // 배열이 아닌 경우 normalizeImageArray 사용
+                            images = normalizeImageArray(campaign.media.detailImages);
                           }
                           
-                          // 유효한 이미지만 필터링
-                          const validImages = images
-                            .map((img: any) => typeof img === 'string' ? img : img?.url || img)
-                            .filter((url: any) => url && typeof url === 'string');
+                          console.log('[DetailImages] Processed images:', images);
                           
-                          if (validImages.length === 0) {
+                          if (images.length === 0) {
                             return <p className="text-gray-500">상세 이미지가 없습니다.</p>;
                           }
                           
-                          return validImages.map((imageUrl: string, index: number) => (
+                          return images.map((imageUrl: string, index: number) => (
                             <div key={index} className="relative w-full">
                               <img
                                 src={imageUrl}
@@ -890,7 +868,7 @@ export default function CampaignDetailPage() {
                     <DollarSign className="w-4 h-4" />
                     총 예산
                   </span>
-                  <span className="font-semibold">₩{(campaign.budget || 0).toLocaleString()}</span>
+                  <span className="font-semibold">₩{(campaign.budget?.amount || campaign.budget || 0).toLocaleString()}</span>
                 </div>
 
                 {/* 모집 인원 */}
@@ -1263,7 +1241,7 @@ export default function CampaignDetailPage() {
               required
             />
             <p className="text-sm text-gray-500">
-              캠페인 예산: ₩{(campaign?.budget || 0).toLocaleString()}
+              캠페인 예산: ₩{(campaign?.budget?.amount || campaign?.budget || 0).toLocaleString()}
             </p>
           </div>
         </div>

@@ -164,7 +164,8 @@ export async function GET(request: NextRequest) {
     // 비즈니스 계정의 캠페인 목록 조회
     const campaigns = await prisma.campaign.findMany({
       where: {
-        businessId: user.id
+        businessId: user.id,
+        deletedAt: null  // 삭제되지 않은 캠페인만
       },
       orderBy: {
         createdAt: 'desc'
@@ -172,15 +173,21 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            applications: true
+            applications: {
+              where: {
+                deletedAt: null  // 삭제되지 않은 지원만 카운트
+              }
+            }
           }
         }
       }
     });
 
+    console.log('=== Campaign Query Result ===');
     console.log('Found campaigns:', campaigns.length);
+    console.log('Query conditions: businessId =', user.id);
     campaigns.forEach(c => {
-      console.log(`- ${c.title} (Business: ${c.businessId})`);
+      console.log(`- ${c.title} (ID: ${c.id}, Business: ${c.businessId}, Status: ${c.status})`);
     });
 
     // 캠페인 데이터 형식 변환

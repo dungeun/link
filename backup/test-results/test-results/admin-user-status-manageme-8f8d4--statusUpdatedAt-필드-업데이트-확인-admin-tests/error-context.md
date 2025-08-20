@@ -1,0 +1,299 @@
+# Page snapshot
+
+```yaml
+- link "LinkPick Admin":
+  - /url: /admin
+- navigation:
+  - link "대시보드":
+    - /url: /admin
+    - img
+    - text: 대시보드
+  - link "사용자 관리":
+    - /url: /admin/users
+    - img
+    - text: 사용자 관리
+  - link "캠페인 관리":
+    - /url: /admin/campaigns
+    - img
+    - text: 캠페인 관리
+  - link "결제 관리":
+    - /url: /admin/payments
+    - img
+    - text: 결제 관리
+  - link "정산 관리":
+    - /url: /admin/settlements
+    - img
+    - text: 정산 관리
+  - link "매출 관리":
+    - /url: /admin/revenue
+    - img
+    - text: 매출 관리
+  - link "통계 분석":
+    - /url: /admin/analytics
+    - img
+    - text: 통계 분석
+  - link "콘텐츠 관리":
+    - /url: /admin/content
+    - img
+    - text: 콘텐츠 관리
+  - link "언어팩":
+    - /url: /admin/translations
+    - img
+    - text: 언어팩
+  - link "시스템 설정":
+    - /url: /admin/settings
+    - img
+    - text: 시스템 설정
+  - link "카테고리 관리":
+    - /url: /admin/categories
+    - img
+    - text: 카테고리 관리
+  - link "UI 설정":
+    - /url: /admin/ui-config
+    - img
+    - text: UI 설정
+  - link "신고 관리":
+    - /url: /admin/reports
+    - img
+    - text: 신고 관리
+- text: L
+- paragraph: LinkPick 관리자
+- paragraph: 관리자
+- button "로그아웃":
+  - img
+  - text: 로그아웃
+- heading "사용자 관리" [level=1]
+- paragraph: 2025년 8월 20일 수요일
+- button "언어 선택":
+  - img
+  - text: 🇰🇷 한국어
+  - img
+- main:
+  - heading "사용자 관리" [level=1]
+  - paragraph: 플랫폼의 모든 사용자를 관리합니다.
+  - text: "타입:"
+  - button "전체"
+  - button "관리자"
+  - button "비즈니스"
+  - button "인플루언서"
+  - text: "상태:"
+  - button "전체"
+  - button "활성"
+  - button "비활성"
+  - button "정지"
+  - button "대기"
+  - textbox "이름 또는 이메일로 검색"
+  - img
+  - heading "사용자 목록 (18명)" [level=2]
+  - table:
+    - rowgroup:
+      - row "사용자 타입 전화번호 가입일 마지막 로그인 상태 관리":
+        - cell "사용자"
+        - cell "타입"
+        - cell "전화번호"
+        - cell "가입일"
+        - cell "마지막 로그인"
+        - cell "상태 관리"
+    - rowgroup:
+      - row "D Demo Business business@demo.com 비즈니스 - 2025. 8. 19. 2025. 8. 19. 활성 정지":
+        - cell "D Demo Business business@demo.com":
+          - text: D Demo Business
+          - button "business@demo.com"
+        - cell "비즈니스"
+        - cell "-"
+        - cell "2025. 8. 19."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "D Demo Influencer influencer@demo.com 인플루언서 - 2025. 8. 19. 2025. 8. 19. 활성 정지":
+        - cell "D Demo Influencer influencer@demo.com":
+          - text: D Demo Influencer
+          - button "influencer@demo.com"
+        - cell "인플루언서"
+        - cell "-"
+        - cell "2025. 8. 19."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "C CJ제일제당 CJ제일제당@demo.com 비즈니스 - 2025. 8. 19. Invalid Date 활성 정지":
+        - cell "C CJ제일제당 CJ제일제당@demo.com":
+          - text: C CJ제일제당
+          - button "CJ제일제당@demo.com"
+        - cell "비즈니스"
+        - cell "-"
+        - cell "2025. 8. 19."
+        - cell "Invalid Date"
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "뷰 뷰티구루민지 뷰티구루민지@demo.com 인플루언서 - 2025. 8. 19. Invalid Date 활성 정지":
+        - cell "뷰 뷰티구루민지 뷰티구루민지@demo.com":
+          - text: 뷰 뷰티구루민지
+          - button "뷰티구루민지@demo.com"
+        - cell "인플루언서"
+        - cell "-"
+        - cell "2025. 8. 19."
+        - cell "Invalid Date"
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "L LinkPick 관리자 admin@demo.com 관리자 - 2025. 8. 19. 2025. 8. 19. 활성 정지":
+        - cell "L LinkPick 관리자 admin@demo.com":
+          - text: L LinkPick 관리자
+          - button "admin@demo.com"
+        - cell "관리자"
+        - cell "-"
+        - cell "2025. 8. 19."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "푸 푸드리뷰어준호 food@reviewer.kr 인플루언서 - 2025. 8. 18. Invalid Date 정지 활성화":
+        - cell "푸 푸드리뷰어준호 food@reviewer.kr":
+          - text: 푸 푸드리뷰어준호
+          - button "food@reviewer.kr"
+        - cell "인플루언서"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "Invalid Date"
+        - cell "정지 활성화":
+          - text: 정지
+          - button "활성화"
+      - row "라 라이프스타일지현 lifestyle@vlogger.com 인플루언서 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "라 라이프스타일지현 lifestyle@vlogger.com":
+          - text: 라 라이프스타일지현
+          - button "lifestyle@vlogger.com"
+        - cell "인플루언서"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "패 패션블로거수연 fashion@blogger.kr 인플루언서 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "패 패션블로거수연 fashion@blogger.kr":
+          - text: 패 패션블로거수연
+          - button "fashion@blogger.kr"
+        - cell "인플루언서"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "뷰 뷰티구루민지 beauty@guru.com 인플루언서 - 2025. 8. 18. 2025. 8. 18. 활성 정지":
+        - cell "뷰 뷰티구루민지 beauty@guru.com":
+          - text: 뷰 뷰티구루민지
+          - button "beauty@guru.com"
+        - cell "인플루언서"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 18."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "M Myron Legros-O'Kon influencer@example.com 인플루언서 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "M Myron Legros-O'Kon influencer@example.com":
+          - text: M Myron Legros-O'Kon
+          - button "influencer@example.com"
+        - cell "인플루언서"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "테 테크 스타트업 tech@startup.io 비즈니스 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "테 테크 스타트업 tech@startup.io":
+          - text: 테 테크 스타트업
+          - button "tech@startup.io"
+        - cell "비즈니스"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "맛 맛집 레스토랑 food@restaurant.kr 비즈니스 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "맛 맛집 레스토랑 food@restaurant.kr":
+          - text: 맛 맛집 레스토랑
+          - button "food@restaurant.kr"
+        - cell "비즈니스"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "패 패션 스타일 fashion@style.com 비즈니스 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "패 패션 스타일 fashion@style.com":
+          - text: 패 패션 스타일
+          - button "fashion@style.com"
+        - cell "비즈니스"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "뷰 뷰티 코스메틱 beauty@cosmetics.co.kr 비즈니스 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "뷰 뷰티 코스메틱 beauty@cosmetics.co.kr":
+          - text: 뷰 뷰티 코스메틱
+          - button "beauty@cosmetics.co.kr"
+        - cell "비즈니스"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "테 테스트 비즈니스 business@company.com 비즈니스 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "테 테스트 비즈니스 business@company.com":
+          - text: 테 테스트 비즈니스
+          - button "business@company.com"
+        - cell "비즈니스"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "C Customer Support support@linkpick.co.kr 관리자 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "C Customer Support support@linkpick.co.kr":
+          - text: C Customer Support
+          - button "support@linkpick.co.kr"
+        - cell "관리자"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "C Content Manager manager@linkpick.co.kr 관리자 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "C Content Manager manager@linkpick.co.kr":
+          - text: C Content Manager
+          - button "manager@linkpick.co.kr"
+        - cell "관리자"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+      - row "D Demo Admin admin@linkpick.co.kr 관리자 - 2025. 8. 18. 2025. 8. 19. 활성 정지":
+        - cell "D Demo Admin admin@linkpick.co.kr":
+          - text: D Demo Admin
+          - button "admin@linkpick.co.kr"
+        - cell "관리자"
+        - cell "-"
+        - cell "2025. 8. 18."
+        - cell "2025. 8. 19."
+        - cell "활성 정지":
+          - text: 활성
+          - button "정지"
+- region "Notifications (F8)":
+  - list
+- alert
+```

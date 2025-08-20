@@ -62,6 +62,17 @@ export class GoogleTranslateService {
   }
 
   /**
+   * 언어 코드 매핑 (내부 코드 → Google API 코드)
+   */
+  private mapLanguageCode(langCode: string): string {
+    const mapping: Record<string, string> = {
+      'jp': 'ja', // 일본어: 내부적으로 'jp' 사용하지만 Google API는 'ja' 필요
+      'zh': 'zh-cn', // 중국어: 간체중국어로 매핑
+    }
+    return mapping[langCode] || langCode
+  }
+
+  /**
    * 텍스트를 지정된 언어로 번역
    */
   async translateText(
@@ -78,19 +89,23 @@ export class GoogleTranslateService {
       throw new Error('번역할 텍스트가 없습니다')
     }
 
+    // 언어 코드를 Google API 호환 형식으로 변환
+    const mappedSourceLanguage = this.mapLanguageCode(sourceLanguage)
+    const mappedTargetLanguage = this.mapLanguageCode(targetLanguage)
+
     try {
       console.log('[Google Translate] 번역 요청 시작:', {
         text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
-        sourceLanguage,
-        targetLanguage,
+        sourceLanguage: `${sourceLanguage} -> ${mappedSourceLanguage}`,
+        targetLanguage: `${targetLanguage} -> ${mappedTargetLanguage}`,
         hasApiKey: !!apiKey,
         apiKeyPrefix: apiKey ? `${apiKey.substring(0, 8)}...` : 'none'
       })
 
       const requestBody = {
         q: text,
-        source: sourceLanguage,
-        target: targetLanguage,
+        source: mappedSourceLanguage,
+        target: mappedTargetLanguage,
         format: 'text'
       }
 
@@ -141,7 +156,7 @@ export class GoogleTranslateService {
       const translationResult = {
         text: translation.translatedText,
         source: translation.detectedSourceLanguage || sourceLanguage,
-        target: targetLanguage,
+        target: targetLanguage, // 원래 언어 코드 반환 (매핑되기 전 코드)
         confidence: 0.9 // Google API는 신뢰도를 제공하지 않으므로 기본값
       }
       
@@ -180,6 +195,10 @@ export class GoogleTranslateService {
       return []
     }
 
+    // 언어 코드를 Google API 호환 형식으로 변환
+    const mappedSourceLanguage = this.mapLanguageCode(sourceLanguage)
+    const mappedTargetLanguage = this.mapLanguageCode(targetLanguage)
+
     try {
       const response = await fetch(`${this.baseUrl}?key=${apiKey}`, {
         method: 'POST',
@@ -188,8 +207,8 @@ export class GoogleTranslateService {
         },
         body: JSON.stringify({
           q: nonEmptyTexts,
-          source: sourceLanguage,
-          target: targetLanguage,
+          source: mappedSourceLanguage,
+          target: mappedTargetLanguage,
           format: 'text'
         })
       })
@@ -219,13 +238,13 @@ export class GoogleTranslateService {
   }
 
   /**
-   * 지원 언어 목록
+   * 지원 언어 목록 (내부적으로 사용하는 언어 코드)
    */
   getSupportedLanguages(): Array<{ code: string; name: string }> {
     return [
       { code: 'ko', name: '한국어' },
       { code: 'en', name: '영어' },
-      { code: 'jp', name: '일본어' },
+      { code: 'jp', name: '일본어' }, // 내부적으로 'jp' 사용, API 호출 시 'ja'로 자동 매핑
       { code: 'zh', name: '중국어' },
       { code: 'es', name: '스페인어' },
       { code: 'fr', name: '프랑스어' },

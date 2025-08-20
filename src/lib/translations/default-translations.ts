@@ -12,6 +12,23 @@ export const defaultTranslations = {
     'homepage.campaigns.deadline': '마감일',
     'homepage.campaigns.budget': '예산',
     'homepage.campaigns.participants': '참여자',
+    'homepage.campaigns.noCampaigns': '진행 중인 캠페인이 없습니다.',
+    
+    // 캠페인 관련
+    'campaign.deadline': 'D-{days}',
+    'campaign.review_type': '구매평',
+    'campaign.applicants_count': '{current}/{max}명',
+    'campaign.review_price_label': '구매평 단가',
+    'campaign.applicants_applied': '{count}명 지원',
+    'campaign.view_all_campaigns': '전체 캠페인 보기',
+    
+    // 카테고리 관련
+    'category.campaigns_title': '{category} 캠페인',
+    'category.campaigns_subtitle': '{category} 관련 캠페인을 만나보세요',
+    'category.no_campaigns': '{category} 캠페인이 없습니다.',
+    
+    // 공통
+    'common.view_all': '전체보기',
     
     // 메뉴
     'menu.home': '홈',
@@ -30,6 +47,11 @@ export const defaultTranslations = {
     'menu.user_management': '사용자 관리',
     'menu.campaign_management': '캠페인 관리',
     'menu.my': '마이',
+    'menu.menu': '메뉴',
+    'menu.admin_menu': '관리자 메뉴',
+    'menu.personal_menu': '개인 메뉴',
+    'menu.business_menu': '비즈니스 메뉴',
+    'menu.close_menu': '메뉴 닫기',
     
     // 헤더 메뉴
     'header.menu.campaigns': '캠페인',
@@ -81,6 +103,23 @@ export const defaultTranslations = {
     'homepage.campaigns.deadline': 'Deadline',
     'homepage.campaigns.budget': 'Budget',
     'homepage.campaigns.participants': 'Participants',
+    'homepage.campaigns.noCampaigns': 'No active campaigns available.',
+    
+    // Campaign Related
+    'campaign.deadline': 'D-{days}',
+    'campaign.review_type': 'Review',
+    'campaign.applicants_count': '{current}/{max} people',
+    'campaign.review_price_label': 'Review Price',
+    'campaign.applicants_applied': '{count} applied',
+    'campaign.view_all_campaigns': 'View All Campaigns',
+    
+    // Category Related
+    'category.campaigns_title': '{category} Campaigns',
+    'category.campaigns_subtitle': 'Discover campaigns related to {category}',
+    'category.no_campaigns': 'No {category} campaigns available.',
+    
+    // Common
+    'common.view_all': 'View All',
     
     // Menu
     'menu.home': 'Home',
@@ -99,6 +138,11 @@ export const defaultTranslations = {
     'menu.user_management': 'User Management',
     'menu.campaign_management': 'Campaign Management',
     'menu.my': 'My',
+    'menu.menu': 'Menu',
+    'menu.admin_menu': 'Admin Menu',
+    'menu.personal_menu': 'Personal Menu',
+    'menu.business_menu': 'Business Menu',
+    'menu.close_menu': 'Close Menu',
     
     // Header Menu
     'header.menu.campaigns': 'Campaigns',
@@ -150,6 +194,23 @@ export const defaultTranslations = {
     'homepage.campaigns.deadline': '締切',
     'homepage.campaigns.budget': '予算',
     'homepage.campaigns.participants': '参加者',
+    'homepage.campaigns.noCampaigns': '進行中のキャンペーンがありません。',
+    
+    // キャンペーン関連
+    'campaign.deadline': 'D-{days}',
+    'campaign.review_type': 'レビュー',
+    'campaign.applicants_count': '{current}/{max}名',
+    'campaign.review_price_label': 'レビュー単価',
+    'campaign.applicants_applied': '{count}名応募',
+    'campaign.view_all_campaigns': 'すべてのキャンペーンを見る',
+    
+    // カテゴリ関連
+    'category.campaigns_title': '{category}キャンペーン',
+    'category.campaigns_subtitle': '{category}関連のキャンペーンをご覧ください',
+    'category.no_campaigns': '{category}キャンペーンがありません。',
+    
+    // 共通
+    'common.view_all': 'すべて見る',
     
     // メニュー
     'menu.home': 'ホーム',
@@ -168,6 +229,11 @@ export const defaultTranslations = {
     'menu.user_management': 'ユーザー管理',
     'menu.campaign_management': 'キャンペーン管理',
     'menu.my': 'マイ',
+    'menu.menu': 'メニュー',
+    'menu.admin_menu': '管理者メニュー',
+    'menu.personal_menu': '個人メニュー',
+    'menu.business_menu': 'ビジネスメニュー',
+    'menu.close_menu': 'メニューを閉じる',
     
     // ヘッダーメニュー
     'header.menu.campaigns': 'キャンペーン',

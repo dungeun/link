@@ -9,7 +9,7 @@ interface Campaign {
   id: string
   title: string
   status: string
-  budget: number
+  budget: number | { amount: number; type?: string; currency?: string }
   applications: number
   maxApplications: number
   deadline: string
@@ -40,7 +40,7 @@ function CampaignManagementTab() {
       const response = await fetch(`/api/business/campaigns/${campaignId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
         }
       })
 
@@ -62,8 +62,14 @@ function CampaignManagementTab() {
     try {
       setLoading(true)
       console.log('[CampaignManagementTab] Fetching campaigns...')
+      
+      // 현재 사용자 정보 확인
+      const currentUser = localStorage.getItem('user')
+      console.log('[CampaignManagementTab] Current user:', currentUser)
+      
       const response = await apiGet('/api/business/campaigns')
       console.log('[CampaignManagementTab] Response status:', response.status)
+      console.log('[CampaignManagementTab] Response URL:', response.url)
       
       if (response.ok) {
         const data = await response.json()
@@ -72,6 +78,12 @@ function CampaignManagementTab() {
         // 응답 구조 처리 (success 래퍼가 있을 수 있음)
         const campaignsData = data.data?.campaigns || data.campaigns || []
         console.log('[CampaignManagementTab] Campaigns extracted:', campaignsData.length)
+        
+        // 각 캠페인의 businessId 확인
+        campaignsData.forEach((campaign: any, index: number) => {
+          console.log(`[Campaign ${index}] ID: ${campaign.id}, Title: ${campaign.title}, BusinessId: ${campaign.businessId}`)
+        })
+        
         setCampaigns(campaignsData)
         
         // 통계 계산
@@ -79,7 +91,10 @@ function CampaignManagementTab() {
           totalCampaigns: campaignsData.length,
           activeCampaigns: campaignsData.filter((c: Campaign) => c.status === 'ACTIVE').length,
           completedCampaigns: campaignsData.filter((c: Campaign) => c.status === 'COMPLETED').length,
-          totalBudget: campaignsData.reduce((sum: number, c: Campaign) => sum + (c.budget || 0), 0)
+          totalBudget: campaignsData.reduce((sum: number, c: Campaign) => {
+            const amount = typeof c.budget === 'object' ? c.budget?.amount : c.budget;
+            return sum + (amount || 0);
+          }, 0)
         })
       }
     } catch (error) {
@@ -260,7 +275,7 @@ function CampaignManagementTab() {
                     </div>
                     <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                       <span>카테고리: {campaign.category}</span>
-                      <span>예산: ₩{campaign.budget.toLocaleString()}</span>
+                      <span>예산: ₩{((typeof campaign.budget === 'object' ? campaign.budget?.amount : campaign.budget) || 0).toLocaleString()}</span>
                       <span>조회수: {campaign.viewCount}</span>
                       <span className="text-red-600 font-medium">{getDeadlineText(campaign.deadline)}</span>
                     </div>

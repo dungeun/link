@@ -278,8 +278,8 @@ export default function TranslationManagementPage() {
           if (translations.en && !translations.en.error) {
             updateData.en = translations.en.text
           }
-          if (translations.ja && !translations.ja.error) {
-            updateData.ja = translations.ja.text
+          if (translations.jp && !translations.jp.error) {
+            updateData.jp = translations.jp.text
           }
 
           // 번역 결과를 저장
@@ -289,7 +289,7 @@ export default function TranslationManagementPage() {
               type: selectedType
             })
             
-            alert(`번역이 완료되었습니다.\n- 영어: ${translations.en?.error ? '실패' : '성공'}\n- 일본어: ${translations.ja?.error ? '실패' : '성공'}`)
+            alert(`번역이 완료되었습니다.\n- 영어: ${translations.en?.error ? '실패' : '성공'}\n- 일본어: ${translations.jp?.error ? '실패' : '성공'}`)
           }
         } else {
           alert('번역 서비스에 문제가 발생했습니다.')

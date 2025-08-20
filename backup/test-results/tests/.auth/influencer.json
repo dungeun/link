@@ -1,0 +1,53 @@
+{
+  "cookies": [
+    {
+      "name": "auth-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXd0NzAwMDdqaWU5a25vOWM0OXoiLCJ1c2VySWQiOiJjbWVqNml3dDcwMDA3amllOWtubzljNDl6IiwiZW1haWwiOiJpbmZsdWVuY2VyQGRlbW8uY29tIiwidHlwZSI6IklORkxVRU5DRVIiLCJuYW1lIjoiRGVtbyBJbmZsdWVuY2VyIiwiaWF0IjoxNzU1NjQ3NTU0LCJleHAiOjE3NTYyNTIzNTR9.MiqFrDAn-bnfM_9kKuVRJigBtZeKCCuDsW5ZG1RXUnY",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1756252354.438216,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "refresh-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXd0NzAwMDdqaWU5a25vOWM0OXoiLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc1NTY0NzU1NCwiZXhwIjoxNzU4MjM5NTU0fQ.PId1sFxNYTsOEu_-juHUFkQrZp6IP4mfFDl_xR6XErc",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1758239554.438315,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "accessToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXd0NzAwMDdqaWU5a25vOWM0OXoiLCJ1c2VySWQiOiJjbWVqNml3dDcwMDA3amllOWtubzljNDl6IiwiZW1haWwiOiJpbmZsdWVuY2VyQGRlbW8uY29tIiwidHlwZSI6IklORkxVRU5DRVIiLCJuYW1lIjoiRGVtbyBJbmZsdWVuY2VyIiwiaWF0IjoxNzU1NjQ3NTU0LCJleHAiOjE3NTYyNTIzNTR9.MiqFrDAn-bnfM_9kKuVRJigBtZeKCCuDsW5ZG1RXUnY",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1756252354.439044,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "accessToken",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXd0NzAwMDdqaWU5a25vOWM0OXoiLCJ1c2VySWQiOiJjbWVqNml3dDcwMDA3amllOWtubzljNDl6IiwiZW1haWwiOiJpbmZsdWVuY2VyQGRlbW8uY29tIiwidHlwZSI6IklORkxVRU5DRVIiLCJuYW1lIjoiRGVtbyBJbmZsdWVuY2VyIiwiaWF0IjoxNzU1NjQ3NTU0LCJleHAiOjE3NTYyNTIzNTR9.MiqFrDAn-bnfM_9kKuVRJigBtZeKCCuDsW5ZG1RXUnY"
+        },
+        {
+          "name": "user",
+          "value": "{\"id\":\"cmej6iwt70007jie9kno9c49z\",\"email\":\"influencer@demo.com\",\"name\":\"Demo Influencer\",\"type\":\"INFLUENCER\",\"verified\":true,\"profile\":{\"id\":\"cmej6iwuy0009jie9lwxsbxil\",\"userId\":\"cmej6iwt70007jie9kno9c49z\",\"bio\":\"Demo influencer account for testing\",\"profileImage\":null,\"profileImageId\":null,\"phone\":null,\"birthYear\":null,\"gender\":null,\"instagram\":\"@demo_influencer\",\"instagramFollowers\":10000,\"youtube\":null,\"youtubeSubscribers\":null,\"tiktok\":null,\"tiktokFollowers\":null,\"facebook\":null,\"facebookFollowers\":null,\"twitter\":null,\"twitterFollowers\":null,\"averageEngagementRate\":null,\"categories\":null,\"isVerified\":false,\"verificationNotes\":null,\"verifiedAt\":null,\"createdAt\":\"2025-08-19T23:33:00.250Z\",\"updatedAt\":\"2025-08-19T23:33:00.250Z\",\"followerCount\":0,\"naverBlog\":null,\"address\":null,\"bankName\":null,\"bankAccountNumber\":null,\"bankAccountHolder\":null,\"naverBlogFollowers\":null,\"snsLastUpdated\":null,\"naverBlogTodayVisitors\":null,\"birthDate\":null,\"nationality\":null,\"realName\":null,\"addressData\":null,\"profileCompleted\":false}}"
+        },
+        {
+          "name": "auth-token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXd0NzAwMDdqaWU5a25vOWM0OXoiLCJ1c2VySWQiOiJjbWVqNml3dDcwMDA3amllOWtubzljNDl6IiwiZW1haWwiOiJpbmZsdWVuY2VyQGRlbW8uY29tIiwidHlwZSI6IklORkxVRU5DRVIiLCJuYW1lIjoiRGVtbyBJbmZsdWVuY2VyIiwiaWF0IjoxNzU1NjQ3NTU0LCJleHAiOjE3NTYyNTIzNTR9.MiqFrDAn-bnfM_9kKuVRJigBtZeKCCuDsW5ZG1RXUnY"
+        }
+      ]
+    }
+  ]
+}

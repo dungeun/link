@@ -1,0 +1,205 @@
+{
+  "tasks": [
+    {
+      "id": "86e2ccdd-3c64-41ee-ac62-a81092184f5a",
+      "name": "캠페인 상세 페이지 이미지 표시 검증",
+      "description": "캠페인 상세 페이지에서 모든 이미지 타입이 정상적으로 표시되는지 확인",
+      "notes": "수정 파일: /src/app/campaigns/[id]/page.tsx - media 객체 구조로 변경됨",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2025-08-19T22:33:25.859Z",
+      "updatedAt": "2025-08-19T22:35:19.774Z",
+      "relatedFiles": [
+        {
+          "path": "/src/app/campaigns/[id]/page.tsx",
+          "type": "TO_MODIFY",
+          "description": "캠페인 상세 페이지 컴포넌트"
+        },
+        {
+          "path": "/src/lib/utils/image-optimizer.ts",
+          "type": "DEPENDENCY",
+          "description": "이미지 최적화 유틸리티"
+        }
+      ],
+      "implementationGuide": "1. 테스트 URL: https://linkpick.me/campaigns/cm50xkcjs0003s3w8t4poz3qj 접속\n2. 제품 이미지(media.images) 표시 확인\n3. 상세 이미지(media.detailImages) 표시 확인\n4. 헤더 이미지(headerImageUrl) 표시 확인\n5. 이미지 로드 실패 시 대체 UI 표시 확인",
+      "verificationCriteria": "모든 이미지 타입이 정상 표시되고, 로드 실패 시 적절한 대체 UI가 나타나야 함",
+      "analysisResult": "캠페인 플랫폼 이슈 수정 사항 검증 및 테스트 - 사용자가 수정한 내용을 체계적으로 확인하고 테스트하여 모든 기능이 정상 작동하는지 검증",
+      "summary": "캠페인 상세 페이지 이미지 표시 기능이 완전히 구현됨. media.images와 media.detailImages는 normalizeImageArray() 유틸리티로 다양한 데이터 형식을 처리하고, 헤더 이미지는 우선순위 체계(headerImageUrl > thumbnailImageUrl > imageUrl)를 따르며, 모든 이미지 타입에 대해 로드 실패 시 적절한 대체 UI가 표시되도록 구현되어 있음.",
+      "completedAt": "2025-08-19T22:35:19.774Z"
+    },
+    {
+      "id": "9adb89bb-794f-4be7-9d36-1eae50016eb0",
+      "name": "카테고리 개수 통계 API 검증",
+      "description": "카테고리별 캠페인 개수가 정확하게 계산되고 표시되는지 확인",
+      "notes": "수정 파일: /src/app/api/campaigns/simple/route.ts",
+      "status": "pending",
+      "dependencies": [],
+      "createdAt": "2025-08-19T22:33:25.859Z",
+      "updatedAt": "2025-08-19T22:33:25.859Z",
+      "relatedFiles": [
+        {
+          "path": "/src/app/api/campaigns/simple/route.ts",
+          "type": "TO_MODIFY",
+          "description": "간단한 캠페인 API"
+        },
+        {
+          "path": "/src/app/category/[slug]/page.tsx",
+          "type": "REFERENCE",
+          "description": "카테고리 페이지"
+        }
+      ],
+      "implementationGuide": "1. https://linkpick.me/category/campaigns 접속\n2. 각 카테고리별 캠페인 개수 확인\n3. '전체' 카테고리 총 개수와 일치 여부 확인\n4. 하위 카테고리 클릭 시 필터링 작동 확인",
+      "verificationCriteria": "카테고리별 개수가 정확하고 필터링이 올바르게 작동해야 함",
+      "analysisResult": "캠페인 플랫폼 이슈 수정 사항 검증 및 테스트 - 사용자가 수정한 내용을 체계적으로 확인하고 테스트하여 모든 기능이 정상 작동하는지 검증"
+    },
+    {
+      "id": "d6c9c1fd-2a16-4a97-9bcc-87910f2b5819",
+      "name": "캠페인 지원 버튼 활성화 검증",
+      "description": "인플루언서가 프로필 완성도와 관계없이 캠페인에 지원할 수 있는지 확인",
+      "notes": "수정 파일: /src/app/api/campaigns/[id]/apply/route.ts",
+      "status": "pending",
+      "dependencies": [
+        {
+          "taskId": "86e2ccdd-3c64-41ee-ac62-a81092184f5a"
+        }
+      ],
+      "createdAt": "2025-08-19T22:33:25.859Z",
+      "updatedAt": "2025-08-19T22:33:25.859Z",
+      "relatedFiles": [
+        {
+          "path": "/src/app/api/campaigns/[id]/apply/route.ts",
+          "type": "TO_MODIFY",
+          "description": "캠페인 지원 API"
+        },
+        {
+          "path": "/src/app/campaigns/[id]/page.tsx",
+          "type": "REFERENCE",
+          "description": "캠페인 상세 페이지"
+        }
+      ],
+      "implementationGuide": "1. 인플루언서 계정(11@11.com/11)으로 로그인\n2. 캠페인 상세 페이지 접속\n3. 프로필 미완성 상태에서 지원 버튼 활성화 확인\n4. 지원 신청 프로세스 완료 테스트\n5. 팔로워 수 요구사항이 있는 경우에만 제한 확인",
+      "verificationCriteria": "프로필 완성도와 관계없이 지원 가능하며, 팔로워 수 요구사항만 선택적으로 적용되어야 함",
+      "analysisResult": "캠페인 플랫폼 이슈 수정 사항 검증 및 테스트 - 사용자가 수정한 내용을 체계적으로 확인하고 테스트하여 모든 기능이 정상 작동하는지 검증"
+    },
+    {
+      "id": "70f97755-c8cc-4a51-95f2-38691e06abcb",
+      "name": "관리자 사용자 상태 변경 기능 검증",
+      "description": "관리자가 사용자 상태를 변경하고 저장할 수 있는지 확인",
+      "notes": "수정 파일: /src/app/api/admin/users/[id]/route.ts",
+      "status": "pending",
+      "dependencies": [],
+      "createdAt": "2025-08-19T22:33:25.859Z",
+      "updatedAt": "2025-08-19T22:33:25.859Z",
+      "relatedFiles": [
+        {
+          "path": "/src/app/api/admin/users/[id]/route.ts",
+          "type": "TO_MODIFY",
+          "description": "사용자 관리 API"
+        },
+        {
+          "path": "/src/app/admin/users/page.tsx",
+          "type": "REFERENCE",
+          "description": "관리자 사용자 관리 페이지"
+        }
+      ],
+      "implementationGuide": "1. 관리자 계정(admin@biz.com/admin123)으로 로그인\n2. https://linkpick.me/admin/users 접속\n3. 사용자 선택 후 상태 변경 (Active/Inactive/Suspended)\n4. 저장 버튼 클릭 및 성공 메시지 확인\n5. 페이지 새로고침 후 변경사항 유지 확인",
+      "verificationCriteria": "상태 변경이 정상적으로 저장되고 유지되어야 함",
+      "analysisResult": "캠페인 플랫폼 이슈 수정 사항 검증 및 테스트 - 사용자가 수정한 내용을 체계적으로 확인하고 테스트하여 모든 기능이 정상 작동하는지 검증"
+    },
+    {
+      "id": "453a56b9-b07e-4bf1-8179-ac2457d37f15",
+      "name": "플랫폼 필터 통일성 검증",
+      "description": "모든 플랫폼 선택 UI에서 동일한 옵션이 표시되는지 확인",
+      "notes": "수정 파일: /src/constants/platforms.ts (새 파일), /src/app/business/campaigns/[id]/edit/page.tsx",
+      "status": "pending",
+      "dependencies": [],
+      "createdAt": "2025-08-19T22:33:25.859Z",
+      "updatedAt": "2025-08-19T22:33:25.859Z",
+      "relatedFiles": [
+        {
+          "path": "/src/constants/platforms.ts",
+          "type": "CREATE",
+          "description": "플랫폼 상수 정의 파일"
+        },
+        {
+          "path": "/src/app/business/campaigns/[id]/edit/page.tsx",
+          "type": "TO_MODIFY",
+          "description": "캠페인 수정 페이지"
+        }
+      ],
+      "implementationGuide": "1. 비즈니스 계정(biz@biz.com/biz123)으로 로그인\n2. 캠페인 수정 페이지에서 플랫폼 옵션 확인\n3. 캠페인 목록 페이지 필터에서 플랫폼 옵션 확인\n4. 모든 곳에서 Instagram, YouTube, TikTok, Blog, Facebook, X, 네이버 블로그 포함 확인",
+      "verificationCriteria": "모든 UI에서 동일한 7개 플랫폼 옵션이 표시되어야 함",
+      "analysisResult": "캠페인 플랫폼 이슈 수정 사항 검증 및 테스트 - 사용자가 수정한 내용을 체계적으로 확인하고 테스트하여 모든 기능이 정상 작동하는지 검증"
+    },
+    {
+      "id": "a23732bf-0699-486c-91e1-89e38a611de6",
+      "name": "비즈니스별 캠페인 필터링 검증",
+      "description": "businessId 파라미터를 통한 캠페인 필터링이 작동하는지 확인",
+      "notes": "수정 파일: /src/app/api/campaigns/route.ts - businessId 파라미터 추가됨",
+      "status": "pending",
+      "dependencies": [],
+      "createdAt": "2025-08-19T22:33:25.859Z",
+      "updatedAt": "2025-08-19T22:33:25.859Z",
+      "relatedFiles": [
+        {
+          "path": "/src/app/api/campaigns/route.ts",
+          "type": "TO_MODIFY",
+          "description": "캠페인 목록 API"
+        }
+      ],
+      "implementationGuide": "1. /api/campaigns?businessId={id} API 호출 테스트\n2. 특정 비즈니스의 캠페인만 반환되는지 확인\n3. 캐시 키에 businessId가 포함되는지 확인",
+      "verificationCriteria": "businessId로 필터링된 캠페인만 반환되어야 함",
+      "analysisResult": "캠페인 플랫폼 이슈 수정 사항 검증 및 테스트 - 사용자가 수정한 내용을 체계적으로 확인하고 테스트하여 모든 기능이 정상 작동하는지 검증"
+    },
+    {
+      "id": "dd3b561b-f7c6-4a92-9c1c-64eaf502f0fc",
+      "name": "이미지 최적화 유틸리티 동작 검증",
+      "description": "normalizeImageArray 함수가 다양한 이미지 데이터 형식을 정상 처리하는지 확인",
+      "notes": "getOptimizedImageUrl, normalizeImageArray, BLUR_DATA_URL 함수 사용",
+      "status": "pending",
+      "dependencies": [
+        {
+          "taskId": "86e2ccdd-3c64-41ee-ac62-a81092184f5a"
+        }
+      ],
+      "createdAt": "2025-08-19T22:33:25.859Z",
+      "updatedAt": "2025-08-19T22:33:25.859Z",
+      "relatedFiles": [
+        {
+          "path": "/src/lib/utils/image-optimizer.ts",
+          "type": "REFERENCE",
+          "description": "이미지 최적화 유틸리티"
+        }
+      ],
+      "implementationGuide": "1. 캠페인 상세 페이지에서 콘솔 로그 확인\n2. [ProductImages], [DetailImages] 로그에서 처리된 이미지 배열 확인\n3. 문자열, 배열, 객체 형식 모두 정상 처리 확인",
+      "verificationCriteria": "모든 이미지 데이터 형식이 정상적으로 배열로 변환되어야 함",
+      "analysisResult": "캠페인 플랫폼 이슈 수정 사항 검증 및 테스트 - 사용자가 수정한 내용을 체계적으로 확인하고 테스트하여 모든 기능이 정상 작동하는지 검증"
+    },
+    {
+      "id": "350cb16b-decc-4752-865e-dfb488ae077b",
+      "name": "예산 필드 호환성 검증",
+      "description": "budget 필드가 number 또는 객체 형식 모두 처리되는지 확인",
+      "notes": "budget: number | { amount: number; type: string; currency: string } 타입 지원",
+      "status": "pending",
+      "dependencies": [
+        {
+          "taskId": "86e2ccdd-3c64-41ee-ac62-a81092184f5a"
+        }
+      ],
+      "createdAt": "2025-08-19T22:33:25.859Z",
+      "updatedAt": "2025-08-19T22:33:25.859Z",
+      "relatedFiles": [
+        {
+          "path": "/src/app/campaigns/[id]/page.tsx",
+          "type": "REFERENCE",
+          "description": "캠페인 상세 페이지",
+          "lineStart": 83,
+          "lineEnd": 83
+        }
+      ],
+      "implementationGuide": "1. 캠페인 상세 페이지에서 예산 표시 확인\n2. budget.amount 또는 budget 직접 접근 모두 작동 확인\n3. 지원 모달에서도 예산이 정상 표시되는지 확인",
+      "verificationCriteria": "두 가지 budget 형식 모두 정상적으로 표시되어야 함",
+      "analysisResult": "캠페인 플랫폼 이슈 수정 사항 검증 및 테스트 - 사용자가 수정한 내용을 체계적으로 확인하고 테스트하여 모든 기능이 정상 작동하는지 검증"
+    }
+  ]
+}

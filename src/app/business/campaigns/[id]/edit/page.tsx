@@ -106,7 +106,15 @@ export default function EditCampaignPage() {
         }
 
         const data = await response.json()
-        const campaign = data.campaign
+        console.log('API 응답 구조:', data)
+        
+        // API 응답 구조에 따라 캠페인 데이터 추출
+        const campaign = data.campaign || data.data?.campaign || data.data
+        
+        if (!campaign) {
+          console.error('캠페인 데이터를 찾을 수 없음:', data)
+          throw new Error('캠페인 데이터가 올바르지 않습니다.')
+        }
 
         // 폼 데이터 설정
         setFormData({

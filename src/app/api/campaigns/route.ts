@@ -275,17 +275,18 @@ export async function GET(request: NextRequest) {
     const ranking = searchParams.get('ranking') === 'true';
     const recommended = searchParams.get('recommended') === 'true';
     const type = searchParams.get('type');
+    const businessId = searchParams.get('businessId'); // 비즈니스 ID 파라미터 추가
     const offset = (page - 1) * limit;
 
     // 캐시 키 생성
     const cacheKey = CacheKeyBuilder.create()
       .add('campaigns_v2')
       .page(page, limit)
-      .filter({ status, category, platform, sort, ranking, recommended, type })
+      .filter({ status, category, platform, sort, ranking, recommended, type, businessId })
       .build();
 
     // 캐시 확인
-    const cachedData = await CampaignCache.get({ status, category, platform, sort, ranking, recommended, type }, { page, limit });
+    const cachedData = await CampaignCache.get({ status, category, platform, sort, ranking, recommended, type, businessId }, { page, limit });
     if (cachedData) {
       const response = NextResponse.json(cachedData);
       timer.end();
@@ -299,6 +300,11 @@ export async function GET(request: NextRequest) {
         deletedAt: null,
         status: status?.toUpperCase() || 'ACTIVE'
       };
+      
+      // 비즈니스 ID 필터링 추가
+      if (businessId) {
+        where.businessId = businessId;
+      }
       
       // 카테고리 필터링 최적화
       if (category && category !== 'all') {
@@ -395,7 +401,7 @@ export async function GET(request: NextRequest) {
         };
 
         // 결과를 캐시에 저장
-        await CampaignCache.set({ status, category, platform, sort, ranking, recommended, type }, { page, limit }, result);
+        await CampaignCache.set({ status, category, platform, sort, ranking, recommended, type, businessId }, { page, limit }, result);
         
         return result;
       } catch (queryError) {

@@ -1,0 +1,53 @@
+{
+  "cookies": [
+    {
+      "name": "auth-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ1c2VySWQiOiJjbWVqNml3NTgwMDAwamllOTF5OWU1bWZ4IiwiZW1haWwiOiJhZG1pbkBkZW1vLmNvbSIsInR5cGUiOiJBRE1JTiIsIm5hbWUiOiJMaW5rUGljayDqtIDrpqzsnpAiLCJpYXQiOjE3NTU2NDc1NTQsImV4cCI6MTc1NjI1MjM1NH0.f7m4bt-gKbTwYIZyhvmpWiOD6ojATKx3fqAU6K0v2R0",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1756252354.485666,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "refresh-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc1NTY0NzU1NCwiZXhwIjoxNzU4MjM5NTU0fQ.nPs9dhqZTh11UuygMYNhvnNwiPxqfxD_oDawGF5C3Mw",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1758239554.485738,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "accessToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ1c2VySWQiOiJjbWVqNml3NTgwMDAwamllOTF5OWU1bWZ4IiwiZW1haWwiOiJhZG1pbkBkZW1vLmNvbSIsInR5cGUiOiJBRE1JTiIsIm5hbWUiOiJMaW5rUGljayDqtIDrpqzsnpAiLCJpYXQiOjE3NTU2NDc1NTQsImV4cCI6MTc1NjI1MjM1NH0.f7m4bt-gKbTwYIZyhvmpWiOD6ojATKx3fqAU6K0v2R0",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1756252354.48674,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "accessToken",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ1c2VySWQiOiJjbWVqNml3NTgwMDAwamllOTF5OWU1bWZ4IiwiZW1haWwiOiJhZG1pbkBkZW1vLmNvbSIsInR5cGUiOiJBRE1JTiIsIm5hbWUiOiJMaW5rUGljayDqtIDrpqzsnpAiLCJpYXQiOjE3NTU2NDc1NTQsImV4cCI6MTc1NjI1MjM1NH0.f7m4bt-gKbTwYIZyhvmpWiOD6ojATKx3fqAU6K0v2R0"
+        },
+        {
+          "name": "user",
+          "value": "{\"id\":\"cmej6iw580000jie91y9e5mfx\",\"email\":\"admin@demo.com\",\"name\":\"LinkPick 관리자\",\"type\":\"ADMIN\",\"verified\":true,\"profile\":null}"
+        },
+        {
+          "name": "auth-token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXc1ODAwMDBqaWU5MXk5ZTVtZngiLCJ1c2VySWQiOiJjbWVqNml3NTgwMDAwamllOTF5OWU1bWZ4IiwiZW1haWwiOiJhZG1pbkBkZW1vLmNvbSIsInR5cGUiOiJBRE1JTiIsIm5hbWUiOiJMaW5rUGljayDqtIDrpqzsnpAiLCJpYXQiOjE3NTU2NDc1NTQsImV4cCI6MTc1NjI1MjM1NH0.f7m4bt-gKbTwYIZyhvmpWiOD6ojATKx3fqAU6K0v2R0"
+        }
+      ]
+    }
+  ]
+}

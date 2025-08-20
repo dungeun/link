@@ -49,7 +49,7 @@ export default function ProfileImageUpload({
   useEffect(() => {
     const fetchSocialAccounts = async () => {
       try {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token')
         if (!token) return
 
         const response = await fetch('/api/user/social-accounts', {
@@ -120,7 +120,7 @@ export default function ProfileImageUpload({
   const handleSocialImport = async (provider: 'google' | 'kakao' | 'naver') => {
     try {
       setLoadingSocial(true)
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token')
       if (!token) {
         alert('로그인이 필요합니다.')
         return

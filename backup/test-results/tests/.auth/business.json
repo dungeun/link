@@ -1,0 +1,53 @@
+{
+  "cookies": [
+    {
+      "name": "auth-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXgwbjAwMGFqaWU5MXhzYjBpODAiLCJ1c2VySWQiOiJjbWVqNml4MG4wMDBhamllOTF4c2IwaTgwIiwiZW1haWwiOiJidXNpbmVzc0BkZW1vLmNvbSIsInR5cGUiOiJCVVNJTkVTUyIsIm5hbWUiOiJEZW1vIEJ1c2luZXNzIiwiaWF0IjoxNzU1NjQ3NTU0LCJleHAiOjE3NTYyNTIzNTR9.nO0GeY0DKD6oOyWJmVH987tK0VgAChwzxeOd7oyQmiE",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1756252354.428625,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "refresh-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXgwbjAwMGFqaWU5MXhzYjBpODAiLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc1NTY0NzU1NCwiZXhwIjoxNzU4MjM5NTU0fQ.pHeh8ehWlQHxTakjOPbSvaNUEqjDpzzlthpsDVRz6Fs",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1758239554.429896,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "accessToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXgwbjAwMGFqaWU5MXhzYjBpODAiLCJ1c2VySWQiOiJjbWVqNml4MG4wMDBhamllOTF4c2IwaTgwIiwiZW1haWwiOiJidXNpbmVzc0BkZW1vLmNvbSIsInR5cGUiOiJCVVNJTkVTUyIsIm5hbWUiOiJEZW1vIEJ1c2luZXNzIiwiaWF0IjoxNzU1NjQ3NTU0LCJleHAiOjE3NTYyNTIzNTR9.nO0GeY0DKD6oOyWJmVH987tK0VgAChwzxeOd7oyQmiE",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1756252354.431233,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "accessToken",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXgwbjAwMGFqaWU5MXhzYjBpODAiLCJ1c2VySWQiOiJjbWVqNml4MG4wMDBhamllOTF4c2IwaTgwIiwiZW1haWwiOiJidXNpbmVzc0BkZW1vLmNvbSIsInR5cGUiOiJCVVNJTkVTUyIsIm5hbWUiOiJEZW1vIEJ1c2luZXNzIiwiaWF0IjoxNzU1NjQ3NTU0LCJleHAiOjE3NTYyNTIzNTR9.nO0GeY0DKD6oOyWJmVH987tK0VgAChwzxeOd7oyQmiE"
+        },
+        {
+          "name": "user",
+          "value": "{\"id\":\"cmej6ix0n000ajie91xsb0i80\",\"email\":\"business@demo.com\",\"name\":\"Demo Business\",\"type\":\"BUSINESS\",\"verified\":true,\"profile\":null}"
+        },
+        {
+          "name": "auth-token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZWo2aXgwbjAwMGFqaWU5MXhzYjBpODAiLCJ1c2VySWQiOiJjbWVqNml4MG4wMDBhamllOTF4c2IwaTgwIiwiZW1haWwiOiJidXNpbmVzc0BkZW1vLmNvbSIsInR5cGUiOiJCVVNJTkVTUyIsIm5hbWUiOiJEZW1vIEJ1c2luZXNzIiwiaWF0IjoxNzU1NjQ3NTU0LCJleHAiOjE3NTYyNTIzNTR9.nO0GeY0DKD6oOyWJmVH987tK0VgAChwzxeOd7oyQmiE"
+        }
+      ]
+    }
+  ]
+}

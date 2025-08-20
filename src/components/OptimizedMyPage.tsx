@@ -337,7 +337,7 @@ const OptimizedMyPage = memo(({
                   <CardContent className="p-4">
                     <p className="text-xs text-gray-500">{campaign.business?.name}</p>
                     <h3 className="font-medium text-sm line-clamp-2">{campaign.title}</h3>
-                    <p className="text-sm font-bold mt-2">₩{campaign.budget?.toLocaleString()}</p>
+                    <p className="text-sm font-bold mt-2">₩{((typeof campaign.budget === 'object' ? campaign.budget?.amount : campaign.budget) || 0).toLocaleString()}</p>
                   </CardContent>
                 </Card>
               </Link>

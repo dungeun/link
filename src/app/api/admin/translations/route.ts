@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
         originalId: campaign.id,
         ko: campaign.title,
         en: campaign.campaignTranslations.find(t => t.language === 'en')?.title || '',
-        ja: campaign.campaignTranslations.find(t => t.language === 'ja')?.title || '',
+        jp: campaign.campaignTranslations.find(t => t.language === 'ja')?.title || '', // ja로 저장된 데이터를 jp 필드로 반환
         isAutoTranslated: {
           en: campaign.campaignTranslations.find(t => t.language === 'en')?.isAutoTranslated ?? true,
-          ja: campaign.campaignTranslations.find(t => t.language === 'ja')?.isAutoTranslated ?? true,
+          jp: campaign.campaignTranslations.find(t => t.language === 'ja')?.isAutoTranslated ?? true, // ja로 저장된 데이터를 jp 필드로 반환
         }
       }))
     } else if (type === 'post') {
@@ -58,10 +58,10 @@ export async function GET(request: NextRequest) {
         originalId: post.id,
         ko: post.title,
         en: post.postTranslations.find(t => t.language === 'en')?.title || '',
-        ja: post.postTranslations.find(t => t.language === 'ja')?.title || '',
+        jp: post.postTranslations.find(t => t.language === 'ja')?.title || '', // ja로 저장된 데이터를 jp 필드로 반환
         isAutoTranslated: {
           en: post.postTranslations.find(t => t.language === 'en')?.isAutoTranslated ?? true,
-          ja: post.postTranslations.find(t => t.language === 'ja')?.isAutoTranslated ?? true,
+          jp: post.postTranslations.find(t => t.language === 'ja')?.isAutoTranslated ?? true, // ja로 저장된 데이터를 jp 필드로 반환
         }
       }))
     } else if (type === 'menu') {
@@ -179,6 +179,11 @@ export async function PUT(request: NextRequest) {
     if (type === 'campaign') {
       // 영어 번역 업데이트 또는 생성
       if (en !== undefined) {
+        console.log('[Campaign Translation] 영어 번역 저장:', {
+          campaignId: id,
+          enValue: en
+        })
+        
         await prisma.campaignTranslation.upsert({
           where: {
             campaignId_language: {
@@ -188,7 +193,7 @@ export async function PUT(request: NextRequest) {
           },
           update: {
             title: en,
-            isAutoTranslated: false,
+            isAutoTranslated: true, // 자동 번역으로 설정
             lastEditedBy: authResult.user.id,
             editedAt: new Date()
           },
@@ -198,16 +203,25 @@ export async function PUT(request: NextRequest) {
             title: en,
             description: '',
             hashtags: [],
-            isAutoTranslated: false,
+            isAutoTranslated: true, // 자동 번역으로 설정
             lastEditedBy: authResult.user.id,
             editedAt: new Date()
           }
         })
+        
+        console.log('[Campaign Translation] 영어 번역 저장 완료')
       }
 
       // 일본어 번역 업데이트 또는 생성
       if (ja !== undefined || jp !== undefined) {
         const jpValue = ja || jp  // Support both ja and jp for backward compatibility
+        console.log('[Campaign Translation] 일본어 번역 저장:', {
+          campaignId: id,
+          jpValue,
+          originalJa: ja,
+          originalJp: jp
+        })
+        
         await prisma.campaignTranslation.upsert({
           where: {
             campaignId_language: {
@@ -217,7 +231,7 @@ export async function PUT(request: NextRequest) {
           },
           update: {
             title: jpValue,
-            isAutoTranslated: false,
+            isAutoTranslated: true, // 자동 번역으로 설정
             lastEditedBy: authResult.user.id,
             editedAt: new Date()
           },
@@ -227,11 +241,13 @@ export async function PUT(request: NextRequest) {
             title: jpValue,
             description: '',
             hashtags: [],
-            isAutoTranslated: false,
+            isAutoTranslated: true, // 자동 번역으로 설정
             lastEditedBy: authResult.user.id,
             editedAt: new Date()
           }
         })
+        
+        console.log('[Campaign Translation] 일본어 번역 저장 완료')
       }
     } else if (type === 'post') {
       // 게시물 번역 처리

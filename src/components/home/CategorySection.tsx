@@ -71,8 +71,8 @@ function CategorySection({ section, localizedContent, t }: CategorySectionProps)
   const categoryName = useMemo(() => section.settings?.categoryName || '병원', [section.settings?.categoryName])
 
   // 제목과 부제목 (다국어 지원)
-  const title = useMemo(() => localizedContent?.title || section.title || `${categoryName} 캠페인`, [localizedContent?.title, section.title, categoryName])
-  const subtitle = useMemo(() => localizedContent?.subtitle || section.subtitle || `${categoryName} 관련 캠페인을 만나보세요`, [localizedContent?.subtitle, section.subtitle, categoryName])
+  const title = useMemo(() => localizedContent?.title || section.title || t('category.campaigns_title', '{category} 캠페인').replace('{category}', categoryName), [localizedContent?.title, section.title, categoryName, t])
+  const subtitle = useMemo(() => localizedContent?.subtitle || section.subtitle || t('category.campaigns_subtitle', '{category} 관련 캠페인을 만나보세요').replace('{category}', categoryName), [localizedContent?.subtitle, section.subtitle, categoryName, t])
 
   const loadCategoryCampaigns = useCallback(async () => {
     try {
@@ -189,7 +189,7 @@ function CategorySection({ section, localizedContent, t }: CategorySectionProps)
           href={`/category/${categorySlug}`}
           className="text-blue-600 hover:text-blue-700 font-medium text-sm md:text-base"
         >
-          전체보기 →
+{t('common.view_all', '전체보기')} →
         </Link>
       </div>
 
@@ -262,7 +262,7 @@ function CategorySection({ section, localizedContent, t }: CategorySectionProps)
                       {requiredFollowers > 0 && (
                         <span>{requiredFollowers.toLocaleString()}+</span>
                       )}
-                      <span>{applicantCount}명 지원</span>
+                      <span>{t('campaign.applicants_applied', '{count}명 지원').replace('{count}', applicantCount.toString())}</span>
                     </div>
                   </div>
 
@@ -279,12 +279,12 @@ function CategorySection({ section, localizedContent, t }: CategorySectionProps)
         </div>
       ) : (
         <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <p className="text-gray-500">{categoryName} 캠페인이 없습니다.</p>
+          <p className="text-gray-500">{t('category.no_campaigns', '{category} 캠페인이 없습니다.').replace('{category}', categoryName)}</p>
           <Link 
             href="/campaigns"
             className="inline-block mt-4 text-blue-600 hover:text-blue-700 font-medium"
           >
-            전체 캠페인 보기
+            {t('campaign.view_all_campaigns', '전체 캠페인 보기')}
           </Link>
         </div>
       )}

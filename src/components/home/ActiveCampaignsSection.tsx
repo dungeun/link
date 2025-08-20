@@ -121,6 +121,7 @@ function ActiveCampaignsSection({ section, localizedContent, t }: ActiveCampaign
               campaign={campaign}
               index={index}
               onClick={() => {}}
+              t={t}
             />
           ))}
         </div>

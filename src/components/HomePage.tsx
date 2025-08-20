@@ -205,11 +205,6 @@ function HomePage({
     [allSections]
   )
 
-  // 디버깅 로그: 렌더링 시마다 상태를 확인합니다.
-  console.log("--- HomePage 렌더링 정보 ---");
-  console.log("DB에서 가져온 데이터 (sections):", sections);
-  console.log("Zustand에서 가져온 순서/필터 (visibleSections):", visibleSections);
-  console.log("---------------------------------");
   
   // Lucide 아이콘 맵핑
   const lucideIcons = useMemo(() => ({
@@ -387,13 +382,11 @@ function HomePage({
             .map(orderedSection => {
               // 해당 타입의 실제 섹션 데이터를 찾기
               const dbSection = sections.find(s => s.type === orderedSection.type)
-              console.log(`Searching for section type: ${orderedSection.type}`, dbSection)
               return dbSection ? { ...dbSection, order: orderedSection.order } : null
             })
             .filter(section => section !== null)
             .map((section) => {
             const localizedContent = getLocalizedContent(section)
-            console.log(`Rendering section type: ${section.type}, content:`, localizedContent)
             
             switch (section.type) {
               case 'hero':

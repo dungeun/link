@@ -187,6 +187,13 @@ model Campaign {
   business               User                  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   payments               Payment[]
   savedByUsers           SavedCampaign[]
+  
+  // JSON 필드 정규화 관계
+  campaignHashtags       CampaignHashtag[]     @relation("CampaignHashtags")
+  campaignPlatforms      CampaignPlatform[]    @relation("CampaignPlatforms")
+  campaignImages         CampaignImage[]       @relation("CampaignImages")
+  campaignKeywords       CampaignKeyword[]     @relation("CampaignKeywords")
+  campaignQuestions      CampaignQuestion[]    @relation("CampaignQuestions")
 
   @@index([status, deletedAt])
   @@index([businessId, status])
@@ -244,6 +251,84 @@ model ContentMedia {
   file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
 
   @@map("content_media")
+}
+
+// JSON 필드 정규화 모델들
+model CampaignHashtag {
+  id         String   @id @default(cuid())
+  campaignId String
+  hashtag    String
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  campaign   Campaign @relation("CampaignHashtags", fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, hashtag])
+  @@index([campaignId])
+  @@index([hashtag])
+  @@map("campaign_hashtags")
+}
+
+model CampaignPlatform {
+  id         String   @id @default(cuid())
+  campaignId String
+  platform   String
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  campaign   Campaign @relation("CampaignPlatforms", fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, platform])
+  @@index([campaignId])
+  @@index([platform])
+  @@index([campaignId, isPrimary])
+  @@map("campaign_platforms")
+}
+
+model CampaignImage {
+  id         String   @id @default(cuid())
+  campaignId String
+  imageUrl   String
+  imageId    String?
+  type       String   // 'DETAIL', 'PRODUCT', 'HEADER', 'THUMBNAIL', 'MAIN'
+  order      Int      @default(0)
+  alt        String?
+  caption    String?
+  createdAt  DateTime @default(now())
+  campaign   Campaign @relation("CampaignImages", fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([type])
+  @@index([campaignId, type])
+  @@map("campaign_images")
+}
+
+model CampaignKeyword {
+  id         String   @id @default(cuid())
+  campaignId String
+  keyword    String
+  weight     Int      @default(1)
+  createdAt  DateTime @default(now())
+  campaign   Campaign @relation("CampaignKeywords", fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, keyword])
+  @@index([campaignId])
+  @@index([keyword])
+  @@map("campaign_keywords")
+}
+
+model CampaignQuestion {
+  id         String   @id @default(cuid())
+  campaignId String
+  question   String
+  type       String   @default("TEXT") // 'TEXT', 'MULTIPLE_CHOICE', 'BOOLEAN', 'NUMBER'
+  required   Boolean  @default(false)
+  options    Json?    // 선택형 질문의 옵션들
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  campaign   Campaign @relation("CampaignQuestions", fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([campaignId, order])
+  @@map("campaign_questions")
 }
 
 model Payment {

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     })
     
     const body = await request.json()
-    const { text, targetLanguages = ['en', 'ja'], sourceLanguage = 'ko' } = body
+    const { text, targetLanguages = ['en', 'jp'], sourceLanguage = 'ko' } = body
     testMode = body.testMode || false
     testApiKey = body.testApiKey
     
@@ -207,7 +207,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { texts, targetLanguages = ['en', 'ja'], sourceLanguage = 'ko' } = body
+    const { texts, targetLanguages = ['en', 'jp'], sourceLanguage = 'ko' } = body
 
     if (!Array.isArray(texts) || texts.length === 0) {
       return NextResponse.json(

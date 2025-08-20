@@ -129,6 +129,22 @@ export default function CampaignsPage() {
     }
   }, [cursor, hasMore, loading, selectedCategory, selectedPlatform, selectedSort, t, campaigns.length])
 
+  // 카테고리 통계 가져오기
+  const fetchCategoryStats = useCallback(async () => {
+    try {
+      const response = await fetch('/api/campaigns/stats')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setCategoryStats(data.categoryStats || {})
+          setTotalCount(data.totalCount || 0)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching category stats:', error)
+    }
+  }, [])
+
   // 사용자가 좋아요한 캠페인 목록 가져오기
   const fetchLikedCampaigns = async () => {
     const user = AuthService.getCurrentUser()
@@ -160,13 +176,21 @@ export default function CampaignsPage() {
     threshold: 300 // 하단 300px 전에 로드 시작
   })
 
-  // 필터 변경 시 초기화
+  // 초기 로드
   useEffect(() => {
-    setCampaigns([])
-    setCursor(null)
-    setHasMore(true)
+    fetchCategoryStats()
     fetchCampaigns(true)
     fetchLikedCampaigns()
+  }, [fetchCategoryStats])
+
+  // 필터 변경 시 초기화
+  useEffect(() => {
+    if (selectedCategory !== 'all' || selectedPlatform !== 'all' || selectedSort !== 'latest') {
+      setCampaigns([])
+      setCursor(null)
+      setHasMore(true)
+      fetchCampaigns(true)
+    }
   }, [selectedCategory, selectedPlatform, selectedSort])
 
   // 즐겨찾기 토글 함수

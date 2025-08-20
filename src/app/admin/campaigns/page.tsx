@@ -5,6 +5,7 @@ import AdminLayout from '@/components/admin/AdminLayout'
 import CampaignDetailPanel from '@/components/admin/CampaignDetailPanel'
 import CampaignCreateModal from '@/components/admin/CampaignCreateModal'
 import CategoryEditPanel from '@/components/admin/CategoryEditPanel'
+import CampaignEditModal from '@/components/admin/CampaignEditModal'
 import { adminApi } from '@/lib/admin-api'
 
 interface Campaign {
@@ -46,6 +47,8 @@ export default function AdminCampaignsPage() {
   const [statusMenuOpen, setStatusMenuOpen] = useState<string | null>(null) // 상태 메뉴 열림 상태
   const [editCategoryId, setEditCategoryId] = useState<string | null>(null) // 카테고리 편집 중인 캠페인
   const [isCategoryEditOpen, setIsCategoryEditOpen] = useState(false) // 카테고리 편집 패널 열림 상태
+  const [editCampaignId, setEditCampaignId] = useState<string | null>(null) // 편집 중인 캠페인
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false) // 편집 모달 열림 상태
 
   useEffect(() => {
     fetchCampaigns()
@@ -154,6 +157,23 @@ export default function AdminCampaignsPage() {
 
   // 카테고리 편집 완료 후 처리
   const handleCategorySave = () => {
+    fetchCampaigns() // 목록 새로고침
+  }
+
+  // 캠페인 편집 열기
+  const openCampaignEdit = (campaignId: string) => {
+    setEditCampaignId(campaignId)
+    setIsEditModalOpen(true)
+  }
+
+  // 캠페인 편집 닫기
+  const closeCampaignEdit = () => {
+    setIsEditModalOpen(false)
+    setTimeout(() => setEditCampaignId(null), 300) // 애니메이션 후 초기화
+  }
+
+  // 캠페인 편집 완료 후 처리
+  const handleCampaignEditSave = () => {
     fetchCampaigns() // 목록 새로고침
   }
 
@@ -967,6 +987,15 @@ export default function AdminCampaignsPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                       </button>
+                      <button
+                        onClick={() => openCampaignEdit(campaign.id)}
+                        className="text-blue-600 hover:text-blue-900 p-1"
+                        title="수정"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
                       {activeTab === 'trash' ? (
                         <>
                           <button
@@ -1121,6 +1150,14 @@ export default function AdminCampaignsPage() {
         isOpen={isCategoryEditOpen}
         onClose={closeCategoryEdit}
         onSave={handleCategorySave}
+      />
+
+      {/* 캠페인 수정 모달 */}
+      <CampaignEditModal
+        campaignId={editCampaignId}
+        isOpen={isEditModalOpen}
+        onClose={closeCampaignEdit}
+        onSave={handleCampaignEditSave}
       />
     </AdminLayout>
   )

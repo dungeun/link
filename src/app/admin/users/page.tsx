@@ -444,7 +444,10 @@ export default function AdminUsersPage() {
                       {new Date(user.createdAt).toLocaleDateString('ko-KR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('ko-KR') : '없음'}
+                      {user.lastLogin ? (() => {
+                        const date = new Date(user.lastLogin);
+                        return isNaN(date.getTime()) ? '없음' : date.toLocaleDateString('ko-KR');
+                      })() : '없음'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">
@@ -752,7 +755,10 @@ export default function AdminUsersPage() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">마지막 로그인</span>
-                          <span>{selectedUser.lastLogin ? new Date(selectedUser.lastLogin).toLocaleDateString('ko-KR') : '없음'}</span>
+                          <span>{selectedUser.lastLogin ? (() => {
+                            const date = new Date(selectedUser.lastLogin);
+                            return isNaN(date.getTime()) ? '없음' : date.toLocaleDateString('ko-KR');
+                          })() : '없음'}</span>
                         </div>
                       </div>
                     </div>

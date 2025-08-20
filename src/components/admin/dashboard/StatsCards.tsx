@@ -11,6 +11,9 @@ interface DashboardStats {
   growth: number
   newUsers: number
   pendingApprovals: number
+  userGrowthRate?: number
+  campaignGrowthRate?: number
+  revenueTargetAchievement?: number
 }
 
 interface StatsCardsProps {
@@ -39,7 +42,11 @@ function StatsCards({ stats }: StatsCardsProps) {
           </div>
         </div>
         <div className="mt-4">
-          <span className="text-green-500 text-sm font-medium">+12%</span>
+          <span className={`text-sm font-medium ${
+            (stats.userGrowthRate || 0) >= 0 ? 'text-green-500' : 'text-red-500'
+          }`}>
+            {(stats.userGrowthRate || 0) >= 0 ? '+' : ''}{stats.userGrowthRate || 0}%
+          </span>
           <span className="text-gray-500 text-sm ml-2">지난달 대비</span>
         </div>
       </div>
@@ -63,7 +70,11 @@ function StatsCards({ stats }: StatsCardsProps) {
           </div>
         </div>
         <div className="mt-4">
-          <span className="text-green-500 text-sm font-medium">+8%</span>
+          <span className={`text-sm font-medium ${
+            (stats.campaignGrowthRate || 0) >= 0 ? 'text-green-500' : 'text-red-500'
+          }`}>
+            {(stats.campaignGrowthRate || 0) >= 0 ? '+' : ''}{stats.campaignGrowthRate || 0}%
+          </span>
           <span className="text-gray-500 text-sm ml-2">지난달 대비</span>
         </div>
       </div>
@@ -77,7 +88,7 @@ function StatsCards({ stats }: StatsCardsProps) {
               ₩{stats.revenue.toLocaleString()}
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              목표 달성률: 87%
+              목표 달성률: {stats.revenueTargetAchievement || 0}%
             </p>
           </div>
           <div className="p-3 bg-yellow-100 rounded-full">
