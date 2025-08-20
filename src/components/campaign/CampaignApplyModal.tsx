@@ -126,10 +126,13 @@ export default function CampaignApplyModal({
       })
       if (response.ok) {
         const data = await response.json()
-        setTemplates(data || [])
+        // API 응답 구조에 따라 templates 배열 추출
+        const templatesArray = data.templates || data || []
+        setTemplates(Array.isArray(templatesArray) ? templatesArray : [])
       }
     } catch (error) {
       console.error('Error loading templates:', error)
+      setTemplates([])
     }
   }
 
@@ -408,13 +411,13 @@ export default function CampaignApplyModal({
               >
                 <option value="">직접 작성</option>
                 <optgroup label="기본 템플릿">
-                  {templates.filter((t: any) => t.isPublic && (!t.user || t.user.name === 'LinkPick System')).map((template: any) => (
+                  {Array.isArray(templates) && templates.filter((t: any) => t.isPublic && (!t.user || t.user.name === 'LinkPick System')).map((template: any) => (
                     <option key={template.id} value={template.id}>
                       {template.name}
                     </option>
                   ))}
                 </optgroup>
-                {templates.filter((t: any) => !t.isPublic || (t.user && t.user.name !== 'LinkPick System')).length > 0 && (
+                {Array.isArray(templates) && templates.filter((t: any) => !t.isPublic || (t.user && t.user.name !== 'LinkPick System')).length > 0 && (
                   <optgroup label="내 템플릿">
                     {templates.filter((t: any) => !t.isPublic || (t.user && t.user.name !== 'LinkPick System')).map((template: any) => (
                       <option key={template.id} value={template.id}>
