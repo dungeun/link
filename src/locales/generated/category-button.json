@@ -1,0 +1,32 @@
+{
+  "button.save": {
+    "ko": "저장",
+    "en": "Save",
+    "jp": "保存"
+  },
+  "button.cancel": {
+    "ko": "취소",
+    "en": "Cancel",
+    "jp": "キャンセル"
+  },
+  "button.edit": {
+    "ko": "수정",
+    "en": "Edit",
+    "jp": "編集"
+  },
+  "button.delete": {
+    "ko": "삭제",
+    "en": "Delete",
+    "jp": "削除"
+  },
+  "button.search": {
+    "ko": "검색",
+    "en": "Search",
+    "jp": "検索"
+  },
+  "button.refresh": {
+    "ko": "새로고침",
+    "en": "Refresh",
+    "jp": "更新"
+  }
+}

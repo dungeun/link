@@ -98,6 +98,7 @@ export default function NewCampaignPage() {
     thumbnailImageUrl: '',  // 썸네일 이미지
     youtubeUrl: '',
     maxApplicants: '',
+    minFollowers: 0,  // 최소 팔로워 수 추가
     provisionDetails: '',
     campaignMission: '',
     keywords: '',

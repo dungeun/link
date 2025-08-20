@@ -38,6 +38,7 @@ interface Applicant {
       tiktokFollowers?: number
       naverBlog?: string
       naverBlogFollowers?: number
+      naverBlogTodayVisitors?: number
       averageEngagementRate?: number
       categories?: string
       gender?: string
@@ -538,12 +539,29 @@ export default function ApplicantManagementTab({ campaign }: Props) {
                             </div>
                             <div>
                               <p className="font-semibold text-lg">네이버 블로그</p>
-                              <p className="text-gray-600">{selectedApplicant.influencer.profile.naverBlog}</p>
+                              <a 
+                                href={selectedApplicant.influencer.profile.naverBlog.startsWith('http') 
+                                  ? selectedApplicant.influencer.profile.naverBlog 
+                                  : `https://blog.naver.com/${selectedApplicant.influencer.profile.naverBlog}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                              >
+                                {selectedApplicant.influencer.profile.naverBlog}
+                              </a>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold">{selectedApplicant.influencer.profile.naverBlogFollowers?.toLocaleString() || 0}</p>
-                            <p className="text-sm text-gray-500">이웃</p>
+                          <div className="text-right space-y-1">
+                            <div>
+                              <p className="text-xl font-bold">{selectedApplicant.influencer.profile.naverBlogFollowers?.toLocaleString() || 0}</p>
+                              <p className="text-xs text-gray-500">이웃</p>
+                            </div>
+                            {selectedApplicant.influencer.profile.naverBlogTodayVisitors !== undefined && (
+                              <div>
+                                <p className="text-lg font-semibold text-green-600">{selectedApplicant.influencer.profile.naverBlogTodayVisitors.toLocaleString()}</p>
+                                <p className="text-xs text-gray-500">방문</p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

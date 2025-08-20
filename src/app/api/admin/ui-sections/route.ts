@@ -6,6 +6,8 @@ import { prisma } from '@/lib/db/prisma';
 
 // Dynamic route configuration
 import { translateText } from '@/lib/services/translation.service';
+import { staticBackupManager } from '@/lib/cache/json-backup-manager';
+import { logger } from '@/lib/logger';
 
 // GET: 모든 UI 섹션 가져오기
 export async function GET(request: NextRequest) {
@@ -71,6 +73,23 @@ export async function POST(request: NextRequest) {
         translations: translations as any
       }
     });
+
+    // JSON 백업 생성
+    try {
+      const allSections = await prisma.uISection.findMany({
+        orderBy: { order: 'asc' }
+      });
+      
+      const uiSectionsData = {
+        sections: allSections,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      await staticBackupManager.saveWithBackup('ui-sections.json', uiSectionsData, 'ui-sections');
+      logger.info(`UI sections backed up after creating section: ${sectionId}`);
+    } catch (backupError) {
+      logger.error(`Failed to backup UI sections after create: ${backupError instanceof Error ? backupError.message : String(backupError)}`);
+    }
 
     return NextResponse.json({ 
       section,
@@ -145,6 +164,23 @@ export async function PUT(request: NextRequest) {
       }
     });
 
+    // JSON 백업 생성
+    try {
+      const allSections = await prisma.uISection.findMany({
+        orderBy: { order: 'asc' }
+      });
+      
+      const uiSectionsData = {
+        sections: allSections,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      await staticBackupManager.saveWithBackup('ui-sections.json', uiSectionsData, 'ui-sections');
+      logger.info(`UI sections backed up after updating section: ${id || sectionId}`);
+    } catch (backupError) {
+      logger.error(`Failed to backup UI sections after update: ${backupError instanceof Error ? backupError.message : String(backupError)}`);
+    }
+
     return NextResponse.json({ 
       section,
       success: true 
@@ -175,6 +211,23 @@ export async function DELETE(request: NextRequest) {
     await prisma.uISection.delete({
       where: id ? { id } : { sectionId: sectionId! }
     });
+
+    // JSON 백업 생성
+    try {
+      const allSections = await prisma.uISection.findMany({
+        orderBy: { order: 'asc' }
+      });
+      
+      const uiSectionsData = {
+        sections: allSections,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      await staticBackupManager.saveWithBackup('ui-sections.json', uiSectionsData, 'ui-sections');
+      logger.info(`UI sections backed up after deleting section: ${id || sectionId}`);
+    } catch (backupError) {
+      logger.error(`Failed to backup UI sections after delete: ${backupError instanceof Error ? backupError.message : String(backupError)}`);
+    }
 
     return NextResponse.json({ 
       success: true 

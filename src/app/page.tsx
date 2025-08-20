@@ -4,7 +4,8 @@ import {
   LanguageCode, 
   isLanguageCode
 } from '@/types/global'
-import { preloadHomePageData } from '@/lib/cache/preload-service'
+import { homepageManager } from '@/lib/cache/homepage-manager'
+import { loadStaticUITexts } from '@/lib/cache/json-loader'
 import { getSeoConfig } from '@/lib/seo-config'
 import { prisma } from '@/lib/db/prisma'
 import type { Metadata } from 'next'
@@ -27,19 +28,27 @@ export default async function Page() {
     initialLanguage = 'jp'
   }
   
-  // 단일 통합 쿼리로 모든 데이터 프리로드 (N+1 문제 완전 해결)
-  const preloadedData = await preloadHomePageData()
+  // 데이터베이스 → JSON 동기화 (관리자 수정사항 반영)
+  await homepageManager.syncFromDatabase()
   
-  console.log(`Page loaded in ${Date.now() - startTime}ms, cached: ${preloadedData.metadata.cached}`)
+  // JSON-first 홈페이지 데이터 로드 (10초 → 1초 목표)
+  const [sectionsData, staticTexts] = await Promise.all([
+    homepageManager.getSectionsByLanguage(initialLanguage),
+    loadStaticUITexts(initialLanguage)
+  ])
+  
+  console.log(`Page loaded in ${Date.now() - startTime}ms, JSON-first: ${sectionsData.length} sections`)
 
-  // 클라이언트 컴포넌트에 모든 프리로드된 데이터 전달
+  // 클라이언트 컴포넌트에 JSON 데이터 전달
   return <HomePage 
-    initialSections={preloadedData.sections} 
+    initialSections={sectionsData} 
     initialLanguage={initialLanguage}
-    initialLanguagePacks={preloadedData.languagePacks}
-    initialCampaigns={preloadedData.campaigns}
-    initialCategoryStats={preloadedData.categoryStats}
-    preloadMetadata={preloadedData.metadata}
+    staticUITexts={staticTexts}
+    preloadMetadata={{
+      cached: true,
+      loadTime: Date.now() - startTime,
+      source: 'json-first'
+    }}
   />
 }
 

@@ -1,0 +1,57 @@
+{
+  "header.notification": {
+    "ko": "알림",
+    "en": "Notifications",
+    "jp": "お知らせ"
+  },
+  "header.no_notifications": {
+    "ko": "알림이 없습니다",
+    "en": "No notifications",
+    "jp": "お知らせがありません"
+  },
+  "header.login": {
+    "ko": "로그인",
+    "en": "Login",
+    "jp": "ログイン"
+  },
+  "header.logout": {
+    "ko": "로그아웃",
+    "en": "Logout",
+    "jp": "ログアウト"
+  },
+  "header.register": {
+    "ko": "회원가입",
+    "en": "Sign Up",
+    "jp": "会員登録"
+  },
+  "header.mypage": {
+    "ko": "마이페이지",
+    "en": "My Page",
+    "jp": "マイページ"
+  },
+  "header.dashboard": {
+    "ko": "대시보드",
+    "en": "Dashboard",
+    "jp": "ダッシュボード"
+  },
+  "header.menu.custom__1755486162949": {
+    "ko": "커뮤니티",
+    "en": "Community",
+    "jp": "コミュニティ"
+  },
+  "category.hospital": {
+    "ko": "병원",
+    "en": "Hospital",
+    "jp": "病院"
+  },
+  "category.campaign": {
+    "ko": "캠페인",
+    "en": "Campaign",
+    "jp": "キャンペーン"
+  },
+  "category.review": {
+    "ko": "구매평",
+    "en": "Review",
+    "jp": "レビュー"
+  }
+}

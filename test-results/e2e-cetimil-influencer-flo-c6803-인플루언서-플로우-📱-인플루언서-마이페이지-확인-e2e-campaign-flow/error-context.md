@@ -1,0 +1,54 @@
+# Page snapshot
+
+```yaml
+- link "LinkPick":
+  - /url: /
+  - heading "LinkPick" [level=1]
+- heading "다시 만나서 반가워요!" [level=2]
+- text: 이메일
+- textbox "email@example.com"
+- text: 비밀번호
+- textbox "••••••••"
+- button:
+  - img
+- checkbox "로그인 상태 유지"
+- text: 로그인 상태 유지
+- link "비밀번호 찾기":
+  - /url: /forgot-password
+- button "로그인"
+- text: 또는 데모 로그인
+- paragraph: "테스트 계정 (랜덤 선택):"
+- paragraph: "인플루언서: Test Influencer"
+- paragraph: "클라이언트: Demo Business"
+- paragraph: "관리자: LinkPick 관리자"
+- paragraph: "모든 계정 비밀번호:"
+- paragraph: "• 인플루언서: influencer2024"
+- paragraph: "• 클라이언트: business2024"
+- paragraph: "• 관리자: admin2024"
+- button "인플루언서":
+  - img
+  - text: 인플루언서
+- button "클라이언트":
+  - img
+  - text: 클라이언트
+- button "관리자":
+  - img
+  - text: 관리자
+- text: 소셜 로그인
+- button "Google":
+  - img
+  - text: Google
+- button "Kakao":
+  - img
+  - text: Kakao
+- button "Naver":
+  - img
+  - text: Naver
+- paragraph:
+  - text: 아직 계정이 없으신가요?
+  - link "회원가입":
+    - /url: /register
+- region "Notifications (F8)":
+  - list
+- alert
+```

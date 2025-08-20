@@ -1,0 +1,17 @@
+{
+  "homepage.campaigns.title": {
+    "ko": "진행 중인 캠페인",
+    "en": "Active Campaigns",
+    "jp": "進行中のキャンペーン"
+  },
+  "homepage.campaigns.viewAll": {
+    "ko": "더보기",
+    "en": "View All",
+    "jp": "もっと見る"
+  },
+  "homepage.campaigns.noCampaigns": {
+    "ko": "진행 중인 캠페인이 없습니다.",
+    "en": "No active campaigns.",
+    "jp": "進行中のキャンペーンがありません。"
+  }
+}

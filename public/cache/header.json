@@ -1,0 +1,67 @@
+{
+  "metadata": {
+    "version": "1.0.1",
+    "lastUpdated": "2025-08-21T05:10:00.000Z"
+  },
+  "header": {
+    "logo": {
+      "text": "LinkPick",
+      "imageUrl": null
+    },
+    "menus": [
+      {
+        "id": "admin-cmegin3zi0001qziyo18dtbkg",
+        "label": {
+          "ko": "병원",
+          "en": "Hospital",
+          "jp": "病院"
+        },
+        "href": "/category/hospital",
+        "order": 1,
+        "visible": true
+      },
+      {
+        "id": "admin-cmegin3y40000qziy0f3zokp0",
+        "label": {
+          "ko": "캠페인",
+          "en": "Campaign", 
+          "jp": "キャンペーン"
+        },
+        "href": "/category/campaign",
+        "order": 2,
+        "visible": true
+      },
+      {
+        "id": "admin-cmegin4160002qziymh70kpb6",
+        "label": {
+          "ko": "구매평",
+          "en": "Review",
+          "jp": "レビュー"
+        },
+        "href": "/category/review",
+        "order": 3,
+        "visible": true
+      },
+      {
+        "id": "admin-cmegj4wg80000irb0t7g8stf8",
+        "label": {
+          "ko": "커뮤니티", 
+          "en": "Community",
+          "jp": "コミュニティ"
+        },
+        "href": "/community",
+        "order": 4,
+        "visible": true
+      }
+    ],
+    "ctaButton": {
+      "text": {
+        "ko": "시작하기",
+        "en": "Get Started",
+        "jp": "始める"
+      },
+      "href": "/register",
+      "visible": true
+    }
+  }
+}

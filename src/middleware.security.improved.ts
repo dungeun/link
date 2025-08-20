@@ -147,8 +147,11 @@ export async function advancedSecurityCheck(request: NextRequest): Promise<Secur
                       path.startsWith('/favicon') ||
                       path.match(/\.(jpg|jpeg|png|gif|webp|svg|ico|css|js|woff|woff2|ttf)$/i)
   
-  // 1. User-Agent 체크 (정적 파일은 제외)
-  if (!isStaticFile && (!userAgent || userAgent.length < 10)) {
+  // 1. User-Agent 체크 (정적 파일과 내부 서버 요청은 제외)
+  const isInternalRequest = request.headers.get('X-Internal-Request') === 'true' || 
+                           userAgent === 'HomePage-Sync-Service/1.0.0'
+  
+  if (!isStaticFile && !isInternalRequest && (!userAgent || userAgent.length < 10)) {
     return { 
       allowed: false, 
       reason: 'Invalid User-Agent',
@@ -156,8 +159,8 @@ export async function advancedSecurityCheck(request: NextRequest): Promise<Secur
     }
   }
   
-  // 정적 파일은 추가 보안 체크 건너뛰기
-  if (isStaticFile) {
+  // 정적 파일과 내부 요청은 추가 보안 체크 건너뛰기
+  if (isStaticFile || isInternalRequest) {
     return { allowed: true }
   }
   

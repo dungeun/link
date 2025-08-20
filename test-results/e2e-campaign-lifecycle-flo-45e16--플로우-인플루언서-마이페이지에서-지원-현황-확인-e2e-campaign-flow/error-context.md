@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - link "LinkPick3":
+    - /url: /
+    - heading "LinkPick3" [level=1]
+  - navigation:
+    - link "Hospital":
+      - /url: /category/hospital
+    - link "Campaign":
+      - /url: /category/campaign
+    - link "Review":
+      - /url: /category/review
+    - link "Community":
+      - /url: /community
+  - navigation:
+    - button "Select Language":
+      - text: 🇺🇸 EN
+      - img
+    - link "My Page":
+      - /url: /mypage
+      - img
+      - text: My Page
+    - button "Logout":
+      - img
+      - text: Logout
+- heading "안녕하세요, Test Influencer님! 👋" [level=1]
+- paragraph: 오늘도 멋진 콘텐츠로 세상과 소통해보세요.
+- button "캠페인 관리":
+  - img
+  - text: 캠페인 관리
+- button "프로필 설정":
+  - img
+  - text: 프로필 설정
+- main:
+  - navigation "Tabs":
+    - button "대시보드":
+      - img
+      - text: 대시보드
+    - button "프로필":
+      - img
+      - text: 프로필
+    - button "캠페인":
+      - img
+      - text: 캠페인
+    - button "수익":
+      - img
+      - text: 수익
+    - button "관심목록":
+      - img
+      - text: 관심목록
+  - heading "참여 캠페인" [level=3]
+  - paragraph: "0"
+  - img
+  - paragraph: 총 참여한 캠페인 수
+  - heading "진행중 캠페인" [level=3]
+  - paragraph: "0"
+  - img
+  - paragraph: 현재 진행중
+  - heading "총 수익" [level=3]
+  - paragraph: ₩0
+  - img
+  - paragraph: 누적 수익 금액
+  - heading "평균 평점" [level=3]
+  - paragraph: "4.8"
+  - img
+  - paragraph: 클라이언트 평점
+  - heading "최근 지원 내역" [level=3]
+  - button "View All"
+  - paragraph: 지원 내역이 없습니다.
+  - heading "정산 현황" [level=3]
+  - button "View All"
+  - text: 출금 가능 금액 ₩0
+  - heading "최근 정산 내역" [level=4]
+  - paragraph: 정산 내역이 없습니다.
+- contentinfo:
+  - link "LinkPick3":
+    - /url: /
+    - heading "LinkPick3" [level=3]
+  - paragraph: 인플루언서 마케팅 플랫폼
+  - link "facebook":
+    - /url: https://facebook.com/linkpick
+    - img
+  - link "twitter":
+    - /url: https://twitter.com/linkpick
+    - img
+  - link "instagram":
+    - /url: https://instagram.com/linkpick
+    - img
+  - link "youtube":
+    - /url: https://youtube.com/linkpick
+    - img
+  - link "linkedin":
+    - /url: https://linkedin.com/company/linkpick
+    - img
+  - paragraph: LinkPick3
+  - text: "대표: 홍길동 사업자등록번호: 123-45-67890 통신판매업: 2024-서울강남-1234"
+  - img
+  - text: 서울특별시 강남구 테헤란로 123, 456호
+  - paragraph: Support
+  - img
+  - text: 1588-1234 |
+  - img
+  - text: support@linkpick.com
+  - paragraph: 평일 09:00~18:00 (주말/공휴일 휴무)
+  - paragraph: © 2024 LinkPick. All rights reserved.
+  - heading "바로가기" [level=4]
+  - list:
+    - listitem:
+      - link "ㅇ":
+        - /url: /terms
+    - listitem:
+      - link "개인정보처리방침":
+        - /url: /privacy
+    - listitem:
+      - link "고객지원":
+        - /url: /support
+    - listitem:
+      - link "회사소개":
+        - /url: /about
+- region "Notifications (F8)":
+  - list
+- alert
+```

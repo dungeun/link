@@ -1,0 +1,473 @@
+{
+  "metadata": {
+    "version": "2025.08.21.0609",
+    "lastUpdated": "2025-08-20T21:09:33.892Z",
+    "orderedAt": "2025-08-20T23:45:00.000Z",
+    "backupLevel": "default"
+  },
+  "sectionOrder": [
+    "hero",
+    "category",
+    "quicklinks",
+    "promo",
+    "ranking",
+    "recommended"
+  ],
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "visible": true,
+      "data": {
+        "slides": [
+          {
+            "id": "1",
+            "title": {
+              "ko": "인플루언서와 브랜드를\n연결하는 가장 쉬운 방법",
+              "en": "[EN] 인플루언서와 브랜드를\n연결하는 가장 쉬운 방법",
+              "jp": "[JP] 인플루언서와 브랜드를\n연결하는 가장 쉬운 방법"
+            },
+            "subtitle": {
+              "ko": "리뷰와 함께 성장의 기회를 만나보세요",
+              "en": "[EN] 리뷰와 함께 성장의 기회를 만나보세요",
+              "jp": "[JP] 리뷰와 함께 성장의 기회를 만나보세요"
+            },
+            "tag": {
+              "ko": "🎯 NEW",
+              "en": "[EN] 🎯 NEW",
+              "jp": "[JP] 🎯 NEW"
+            },
+            "bgColor": "bg-gradient-to-br from-indigo-600 to-purple-600",
+            "backgroundImage": null,
+            "link": "/campaigns",
+            "order": 1,
+            "visible": true
+          },
+          {
+            "id": "2",
+            "title": {
+              "ko": "최대 30% 할인\n첫 캠페인 특별 혜택",
+              "en": "[EN] 최대 30% 할인\n첫 캠페인 특별 혜택",
+              "jp": "[JP] 최대 30% 할인\n첫 캠페인 특별 혜택"
+            },
+            "subtitle": {
+              "ko": "지금 시작하고 특별한 혜택을 받아보세요",
+              "en": "[EN] 지금 시작하고 특별한 혜택을 받아보세요",
+              "jp": "[JP] 지금 시작하고 특별한 혜택을 받아보세요"
+            },
+            "tag": {
+              "ko": "💎 EVENT",
+              "en": "[EN] 💎 EVENT",
+              "jp": "[JP] 💎 EVENT"
+            },
+            "bgColor": "bg-gradient-to-br from-emerald-500 to-teal-600",
+            "backgroundImage": null,
+            "link": "/business/pricing",
+            "order": 1,
+            "visible": true
+          }
+        ]
+      }
+    },
+    "category": {
+      "type": "category",
+      "visible": true,
+      "data": {
+        "categories": [
+          {
+            "id": "cat-cmegigprq0000ldk0ht2s86jx",
+            "name": {
+              "ko": "category.campaign",
+              "en": "[EN] category.campaign",
+              "jp": "[JP] category.campaign"
+            },
+            "slug": "campaign",
+            "icon": "📢",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/campaign",
+            "order": 1,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegssrz7000pkuzf4xw5rjo6",
+            "name": {
+              "ko": "category.food",
+              "en": "[EN] category.food",
+              "jp": "[JP] category.food"
+            },
+            "slug": "restaurant-review",
+            "icon": "🍴",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/restaurant-review",
+            "order": 2,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegigpty0001ldk0lpmjr3im",
+            "name": {
+              "ko": "category.hospital",
+              "en": "[EN] category.hospital",
+              "jp": "[JP] category.hospital"
+            },
+            "slug": "hospital",
+            "icon": "🏥",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/hospital",
+            "order": 2,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegsrtpz0003kuzfkx9hcb4s",
+            "name": {
+              "ko": "category.food",
+              "en": "[EN] category.food",
+              "jp": "[JP] category.food"
+            },
+            "slug": "restaurant",
+            "icon": "🍽️",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/restaurant",
+            "order": 2,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegsn6c40005jutsv13arj0v",
+            "name": {
+              "ko": "category.plastic_surgery",
+              "en": "[EN] category.plastic_surgery",
+              "jp": "[JP] category.plastic_surgery"
+            },
+            "slug": "plastic-surgery",
+            "icon": "✨",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/plastic-surgery",
+            "order": 3,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegsrw8j0005kuzf5oz6fs4j",
+            "name": {
+              "ko": "category.beauty",
+              "en": "[EN] category.beauty",
+              "jp": "[JP] category.beauty"
+            },
+            "slug": "beauty",
+            "icon": "💄",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/beauty",
+            "order": 3,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegssul0000rkuzfjh0vw4l6",
+            "name": {
+              "ko": "category.beauty",
+              "en": "[EN] category.beauty",
+              "jp": "[JP] category.beauty"
+            },
+            "slug": "beauty-review",
+            "icon": "💋",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/beauty-review",
+            "order": 3,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegigpwq0002ldk0oxn9fqzc",
+            "name": {
+              "ko": "category.review",
+              "en": "[EN] category.review",
+              "jp": "[JP] category.review"
+            },
+            "slug": "review",
+            "icon": "⭐",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/review",
+            "order": 3,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegsn6ss0007juts8spmpv6i",
+            "name": {
+              "ko": "category.dermatology",
+              "en": "[EN] category.dermatology",
+              "jp": "[JP] category.dermatology"
+            },
+            "slug": "dermatology",
+            "icon": "🧴",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/dermatology",
+            "order": 4,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegsswlt000tkuzft46muyt1",
+            "name": {
+              "ko": "category.travel",
+              "en": "[EN] category.travel",
+              "jp": "[JP] category.travel"
+            },
+            "slug": "travel-review",
+            "icon": "🧳",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/travel-review",
+            "order": 4,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegss1xi0009kuzfxja6riw7",
+            "name": {
+              "ko": "category.culture",
+              "en": "[EN] category.culture",
+              "jp": "[JP] category.culture"
+            },
+            "slug": "culture",
+            "icon": "🎭",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/culture",
+            "order": 5,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegsn7820009jutsj4zglujo",
+            "name": {
+              "ko": "category.dentistry",
+              "en": "[EN] category.dentistry",
+              "jp": "[JP] category.dentistry"
+            },
+            "slug": "dentistry",
+            "icon": "🦷",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/dentistry",
+            "order": 5,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegssyl6000vkuzftccexw3f",
+            "name": {
+              "ko": "category.culture",
+              "en": "[EN] category.culture",
+              "jp": "[JP] category.culture"
+            },
+            "slug": "culture-review",
+            "icon": "🎨",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/culture-review",
+            "order": 5,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegss432000bkuzf3nfvsqad",
+            "name": {
+              "ko": "category.food",
+              "en": "[EN] category.food",
+              "jp": "[JP] category.food"
+            },
+            "slug": "food",
+            "icon": "🥘",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/food",
+            "order": 6,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegsn7mi000bjutsqbbjtygm",
+            "name": {
+              "ko": "category.ophthalmology",
+              "en": "[EN] category.ophthalmology",
+              "jp": "[JP] category.ophthalmology"
+            },
+            "slug": "ophthalmology",
+            "icon": "👁️",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/ophthalmology",
+            "order": 6,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegst0l9000xkuzf2xusyh02",
+            "name": {
+              "ko": "category.food",
+              "en": "[EN] category.food",
+              "jp": "[JP] category.food"
+            },
+            "slug": "food-review",
+            "icon": "🍎",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/food-review",
+            "order": 6,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegss6ym000dkuzfbz47y1h4",
+            "name": {
+              "ko": "category.lifestyle",
+              "en": "[EN] category.lifestyle",
+              "jp": "[JP] category.lifestyle"
+            },
+            "slug": "lifestyle",
+            "icon": "🏡",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/lifestyle",
+            "order": 7,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegst2mn000zkuzfqj1tuswo",
+            "name": {
+              "ko": "category.lifestyle",
+              "en": "[EN] category.lifestyle",
+              "jp": "[JP] category.lifestyle"
+            },
+            "slug": "daily-review",
+            "icon": "🛍️",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/daily-review",
+            "order": 7,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegst5k60011kuzf4r4z9tmp",
+            "name": {
+              "ko": "category.digital",
+              "en": "[EN] category.digital",
+              "jp": "[JP] category.digital"
+            },
+            "slug": "digital-review",
+            "icon": "💻",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/digital-review",
+            "order": 8,
+            "visible": true
+          },
+          {
+            "id": "cat-cmegss8r3000fkuzfkp639r91",
+            "name": {
+              "ko": "category.digital",
+              "en": "[EN] category.digital",
+              "jp": "[JP] category.digital"
+            },
+            "slug": "digital",
+            "icon": "📱",
+            "badge": null,
+            "badgeColor": null,
+            "href": "/category/digital",
+            "order": 8,
+            "visible": true
+          }
+        ]
+      }
+    },
+    "quicklinks": {
+      "type": "quicklinks",
+      "visible": true,
+      "data": {
+        "links": [
+          {
+            "id": "1",
+            "title": {
+              "ko": "🎁 첫 캠페인 30%",
+              "en": "[EN] 🎁 첫 캠페인 30%",
+              "jp": "[JP] 🎁 첫 캠페인 30%"
+            },
+            "url": "/business/pricing",
+            "icon": "🎁",
+            "order": 1,
+            "visible": true
+          },
+          {
+            "id": "2",
+            "title": {
+              "ko": "📚 캠페인 가이드",
+              "en": "[EN] 📚 캠페인 가이드",
+              "jp": "[JP] 📚 캠페인 가이드"
+            },
+            "url": "/guide",
+            "icon": "📚",
+            "order": 1,
+            "visible": true
+          },
+          {
+            "id": "3",
+            "title": {
+              "ko": "💬 실시간 상담",
+              "en": "[EN] 💬 실시간 상담",
+              "jp": "[JP] 💬 실시간 상담"
+            },
+            "url": "/support",
+            "icon": "💬",
+            "order": 1,
+            "visible": true
+          }
+        ]
+      }
+    },
+    "promo": {
+      "type": "promo",
+      "visible": true,
+      "data": {
+        "title": {
+          "ko": "🚀 지금 시작하세요!",
+          "en": "[EN] 🚀 지금 시작하세요!",
+          "jp": "[JP] 🚀 지금 시작하세요!"
+        },
+        "subtitle": {
+          "ko": "첫 캠페인은 수수료 50% 할인",
+          "en": "[EN] 첫 캠페인은 수수료 50% 할인",
+          "jp": "[JP] 첫 캠페인은 수수료 50% 할인"
+        },
+        "icon": "🎯",
+        "image": "/images/promo-banner.jpg",
+        "link": "/business/register",
+        "backgroundColor": "#FEF3C7",
+        "textColor": "#000000"
+      }
+    },
+    "ranking": {
+      "type": "ranking",
+      "visible": true,
+      "data": {
+        "title": {
+          "ko": "🏆 이주의 인기 캠페인",
+          "en": "🏆 This Week's Popular Campaigns",
+          "jp": "🏆 今週の人気キャンペーン"
+        },
+        "campaigns": []
+      }
+    },
+    "active-campaigns": {
+      "type": "campaigns",
+      "visible": true,
+      "data": {
+        "title": {
+          "ko": "🔥 진행중인 캠페인",
+          "en": "🔥 Active Campaigns",
+          "jp": "🔥 進行中のキャンペーン"
+        },
+        "limit": 12,
+        "filters": {
+          "status": "active",
+          "featured": true
+        }
+      }
+    }
+  }
+}

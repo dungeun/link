@@ -26,6 +26,8 @@ interface StepBasicInfoProps {
     budget?: number
     reviewPrice?: number
     categoryId?: string
+    minFollowers?: number
+    maxApplicants?: string | number
   }
   setFormData: (data: {
     title: string
@@ -35,6 +37,8 @@ interface StepBasicInfoProps {
     budget?: number
     reviewPrice?: number
     categoryId?: string
+    minFollowers?: number
+    maxApplicants?: string | number
     [key: string]: unknown
   }) => void
   platformIcons: {
@@ -435,6 +439,45 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
             </p>
           </div>
         )}
+
+        {/* 인플루언서 조건 설정 */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-900 border-b pb-2">인플루언서 조건</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="minFollowers">최소 팔로워 수</Label>
+              <Input
+                id="minFollowers"
+                type="number"
+                value={formData.minFollowers || ''}
+                onChange={(e) => setFormData({...formData, minFollowers: Number(e.target.value) || 0})}
+                placeholder="예: 1000"
+                className="mt-1"
+                min="0"
+                step="100"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                지원 가능한 최소 팔로워 수를 입력하세요.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="maxApplicants">최대 지원자 수</Label>
+              <Input
+                id="maxApplicants"
+                type="number"
+                value={formData.maxApplicants || ''}
+                onChange={(e) => setFormData({...formData, maxApplicants: e.target.value})}
+                placeholder="예: 50"
+                className="mt-1"
+                min="1"
+                step="1"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                모집할 최대 인플루언서 수를 입력하세요.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 카테고리 선택 모달 */}

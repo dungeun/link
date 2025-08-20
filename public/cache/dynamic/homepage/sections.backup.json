@@ -1,0 +1,206 @@
+{
+  "version": "2025-08-20T18:09:56.059Z",
+  "lastUpdated": "2025-08-20T18:09:56.059Z",
+  "type": "ui-sections-structure",
+  "data": {
+    "sections": [
+      {
+        "id": "cmegin3zi0001qziyo18dtbkg",
+        "type": "header",
+        "sectionId": "category-hospital",
+        "title": "{\"ko\":\"병원\",\"en\":\"병원\",\"jp\":\"병원\"}",
+        "subtitle": null,
+        "order": 1,
+        "visible": true,
+        "hasContent": true
+      },
+      {
+        "id": "cmeggltc500008odnhl3inqu2",
+        "type": "hero",
+        "sectionId": "hero",
+        "title": null,
+        "subtitle": null,
+        "order": 1,
+        "visible": true,
+        "hasContent": true
+      },
+      {
+        "id": "cmehm1ust0000kwjli33rkdk0",
+        "type": "category",
+        "sectionId": "category",
+        "title": "카테고리 메뉴",
+        "subtitle": "다양한 카테고리를 둘러보세요",
+        "order": 2,
+        "visible": true,
+        "hasContent": true
+      },
+      {
+        "id": "cmegin3y40000qziy0f3zokp0",
+        "type": "header",
+        "sectionId": "category-campaign",
+        "title": "{\"ko\":\"캠페인\",\"en\":\"캠페인\",\"jp\":\"캠페인\"}",
+        "subtitle": null,
+        "order": 2,
+        "visible": true,
+        "hasContent": true
+      },
+      {
+        "id": "cmegin4160002qziymh70kpb6",
+        "type": "header",
+        "sectionId": "category-review",
+        "title": "{\"ko\":\"구매평\",\"en\":\"구매평\",\"jp\":\"구매평\"}",
+        "subtitle": null,
+        "order": 3,
+        "visible": true,
+        "hasContent": true
+      },
+      {
+        "id": "cmegglth600028odnue4x1zp6",
+        "type": "quicklinks",
+        "sectionId": "quicklinks",
+        "title": null,
+        "subtitle": null,
+        "order": 3,
+        "visible": true,
+        "hasContent": true
+      },
+      {
+        "id": "cmeggltiu00038odnbkcmstxt",
+        "type": "promo",
+        "sectionId": "promo",
+        "title": "🚀 지금 시작하세요!",
+        "subtitle": "첫 캠페인은 수수료 50% 할인",
+        "order": 4,
+        "visible": true,
+        "hasContent": true
+      },
+      {
+        "id": "cmegp5j8w00002oyez1zsom3i",
+        "type": "category",
+        "sectionId": "hospital-category",
+        "title": "병원 캠페인",
+        "subtitle": "의료 서비스 관련 캠페인을 만나보세요",
+        "order": 4,
+        "visible": true,
+        "hasContent": false
+      },
+      {
+        "id": "cmegj4wg80000irb0t7g8stf8",
+        "type": "header",
+        "sectionId": "header.menu.custom__1755486162949",
+        "title": null,
+        "subtitle": null,
+        "order": 4,
+        "visible": true,
+        "hasContent": true
+      },
+      {
+        "id": "cmeggltkj00048odn941s32mn",
+        "type": "ranking",
+        "sectionId": "ranking",
+        "title": "인기 랭킹",
+        "subtitle": "실시간 인기 캠페인",
+        "order": 5,
+        "visible": true,
+        "hasContent": true
+      },
+      {
+        "id": "cmeggltm400058odne9b1vsst",
+        "type": "recommended",
+        "sectionId": "recommended",
+        "title": "추천 캠페인",
+        "subtitle": "당신을 위한 맞춤 추천",
+        "order": 6,
+        "visible": true,
+        "hasContent": false
+      },
+      {
+        "id": "cmehovg150000119eg18wdrux",
+        "type": "activeCampaigns",
+        "sectionId": "activeCampaigns",
+        "title": "진행 중인 캠페인",
+        "subtitle": "현재 진행 중인 캠페인 목록",
+        "order": 7,
+        "visible": true,
+        "hasContent": true
+      },
+      {
+        "id": "cmeggltnt00068odni0m7i9uc",
+        "type": "cta",
+        "sectionId": "bottom_cta",
+        "title": "지금 바로 시작하세요",
+        "subtitle": "5분이면 충분합니다. 복잡한 절차 없이 바로 시작할 수 있어요.",
+        "order": 7,
+        "visible": true,
+        "hasContent": true
+      }
+    ],
+    "sectionOrder": [
+      {
+        "id": "cmegin3zi0001qziyo18dtbkg",
+        "type": "header",
+        "order": 1
+      },
+      {
+        "id": "cmeggltc500008odnhl3inqu2",
+        "type": "hero",
+        "order": 1
+      },
+      {
+        "id": "cmehm1ust0000kwjli33rkdk0",
+        "type": "category",
+        "order": 2
+      },
+      {
+        "id": "cmegin3y40000qziy0f3zokp0",
+        "type": "header",
+        "order": 2
+      },
+      {
+        "id": "cmegin4160002qziymh70kpb6",
+        "type": "header",
+        "order": 3
+      },
+      {
+        "id": "cmegglth600028odnue4x1zp6",
+        "type": "quicklinks",
+        "order": 3
+      },
+      {
+        "id": "cmeggltiu00038odnbkcmstxt",
+        "type": "promo",
+        "order": 4
+      },
+      {
+        "id": "cmegp5j8w00002oyez1zsom3i",
+        "type": "category",
+        "order": 4
+      },
+      {
+        "id": "cmegj4wg80000irb0t7g8stf8",
+        "type": "header",
+        "order": 4
+      },
+      {
+        "id": "cmeggltkj00048odn941s32mn",
+        "type": "ranking",
+        "order": 5
+      },
+      {
+        "id": "cmeggltm400058odne9b1vsst",
+        "type": "recommended",
+        "order": 6
+      },
+      {
+        "id": "cmehovg150000119eg18wdrux",
+        "type": "activeCampaigns",
+        "order": 7
+      },
+      {
+        "id": "cmeggltnt00068odni0m7i9uc",
+        "type": "cta",
+        "order": 7
+      }
+    ]
+  }
+}

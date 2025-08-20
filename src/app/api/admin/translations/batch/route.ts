@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { requireAdminAuth } from '@/lib/admin-auth'
 import { googleTranslateService } from '@/lib/services/google-translate.service'
+import { i18nBackupManager } from '@/lib/cache/json-backup-manager'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -239,6 +241,49 @@ export async function POST(request: NextRequest) {
           }
         }
       }
+    }
+
+    // 일괄 번역 완료 후 JSON 백업 생성
+    try {
+      if (type === 'menu' || type === 'main-sections') {
+        // LanguagePack 전체 데이터 백업
+        const allLanguagePacks = await prisma.languagePack.findMany({
+          orderBy: [
+            { category: 'asc' },
+            { key: 'asc' }
+          ]
+        });
+
+        const languagePackData = {
+          languagePacks: allLanguagePacks,
+          lastUpdated: new Date().toISOString(),
+          type: type,
+          batchTranslation: {
+            translatedCount,
+            errorCount,
+            targetLanguages
+          }
+        };
+
+        await i18nBackupManager.saveWithBackup(`${type}-language-packs.json`, languagePackData, 'language-packs');
+        logger.info(`Language packs backed up after batch translation: ${type} (${translatedCount} items)`);
+      } else {
+        // 캠페인/포스트 번역 데이터 백업
+        const batchResult = {
+          batchTranslation: {
+            type,
+            translatedCount,
+            errorCount,
+            targetLanguages,
+            timestamp: new Date().toISOString()
+          }
+        };
+
+        await i18nBackupManager.saveWithBackup(`${type}-batch-translations.json`, batchResult, 'batch-translations');
+        logger.info(`Batch translation data backed up: ${type} (${translatedCount} items)`);
+      }
+    } catch (backupError) {
+      logger.error(`Failed to backup batch translation data: ${backupError instanceof Error ? backupError.message : String(backupError)}`);
     }
 
     return NextResponse.json({

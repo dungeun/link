@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2025-08-20T16:45:01.258Z",
+  "totalPacks": 102,
+  "categories": [
+    "admin",
+    "header",
+    "button",
+    "status",
+    "translation",
+    "homepage",
+    "menu",
+    "footer",
+    "hero",
+    "category"
+  ],
+  "languages": [
+    "ko",
+    "en",
+    "jp"
+  ],
+  "sizeInfo": {
+    "all": "7.580078125KB",
+    "perLanguage": [
+      {
+        "lang": "ko",
+        "size": "0.958984375KB"
+      },
+      {
+        "lang": "en",
+        "size": "1.681640625KB"
+      },
+      {
+        "lang": "jp",
+        "size": "1.03515625KB"
+      }
+    ]
+  }
+}

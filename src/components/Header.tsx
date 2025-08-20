@@ -5,12 +5,12 @@ import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { ChevronDown, User as UserIcon, LogOut, Settings, Menu, X } from 'lucide-react'
-import { useUIConfigStore } from '@/lib/stores/ui-config.store'
 import LanguageSelector from './LanguageSelector'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
 import Image from 'next/image'
 import { logger } from '@/lib/utils/structured-logger'
+import { HeaderMenuItem } from '@/lib/cache/header-manager'
 
 interface HeaderProps {
   variant?: 'default' | 'transparent'
@@ -24,7 +24,9 @@ function Header({ variant = 'default' }: HeaderProps) {
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const { config, loadSettingsFromAPI } = useUIConfigStore()
+  const [headerMenus, setHeaderMenus] = useState<HeaderMenuItem[]>([])
+  const [menuLoading, setMenuLoading] = useState(true)
+  const [headerLogo, setHeaderLogo] = useState<string>('LinkPick')
   const { user, isAuthenticated, logout } = useAuth()
   const { t, currentLanguage } = useLanguage()
   const { settings: siteSettings } = useSiteSettings()
@@ -66,28 +68,39 @@ function Header({ variant = 'default' }: HeaderProps) {
     }
   }, [user])
   
-  // UI 설정 초기 로드 (한 번만)
+  // JSON에서 헤더 메뉴 로드 (즉시 한국어로 로드됨)
   useEffect(() => {
-    if (config.header.menus.length === 0) {
-      logger.debug('Initial UI settings load', { 
-        module: 'Header', 
-        metadata: { language: currentLanguage } 
-      });
-      loadSettingsFromAPI(currentLanguage)
+    const loadHeaderMenus = async () => {
+      try {
+        setMenuLoading(true)
+        logger.debug('Loading header menus from JSON', { 
+          module: 'Header', 
+          metadata: { language: currentLanguage } 
+        });
+        
+        const response = await fetch('/cache/header.json')
+        if (response.ok) {
+          const headerData = await response.json()
+          if (headerData?.header?.menus) {
+            setHeaderMenus(headerData.header.menus)
+            logger.info('Header menus loaded from JSON successfully')
+          }
+          if (headerData?.header?.logo?.text) {
+            setHeaderLogo(headerData.header.logo.text)
+            logger.info('Header logo loaded from JSON successfully')
+          }
+        } else {
+          logger.error('Failed to load header JSON', new Error(`HTTP ${response.status}`), { module: 'Header' });
+        }
+      } catch (error) {
+        logger.error('Failed to load header menus', error as Error, { module: 'Header' })
+      } finally {
+        setMenuLoading(false)
+      }
     }
-  }, [])
 
-  // 언어 변경 시 UI 설정 재로드
-  useEffect(() => {
-    // 초기 로드가 완료된 후 언어가 변경되었을 때만
-    if (currentLanguage && config.header.menus.length > 0) {
-      logger.debug('Language changed, reloading UI settings', { 
-        module: 'Header', 
-        metadata: { language: currentLanguage } 
-      });
-      loadSettingsFromAPI(currentLanguage)
-    }
-  }, [currentLanguage])
+    loadHeaderMenus()
+  }, [])
 
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
@@ -108,6 +121,28 @@ function Header({ variant = 'default' }: HeaderProps) {
   }, [logout])
 
   const isActive = useCallback((path: string) => pathname === path, [pathname])
+
+  // 다국어 텍스트 가져오기 - 현재 선택된 언어 우선
+  const getLocalizedText = useCallback((textObj: any, fallback?: string): string => {
+    if (!textObj) {
+      return fallback || ''
+    }
+    if (typeof textObj === 'string') {
+      return textObj
+    }
+    
+    // 현재 언어 확인
+    const currentLang = currentLanguage || 'ko'
+    const normalizedLang = currentLang === 'ja' ? 'jp' : currentLang === 'jp' ? 'jp' : currentLang === 'en' ? 'en' : 'ko'
+    
+    // 현재 선택된 언어로 먼저 시도
+    if (textObj[normalizedLang]) {
+      return textObj[normalizedLang]
+    }
+    
+    // 없으면 한국어 → 영어 → 일본어 순으로 폴백
+    return textObj.ko || textObj.en || textObj.jp || fallback || ''
+  }, [currentLanguage])
 
 
   // 사용자 타입별 대시보드 링크 - 메모이제이션 적용
@@ -141,7 +176,7 @@ function Header({ variant = 'default' }: HeaderProps) {
                 <div className="relative h-8 sm:h-10 lg:h-12 w-auto">
                   <Image
                     src={siteSettings.website.logo}
-                    alt={siteSettings.general.siteName}
+                    alt={headerLogo}
                     width={120}
                     height={40}
                     className="h-8 sm:h-10 lg:h-12 w-auto object-contain"
@@ -150,14 +185,14 @@ function Header({ variant = 'default' }: HeaderProps) {
                 </div>
               ) : (
                 <h1 className="text-lg sm:text-xl lg:text-3xl font-black text-white truncate">
-                  {siteSettings.general.siteName || 'LinkPick'}
+                  {headerLogo}
                 </h1>
               )}
             </Link>
             
             {/* 공통 메뉴 */}
             <nav className="hidden lg:flex items-center gap-6">
-              {config.header.menus
+              {!menuLoading && headerMenus
                 .filter(menu => menu.visible)
                 .sort((a, b) => a.order - b.order)
                 .map(menu => (
@@ -166,7 +201,7 @@ function Header({ variant = 'default' }: HeaderProps) {
                     href={menu.href} 
                     className="hover:opacity-80 transition font-medium text-white"
                   >
-                    {t(menu.label, menu.label)}
+                    {getLocalizedText(menu.label, menu.label as any)}
                   </Link>
                 ))}
             </nav>
@@ -281,7 +316,7 @@ function Header({ variant = 'default' }: HeaderProps) {
               {/* 메뉴 컨텐츠 */}
               <div className="flex-1 overflow-y-auto p-6">
                 <nav className="space-y-2">
-                  {config.header.menus
+                  {!menuLoading && headerMenus
                     .filter(menu => menu.visible)
                     .sort((a, b) => a.order - b.order)
                     .map(menu => (
@@ -292,7 +327,7 @@ function Header({ variant = 'default' }: HeaderProps) {
                         onClick={() => setShowMobileMenu(false)}
                       >
                         <span className="w-2 h-2 bg-blue-400 rounded-full mr-4"></span>
-                        {t(menu.label, menu.label)}
+                        {getLocalizedText(menu.label, menu.label as any)}
                       </Link>
                     ))}
                   

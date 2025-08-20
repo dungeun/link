@@ -81,17 +81,24 @@ setup('authenticate as business', async ({ page }) => {
     console.log('✅ 토큰 쿠키 설정 완료');
   }
   
+  // 홈페이지로 먼저 이동
+  await page.goto('/');
+  
   // 사용자 정보를 localStorage에 설정
-  await page.goto('/business/dashboard');
-  await page.evaluate((user) => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('auth-token', user.token || '');
-      localStorage.setItem('accessToken', user.token || '');
+  await page.evaluate((loginData) => {
+    if (loginData.user) {
+      localStorage.setItem('user', JSON.stringify(loginData.user));
+    }
+    if (loginData.token) {
+      localStorage.setItem('auth-token', loginData.token);
+      localStorage.setItem('accessToken', loginData.token);
     }
   }, loginData);
   
-  console.log('✅ 비즈니스 대시보드 접근 시도...');
+  console.log('✅ 홈페이지에서 비즈니스 대시보드로 이동 시도...');
+  
+  // 비즈니스 대시보드로 이동
+  await page.goto('/business/dashboard');
   
   // 잠시 기다린 후 로그인 결과 확인
   await page.waitForTimeout(2000);
@@ -177,8 +184,46 @@ setup('authenticate as influencer', async ({ page }) => {
   const loginData = await loginResponse.json();
   console.log(`✅ API 로그인 성공: ${loginData.user?.type}`);
   
+  // 토큰을 브라우저 컨텍스트에 설정
+  if (loginData.accessToken || loginData.token) {
+    const token = loginData.accessToken || loginData.token;
+    await page.context().addCookies([
+      {
+        name: 'accessToken',
+        value: token,
+        domain: 'localhost',
+        path: '/',
+        httpOnly: false,
+        secure: false,
+        sameSite: 'Lax'
+      },
+      {
+        name: 'auth-token',
+        value: token,
+        domain: 'localhost',
+        path: '/',
+        httpOnly: false,
+        secure: false,
+        sameSite: 'Lax'
+      }
+    ]);
+    console.log('✅ 토큰 쿠키 설정 완료');
+  }
+  
   // 홈페이지로 이동하여 로그인 상태 확인
   await page.goto('/');
+  
+  // 사용자 정보를 localStorage에 설정
+  await page.evaluate((loginData) => {
+    if (loginData.user) {
+      localStorage.setItem('user', JSON.stringify(loginData.user));
+    }
+    if (loginData.token) {
+      localStorage.setItem('auth-token', loginData.token);
+      localStorage.setItem('accessToken', loginData.token);
+    }
+  }, loginData);
+  
   console.log('✅ 홈페이지 접근 시도...');
   
   // 로그인 성공 확인 - 홈페이지로 리다이렉트될 수 있음
@@ -270,17 +315,24 @@ setup('authenticate as admin', async ({ page }) => {
     console.log('✅ 토큰 쿠키 설정 완료');
   }
   
+  // 홈페이지로 먼저 이동
+  await page.goto('/');
+  
   // 사용자 정보를 localStorage에 설정
-  await page.goto('/admin');
-  await page.evaluate((user) => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('auth-token', user.token || '');
-      localStorage.setItem('accessToken', user.token || '');
+  await page.evaluate((loginData) => {
+    if (loginData.user) {
+      localStorage.setItem('user', JSON.stringify(loginData.user));
+    }
+    if (loginData.token) {
+      localStorage.setItem('auth-token', loginData.token);
+      localStorage.setItem('accessToken', loginData.token);
     }
   }, loginData);
   
-  console.log('✅ 관리자 페이지 접근 시도...');
+  console.log('✅ 홈페이지에서 관리자 페이지로 이동 시도...');
+  
+  // 관리자 페이지로 이동
+  await page.goto('/admin');
   
   // 로그인 성공 확인 - 더 관대한 검증
   await page.waitForTimeout(5000); // 더 긴 대기시간

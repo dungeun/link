@@ -1,0 +1,107 @@
+{
+  "category.beauty": {
+    "ko": "뷰티",
+    "en": "Beauty",
+    "jp": "ビューティー"
+  },
+  "category.fashion": {
+    "ko": "패션",
+    "en": "Fashion",
+    "jp": "ファッション"
+  },
+  "category.food": {
+    "ko": "맛집",
+    "en": "Food",
+    "jp": "グルメ"
+  },
+  "category.travel": {
+    "ko": "여행",
+    "en": "Travel",
+    "jp": "旅行"
+  },
+  "category.tech": {
+    "ko": "IT/테크",
+    "en": "IT/Tech",
+    "jp": "IT/テック"
+  },
+  "category.fitness": {
+    "ko": "운동/헬스",
+    "en": "Fitness",
+    "jp": "フィットネス"
+  },
+  "category.lifestyle": {
+    "ko": "라이프",
+    "en": "Lifestyle",
+    "jp": "ライフスタイル"
+  },
+  "category.pet": {
+    "ko": "반려동물",
+    "en": "Pet",
+    "jp": "ペット"
+  },
+  "category.parenting": {
+    "ko": "육아",
+    "en": "Parenting",
+    "jp": "育児"
+  },
+  "category.game": {
+    "ko": "게임",
+    "en": "Gaming",
+    "jp": "ゲーム"
+  },
+  "category.education": {
+    "ko": "교육",
+    "en": "Education",
+    "jp": "教育"
+  },
+  "category.badge.hot": {
+    "ko": "HOT",
+    "en": "HOT",
+    "jp": "HOT"
+  },
+  "category.badge.new": {
+    "ko": "신규",
+    "en": "NEW",
+    "jp": "新規"
+  },
+  "category.plastic_surgery": {
+    "ko": "성형외과",
+    "en": "Plastic Surgery",
+    "jp": "整形外科"
+  },
+  "category.dermatology": {
+    "ko": "피부과",
+    "en": "Dermatology",
+    "jp": "皮膚科"
+  },
+  "category.culture": {
+    "ko": "문화",
+    "en": "Culture",
+    "jp": "文化"
+  },
+  "category.dentistry": {
+    "ko": "치과",
+    "en": "Dentistry",
+    "jp": "歯科"
+  },
+  "category.ophthalmology": {
+    "ko": "안과",
+    "en": "Ophthalmology",
+    "jp": "眼科"
+  },
+  "category.digital": {
+    "ko": "디지털",
+    "en": "Digital",
+    "jp": "デジタル"
+  },
+  "category.restaurant": {
+    "ko": "맛집",
+    "en": "Restaurant",
+    "jp": "レストラン"
+  },
+  "category.restaurant_review": {
+    "ko": "맛집 리뷰",
+    "en": "Restaurant Review",
+    "jp": "レストランレビュー"
+  }
+}

@@ -120,24 +120,30 @@ export default function BankingInfo({ userId, initialData, onSave }: BankingInfo
                 계좌 유형 선택
               </label>
               <div className="flex gap-4">
-                <label className="flex items-center">
+                <label className="flex items-center cursor-pointer">
                   <input
                     type="radio"
                     name="accountType"
                     value="domestic"
                     checked={accountType === 'domestic'}
-                    onChange={(e) => setAccountType('domestic')}
+                    onChange={() => {
+                      setAccountType('domestic')
+                      setData(prev => ({ ...prev, accountType: 'domestic' }))
+                    }}
                     className="mr-2 text-indigo-600 focus:ring-indigo-500"
                   />
                   <span className="text-sm font-medium">국내 계좌</span>
                 </label>
-                <label className="flex items-center">
+                <label className="flex items-center cursor-pointer">
                   <input
                     type="radio"
                     name="accountType"
                     value="international"
                     checked={accountType === 'international'}
-                    onChange={(e) => setAccountType('international')}
+                    onChange={() => {
+                      setAccountType('international')
+                      setData(prev => ({ ...prev, accountType: 'international' }))
+                    }}
                     className="mr-2 text-indigo-600 focus:ring-indigo-500"
                   />
                   <span className="text-sm font-medium">해외 계좌</span>

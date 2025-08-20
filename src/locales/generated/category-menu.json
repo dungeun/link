@@ -1,0 +1,27 @@
+{
+  "header.menu.campaigns": {
+    "ko": "캠페인",
+    "en": "Campaigns",
+    "jp": "キャンペーン"
+  },
+  "header.menu.influencers": {
+    "ko": "인플루언서",
+    "en": "Influencers",
+    "jp": "インフルエンサー"
+  },
+  "header.menu.community": {
+    "ko": "커뮤니티",
+    "en": "Community",
+    "jp": "コミュニティ"
+  },
+  "header.menu.pricing": {
+    "ko": "요금제",
+    "en": "Pricing",
+    "jp": "料金プラン"
+  },
+  "menu.get_started": {
+    "ko": "시작하기",
+    "en": "Get Started",
+    "jp": "始める"
+  }
+}

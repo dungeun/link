@@ -91,12 +91,9 @@ export async function GET(request: NextRequest) {
       };
       
       categoryMenus = categories.map((cat, index) => {
-        // 번역 키 매핑 또는 기본 번역 키 사용
-        const translationKey = categoryNameMapping[cat.name] || `category.${cat.slug.replace(/-/g, '_')}`;
-        
         const result = {
           id: `cat-${cat.id}`,
-          name: translationKey, // 번역 키 사용
+          name: cat.name, // 실제 카테고리 이름 사용 (DB에 저장된 값)
           categoryId: cat.slug,
           icon: cat.icon || '',
           href: `/category/${cat.slug}`,
@@ -163,7 +160,88 @@ export async function GET(request: NextRequest) {
 
     // 로그 출력 줄임 (무한루프 방지)
 
-    // 기본 설정 먼저 준비 (번역 적용)
+    // UISection 데이터베이스에서 메인 페이지 섹션 데이터 가져오기
+    let heroSlides: any[] = [];
+    let quickLinks: any[] = [];
+    let promoBanner: any = {};
+    let sectionOrder: any[] = [];
+
+    try {
+      // QuickLinks 섹션 데이터 가져오기
+      const quicklinksSection = await prisma.uISection.findUnique({
+        where: { sectionId: 'quicklinks' }
+      });
+
+      if (quicklinksSection && quicklinksSection.content) {
+        const content = typeof quicklinksSection.content === 'string' 
+          ? JSON.parse(quicklinksSection.content) 
+          : quicklinksSection.content;
+        
+        if (content.links) {
+          quickLinks = content.links.map((link: any) => ({
+            id: link.id,
+            title: link.title, // 실제 텍스트 그대로 사용 (이모지 포함)
+            icon: link.icon,
+            link: link.link,
+            order: link.order || 1,
+            visible: link.visible !== false
+          }));
+        }
+      }
+
+      // Hero 섹션 데이터 가져오기
+      const heroSection = await prisma.uISection.findUnique({
+        where: { sectionId: 'hero' }
+      });
+
+      if (heroSection && heroSection.content) {
+        const content = typeof heroSection.content === 'string' 
+          ? JSON.parse(heroSection.content) 
+          : heroSection.content;
+        
+        if (content.slides) {
+          heroSlides = content.slides.map((slide: any) => ({
+            id: slide.id,
+            type: 'blue' as const,
+            tag: slide.tag,
+            title: slide.title,
+            subtitle: slide.subtitle,
+            bgColor: slide.bgColor || 'bg-gradient-to-br from-blue-400 to-blue-600',
+            order: slide.order || 1,
+            visible: slide.visible !== false,
+            link: slide.link
+          }));
+        }
+      }
+
+      // Promo 섹션 데이터 가져오기
+      const promoSection = await prisma.uISection.findUnique({
+        where: { sectionId: 'promo' }
+      });
+
+      if (promoSection && promoSection.content) {
+        const content = typeof promoSection.content === 'string' 
+          ? JSON.parse(promoSection.content) 
+          : promoSection.content;
+        
+        if (content.banner) {
+          promoBanner = {
+            title: content.banner.title,
+            subtitle: content.banner.subtitle,
+            icon: content.banner.icon || '📦',
+            visible: true,
+            backgroundColor: content.banner.backgroundColor,
+            link: content.banner.link
+          };
+        }
+      }
+
+      console.log(`[UI Config] Loaded from UISection - QuickLinks: ${quickLinks.length}, Hero Slides: ${heroSlides.length}`);
+    } catch (error) {
+      console.warn('[UI Config] Failed to fetch UISection data:', error);
+    }
+
+    // 기본 설정 준비 (UISection 데이터 우선 사용)
     const defaultConfig = {
         header: {
           logo: {
@@ -215,7 +293,7 @@ export async function GET(request: NextRequest) {
           copyright: 'footer.copyright'
         },
         mainPage: {
-          heroSlides: [
+          heroSlides: heroSlides.length > 0 ? heroSlides : [
             {
               id: 'slide-1',
               type: 'blue' as const,
@@ -234,45 +312,7 @@ export async function GET(request: NextRequest) {
               bgColor: 'bg-gradient-to-br from-gray-800 to-gray-900',
               order: 2,
               visible: true,
-            },
-            {
-              id: 'slide-3',
-              type: 'green' as const,
-              title: await getTranslation('hero.slide3.title', language),
-              subtitle: await getTranslation('hero.slide3.subtitle', language),
-              bgColor: 'bg-gradient-to-br from-green-400 to-green-600',
-              order: 3,
-              visible: true,
-            },
-            {
-              id: 'slide-4',
-              type: 'pink' as const,
-              tag: await getTranslation('hero.slide4.tag', language),
-              title: await getTranslation('hero.slide4.title', language),
-              subtitle: await getTranslation('hero.slide4.subtitle', language),
-              bgColor: 'bg-gradient-to-br from-pink-400 to-pink-600',
-              order: 4,
-              visible: true,
-            },
-            {
-              id: 'slide-5',
-              type: 'blue' as const,
-              title: await getTranslation('hero.slide5.title', language),
-              subtitle: await getTranslation('hero.slide5.subtitle', language),
-              bgColor: 'bg-gradient-to-br from-indigo-400 to-indigo-600',
-              order: 5,
-              visible: true,
-            },
-            {
-              id: 'slide-6',
-              type: 'dark' as const,
-              tag: await getTranslation('hero.slide6.tag', language),
-              title: await getTranslation('hero.slide6.title', language),
-              subtitle: await getTranslation('hero.slide6.subtitle', language),
-              bgColor: 'bg-gradient-to-br from-gray-700 to-gray-900',
-              order: 6,
-              visible: true,
-            },
+            }
           ],
           categoryMenus: categoryMenus.length > 0 ? categoryMenus : [
             { id: 'cat-1', name: 'category.beauty', categoryId: 'beauty', icon: '💄', href: '/category/beauty', order: 1, visible: true },
@@ -284,12 +324,12 @@ export async function GET(request: NextRequest) {
             { id: 'cat-7', name: 'category.lifestyle', categoryId: 'lifestyle', icon: '🌱', href: '/category/lifestyle', order: 7, visible: true },
             { id: 'cat-8', name: 'category.pet', categoryId: 'pet', icon: '🐕', href: '/category/pet', order: 8, visible: true },
           ],
-          quickLinks: [
+          quickLinks: quickLinks.length > 0 ? quickLinks : [
             { id: 'quick-1', title: await getTranslation('quicklink.events', language), icon: '🎁', link: '/events', order: 1, visible: true },
             { id: 'quick-2', title: await getTranslation('quicklink.coupons', language), icon: '🎟️', link: '/coupons', order: 2, visible: true },
             { id: 'quick-3', title: await getTranslation('quicklink.ranking', language), icon: '🏆', link: '/ranking', order: 3, visible: true },
           ],
-          promoBanner: {
+          promoBanner: promoBanner.title ? promoBanner : {
             title: await getTranslation('promo.title', language),
             subtitle: await getTranslation('promo.subtitle', language),
             icon: '📦',
@@ -328,10 +368,10 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ config: savedConfig });
       }
     } catch (dbError) {
-      console.warn('[UI Config] Database connection failed, using default config:', dbError);
+      console.warn('[UI Config] SiteConfig table error, using UISection-based default config:', dbError);
     }
 
-    // 기본 설정 반환
+    // UISection 기반 기본 설정 반환 (실제 admin 데이터 포함)
     return NextResponse.json({ config: defaultConfig });
   } catch (error) {
     console.error('[UI Config] UI config 조회 오류:', error);

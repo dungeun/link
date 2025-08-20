@@ -1,0 +1,512 @@
+{
+  "admin.ui.title": {
+    "ko": "UI 설정 관리",
+    "en": "UI Configuration",
+    "jp": "UI設定管理"
+  },
+  "admin.ui.description": {
+    "ko": "헤더, 푸터 및 홈페이지 섹션을 관리합니다.",
+    "en": "Manage header, footer and homepage sections.",
+    "jp": "ヘッダー、フッター、ホームページセクションを管理します。"
+  },
+  "admin.ui.tab.header": {
+    "ko": "헤더 설정",
+    "en": "Header Settings",
+    "jp": "ヘッダー設定"
+  },
+  "admin.ui.tab.footer": {
+    "ko": "푸터 설정",
+    "en": "Footer Settings",
+    "jp": "フッター設定"
+  },
+  "admin.ui.tab.sections": {
+    "ko": "섹션 관리",
+    "en": "Section Management",
+    "jp": "セクション管理"
+  },
+  "admin.ui.tab.sectionOrder": {
+    "ko": "섹션 순서",
+    "en": "Section Order",
+    "jp": "セクション順序"
+  },
+  "admin.ui.dbConnected": {
+    "ko": "이 페이지는 데이터베이스와 완전히 연동되어 있습니다. 모든 변경사항이 실시간으로 저장되며, 자동 번역 기능이 포함되어 있습니다.",
+    "en": "This page is fully integrated with the database. All changes are saved in real-time and include automatic translation.",
+    "jp": "このページはデータベースと完全に連動しています。すべての変更はリアルタイムで保存され、自動翻訳機能が含まれています。"
+  },
+  "admin.header.title": {
+    "ko": "헤더 메뉴 설정",
+    "en": "Header Menu Settings",
+    "jp": "ヘッダーメニュー設定"
+  },
+  "admin.header.addMenu": {
+    "ko": "메뉴 추가",
+    "en": "Add Menu",
+    "jp": "メニュー追加"
+  },
+  "admin.header.menuName": {
+    "ko": "메뉴 이름",
+    "en": "Menu Name",
+    "jp": "メニュー名"
+  },
+  "admin.header.linkUrl": {
+    "ko": "링크 URL",
+    "en": "Link URL",
+    "jp": "リンクURL"
+  },
+  "admin.header.icon": {
+    "ko": "아이콘",
+    "en": "Icon",
+    "jp": "アイコン"
+  },
+  "admin.header.autoTranslate": {
+    "ko": "메뉴 이름은 자동으로 영어와 일본어로 번역됩니다.",
+    "en": "Menu names will be automatically translated to English and Japanese.",
+    "jp": "メニュー名は自動的に英語と日本語に翻訳されます。"
+  },
+  "admin.footer.title": {
+    "ko": "푸터 섹션 설정",
+    "en": "Footer Section Settings",
+    "jp": "フッターセクション設定"
+  },
+  "admin.footer.addSection": {
+    "ko": "섹션 추가",
+    "en": "Add Section",
+    "jp": "セクション追加"
+  },
+  "admin.footer.sectionTitle": {
+    "ko": "섹션 제목",
+    "en": "Section Title",
+    "jp": "セクションタイトル"
+  },
+  "admin.footer.addLink": {
+    "ko": "링크 추가",
+    "en": "Add Link",
+    "jp": "リンク追加"
+  },
+  "admin.footer.linkName": {
+    "ko": "링크 이름",
+    "en": "Link Name",
+    "jp": "リンク名"
+  },
+  "admin.footer.visible": {
+    "ko": "표시",
+    "en": "Visible",
+    "jp": "表示"
+  },
+  "admin.footer.hidden": {
+    "ko": "숨김",
+    "en": "Hidden",
+    "jp": "非表示"
+  },
+  "admin.footer.delete": {
+    "ko": "삭제",
+    "en": "Delete",
+    "jp": "削除"
+  },
+  "admin.footer.noSections": {
+    "ko": "푸터 섹션이 없습니다. 위의 \"섹션 추가\" 버튼을 클릭하여 섹션을 추가하세요.",
+    "en": "No footer sections. Click the \"Add Section\" button above to add a section.",
+    "jp": "フッターセクションがありません。上の「セクション追加」ボタンをクリックしてセクションを追加してください。"
+  },
+  "admin.footer.noLinks": {
+    "ko": "링크가 없습니다.",
+    "en": "No links.",
+    "jp": "リンクがありません。"
+  },
+  "header.notification": {
+    "ko": "알림",
+    "en": "Notifications",
+    "jp": "お知らせ"
+  },
+  "header.no_notifications": {
+    "ko": "알림이 없습니다",
+    "en": "No notifications",
+    "jp": "お知らせがありません"
+  },
+  "header.login": {
+    "ko": "로그인",
+    "en": "Login",
+    "jp": "ログイン"
+  },
+  "header.logout": {
+    "ko": "로그아웃",
+    "en": "Logout",
+    "jp": "ログアウト"
+  },
+  "header.register": {
+    "ko": "회원가입",
+    "en": "Sign Up",
+    "jp": "会員登録"
+  },
+  "header.mypage": {
+    "ko": "마이페이지",
+    "en": "My Page",
+    "jp": "マイページ"
+  },
+  "header.dashboard": {
+    "ko": "대시보드",
+    "en": "Dashboard",
+    "jp": "ダッシュボード"
+  },
+  "admin.menu.dashboard": {
+    "ko": "대시보드",
+    "en": "Dashboard",
+    "jp": "ダッシュボード"
+  },
+  "admin.menu.users": {
+    "ko": "사용자 관리",
+    "en": "User Management",
+    "jp": "ユーザー管理"
+  },
+  "admin.menu.campaigns": {
+    "ko": "캠페인 관리",
+    "en": "Campaign Management",
+    "jp": "キャンペーン管理"
+  },
+  "admin.menu.payments": {
+    "ko": "결제 관리",
+    "en": "Payment Management",
+    "jp": "決済管理"
+  },
+  "admin.menu.settlements": {
+    "ko": "정산 관리",
+    "en": "Settlement Management",
+    "jp": "精算管理"
+  },
+  "admin.menu.revenue": {
+    "ko": "매출 관리",
+    "en": "Revenue Management",
+    "jp": "売上管理"
+  },
+  "admin.menu.analytics": {
+    "ko": "통계 분석",
+    "en": "Analytics",
+    "jp": "統計分析"
+  },
+  "admin.menu.content": {
+    "ko": "콘텐츠 관리",
+    "en": "Content Management",
+    "jp": "コンテンツ管理"
+  },
+  "admin.menu.language_pack": {
+    "ko": "언어팩",
+    "en": "Language Packs",
+    "jp": "言語パック"
+  },
+  "button.save": {
+    "ko": "저장",
+    "en": "Save",
+    "jp": "保存"
+  },
+  "button.cancel": {
+    "ko": "취소",
+    "en": "Cancel",
+    "jp": "キャンセル"
+  },
+  "button.edit": {
+    "ko": "수정",
+    "en": "Edit",
+    "jp": "編集"
+  },
+  "button.delete": {
+    "ko": "삭제",
+    "en": "Delete",
+    "jp": "削除"
+  },
+  "button.search": {
+    "ko": "검색",
+    "en": "Search",
+    "jp": "検索"
+  },
+  "button.refresh": {
+    "ko": "새로고침",
+    "en": "Refresh",
+    "jp": "更新"
+  },
+  "status.loading": {
+    "ko": "로딩 중...",
+    "en": "Loading...",
+    "jp": "読み込み中..."
+  },
+  "status.no_data": {
+    "ko": "데이터가 없습니다",
+    "en": "No data available",
+    "jp": "データがありません"
+  },
+  "translation.title": {
+    "ko": "통합 번역 관리",
+    "en": "Translation Management",
+    "jp": "翻訳管理"
+  },
+  "translation.description": {
+    "ko": "캠페인, 게시물, 메뉴의 다국어 번역을 관리합니다.",
+    "en": "Manage multilingual translations for campaigns, posts, and menus.",
+    "jp": "キャンペーン、投稿、メニューの多言語翻訳を管理します。"
+  },
+  "translation.tab.campaign": {
+    "ko": "캠페인",
+    "en": "Campaign",
+    "jp": "キャンペーン"
+  },
+  "translation.tab.post": {
+    "ko": "게시물",
+    "en": "Post",
+    "jp": "投稿"
+  },
+  "translation.tab.menu": {
+    "ko": "메뉴",
+    "en": "Menu",
+    "jp": "メニュー"
+  },
+  "translation.tab.api_settings": {
+    "ko": "API 설정",
+    "en": "API Settings",
+    "jp": "API設定"
+  },
+  "homepage.campaigns.title": {
+    "ko": "진행 중인 캠페인",
+    "en": "Active Campaigns",
+    "jp": "進行中のキャンペーン"
+  },
+  "homepage.campaigns.viewAll": {
+    "ko": "더보기",
+    "en": "View All",
+    "jp": "もっと見る"
+  },
+  "homepage.campaigns.noCampaigns": {
+    "ko": "진행 중인 캠페인이 없습니다.",
+    "en": "No active campaigns.",
+    "jp": "進行中のキャンペーンがありません。"
+  },
+  "header.menu.campaigns": {
+    "ko": "캠페인",
+    "en": "Campaigns",
+    "jp": "キャンペーン"
+  },
+  "header.menu.influencers": {
+    "ko": "인플루언서",
+    "en": "Influencers",
+    "jp": "インフルエンサー"
+  },
+  "header.menu.community": {
+    "ko": "커뮤니티",
+    "en": "Community",
+    "jp": "コミュニティ"
+  },
+  "header.menu.pricing": {
+    "ko": "요금제",
+    "en": "Pricing",
+    "jp": "料金プラン"
+  },
+  "menu.get_started": {
+    "ko": "시작하기",
+    "en": "Get Started",
+    "jp": "始める"
+  },
+  "footer.service.title": {
+    "ko": "서비스",
+    "en": "Service",
+    "jp": "サービス"
+  },
+  "footer.service.find_campaigns": {
+    "ko": "캠페인 찾기",
+    "en": "Find Campaigns",
+    "jp": "キャンペーンを探す"
+  },
+  "footer.service.find_influencers": {
+    "ko": "인플루언서 찾기",
+    "en": "Find Influencers",
+    "jp": "インフルエンサーを探す"
+  },
+  "footer.company.title": {
+    "ko": "회사",
+    "en": "Company",
+    "jp": "会社"
+  },
+  "footer.company.about": {
+    "ko": "회사 소개",
+    "en": "About Us",
+    "jp": "会社紹介"
+  },
+  "footer.company.blog": {
+    "ko": "블로그",
+    "en": "Blog",
+    "jp": "ブログ"
+  },
+  "footer.company.careers": {
+    "ko": "채용",
+    "en": "Careers",
+    "jp": "採用"
+  },
+  "footer.support.title": {
+    "ko": "고객지원",
+    "en": "Support",
+    "jp": "サポート"
+  },
+  "footer.support.help": {
+    "ko": "도움말",
+    "en": "Help",
+    "jp": "ヘルプ"
+  },
+  "footer.support.contact": {
+    "ko": "문의하기",
+    "en": "Contact",
+    "jp": "お問い合わせ"
+  },
+  "footer.support.terms": {
+    "ko": "이용약관",
+    "en": "Terms",
+    "jp": "利用規約"
+  },
+  "footer.copyright": {
+    "ko": "© 2024 LinkPick. All rights reserved.",
+    "en": "© 2024 LinkPick. All rights reserved.",
+    "jp": "© 2024 LinkPick. All rights reserved."
+  },
+  "hero.slide1.tag": {
+    "ko": "🎯 NEW",
+    "en": "🎯 NEW",
+    "jp": "🎯 NEW"
+  },
+  "hero.slide1.title": {
+    "ko": "인플루언서와 브랜드를\n연결하는 가장 쉬운 방법",
+    "en": "The easiest way to connect\ninfluencers and brands",
+    "jp": "インフルエンサーとブランドを\nつなぐ最も簡単な方法"
+  },
+  "hero.slide1.subtitle": {
+    "ko": "리뷰와 함께 성장의 기회를 만나보세요",
+    "en": "Discover growth opportunities with Revu",
+    "jp": "Revuと一緒に成長の機会を見つけてください"
+  },
+  "category.beauty": {
+    "ko": "뷰티",
+    "en": "Beauty",
+    "jp": "ビューティー"
+  },
+  "category.fashion": {
+    "ko": "패션",
+    "en": "Fashion",
+    "jp": "ファッション"
+  },
+  "category.food": {
+    "ko": "맛집",
+    "en": "Food",
+    "jp": "グルメ"
+  },
+  "category.travel": {
+    "ko": "여행",
+    "en": "Travel",
+    "jp": "旅行"
+  },
+  "category.tech": {
+    "ko": "IT/테크",
+    "en": "IT/Tech",
+    "jp": "IT/テック"
+  },
+  "category.fitness": {
+    "ko": "운동/헬스",
+    "en": "Fitness",
+    "jp": "フィットネス"
+  },
+  "category.lifestyle": {
+    "ko": "라이프",
+    "en": "Lifestyle",
+    "jp": "ライフスタイル"
+  },
+  "category.pet": {
+    "ko": "반려동물",
+    "en": "Pet",
+    "jp": "ペット"
+  },
+  "category.parenting": {
+    "ko": "육아",
+    "en": "Parenting",
+    "jp": "育児"
+  },
+  "category.game": {
+    "ko": "게임",
+    "en": "Gaming",
+    "jp": "ゲーム"
+  },
+  "category.education": {
+    "ko": "교육",
+    "en": "Education",
+    "jp": "教育"
+  },
+  "category.badge.hot": {
+    "ko": "HOT",
+    "en": "HOT",
+    "jp": "HOT"
+  },
+  "category.badge.new": {
+    "ko": "신규",
+    "en": "NEW",
+    "jp": "新規"
+  },
+  "footer.menu.custom__1755615763960": {
+    "ko": "이용약관",
+    "en": "이용약관",
+    "jp": "이용약관"
+  },
+  "category.plastic_surgery": {
+    "ko": "성형외과",
+    "en": "Plastic Surgery",
+    "jp": "整形外科"
+  },
+  "category.dermatology": {
+    "ko": "피부과",
+    "en": "Dermatology",
+    "jp": "皮膚科"
+  },
+  "category.culture": {
+    "ko": "문화",
+    "en": "Culture",
+    "jp": "文化"
+  },
+  "category.dentistry": {
+    "ko": "치과",
+    "en": "Dentistry",
+    "jp": "歯科"
+  },
+  "category.ophthalmology": {
+    "ko": "안과",
+    "en": "Ophthalmology",
+    "jp": "眼科"
+  },
+  "header.menu.custom__1755486162949": {
+    "ko": "커뮤니티",
+    "en": "Community",
+    "jp": "コミュニティ"
+  },
+  "category.hospital": {
+    "ko": "병원",
+    "en": "Hospital",
+    "jp": "病院"
+  },
+  "category.campaign": {
+    "ko": "캠페인",
+    "en": "Campaign",
+    "jp": "キャンペーン"
+  },
+  "category.review": {
+    "ko": "구매평",
+    "en": "Review",
+    "jp": "レビュー"
+  },
+  "category.digital": {
+    "ko": "디지털",
+    "en": "Digital",
+    "jp": "デジタル"
+  },
+  "category.restaurant": {
+    "ko": "맛집",
+    "en": "Restaurant",
+    "jp": "レストラン"
+  },
+  "category.restaurant_review": {
+    "ko": "맛집 리뷰",
+    "en": "Restaurant Review",
+    "jp": "レストランレビュー"
+  }
+}

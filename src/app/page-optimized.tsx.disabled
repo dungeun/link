@@ -1,0 +1,204 @@
+import { headers } from 'next/headers'
+import HomePage from '@/components/HomePage'
+import { 
+  LanguageCode, 
+  isLanguageCode
+} from '@/types/global'
+import { cacheLayer, CacheKeys } from '@/lib/cache/redis-cache-layer'
+import { getTranslation } from '@/locales/generated'
+import { prisma } from '@/lib/db/prisma'
+import type { Metadata } from 'next'
+
+// 정적 생성 + ISR (1시간마다 재생성)
+export const revalidate = 3600
+export const runtime = 'nodejs' // Edge로 변경 가능
+
+// 최적화된 데이터 로딩
+async function getOptimizedHomeData() {
+  const startTime = Date.now();
+  
+  // 병렬 처리로 모든 데이터 동시 로드
+  const [campaigns, sections, categoryStats] = await Promise.all([
+    // 1. 캠페인 - Redis 캐시 사용
+    cacheLayer.getOrSet(
+      CacheKeys.campaigns(1),
+      async () => {
+        return prisma.campaign.findMany({
+          where: {
+            status: 'ACTIVE',
+            deletedAt: null
+          },
+          select: {
+            id: true,
+            title: true,
+            thumbnailImageUrl: true,
+            rewardAmount: true,
+            endDate: true,
+            platform: true,
+            hashtags: true,
+            business: {
+              select: { name: true }
+            },
+            categories: {
+              select: {
+                isPrimary: true,
+                category: {
+                  select: { name: true }
+                }
+              },
+              where: { isPrimary: true },
+              take: 1
+            },
+            _count: {
+              select: { applications: true }
+            }
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 20
+        });
+      },
+      60 // 1분 캐시
+    ),
+    
+    // 2. UI 섹션 - Redis 캐시 사용
+    cacheLayer.getOrSet(
+      CacheKeys.uiSection('home'),
+      async () => {
+        return prisma.uISection.findMany({
+          where: { 
+            visible: true,
+            type: { in: ['hero', 'category', 'quicklinks'] }
+          },
+          select: {
+            id: true,
+            type: true,
+            title: true,
+            subtitle: true,
+            content: true,
+            visible: true,
+            order: true
+          },
+          orderBy: { order: 'asc' }
+        });
+      },
+      3600 // 1시간 캐시
+    ),
+    
+    // 3. 카테고리 통계 - 원시 쿼리 최적화
+    cacheLayer.getOrSet(
+      CacheKeys.stats('categories'),
+      async () => {
+        const stats = await prisma.$queryRaw<Array<{
+          categoryId: string;
+          name: string;
+          count: bigint;
+        }>>`
+          SELECT 
+            c.id as "categoryId",
+            c.name,
+            COUNT(cc."campaignId")::bigint as count
+          FROM categories c
+          LEFT JOIN campaign_categories cc ON c.id = cc."categoryId"
+          LEFT JOIN campaigns camp ON cc."campaignId" = camp.id 
+            AND camp.status = 'ACTIVE' 
+            AND camp."deletedAt" IS NULL
+          GROUP BY c.id, c.name
+          ORDER BY count DESC
+          LIMIT 10
+        `;
+        
+        return stats.reduce((acc, stat) => {
+          acc[stat.name] = Number(stat.count);
+          return acc;
+        }, {} as Record<string, number>);
+      },
+      1800 // 30분 캐시
+    )
+  ]);
+  
+  const loadTime = Date.now() - startTime;
+  console.log(`✅ Page data loaded in ${loadTime}ms`);
+  
+  return {
+    campaigns: campaigns || [],
+    sections: sections || [],
+    categoryStats: categoryStats || {},
+    metadata: {
+      totalCampaigns: campaigns?.length || 0,
+      loadTime,
+      cached: loadTime < 50 // 50ms 이하면 캐시에서 로드
+    }
+  };
+}
+
+export default async function Page() {
+  // 언어 감지 (서버 사이드)
+  const headersList = headers();
+  const acceptLanguage = headersList.get('accept-language') || '';
+  
+  let initialLanguage: LanguageCode = 'ko';
+  if (acceptLanguage.includes('en')) {
+    initialLanguage = 'en';
+  } else if (acceptLanguage.includes('ja')) {
+    initialLanguage = 'jp';
+  }
+  
+  // 최적화된 데이터 로드
+  const data = await getOptimizedHomeData();
+  
+  // 언어팩은 JSON에서 로드 (0ms)
+  const languagePacks = {}; // JSON 기반 시스템으로 교체됨
+  
+  // 캠페인 데이터 변환 (심플하게)
+  const transformedCampaigns = data.campaigns.map(campaign => ({
+    id: campaign.id,
+    title: campaign.title,
+    brand: campaign.business.name,
+    imageUrl: campaign.thumbnailImageUrl,
+    reward: campaign.rewardAmount,
+    deadline: new Date(campaign.endDate).getTime(),
+    applicants: campaign._count.applications,
+    category: campaign.categories[0]?.category.name || '기타',
+    platforms: Array.isArray(campaign.platform) ? campaign.platform : [campaign.platform]
+  }));
+  
+  return (
+    <HomePage 
+      initialSections={data.sections} 
+      initialLanguage={initialLanguage}
+      initialLanguagePacks={languagePacks}
+      initialCampaigns={transformedCampaigns}
+      initialCategoryStats={data.categoryStats}
+      preloadMetadata={data.metadata}
+    />
+  );
+}
+
+// 메타데이터 생성도 최적화
+export async function generateMetadata(): Promise<Metadata> {
+  // 캐시에서 사이트 설정 로드
+  const siteTitle = await cacheLayer.getOrSet(
+    'cache:site:title',
+    async () => {
+      const config = await prisma.siteConfig.findFirst({
+        where: { key: 'site_title' }
+      });
+      return config?.value || 'LinkPick';
+    },
+    86400 // 24시간 캐시
+  );
+  
+  return {
+    title: `${siteTitle} - 인플루언서 마케팅 플랫폼`,
+    description: '브랜드와 인플루언서를 연결하는 마케팅 플랫폼',
+    keywords: ['인플루언서', '마케팅', '브랜드', '광고'],
+    openGraph: {
+      title: siteTitle,
+      description: '브랜드와 인플루언서를 연결하는 마케팅 플랫폼',
+      images: ['/og-image.png'],
+    },
+    other: {
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600'
+    }
+  };
+}

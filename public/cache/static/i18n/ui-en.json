@@ -1,0 +1,120 @@
+{
+  "version": "2025-01-21T03:06:00Z",
+  "lastUpdated": "2025-01-21T03:06:00Z", 
+  "type": "static-ui-english",
+  "data": {
+    "nav": {
+      "home": "Home",
+      "campaigns": "Campaigns",
+      "influencers": "Influencers",
+      "community": "Community",
+      "pricing": "Pricing",
+      "about": "About",
+      "contact": "Contact",
+      "help": "Help"
+    },
+    "auth": {
+      "login": "Login",
+      "logout": "Logout",
+      "register": "Sign Up",
+      "forgot_password": "Forgot Password",
+      "profile": "Profile"
+    },
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "submit": "Submit",
+      "delete": "Delete",
+      "edit": "Edit",
+      "add": "Add",
+      "apply": "Apply",
+      "view_more": "View More",
+      "search": "Search", 
+      "filter": "Filter",
+      "close": "Close",
+      "confirm": "Confirm"
+    },
+    "status": {
+      "loading": "Loading...",
+      "success": "Success",
+      "error": "Error",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "completed": "Completed",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "forms": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "confirm_password": "Confirm Password",
+      "phone": "Phone",
+      "address": "Address",
+      "company": "Company",
+      "title": "Title",
+      "description": "Description",
+      "category": "Category",
+      "budget": "Budget",
+      "deadline": "Deadline"
+    },
+    "errors": {
+      "network": "Network error occurred",
+      "auth_failed": "Authentication failed",
+      "invalid_input": "Invalid input",
+      "required_field": "Required field",
+      "file_too_large": "File too large",
+      "invalid_file_type": "Invalid file type",
+      "server_error": "Server error occurred",
+      "not_found": "Page not found"
+    },
+    "home": {
+      "hero": {
+        "title": "Platform connecting brands and influencers",
+        "subtitle": "Experience the best marketing campaigns",
+        "cta": "Explore Campaigns"
+      },
+      "campaigns": {
+        "title": "Active Campaigns",
+        "empty": "No active campaigns at the moment"
+      },
+      "stats": {
+        "title": "Campaigns by Category"
+      }
+    },
+    "categories": {
+      "beauty": "Beauty",
+      "fashion": "Fashion",
+      "food": "Food",
+      "travel": "Travel", 
+      "tech": "IT/Tech",
+      "sports": "Sports/Fitness",
+      "lifestyle": "Lifestyle",
+      "pets": "Pets",
+      "parenting": "Parenting",
+      "gaming": "Gaming",
+      "education": "Education"
+    },
+    "campaign": {
+      "apply": "Apply",
+      "deadline": "Deadline",
+      "budget": "Budget",
+      "participants": "Participants",
+      "brand": "Brand",
+      "platform": "Platform",
+      "requirements": "Requirements",
+      "reward": "Reward",
+      "status_active": "Active",
+      "status_closed": "Closed",
+      "status_review": "Under Review"
+    },
+    "footer": {
+      "company_info": "Company Info",
+      "service_info": "Service Info",
+      "support": "Support",
+      "policies": "Policies",
+      "follow_us": "Follow Us"
+    }
+  }
+}

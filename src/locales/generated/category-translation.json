@@ -1,0 +1,32 @@
+{
+  "translation.title": {
+    "ko": "통합 번역 관리",
+    "en": "Translation Management",
+    "jp": "翻訳管理"
+  },
+  "translation.description": {
+    "ko": "캠페인, 게시물, 메뉴의 다국어 번역을 관리합니다.",
+    "en": "Manage multilingual translations for campaigns, posts, and menus.",
+    "jp": "キャンペーン、投稿、メニューの多言語翻訳を管理します。"
+  },
+  "translation.tab.campaign": {
+    "ko": "캠페인",
+    "en": "Campaign",
+    "jp": "キャンペーン"
+  },
+  "translation.tab.post": {
+    "ko": "게시물",
+    "en": "Post",
+    "jp": "投稿"
+  },
+  "translation.tab.menu": {
+    "ko": "메뉴",
+    "en": "Menu",
+    "jp": "メニュー"
+  },
+  "translation.tab.api_settings": {
+    "ko": "API 설정",
+    "en": "API Settings",
+    "jp": "API設定"
+  }
+}

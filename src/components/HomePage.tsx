@@ -2,14 +2,15 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react'
-import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
+// JSON-first: 무한 스크롤 대신 간단한 페이지네이션
 import { useRouter } from 'next/navigation'
 import { AuthService, User } from '@/lib/auth'
-import { useUIConfigStore } from '@/lib/stores/ui-config.store'
+// JSON-first: UI Config Store 대신 정적 JSON 사용
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useLanguage } from '@/hooks/useLanguage'
 import { logger } from '@/lib/logger'
+import { StaticUITexts, createTranslationFunction } from '@/lib/cache/json-loader'
 import dynamic from 'next/dynamic'
 // Lucide 픽토그램 아이콘 import
 import {
@@ -23,7 +24,10 @@ import {
   Heart,
   Baby,
   Gamepad2,
-  GraduationCap
+  GraduationCap,
+  Trophy,
+  PlusCircle,
+  BarChart3
 } from 'lucide-react'
 
 // Code splitting for heavy components
@@ -50,8 +54,7 @@ const ActiveCampaignsSection = dynamic(() => import('@/components/home/ActiveCam
 import { CriticalCSS } from '@/components/CriticalCSS'
 import Image from 'next/image'
 import CampaignCard from '@/components/CampaignCard'
-import { useWebWorker } from '@/hooks/useWebWorker'
-import { initializePerformanceMonitoring, useWebVitals } from '@/lib/performance'
+// JSON-first: Web Worker와 Performance Monitoring 불필요
 
 import { 
   BaseCampaign, 
@@ -80,24 +83,20 @@ interface Campaign extends Omit<BaseCampaign, 'startDate' | 'endDate' | 'created
 }
 
 interface HomePageProps {
-  initialSections: UISection[]
+  initialSections: any[] // JSON-first 섹션 데이터
   initialLanguage?: LanguageCode
-  initialLanguagePacks?: Record<string, LanguagePack>
-  initialCampaigns?: Campaign[]
-  initialCategoryStats?: Record<string, number>
+  staticUITexts?: StaticUITexts | null
   preloadMetadata?: {
-    totalCampaigns: number
     loadTime: number
     cached: boolean
+    source: string
   }
 }
 
 function HomePage({ 
   initialSections, 
   initialLanguage = 'ko', 
-  initialLanguagePacks = {},
-  initialCampaigns = [],
-  initialCategoryStats = {},
+  staticUITexts = null,
   preloadMetadata
 }: HomePageProps) {
   const router = useRouter()
@@ -105,105 +104,77 @@ function HomePage({
   const [searchTerm, setSearchTerm] = useState('')
   const [currentSlide, setCurrentSlide] = useState(0)
   
-  // 캠페인 데이터 상태 관리 - 무한 스크롤 지원
-  const [campaigns, setCampaigns] = useState<Campaign[]>(() => initialCampaigns)
+  // JSON-first 섹션 데이터 (이미 언어별로 번역됨)
+  const [sections] = useState(() => initialSections || [])
+  
+  // 캠페인 관련 상태는 필요시 별도 구현
   const [loading, setLoading] = useState(false)
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(true)
-  const [sections] = useState<UISection[]>(() => initialSections || [])
-  const [sectionsLoading] = useState(() => false) // 프리로드되었으므로 항상 false
-  const [currentLang, setCurrentLang] = useState<LanguageCode>(() => initialLanguage)
-  const [langPacks] = useState<Record<string, LanguagePack>>(() => initialLanguagePacks)
   
-  // Web Worker for campaign processing
-  const { postMessage: postWorkerMessage, subscribe } = useWebWorker('/workers/campaignWorker.js')
+  // JSON-first: 더이상 복잡한 처리가 필요없음
   
-  // Performance monitoring
-  const { getVitals, checkBudgets } = useWebVitals()
-  
-  // Web Worker error handling
-  useEffect(() => {
-    const unsubscribe = subscribe('ERROR', (error) => {
-      logger.error('Worker error:', error)
-    })
-    
-    // Campaigns are now preloaded, no need for worker processing
-    
-    return () => {
-      unsubscribe()
-    }
-  }, [subscribe])
+  // JSON-first: Web Worker 처리 불필요
   
   // 언어팩 사용
   const { t: contextT, currentLanguage } = useLanguage()
   
-  // 초기 렌더링을 위한 번역 함수 - contextT가 없을 때 fallback
+  // JSON 기반 정적 UI 텍스트 번역 함수
+  const getStaticTexts = (lang: LanguageCode) => {
+    const adjustedLang = lang
+    return staticUITexts[adjustedLang] || staticUITexts['ko'] || null
+  }
+  
+  // 통합 번역 함수 - JSON 정적 텍스트 우선, 동적 컨텐츠는 contextT 사용
   const t = (key: string, fallback?: string): string => {
+    const currentLang = currentLanguage || initialLanguage
+    // 언어 코드 변환: 'ja' -> 'jp'
+    const normalizedLang: LanguageCode = 
+      (currentLang as string) === 'ja' ? 'jp' : 
+      (currentLang as string) === 'jp' ? 'jp' :
+      (currentLang as string) === 'en' ? 'en' : 'ko'
+    const staticTexts = getStaticTexts(normalizedLang)
+    
+    // 정적 UI 텍스트에서 먼저 찾기
+    if (staticTexts) {
+      const staticTranslation = createTranslationFunction(staticTexts)(key)
+      if (staticTranslation !== key) {
+        return staticTranslation
+      }
+    }
+    
+    // contextT로 동적 컨텐츠 번역 시도
     if (contextT) {
       return contextT(key, fallback)
     }
-    // 초기 언어팩 데이터 사용
-    const pack = langPacks[key]
-    if (pack) {
-      const lang: keyof LanguagePack = (currentLang as string) === 'ja' ? 'jp' : currentLang
-      const translation = pack[lang]
-      if (typeof translation === 'string') {
-        return translation
-      }
-    }
+    
     return fallback || key
   }
   
-  // UI 설정 가져오기 (폴백용)
-  const { config, loadSettingsFromAPI } = useUIConfigStore()
+  // JSON 섹션 데이터에서 다국어 텍스트 가져오기 - 현재 선택된 언어 우선
+  const getLocalizedText = (textObj: any, fallback?: string): string => {
+    if (!textObj) {
+      return fallback || ''
+    }
+    if (typeof textObj === 'string') {
+      return textObj
+    }
+    
+    // 현재 언어 확인
+    const currentLang = currentLanguage || initialLanguage || 'ko'
+    const normalizedLang: LanguageCode = 
+      (currentLang as string) === 'ja' ? 'jp' : 
+      (currentLang as string) === 'jp' ? 'jp' :
+      (currentLang as string) === 'en' ? 'en' : 'ko'
+    
+    // 현재 선택된 언어로 먼저 시도
+    if (textObj[normalizedLang]) {
+      return textObj[normalizedLang]
+    }
+    
+    // 없으면 한국어 → 영어 → 일본어 순으로 폴백
+    return textObj.ko || textObj.en || textObj.jp || fallback || ''
+  }
   
-  // 폴백용 설정들 - 메모이제이션 적용
-  const bannerSlides = useMemo(() => 
-    config.mainPage?.heroSlides?.filter(slide => slide.visible) || [], 
-    [config.mainPage?.heroSlides]
-  )
-  
-  const menuCategories = useMemo(() => 
-    config.mainPage?.categoryMenus?.filter(menu => menu.visible) || [], 
-    [config.mainPage?.categoryMenus]
-  )
-  
-  const sectionOrder = useMemo(() => 
-    config.mainPage?.sectionOrder || [], 
-    [config.mainPage?.sectionOrder]
-  )
-  
-  const customSectionOrders = useMemo(() => 
-    (config.mainPage?.customSections || [])
-      .filter(section => section.visible)
-      .map((section) => ({
-        id: section.id,
-        type: 'custom' as const,
-        order: section.order || 999,
-        visible: section.visible,
-      })),
-    [config.mainPage?.customSections]
-  )
-  
-  const allSections = useMemo(() => {
-    const sections = [...sectionOrder]
-    customSectionOrders.forEach(customOrder => {
-      const existingIndex = sections.findIndex(s => s.id === customOrder.id)
-      if (existingIndex > -1) {
-        sections[existingIndex] = customOrder
-      } else {
-        sections.push(customOrder)
-      }
-    })
-    return sections
-  }, [sectionOrder, customSectionOrders])
-  
-  const visibleSections = useMemo(() => 
-    allSections
-      .filter(s => s.visible)
-      .sort((a, b) => a.order - b.order),
-    [allSections]
-  )
+  // JSON-first: 모든 데이터가 이미 준비됨, UI Config Store 불필요
 
   
   // Lucide 아이콘 맵핑
@@ -219,6 +190,9 @@ function HomePage({
     'Baby': Baby,
     'Gamepad2': Gamepad2,
     'GraduationCap': GraduationCap,
+    'Trophy': Trophy,
+    'PlusCircle': PlusCircle,
+    'BarChart3': BarChart3,
   }), [])
 
   // 카테고리별 기본 픽토그램 - Lucide 아이콘 사용
@@ -243,7 +217,7 @@ function HomePage({
     if (category.icon) {
       // HTTP URL인 경우 이미지로 렌더링
       if (category.icon.startsWith('http')) {
-        return <img src={category.icon} alt={category.name} className={`${sizeClasses} object-contain`} />
+        return <img src={category.icon} alt={getLocalizedText(category.name)} className={`${sizeClasses} object-contain`} />
       }
       
       // Lucide 아이콘 이름인 경우 동적 렌더링
@@ -264,52 +238,14 @@ function HomePage({
     )
   }, [lucideIcons, defaultCategoryIcons])
 
-  // 추가 캠페인 로드 (무한 스크롤)
-  const loadMoreCampaigns = useCallback(async () => {
-    if (loading || !hasMore) return
-
-    try {
-      setLoading(true)
-      
-      const params = new URLSearchParams()
-      if (cursor) params.append('cursor', cursor)
-      params.append('limit', '8')
-      params.append('sort', 'latest')
-      
-      const response = await fetch(`/api/campaigns/optimized?${params}`)
-      
-      if (!response.ok) {
-        throw new Error('Failed to load campaigns')
-      }
-      
-      const data = await response.json()
-      
-      setCampaigns(prev => [...prev, ...data.items])
-      setCursor(data.nextCursor)
-      setHasMore(data.hasMore)
-      
-      logger.info(`HomePage: Loaded more campaigns - count: ${data.items?.length}, total: ${campaigns.length + data.items?.length}`)
-    } catch (error) {
-      logger.error(`HomePage: Failed to load campaigns - error: ${error instanceof Error ? error.message : String(error)}`)
-    } finally {
-      setLoading(false)
-    }
-  }, [cursor, hasMore, loading, campaigns.length])
-
-  // 무한 스크롤 Hook 사용
-  const { sentinelRef } = useInfiniteScroll({
-    onLoadMore: loadMoreCampaigns,
-    hasMore,
-    loading,
-    threshold: 200
-  })
+  // JSON-first: 캠페인 로딩 관련 상태 제거 (필요시 별도 구현)
+  // const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  // const [cursor, setCursor] = useState<string | null>(null)
+  // const [hasMore, setHasMore] = useState(true)
 
   // Sections are now preloaded with language data - no need for loadSections function
 
   useEffect(() => {
-    // Initialize performance monitoring
-    initializePerformanceMonitoring()
-    
     // 로그인 상태 확인
     const currentUser = AuthService.getCurrentUser()
     setUser(currentUser)
@@ -318,24 +254,13 @@ function HomePage({
     if (currentUser && currentUser.type === 'BUSINESS') {
       router.push('/business/dashboard')
     }
-
-    // 캠페인 데이터는 이미 프리로드됨
   }, [router])
-
-  // 언어 변경 시 섹션 데이터 재로드
-  useEffect(() => {
-    if (currentLanguage && currentLanguage !== currentLang) {
-      console.log('Language changed to:', currentLanguage)
-      setCurrentLang(currentLanguage as any)
-      // 섹션 및 캠페인 데이터는 이미 프리로드됨
-    }
-  }, [currentLanguage, currentLang])
 
   // 히어로 슬라이드 자동 전환
   useEffect(() => {
     const heroSection = sections.find(s => s.type === 'hero')
-    if (heroSection?.content?.slides && Array.isArray(heroSection.content.slides) && heroSection.content.slides.length > 1) {
-      const slides = heroSection.content.slides
+    if (heroSection?.data?.slides && heroSection.data.slides.length > 1) {
+      const slides = heroSection.data.slides
       const interval = setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % slides.length)
       }, 5000)
@@ -350,22 +275,7 @@ function HomePage({
     }
   }, [searchTerm, router])
 
-  // 언어별 콘텐츠 가져오기 - 초기 렌더링 시에는 currentLang 사용
-  const getLocalizedContent = useCallback((section: UISection): UISectionContent => {
-    const lang = currentLanguage || currentLang
-    if (lang === 'ko' || !section.translations) {
-      return section.content
-    }
-    
-    const langKey = (lang as any) === 'ja' ? 'jp' : lang
-    const translation = (section.translations as any)[langKey]
-    
-    if (translation) {
-      return { ...section.content, ...translation }
-    }
-    
-    return section.content
-  }, [currentLanguage, currentLang])
+  // JSON-first: 섹션 데이터가 이미 언어별로 번역되어 제공됨
 
   return (
     <>
@@ -375,29 +285,20 @@ function HomePage({
 
       <main className="container mx-auto px-6 py-8">
         
-        {/* DB 섹션 렌더링 (있으면) - visibleSections 순서 적용 */}
+        {/* JSON-first 섹션 렌더링 (이미 언어별로 번역된 데이터) */}
         {sections.length > 0 ? (
-          // visibleSections 순서대로 sections를 정렬하여 렌더링
-          visibleSections
-            .map(orderedSection => {
-              // 해당 타입의 실제 섹션 데이터를 찾기
-              const dbSection = sections.find(s => s.type === orderedSection.type)
-              return dbSection ? { ...dbSection, order: orderedSection.order } : null
-            })
-            .filter(section => section !== null)
-            .map((section) => {
-            const localizedContent = getLocalizedContent(section)
+          sections.map((section) => {
             
             switch (section.type) {
               case 'hero':
-                return localizedContent?.slides ? (
+                return section.data?.slides ? (
                   <div key={section.id} className="relative mb-8 hero-section">
                     <div className="overflow-hidden">
                       <div 
                         className="flex transition-transform duration-500 ease-out hero-slide"
                         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                       >
-                        {(localizedContent.slides as any)?.map((slide: any, slideIndex: number) => (
+                        {section.data.slides?.map((slide: any, slideIndex: number) => (
                           <div key={slide.id} className="min-w-full">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               {/* 현재 슬라이드 */}
@@ -406,12 +307,12 @@ function HomePage({
                                   <Link href={slide.link} className="block group">
                                     <div className="relative">
                                       <div
-                                        className={`w-full h-64 md:h-80 ${slide.bgColor} text-white relative rounded-2xl overflow-hidden`}
+                                        className={`w-full h-64 md:h-80 text-white relative rounded-2xl overflow-hidden ${slide.bgColor || 'bg-gradient-to-r from-purple-600 to-blue-600'}`}
                                       >
                                         {slide.backgroundImage && (
                                           <Image
                                             src={slide.backgroundImage}
-                                            alt={slide.title || ''}
+                                            alt={getLocalizedText(slide.title) || ''}
                                             fill
                                             className="hero-image"
                                             priority={slideIndex === 0}
@@ -426,14 +327,14 @@ function HomePage({
                                           <div className="text-center max-w-2xl">
                                             {slide.tag && (
                                               <span className="inline-block bg-white/20 backdrop-blur px-3 py-1 rounded-full text-sm font-medium mb-3">
-                                                {slide.tag}
+                                                {getLocalizedText(slide.tag)}
                                               </span>
                                             )}
                                             <h1 className="text-3xl md:text-5xl font-bold mb-4 whitespace-pre-line">
-                                              {slide.title}
+                                              {getLocalizedText(slide.title)}
                                             </h1>
                                             <p className="text-lg md:text-xl opacity-90">
-                                              {slide.subtitle}
+                                              {getLocalizedText(slide.subtitle)}
                                             </p>
                                           </div>
                                         </div>
@@ -448,7 +349,7 @@ function HomePage({
                                 ) : (
                                   <div className="relative">
                                     <div
-                                      className={`w-full h-64 md:h-80 ${slide.bgColor} text-white relative rounded-2xl overflow-hidden`}
+                                      className={`w-full h-64 md:h-80 text-white relative rounded-2xl overflow-hidden ${slide.bgColor || 'bg-gradient-to-r from-purple-600 to-blue-600'}`}
                                       style={{
                                         backgroundImage: slide.backgroundImage 
                                           ? `url(${slide.backgroundImage})`
@@ -461,14 +362,14 @@ function HomePage({
                                         <div className="text-center max-w-2xl">
                                           {slide.tag && (
                                             <span className="inline-block bg-white/20 backdrop-blur px-3 py-1 rounded-full text-sm font-medium mb-3">
-                                              {slide.tag}
+                                              {getLocalizedText(slide.tag)}
                                             </span>
                                           )}
                                           <h1 className="text-3xl md:text-5xl font-bold mb-4 whitespace-pre-line">
-                                            {slide.title}
+                                            {getLocalizedText(slide.title)}
                                           </h1>
                                           <p className="text-lg md:text-xl opacity-90">
-                                            {slide.subtitle}
+                                            {getLocalizedText(slide.subtitle)}
                                           </p>
                                         </div>
                                       </div>
@@ -478,17 +379,17 @@ function HomePage({
                               </div>
 
                               {/* 다음 슬라이드 미리보기 */}
-                              {localizedContent.slides && (localizedContent.slides as any).length > 1 && (
+                              {section.data.slides && section.data.slides.length > 1 && (
                                 <div className="hidden lg:block w-full">
                                   {(() => {
-                                    const slides = localizedContent.slides as any
+                                    const slides = section.data.slides
                                     const nextIndex = (slideIndex + 1) % slides.length
                                     const nextSlide = slides[nextIndex]
                                     
                                     return (
                                       <div className="h-full">
                                         <div
-                                          className={`w-full h-64 md:h-80 ${nextSlide.bgColor} text-white relative rounded-2xl overflow-hidden opacity-50`}
+                                          className={`w-full h-64 md:h-80 text-white relative rounded-2xl overflow-hidden opacity-50 ${nextSlide.bgColor || 'bg-gradient-to-r from-green-400 to-blue-400'}`}
                                           style={{
                                             backgroundImage: nextSlide.backgroundImage 
                                               ? `url(${nextSlide.backgroundImage})`
@@ -500,10 +401,10 @@ function HomePage({
                                           <div className="absolute inset-0 flex items-center justify-center px-8">
                                             <div className="text-center max-w-2xl">
                                               <h2 className="text-2xl md:text-3xl font-bold mb-2 whitespace-pre-line">
-                                                {nextSlide.title}
+                                                {getLocalizedText(nextSlide.title)}
                                               </h2>
                                               <p className="text-base md:text-lg opacity-90">
-                                                {nextSlide.subtitle}
+                                                {getLocalizedText(nextSlide.subtitle)}
                                               </p>
                                             </div>
                                           </div>
@@ -520,9 +421,9 @@ function HomePage({
                     </div>
                     
                     {/* 슬라이드 인디케이터 */}
-                    {(localizedContent.slides as any)?.length > 1 && (
+                    {section.data.slides?.length > 1 && (
                       <div className="flex justify-center gap-2 mt-4">
-                        {(localizedContent.slides as any)?.map((_: any, index: number) => (
+                        {section.data.slides?.map((_: any, index: number) => (
                           <button
                             key={index}
                             onClick={() => setCurrentSlide(index)}
@@ -542,32 +443,33 @@ function HomePage({
               
 
               case 'quicklinks':
-                return localizedContent?.links ? (
+                return section.data?.links ? (
                   <div key={section.id} className="mb-12">
                     {/* 데스크톱: 3단 그리드 */}
                     <div className="hidden md:grid md:grid-cols-3 gap-4">
-                      {(localizedContent.links as any)?.map((link: any) => (
+                      {section.data.links?.map((link: any) => (
                         <Link 
                           key={link.id}
-                          href={link.link} 
+                          href={link.link || link.url || '#'} 
                           className="bg-gray-100 rounded-xl p-5 flex items-center justify-center gap-3 hover:bg-blue-50 transition-colors group"
                         >
                           {link.icon && (
                             link.icon.startsWith('http') ? (
                               <Image 
                                 src={link.icon} 
-                                alt={link.title} 
+                                alt={getLocalizedText(link.title)} 
                                 width={32}
                                 height={32}
                                 className="object-contain"
                                 loading="lazy"
                               />
                             ) : (
+                              // 이모지 우선 사용 (관리자 설정 그대로)
                               <span className="text-2xl">{link.icon}</span>
                             )
                           )}
                           <span className="font-medium text-gray-800 group-hover:text-blue-600">
-                            {link.title}
+                            {getLocalizedText(link.title)}
                           </span>
                         </Link>
                       ))}
@@ -576,28 +478,29 @@ function HomePage({
                     {/* 모바일: 1개씩 슬라이드 */}
                     <div className="md:hidden">
                       <div className="flex overflow-x-auto scrollbar-hide gap-4 pb-4 px-4">
-                        {(localizedContent.links as any)?.map((link: any) => (
+                        {section.data.links?.map((link: any) => (
                           <Link 
                             key={link.id}
-                            href={link.link} 
+                            href={link.link || link.url || '#'} 
                             className="bg-gray-100 rounded-xl p-5 flex items-center justify-center gap-3 hover:bg-blue-50 transition-colors group w-[calc(100vw-2rem)] max-w-[320px] flex-shrink-0"
                           >
                             {link.icon && (
                               link.icon.startsWith('http') ? (
                                 <Image 
                                   src={link.icon} 
-                                  alt={link.title} 
+                                  alt={getLocalizedText(link.title)} 
                                   width={32}
                                   height={32}
                                   className="object-contain"
                                   loading="lazy"
                                 />
                               ) : (
+                                // 이모지 우선 사용 (관리자 설정 그대로)
                                 <span className="text-2xl">{link.icon}</span>
                               )
                             )}
                             <span className="font-medium text-gray-800 group-hover:text-blue-600">
-                              {link.title}
+                              {getLocalizedText(link.title)}
                             </span>
                           </Link>
                         ))}
@@ -607,7 +510,7 @@ function HomePage({
                 ) : null
 
               case 'promo':
-                const promoData = (localizedContent as any)?.banner || (localizedContent as any)
+                const promoData = section.data?.banner || section.data
                 return promoData ? (
                   <div key={section.id} className="mb-12">
                     {(promoData as any).link ? (
@@ -637,13 +540,13 @@ function HomePage({
                                   color: (promoData as any).backgroundImage ? '#FFFFFF' : (promoData as any).textColor || '#000000' 
                                 }}
                               >
-                                {(promoData as any).title}
+                                {getLocalizedText((promoData as any).title)}
                               </h3>
                               <p style={{ 
                                 color: (promoData as any).backgroundImage ? '#FFFFFF' : (promoData as any).textColor || '#000000',
                                 opacity: (promoData as any).backgroundImage ? 0.9 : 0.8
                               }}>
-                                {(promoData as any).subtitle}
+                                {getLocalizedText((promoData as any).subtitle)}
                               </p>
                             </div>
                             <div className="flex items-center gap-4">
@@ -680,13 +583,13 @@ function HomePage({
                                 color: promoData.backgroundImage ? '#FFFFFF' : promoData.textColor || '#000000' 
                               }}
                             >
-                              {promoData.title}
+                              {getLocalizedText(promoData.title)}
                             </h3>
                             <p style={{ 
                               color: promoData.backgroundImage ? '#FFFFFF' : promoData.textColor || '#000000',
                               opacity: promoData.backgroundImage ? 0.9 : 0.8
                             }}>
-                              {promoData.subtitle}
+                              {getLocalizedText(promoData.subtitle)}
                             </p>
                           </div>
                           <div className="flex items-center gap-4">
@@ -701,25 +604,16 @@ function HomePage({
                 ) : null
 
               case 'category':
-                return localizedContent?.categories ? (
+                return section.data?.categories ? (
                   <div key={section.id} className="mb-12">
                     {/* 데스크톱: 가로 스크롤, 모바일: 그리드 */}
                     <div className="px-4">
                       {/* 모바일: 그리드 레이아웃 */}
                       <div className="grid grid-cols-4 gap-3 sm:hidden">
-                        {(localizedContent.categories as Array<{
-                          id: string;
-                          link?: string;
-                          categoryId?: string;
-                          name: string;
-                          icon?: string;
-                          iconType?: string;
-                          badge?: string;
-                          badgeColor?: string;
-                        }>).map((category) => (
+                        {(section.data.categories as any[]).map((category: any) => (
                           <Link
                             key={category.id}
-                            href={category.link || `/category/${category.categoryId}`}
+                            href={category.link || category.url || `/category/${category.slug || category.categoryId || 'all'}`}
                             className="flex flex-col items-center gap-1.5 group"
                           >
                             <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative">
@@ -734,12 +628,12 @@ function HomePage({
                                   category.badgeColor === 'pink' ? 'bg-pink-500' :
                                   'bg-red-500'
                                 }`}>
-                                  {category.badge}
+                                  {getLocalizedText(category.badge)}
                                 </span>
                               )}
                             </div>
                             <span className="text-xs text-gray-700 text-center leading-tight">
-                              {contextT(category.name, category.name)}
+                              {getLocalizedText(category.name)}
                             </span>
                           </Link>
                         ))}
@@ -748,19 +642,10 @@ function HomePage({
                       {/* 태블릿/데스크톱: 가로 스크롤 */}
                       <div className="hidden sm:block overflow-x-auto">
                         <div className="flex gap-3 lg:gap-2 pb-4 justify-center pt-4 pb-2 min-w-max">
-                          {(localizedContent.categories as Array<{
-                            id: string;
-                            link?: string;
-                            categoryId?: string;
-                            name: string;
-                            icon?: string;
-                            iconType?: string;
-                            badge?: string;
-                            badgeColor?: string;
-                          }>).map((category) => (
+                          {(section.data.categories as any[]).map((category: any) => (
                             <Link
                               key={category.id}
-                              href={category.link || `/category/${category.categoryId}`}
+                              href={category.link || category.url || `/category/${category.slug || category.categoryId || 'all'}`}
                               className="flex flex-col items-center gap-2 min-w-[60px] lg:min-w-[70px] group"
                             >
                               <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative">
@@ -775,12 +660,12 @@ function HomePage({
                                     category.badgeColor === 'pink' ? 'bg-pink-500' :
                                     'bg-red-500'
                                   }`}>
-                                    {category.badge}
+                                    {getLocalizedText(category.badge)}
                                   </span>
                                 )}
                               </div>
                               <span className="text-sm text-gray-700 text-center">
-                                {contextT(category.name, category.name)}
+                                {getLocalizedText(category.name)}
                               </span>
                             </Link>
                           ))}
@@ -792,31 +677,32 @@ function HomePage({
 
               case 'ranking':
                 return (
-                  <RankingSection
-                    key={section.id}
-                    section={section as any}
-                    localizedContent={localizedContent}
-                    t={t}
-                  />
+                  <div key={section.id} className="mb-12">
+                    <h2 className="text-2xl font-bold mb-6">{getLocalizedText(section.data?.title)}</h2>
+                    <div className="text-center py-8 text-gray-500">
+                      랭킹 섹션 (임시)
+                    </div>
+                  </div>
                 )
 
               case 'recommended':
                 return (
-                  <RecommendedSection
-                    key={section.id}
-                    section={section as any}
-                    localizedContent={localizedContent}
-                    t={t}
-                  />
+                  <div key={section.id} className="mb-12">
+                    <h2 className="text-2xl font-bold mb-6">{getLocalizedText(section.data?.title)}</h2>
+                    <div className="text-center py-8 text-gray-500">
+                      추천 섹션 (임시)
+                    </div>
+                  </div>
                 )
               case 'activeCampaigns':
+              case 'campaigns':
                 return (
-                  <ActiveCampaignsSection
-                    key={section.id}
-                    section={section as any}
-                    localizedContent={localizedContent}
-                    t={t}
-                  />
+                  <div key={section.id} className="mb-12">
+                    <h2 className="text-2xl font-bold mb-6">{getLocalizedText(section.data?.title)}</h2>
+                    <div className="text-center py-8 text-gray-500">
+                      활성 캠페인 섹션 (임시)
+                    </div>
+                  </div>
                 )
               
 
@@ -825,8 +711,8 @@ function HomePage({
             }
           })
         ) : (
-          // 폴백 UI - DB에 데이터가 없을 때
-          sectionsLoading ? (
+          // 폴백 UI - JSON 데이터가 없을 때
+          loading ? (
             <div className="text-center py-16">
               <p className="text-gray-500">콘텐츠를 불러오는 중입니다...</p>
             </div>

@@ -1,0 +1,43 @@
+{
+  "version": "2025-08-20T18:09:56.062Z",
+  "type": "default-sections",
+  "data": {
+    "sections": [
+      {
+        "id": "hero-default",
+        "type": "hero",
+        "order": 0,
+        "visible": true
+      },
+      {
+        "id": "category-default",
+        "type": "category",
+        "order": 1,
+        "visible": true
+      },
+      {
+        "id": "campaigns-default",
+        "type": "campaigns",
+        "order": 2,
+        "visible": true
+      }
+    ],
+    "sectionOrder": [
+      {
+        "id": "hero-default",
+        "type": "hero",
+        "order": 0
+      },
+      {
+        "id": "category-default",
+        "type": "category",
+        "order": 1
+      },
+      {
+        "id": "campaigns-default",
+        "type": "campaigns",
+        "order": 2
+      }
+    ]
+  }
+}

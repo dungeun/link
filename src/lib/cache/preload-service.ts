@@ -6,11 +6,21 @@
 import { prisma } from '@/lib/db/prisma';
 import { standardizeCampaign } from '@/lib/utils/api-standardizer';
 import { logger } from '@/lib/logger';
+import fs from 'fs/promises';
+import path from 'path';
+import { 
+  loadHomepageData, 
+  transformToUISection, 
+  preloadStaticTexts, 
+  StaticUITexts 
+} from '@/lib/cache/json-loader';
+import { LanguageCode } from '@/types/global';
 
 export interface PreloadedData {
   campaigns: any[];
   sections: any[];
   languagePacks: Record<string, any>;
+  staticUITexts: Record<LanguageCode, StaticUITexts | null>;
   categoryStats: Record<string, number>;
   metadata: {
     totalCampaigns: number;
@@ -45,10 +55,29 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
   }
 
   try {
-    // 단일 트랜잭션으로 모든 데이터 조회 (N+1 문제 완전 해결)
-    const [campaignsData, sectionsData, languagePacksData, categoryStatsData] = await Promise.all([
-      // 1. 캠페인 데이터 - 최적화된 단일 쿼리
-      prisma.campaign.findMany({
+    // 1. JSON 캐시 파일에서 캠페인 데이터 읽기 시도
+    let campaignsData: any[] = [];
+    let campaignsFromCache = false;
+    
+    try {
+      const cacheFile = path.join(process.cwd(), 'public/cache/campaigns.json');
+      const cacheContent = await fs.readFile(cacheFile, 'utf-8');
+      const cachedData = JSON.parse(cacheContent);
+      
+      // 캐시 나이 확인 (1분 이내만 사용)
+      const cacheAge = Date.now() - new Date(cachedData.generatedAt).getTime();
+      if (cacheAge < 60000) {
+        campaignsData = cachedData.featured || [];
+        campaignsFromCache = true;
+        logger.info(`Using JSON cache for campaigns (age: ${Math.floor(cacheAge/1000)}s)`);
+      }
+    } catch (error) {
+      logger.info('JSON cache not available, falling back to database');
+    }
+    
+    // 캠페인 캐시가 없으면 DB에서 조회
+    if (!campaignsFromCache) {
+      campaignsData = await prisma.campaign.findMany({
         where: {
           status: 'ACTIVE',
           deletedAt: null
@@ -56,7 +85,7 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
         select: {
           id: true,
           title: true,
-          platform: true, // description 제거 (메모리 절약)
+          platform: true,
           budget: true,
           targetFollowers: true,
           endDate: true,
@@ -65,7 +94,6 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
           thumbnailImageUrl: true,
           hashtags: true,
           createdAt: true,
-          // JOIN 최적화: 필요한 필드만 선택
           categories: {
             select: {
               isPrimary: true,
@@ -102,27 +130,27 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
           { applications: { _count: 'desc' } },
           { createdAt: 'desc' }
         ],
-        take: 20 // 홈페이지용 제한
-      }),
-
-      // 2. UI 섹션 데이터
-      prisma.uISection.findMany({
-        where: { 
-          visible: true,
-          type: { in: ['hero', 'category', 'quicklinks', 'promo', 'ranking', 'recommended'] }
-        },
+        take: 20
+      });
+    }
+    
+    // JSON 기반 데이터 로딩 및 기존 DB 조회 병렬 처리
+    const [homepageJsonData, staticTextsData, languagePacksData, languagePacksFullData, categoryStatsData] = await Promise.all([
+      
+      // 2. JSON에서 섹션 데이터 로드
+      loadHomepageData(),
+      
+      // 3. 정적 UI 텍스트 프리로드
+      preloadStaticTexts(),
+      
+      // 4. 기존 언어팩 유지 (동적 컨텐츠용)
+      prisma.languagePack.findMany({
         select: {
-          id: true,
-          type: true,
-          sectionId: true,
-          title: true,
-          subtitle: true,
-          content: true,
-          translations: true,
-          visible: true,
-          order: true
-        },
-        orderBy: { order: 'asc' }
+          key: true,
+          ko: true,
+          en: true,
+          jp: true
+        }
       }),
 
       // 3. 언어팩 데이터
@@ -161,23 +189,40 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
     ]);
 
     // 데이터 변환 및 표준화
-    const campaigns = campaignsData.map(campaign => {
-      const standardized = standardizeCampaign(campaign);
-      // HomePage Campaign 인터페이스에 맞게 변환
-      return {
-        ...standardized,
-        brand: standardized.business.name,
-        applicants: standardized.stats.applications,
-        maxApplicants: standardized.target.maxApplicants,
-        deadline: new Date(standardized.schedule.campaign.endDate).getTime(),
-        category: standardized.primaryCategory.name,
-        platforms: standardized.platforms.map(p => p.type),
-        budget: `${standardized.budget.amount.toLocaleString()}원`, // 객체를 문자열로 변환
-        imageUrl: standardized.media.thumbnail?.url
-      };
-    });
+    let campaigns: any[];
     
-    const languagePacks = languagePacksData.reduce((acc, pack) => {
+    if (campaignsFromCache) {
+      // 캐시된 데이터는 이미 변환된 형태
+      campaigns = campaignsData.map(campaign => ({
+        ...campaign,
+        brand: campaign.business?.name || campaign.business?.companyName || '',
+        applicants: campaign.stats?.applications || 0,
+        maxApplicants: campaign.maxApplicants || 0,
+        deadline: new Date(campaign.deadline || campaign.endDate).getTime(),
+        category: campaign.category?.name || '',
+        platforms: campaign.platforms || [],
+        budget: typeof campaign.budget === 'string' ? campaign.budget : `${campaign.budget?.toLocaleString()}원`,
+        imageUrl: campaign.thumbnailUrl || campaign.thumbnailImageUrl
+      }));
+    } else {
+      // DB 데이터는 standardizeCampaign으로 변환
+      campaigns = campaignsData.map(campaign => {
+        const standardized = standardizeCampaign(campaign);
+        return {
+          ...standardized,
+          brand: standardized.business.name,
+          applicants: standardized.stats.applications,
+          maxApplicants: standardized.target.maxApplicants,
+          deadline: new Date(standardized.schedule.campaign.endDate).getTime(),
+          category: standardized.primaryCategory.name,
+          platforms: standardized.platforms.map(p => p.type),
+          budget: `${standardized.budget.amount.toLocaleString()}원`,
+          imageUrl: standardized.media.thumbnail?.url
+        };
+      });
+    }
+    
+    const languagePacks = languagePacksFullData.reduce((acc, pack) => {
       acc[pack.key] = pack;
       return acc;
     }, {} as Record<string, any>);
@@ -187,10 +232,14 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
       categoryStats[stat.slug] = Number(stat.campaignCount);
     });
 
+    // JSON 데이터를 UI Section 형태로 변환
+    const sections = homepageJsonData ? transformToUISection(homepageJsonData) : [];
+    
     const result: PreloadedData = {
       campaigns,
-      sections: sectionsData,
+      sections,
       languagePacks,
+      staticUITexts: staticTextsData,
       categoryStats,
       metadata: {
         totalCampaigns: campaigns.length,
@@ -203,7 +252,7 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
     preloadedCache = result;
     cacheTimestamp = Date.now();
 
-    logger.info(`Preloaded homepage data in ${result.metadata.loadTime}ms - campaigns: ${campaigns.length}, sections: ${sectionsData.length}, languagePacks: ${Object.keys(languagePacks).length}, categories: ${Object.keys(categoryStats).length}`);
+    logger.info(`Preloaded homepage data in ${result.metadata.loadTime}ms - campaigns: ${campaigns.length}, sections: ${sections.length}, languagePacks: ${Object.keys(languagePacks).length}, staticTexts: ${Object.keys(staticTextsData).length}, categories: ${Object.keys(categoryStats).length}`);
 
     return result;
 
@@ -215,6 +264,7 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
       campaigns: [],
       sections: [],
       languagePacks: {},
+      staticUITexts: { ko: null, en: null, jp: null },
       categoryStats: {},
       metadata: {
         totalCampaigns: 0,

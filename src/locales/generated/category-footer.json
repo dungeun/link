@@ -1,0 +1,67 @@
+{
+  "footer.service.title": {
+    "ko": "서비스",
+    "en": "Service",
+    "jp": "サービス"
+  },
+  "footer.service.find_campaigns": {
+    "ko": "캠페인 찾기",
+    "en": "Find Campaigns",
+    "jp": "キャンペーンを探す"
+  },
+  "footer.service.find_influencers": {
+    "ko": "인플루언서 찾기",
+    "en": "Find Influencers",
+    "jp": "インフルエンサーを探す"
+  },
+  "footer.company.title": {
+    "ko": "회사",
+    "en": "Company",
+    "jp": "会社"
+  },
+  "footer.company.about": {
+    "ko": "회사 소개",
+    "en": "About Us",
+    "jp": "会社紹介"
+  },
+  "footer.company.blog": {
+    "ko": "블로그",
+    "en": "Blog",
+    "jp": "ブログ"
+  },
+  "footer.company.careers": {
+    "ko": "채용",
+    "en": "Careers",
+    "jp": "採用"
+  },
+  "footer.support.title": {
+    "ko": "고객지원",
+    "en": "Support",
+    "jp": "サポート"
+  },
+  "footer.support.help": {
+    "ko": "도움말",
+    "en": "Help",
+    "jp": "ヘルプ"
+  },
+  "footer.support.contact": {
+    "ko": "문의하기",
+    "en": "Contact",
+    "jp": "お問い合わせ"
+  },
+  "footer.support.terms": {
+    "ko": "이용약관",
+    "en": "Terms",
+    "jp": "利用規約"
+  },
+  "footer.copyright": {
+    "ko": "© 2024 LinkPick. All rights reserved.",
+    "en": "© 2024 LinkPick. All rights reserved.",
+    "jp": "© 2024 LinkPick. All rights reserved."
+  },
+  "footer.menu.custom__1755615763960": {
+    "ko": "이용약관",
+    "en": "이용약관",
+    "jp": "이용약관"
+  }
+}

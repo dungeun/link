@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { requireAdminAuth } from '@/lib/admin-auth'
 import { translationService } from '@/lib/services/translation.service'
+import { i18nBackupManager } from '@/lib/cache/json-backup-manager'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -297,6 +299,40 @@ export async function PUT(request: NextRequest) {
           jp: jpValue || undefined,
         }
       })
+    }
+
+    // JSON 언어팩 백업 생성
+    try {
+      if (type === 'menu' || type === 'main-sections') {
+        // LanguagePack 전체 데이터 백업
+        const allLanguagePacks = await prisma.languagePack.findMany({
+          orderBy: [
+            { category: 'asc' },
+            { key: 'asc' }
+          ]
+        });
+
+        const languagePackData = {
+          languagePacks: allLanguagePacks,
+          lastUpdated: new Date().toISOString(),
+          type: type
+        };
+
+        await i18nBackupManager.saveWithBackup(`${type}-language-packs.json`, languagePackData, 'language-packs');
+        logger.info(`Language packs backed up after translation update: ${type}`);
+      } else {
+        // 캠페인/포스트 번역 데이터는 dynamic으로 분류
+        const translationData = {
+          updatedItem: { id, type, en, jp: jp || ja },
+          lastUpdated: new Date().toISOString(),
+          type: type
+        };
+
+        await i18nBackupManager.saveWithBackup(`${type}-translations.json`, translationData, 'translations');
+        logger.info(`Translation data backed up after update: ${type} - ${id}`);
+      }
+    } catch (backupError) {
+      logger.error(`Failed to backup translation data: ${backupError instanceof Error ? backupError.message : String(backupError)}`);
     }
 
     return NextResponse.json({ success: true })

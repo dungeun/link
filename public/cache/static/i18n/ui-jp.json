@@ -1,0 +1,120 @@
+{
+  "version": "2025-01-21T03:06:00Z",
+  "lastUpdated": "2025-01-21T03:06:00Z",
+  "type": "static-ui-japanese", 
+  "data": {
+    "nav": {
+      "home": "ホーム",
+      "campaigns": "キャンペーン",
+      "influencers": "インフルエンサー",
+      "community": "コミュニティ",
+      "pricing": "料金",
+      "about": "について",
+      "contact": "お問い合わせ",
+      "help": "ヘルプ"
+    },
+    "auth": {
+      "login": "ログイン",
+      "logout": "ログアウト",
+      "register": "新規登録",
+      "forgot_password": "パスワードを忘れた",
+      "profile": "プロフィール"
+    },
+    "buttons": {
+      "save": "保存",
+      "cancel": "キャンセル",
+      "submit": "送信",
+      "delete": "削除",
+      "edit": "編集",
+      "add": "追加",
+      "apply": "応募",
+      "view_more": "もっと見る",
+      "search": "検索",
+      "filter": "フィルター",
+      "close": "閉じる",
+      "confirm": "確認"
+    },
+    "status": {
+      "loading": "読み込み中...",
+      "success": "成功",
+      "error": "エラー",
+      "pending": "保留中",
+      "approved": "承認済み",
+      "rejected": "拒否",
+      "completed": "完了",
+      "active": "アクティブ",
+      "inactive": "非アクティブ"
+    },
+    "forms": {
+      "name": "名前",
+      "email": "メール",
+      "password": "パスワード",
+      "confirm_password": "パスワード確認",
+      "phone": "電話番号",
+      "address": "住所",
+      "company": "会社名",
+      "title": "タイトル",
+      "description": "説明",
+      "category": "カテゴリー",
+      "budget": "予算",
+      "deadline": "締切"
+    },
+    "errors": {
+      "network": "ネットワークエラーが発生しました",
+      "auth_failed": "認証に失敗しました",
+      "invalid_input": "無効な入力です",
+      "required_field": "必須フィールドです",
+      "file_too_large": "ファイルサイズが大きすぎます",
+      "invalid_file_type": "サポートされていないファイル形式です",
+      "server_error": "サーバーエラーが発生しました",
+      "not_found": "ページが見つかりません"
+    },
+    "home": {
+      "hero": {
+        "title": "ブランドとインフルエンサーを繋ぐプラットフォーム",
+        "subtitle": "最高のマーケティングキャンペーンを体験してください",
+        "cta": "キャンペーンを見る"
+      },
+      "campaigns": {
+        "title": "進行中のキャンペーン",
+        "empty": "現在進行中のキャンペーンはありません"
+      },
+      "stats": {
+        "title": "カテゴリー別キャンペーン"
+      }
+    },
+    "categories": {
+      "beauty": "美容",
+      "fashion": "ファッション",
+      "food": "グルメ",
+      "travel": "旅行",
+      "tech": "IT/テック",
+      "sports": "スポーツ/フィットネス",
+      "lifestyle": "ライフスタイル",
+      "pets": "ペット",
+      "parenting": "育児",
+      "gaming": "ゲーム",
+      "education": "教育"
+    },
+    "campaign": {
+      "apply": "応募",
+      "deadline": "締切",
+      "budget": "予算",
+      "participants": "参加者",
+      "brand": "ブランド",
+      "platform": "プラットフォーム",
+      "requirements": "要件",
+      "reward": "報酬",
+      "status_active": "募集中",
+      "status_closed": "終了",
+      "status_review": "審査中"
+    },
+    "footer": {
+      "company_info": "会社情報",
+      "service_info": "サービス案内",
+      "support": "サポート",
+      "policies": "ポリシー",
+      "follow_us": "フォローしてください"
+    }
+  }
+}

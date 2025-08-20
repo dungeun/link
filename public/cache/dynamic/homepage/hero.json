@@ -1,0 +1,33 @@
+{
+  "version": "2025-08-20T18:09:56.057Z",
+  "lastUpdated": "2025-08-20T18:09:56.058Z",
+  "type": "hero-sections",
+  "data": {
+    "slides": [
+      {
+        "id": "1",
+        "title": "인플루언서와 브랜드를\n연결하는 가장 쉬운 방법",
+        "subtitle": "리뷰와 함께 성장의 기회를 만나보세요",
+        "tag": "🎯 NEW",
+        "bgColor": "bg-gradient-to-br from-indigo-600 to-purple-600",
+        "backgroundImage": null,
+        "link": "/campaigns",
+        "buttonText": "캠페인 둘러보기",
+        "order": 0,
+        "visible": true
+      },
+      {
+        "id": "2",
+        "title": "최대 30% 할인\n첫 캠페인 특별 혜택",
+        "subtitle": "지금 시작하고 특별한 혜택을 받아보세요",
+        "tag": "💎 EVENT",
+        "bgColor": "bg-gradient-to-br from-emerald-500 to-teal-600",
+        "backgroundImage": null,
+        "link": "/business/pricing",
+        "buttonText": "캠페인 둘러보기",
+        "order": 0,
+        "visible": true
+      }
+    ]
+  }
+}

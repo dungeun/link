@@ -190,10 +190,10 @@ const defaultConfig: UIConfig = {
       text: 'LinkPick',
     },
     menus: [
-      { id: '1', label: 'header.menu.campaigns', href: '/campaigns', order: 1, visible: true },
-      { id: '2', label: 'header.menu.influencers', href: '/influencers', order: 2, visible: true },
-      { id: '3', label: 'header.menu.community', href: '/community', order: 3, visible: true },
-      { id: '4', label: 'header.menu.pricing', href: '/pricing', order: 4, visible: true },
+      { id: '1', label: '캠페인', href: '/campaigns', order: 1, visible: true },
+      { id: '2', label: '인플루언서', href: '/influencers', order: 2, visible: true },
+      { id: '3', label: '커뮤니티', href: '/community', order: 3, visible: true },
+      { id: '4', label: '요금제', href: '/pricing', order: 4, visible: true },
     ],
     ctaButton: {
       text: 'menu.get_started',

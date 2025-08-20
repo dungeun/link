@@ -90,6 +90,7 @@ export async function GET(
           tiktokFollowers: app.influencer.profile.tiktokFollowers,
           naverBlog: app.influencer.profile.naverBlog,
           naverBlogFollowers: app.influencer.profile.naverBlogFollowers,
+          naverBlogTodayVisitors: app.influencer.profile.naverBlogTodayVisitors,
           averageEngagementRate: app.influencer.profile.averageEngagementRate,
           categories: app.influencer.profile.categories,
           gender: app.influencer.profile.gender

@@ -1,0 +1,120 @@
+{
+  "version": "2025-01-21T03:06:00Z",
+  "lastUpdated": "2025-01-21T03:06:00Z",
+  "type": "static-ui-korean",
+  "data": {
+    "nav": {
+      "home": "홈",
+      "campaigns": "캠페인",
+      "influencers": "인플루언서",
+      "community": "커뮤니티",
+      "pricing": "요금제",
+      "about": "소개",
+      "contact": "문의",
+      "help": "도움말"
+    },
+    "auth": {
+      "login": "로그인",
+      "logout": "로그아웃", 
+      "register": "회원가입",
+      "forgot_password": "비밀번호 찾기",
+      "profile": "프로필"
+    },
+    "buttons": {
+      "save": "저장",
+      "cancel": "취소",
+      "submit": "제출",
+      "delete": "삭제",
+      "edit": "수정",
+      "add": "추가",
+      "apply": "지원하기",
+      "view_more": "더보기",
+      "search": "검색",
+      "filter": "필터",
+      "close": "닫기",
+      "confirm": "확인"
+    },
+    "status": {
+      "loading": "로딩중...",
+      "success": "성공",
+      "error": "오류",
+      "pending": "대기중",
+      "approved": "승인됨",
+      "rejected": "거부됨",
+      "completed": "완료",
+      "active": "활성",
+      "inactive": "비활성"
+    },
+    "forms": {
+      "name": "이름",
+      "email": "이메일",
+      "password": "비밀번호",
+      "confirm_password": "비밀번호 확인",
+      "phone": "전화번호",
+      "address": "주소",
+      "company": "회사명",
+      "title": "제목",
+      "description": "설명",
+      "category": "카테고리",
+      "budget": "예산",
+      "deadline": "마감일"
+    },
+    "errors": {
+      "network": "네트워크 오류가 발생했습니다",
+      "auth_failed": "인증에 실패했습니다",
+      "invalid_input": "잘못된 입력입니다",
+      "required_field": "필수 입력 항목입니다",
+      "file_too_large": "파일 크기가 너무 큽니다",
+      "invalid_file_type": "지원하지 않는 파일 형식입니다",
+      "server_error": "서버 오류가 발생했습니다",
+      "not_found": "페이지를 찾을 수 없습니다"
+    },
+    "home": {
+      "hero": {
+        "title": "브랜드와 인플루언서를 연결하는 플랫폼",
+        "subtitle": "최고의 마케팅 캠페인을 경험해보세요",
+        "cta": "캠페인 둘러보기"
+      },
+      "campaigns": {
+        "title": "진행중인 캠페인",
+        "empty": "현재 진행중인 캠페인이 없습니다"
+      },
+      "stats": {
+        "title": "카테고리별 캠페인"
+      }
+    },
+    "categories": {
+      "beauty": "뷰티",
+      "fashion": "패션", 
+      "food": "음식",
+      "travel": "여행",
+      "tech": "IT/테크",
+      "sports": "운동/헬스",
+      "lifestyle": "라이프",
+      "pets": "반려동물",
+      "parenting": "육아",
+      "gaming": "게임",
+      "education": "교육"
+    },
+    "campaign": {
+      "apply": "지원하기",
+      "deadline": "마감일",
+      "budget": "예산",
+      "participants": "참여자",
+      "brand": "브랜드",
+      "platform": "플랫폼",
+      "requirements": "요구사항",
+      "reward": "리워드",
+      "status_active": "모집중",
+      "status_closed": "마감",
+      "status_review": "심사중"
+    },
+    "footer": {
+      "company_info": "회사 정보",
+      "service_info": "서비스 안내", 
+      "support": "고객 지원",
+      "policies": "정책",
+      "follow_us": "팔로우하세요"
+    }
+  }
+}
