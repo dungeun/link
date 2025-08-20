@@ -1,8 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import sharp from 'sharp';
+
+// Dynamic import for sharp to avoid build issues
+let sharp: any;
+try {
+  sharp = require('sharp');
+} catch (error) {
+  console.warn('Sharp module not available, using fallback');
+}
 
 export async function GET(request: NextRequest) {
   try {
+    // Sharp 모듈이 없으면 원본 이미지를 그대로 반환
+    if (!sharp) {
+      const imageUrl = new URL(request.url).searchParams.get('url');
+      if (!imageUrl) {
+        return NextResponse.json(
+          { error: 'Image URL is required' },
+          { status: 400 }
+        );
+      }
+      
+      // 원본 이미지를 프록시로 전달
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        return NextResponse.json(
+          { error: 'Failed to fetch image' },
+          { status: 404 }
+        );
+      }
+      
+      const imageBuffer = await imageResponse.arrayBuffer();
+      return new NextResponse(new Uint8Array(imageBuffer), {
+        status: 200,
+        headers: {
+          'Content-Type': imageResponse.headers.get('content-type') || 'image/jpeg',
+          'Cache-Control': 'public, max-age=2592000, immutable'
+        }
+      });
+    }
     const { searchParams } = new URL(request.url);
     const imageUrl = searchParams.get('url');
     const format = searchParams.get('format') || 'webp';
