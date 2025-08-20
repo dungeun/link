@@ -89,42 +89,60 @@ export function ImageUpload({
       for (let i = 0; i < files.length; i++) {
         let file = files[i]
         
-        // 모든 이미지를 WebP로 변환 (GIF 제외)
+        // 이미지 처리를 더 안전하게 수행
         if (file.type !== 'image/gif') {
-          console.log(`Converting image to WebP: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
+          console.log(`Processing image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB) - Upload ${i + 1}/${files.length}`)
+          
+          // 각 파일마다 고유한 처리 시간 간격 추가 (특히 세 번째 파일)
+          if (i >= 2) {
+            console.log('Adding delay for third+ image to prevent processing conflicts...')
+            await new Promise(resolve => setTimeout(resolve, 500 * (i - 1)))
+          }
           
           // 이미지 크기에 따라 다른 압축 옵션 적용
           const isLargeFile = file.size > 5 * 1024 * 1024
           const options = {
-            maxSizeMB: isLargeFile ? 4.5 : 10, // 큰 파일은 더 압축
-            maxWidthOrHeight: 1920, // 최대 너비/높이
-            useWebWorker: true,
-            fileType: 'image/webp', // WebP로 변환
-            initialQuality: isLargeFile ? 0.8 : 0.9 // 큰 파일은 품질 낮춤
+            maxSizeMB: isLargeFile ? 3.5 : 8, // 더 안전한 압축 비율
+            maxWidthOrHeight: 1600, // 더 작은 최대 크기
+            useWebWorker: false, // WebWorker 비활성화로 메모리 이슈 방지
+            fileType: 'image/jpeg', // JPEG 사용 (WebP보다 안정적)
+            initialQuality: isLargeFile ? 0.75 : 0.85 // 품질 조정
           }
           
           try {
+            console.log(`Starting compression for file ${i + 1}...`)
             const compressedFile = await imageCompression(file, options)
-            // WebP로 변환된 파일 이름 변경
-            const webpFile = new File(
+            
+            // 압축된 파일을 JPEG로 변환
+            const processedFile = new File(
               [compressedFile], 
-              file.name.replace(/\.[^/.]+$/, '.webp'),
-              { type: 'image/webp' }
+              file.name.replace(/\.[^/.]+$/, '.jpg'),
+              { type: 'image/jpeg' }
             )
-            console.log(`Conversion complete: ${file.name} → ${webpFile.name} (${(webpFile.size / 1024 / 1024).toFixed(2)}MB)`)
-            file = webpFile
+            console.log(`Compression complete: ${file.name} → ${processedFile.name} (${(processedFile.size / 1024 / 1024).toFixed(2)}MB)`)
+            
+            // 메모리 정리를 위한 약간의 지연
+            if (i > 0) {
+              await new Promise(resolve => setTimeout(resolve, 200))
+            }
+            
+            file = processedFile
           } catch (compressionError) {
-            console.error('Image conversion to WebP failed:', compressionError)
-            // 변환 실패 시 원본 파일 사용
-            console.log('Using original file format')
+            console.error(`Image compression failed for file ${i + 1}:`, compressionError)
+            // 압축 실패 시 원본 파일을 더 작은 크기로 제한
+            if (file.size > 10 * 1024 * 1024) {
+              setDragError(`이미지 처리에 실패했습니다: ${file.name}. 더 작은 파일을 선택해주세요.`)
+              return
+            }
+            console.log('Using original file format due to compression failure')
           }
         } else {
-          console.log(`Skipping WebP conversion for GIF: ${file.name}`)
+          console.log(`Skipping compression for GIF: ${file.name}`)
         }
         
         const formData = new FormData()
         formData.append('file', file)
-        formData.append('type', category === 'campaigns' ? 'campaign' : category)
+        formData.append('type', category)
 
         // 토큰 가져오기 (여러 가능성 확인)
         const token = localStorage.getItem('accessToken') || 
@@ -246,7 +264,7 @@ export function ImageUpload({
   
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Drag & Drop Area */}
+      {/* Drag & Drop Area (기본 상태일 때만 표시) */}
       {enableDragDrop && currentImages.length === 0 && (
         <div
           {...dropzoneProps}
@@ -300,31 +318,34 @@ export function ImageUpload({
         </div>
       )}
 
-      {/* 기존 버튼 방식 (이미지가 있거나 드래그앤드롭이 비활성화된 경우) */}
-      {(!enableDragDrop || currentImages.length > 0) && (
+      {/* 간단한 버튼 방식 (이미지가 있거나 드래그앤드롭이 비활성화된 경우) */}
+      {(!enableDragDrop || currentImages.length > 0) && !isUploading && (
         <div className="flex items-center gap-4">
           <Button
             type="button"
             variant="outline"
             onClick={handleFileSelect}
-            disabled={disabled || isUploading || (multiple && currentImages.length >= maxFiles)}
+            disabled={disabled || (multiple && currentImages.length >= maxFiles)}
             className="flex items-center gap-2"
           >
             <Upload className="w-4 h-4" />
-            {isUploading ? '업로드 중...' : multiple ? '이미지 추가' : '이미지 선택'}
+            {multiple ? '이미지 추가' : '이미지 선택'}
           </Button>
+        </div>
+      )}
 
-          {isUploading && (
-            <div className="flex-1 max-w-xs">
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-              <span className="text-sm text-gray-500 mt-1">{Math.round(uploadProgress)}%</span>
+      {/* 업로드 진행 상황 (버튼 방식일 때) */}
+      {(!enableDragDrop || currentImages.length > 0) && isUploading && (
+        <div className="flex items-center gap-4">
+          <div className="flex-1 max-w-xs">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
             </div>
-          )}
+            <p className="text-sm text-gray-500 mt-1">업로드 중... {Math.round(uploadProgress)}%</p>
+          </div>
         </div>
       )}
 

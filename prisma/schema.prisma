@@ -8,6 +8,7 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model User {
   id                         String                @id @default(cuid())
   email                      String                @unique
@@ -92,6 +93,8 @@ model Profile {
   profileCompleted       Boolean   @default(false)
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([isVerified], map: "idx_profiles_verified")
+  @@index([isVerified, createdAt(sort: Desc)], map: "idx_profiles_verified_created")
   @@map("profiles")
 }
 
@@ -113,6 +116,8 @@ model BusinessProfile {
   updatedAt            DateTime  @updatedAt
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([isVerified], map: "idx_business_profiles_verified")
+  @@index([isVerified, createdAt(sort: Desc)], map: "idx_business_profiles_verified_created")
   @@map("business_profiles")
 }
 
@@ -128,6 +133,7 @@ model Follow {
   @@map("follows")
 }
 
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model Campaign {
   id                     String                @id @default(cuid())
   businessId             String
@@ -182,18 +188,16 @@ model Campaign {
   campaignType           String?
   applications           CampaignApplication[]
   categories             CampaignCategory[]
+  campaignHashtags       CampaignHashtag[]     @relation("CampaignHashtags")
+  campaignImages         CampaignImage[]       @relation("CampaignImages")
+  campaignKeywords       CampaignKeyword[]     @relation("CampaignKeywords")
   campaignLikes          CampaignLike[]
+  campaignPlatforms      CampaignPlatform[]    @relation("CampaignPlatforms")
+  campaignQuestions      CampaignQuestion[]    @relation("CampaignQuestions")
   campaignTranslations   CampaignTranslation[]
   business               User                  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   payments               Payment[]
   savedByUsers           SavedCampaign[]
-  
-  // JSON 필드 정규화 관계
-  campaignHashtags       CampaignHashtag[]     @relation("CampaignHashtags")
-  campaignPlatforms      CampaignPlatform[]    @relation("CampaignPlatforms")
-  campaignImages         CampaignImage[]       @relation("CampaignImages")
-  campaignKeywords       CampaignKeyword[]     @relation("CampaignKeywords")
-  campaignQuestions      CampaignQuestion[]    @relation("CampaignQuestions")
 
   @@index([status, deletedAt])
   @@index([businessId, status])
@@ -253,18 +257,17 @@ model ContentMedia {
   @@map("content_media")
 }
 
-// JSON 필드 정규화 모델들
 model CampaignHashtag {
   id         String   @id @default(cuid())
   campaignId String
   hashtag    String
-  order      Int      @default(0)
+  order      Int?     @default(0)
   createdAt  DateTime @default(now())
   campaign   Campaign @relation("CampaignHashtags", fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@unique([campaignId, hashtag])
-  @@index([campaignId])
-  @@index([hashtag])
+  @@index([campaignId], map: "idx_campaign_hashtags_campaign_id")
+  @@index([hashtag], map: "idx_campaign_hashtags_hashtag")
   @@map("campaign_hashtags")
 }
 
@@ -277,9 +280,9 @@ model CampaignPlatform {
   campaign   Campaign @relation("CampaignPlatforms", fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@unique([campaignId, platform])
-  @@index([campaignId])
-  @@index([platform])
-  @@index([campaignId, isPrimary])
+  @@index([campaignId], map: "idx_campaign_platforms_campaign_id")
+  @@index([platform], map: "idx_campaign_platforms_platform")
+  @@index([campaignId, isPrimary], map: "idx_campaign_platforms_primary")
   @@map("campaign_platforms")
 }
 
@@ -288,16 +291,16 @@ model CampaignImage {
   campaignId String
   imageUrl   String
   imageId    String?
-  type       String   // 'DETAIL', 'PRODUCT', 'HEADER', 'THUMBNAIL', 'MAIN'
-  order      Int      @default(0)
+  type       String
+  order      Int?     @default(0)
   alt        String?
   caption    String?
   createdAt  DateTime @default(now())
   campaign   Campaign @relation("CampaignImages", fields: [campaignId], references: [id], onDelete: Cascade)
 
-  @@index([campaignId])
-  @@index([type])
-  @@index([campaignId, type])
+  @@index([campaignId], map: "idx_campaign_images_campaign_id")
+  @@index([campaignId, type], map: "idx_campaign_images_campaign_type")
+  @@index([type], map: "idx_campaign_images_type")
   @@map("campaign_images")
 }
 
@@ -305,13 +308,13 @@ model CampaignKeyword {
   id         String   @id @default(cuid())
   campaignId String
   keyword    String
-  weight     Int      @default(1)
+  weight     Int?     @default(1)
   createdAt  DateTime @default(now())
   campaign   Campaign @relation("CampaignKeywords", fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@unique([campaignId, keyword])
-  @@index([campaignId])
-  @@index([keyword])
+  @@index([campaignId], map: "idx_campaign_keywords_campaign_id")
+  @@index([keyword], map: "idx_campaign_keywords_keyword")
   @@map("campaign_keywords")
 }
 
@@ -319,15 +322,15 @@ model CampaignQuestion {
   id         String   @id @default(cuid())
   campaignId String
   question   String
-  type       String   @default("TEXT") // 'TEXT', 'MULTIPLE_CHOICE', 'BOOLEAN', 'NUMBER'
+  type       String   @default("TEXT")
   required   Boolean  @default(false)
-  options    Json?    // 선택형 질문의 옵션들
-  order      Int      @default(0)
+  options    Json?
+  order      Int?     @default(0)
   createdAt  DateTime @default(now())
   campaign   Campaign @relation("CampaignQuestions", fields: [campaignId], references: [id], onDelete: Cascade)
 
-  @@index([campaignId])
-  @@index([campaignId, order])
+  @@index([campaignId], map: "idx_campaign_questions_campaign_id")
+  @@index([campaignId, order], map: "idx_campaign_questions_order")
   @@map("campaign_questions")
 }
 
@@ -353,6 +356,7 @@ model Payment {
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   refunds        Refund[]
 
+  @@index([status, amount], map: "idx_payments_status_amount")
   @@map("payments")
 }
 
@@ -383,6 +387,7 @@ model Settlement {
   items        SettlementItem[]
   influencer   User             @relation(fields: [influencerId], references: [id], onDelete: Cascade)
 
+  @@index([influencerId, status, createdAt(sort: Desc)], map: "idx_settlements_influencer_status_created")
   @@map("settlements")
 }
 
@@ -410,6 +415,7 @@ model Notification {
   createdAt DateTime  @default(now())
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, createdAt(sort: Desc), readAt], map: "idx_notifications_user_created_read")
   @@map("notifications")
 }
 
@@ -457,6 +463,7 @@ model File {
   contentMedia ContentMedia[]
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, type, createdAt(sort: Desc)], map: "idx_files_user_type_created")
   @@map("files")
 }
 
@@ -730,6 +737,7 @@ model Log {
   @@index([createdAt])
   @@index([requestId])
   @@index([component])
+  @@index([level, createdAt(sort: Desc), userId], map: "idx_logs_level_created_user")
   @@map("logs")
 }
 
@@ -780,6 +788,7 @@ model Category {
   @@index([level])
   @@index([isActive])
   @@index([showInMenu])
+  @@index([isActive, showInMenu, menuOrder, order], map: "idx_categories_active_menu_order")
   @@map("categories")
 }
 
@@ -818,6 +827,7 @@ model CampaignCategory {
   @@index([categoryId])
   @@index([campaignId], map: "idx_campaign_categories_campaign_id")
   @@index([categoryId], map: "idx_campaign_categories_category_id")
+  @@index([categoryId, campaignId, isPrimary], map: "idx_campaign_categories_category_campaign")
   @@map("campaign_categories")
 }
 

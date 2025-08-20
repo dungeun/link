@@ -49,7 +49,7 @@ function Footer() {
             <div className="lg:col-span-2">
               <Link href="/" className="inline-block">
                 <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-4">
-                  {siteSettings.general?.siteName || config.header?.logo?.text || 'Revu'}
+                  {siteSettings.general?.siteName || config.header?.logo?.text || 'LinkPick'}
                 </h3>
               </Link>
               <p className="text-gray-400 mb-6 leading-relaxed">
@@ -94,7 +94,9 @@ function Footer() {
                 <div className="grid grid-cols-2 gap-6 text-sm">
                   {/* 회사 정보 (왼쪽) */}
                   <div className="text-gray-400 space-y-2">
-                    <p className="font-medium text-white mb-2">Revu</p>
+                    <p className="font-medium text-white mb-2">
+                      {siteSettings.general?.siteName || 'LinkPick'}
+                    </p>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
                       <span>{t('footer.info.ceo', '대표')}: 홍길동</span>
                       <span>{t('footer.info.businessNo', '사업자등록번호')}: 123-45-67890</span>
@@ -117,7 +119,7 @@ function Footer() {
                         <span>1588-1234</span>
                         <span className="mx-2">|</span>
                         <Mail className="w-3 h-3" />
-                        <span>support@revu.com</span>
+                        <span>{siteSettings.general?.supportEmail || 'support@linkpick.com'}</span>
                       </div>
                       <p className="text-gray-500">{t('footer.support.hours', '평일 09:00~18:00 (주말/공휴일 휴무)')}</p>
                     </div>
@@ -130,7 +132,7 @@ function Footer() {
                           if (typeof footerText === 'object' && footerText) {
                             return footerText[currentLanguage] || footerText.ko || footerText.en;
                           }
-                          return footerText || t(copyright, `© ${new Date().getFullYear()} Revu. All rights reserved.`);
+                          return footerText || t(copyright, `© ${new Date().getFullYear()} LinkPick. All rights reserved.`);
                         })()}
                       </p>
                     </div>

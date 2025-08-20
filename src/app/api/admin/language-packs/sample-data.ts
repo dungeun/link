@@ -1,0 +1,355 @@
+interface LanguagePack {
+  id: string
+  key: string
+  ko: string
+  en: string
+  ja: string
+  category: string
+  subcategory?: string
+}
+
+export const sampleLanguagePacks: LanguagePack[] = [
+  // 캠페인 - 병원
+  {
+    id: 'hospital_001',
+    key: 'hospital.name',
+    ko: '병원명',
+    en: 'Hospital Name',
+    ja: '病院名',
+    category: 'campaigns',
+    subcategory: '병원'
+  },
+  {
+    id: 'hospital_002',
+    key: 'hospital.description',
+    ko: '병원 소개',
+    en: 'Hospital Description',
+    ja: '病院紹介',
+    category: 'campaigns',
+    subcategory: '병원'
+  },
+  {
+    id: 'hospital_003',
+    key: 'hospital.services',
+    ko: '진료 서비스',
+    en: 'Medical Services',
+    ja: '診療サービス',
+    category: 'campaigns',
+    subcategory: '병원'
+  },
+  {
+    id: 'hospital_004',
+    key: 'hospital.booking',
+    ko: '예약하기',
+    en: 'Book Appointment',
+    ja: '予約する',
+    category: 'campaigns',
+    subcategory: '병원'
+  },
+
+  // 캠페인 - 캠페인
+  {
+    id: 'campaign_001',
+    key: 'campaign.title',
+    ko: '캠페인 제목',
+    en: 'Campaign Title',
+    ja: 'キャンペーンタイトル',
+    category: 'campaigns',
+    subcategory: '캠페인'
+  },
+  {
+    id: 'campaign_002',
+    key: 'campaign.description',
+    ko: '캠페인 설명',
+    en: 'Campaign Description',
+    ja: 'キャンペーン説明',
+    category: 'campaigns',
+    subcategory: '캠페인'
+  },
+  {
+    id: 'campaign_003',
+    key: 'campaign.deadline',
+    ko: '마감일',
+    en: 'Deadline',
+    ja: '締切日',
+    category: 'campaigns',
+    subcategory: '캠페인'
+  },
+  {
+    id: 'campaign_004',
+    key: 'campaign.budget',
+    ko: '예산',
+    en: 'Budget',
+    ja: '予算',
+    category: 'campaigns',
+    subcategory: '캠페인'
+  },
+  {
+    id: 'campaign_005',
+    key: 'campaign.applicants',
+    ko: '지원자',
+    en: 'Applicants',
+    ja: '応募者',
+    category: 'campaigns',
+    subcategory: '캠페인'
+  },
+
+  // 캠페인 - 구매평
+  {
+    id: 'review_001',
+    key: 'review.title',
+    ko: '구매평 제목',
+    en: 'Review Title',
+    ja: 'レビュータイトル',
+    category: 'campaigns',
+    subcategory: '구매평'
+  },
+  {
+    id: 'review_002',
+    key: 'review.content',
+    ko: '리뷰 내용',
+    en: 'Review Content',
+    ja: 'レビュー内容',
+    category: 'campaigns',
+    subcategory: '구매평'
+  },
+  {
+    id: 'review_003',
+    key: 'review.rating',
+    ko: '평점',
+    en: 'Rating',
+    ja: '評価',
+    category: 'campaigns',
+    subcategory: '구매평'
+  },
+  {
+    id: 'review_004',
+    key: 'review.verified',
+    ko: '인증된 구매',
+    en: 'Verified Purchase',
+    ja: '認証済み購入',
+    category: 'campaigns',
+    subcategory: '구매평'
+  },
+
+  // 게시물 - 글 작성
+  {
+    id: 'post_001',
+    key: 'post.create',
+    ko: '글 작성',
+    en: 'Create Post',
+    ja: '投稿作成',
+    category: 'posts',
+    subcategory: '글 작성'
+  },
+  {
+    id: 'post_002',
+    key: 'post.edit',
+    ko: '글 수정',
+    en: 'Edit Post',
+    ja: '投稿編集',
+    category: 'posts',
+    subcategory: '글 작성'
+  },
+  {
+    id: 'post_003',
+    key: 'post.save',
+    ko: '저장하기',
+    en: 'Save',
+    ja: '保存',
+    category: 'posts',
+    subcategory: '글 작성'
+  },
+  {
+    id: 'post_004',
+    key: 'post.publish',
+    ko: '게시하기',
+    en: 'Publish',
+    ja: '公開',
+    category: 'posts',
+    subcategory: '글 작성'
+  },
+
+  // 게시물 - 댓글
+  {
+    id: 'comment_001',
+    key: 'comment.write',
+    ko: '댓글 작성',
+    en: 'Write Comment',
+    ja: 'コメント作成',
+    category: 'posts',
+    subcategory: '댓글'
+  },
+  {
+    id: 'comment_002',
+    key: 'comment.reply',
+    ko: '답글 달기',
+    en: 'Reply',
+    ja: '返信',
+    category: 'posts',
+    subcategory: '댓글'
+  },
+  {
+    id: 'comment_003',
+    key: 'comment.edit',
+    ko: '댓글 수정',
+    en: 'Edit Comment',
+    ja: 'コメント編集',
+    category: 'posts',
+    subcategory: '댓글'
+  },
+
+  // 메뉴 - 헤더 메뉴
+  {
+    id: 'menu_001',
+    key: 'menu.home',
+    ko: '홈',
+    en: 'Home',
+    ja: 'ホーム',
+    category: 'menus',
+    subcategory: '헤더 메뉴'
+  },
+  {
+    id: 'menu_002',
+    key: 'menu.campaigns',
+    ko: '캠페인',
+    en: 'Campaigns',
+    ja: 'キャンペーン',
+    category: 'menus',
+    subcategory: '헤더 메뉴'
+  },
+  {
+    id: 'menu_003',
+    key: 'menu.mypage',
+    ko: '마이페이지',
+    en: 'My Page',
+    ja: 'マイページ',
+    category: 'menus',
+    subcategory: '헤더 메뉴'
+  },
+  {
+    id: 'menu_004',
+    key: 'menu.login',
+    ko: '로그인',
+    en: 'Login',
+    ja: 'ログイン',
+    category: 'menus',
+    subcategory: '헤더 메뉴'
+  },
+  {
+    id: 'menu_005',
+    key: 'menu.signup',
+    ko: '회원가입',
+    en: 'Sign Up',
+    ja: '会員登録',
+    category: 'menus',
+    subcategory: '헤더 메뉴'
+  },
+
+  // 메뉴 - 푸터 메뉴
+  {
+    id: 'footer_001',
+    key: 'footer.about',
+    ko: '회사소개',
+    en: 'About Us',
+    ja: '会社概要',
+    category: 'menus',
+    subcategory: '푸터 메뉴'
+  },
+  {
+    id: 'footer_002',
+    key: 'footer.terms',
+    ko: '이용약관',
+    en: 'Terms of Service',
+    ja: '利用規約',
+    category: 'menus',
+    subcategory: '푸터 메뉴'
+  },
+  {
+    id: 'footer_003',
+    key: 'footer.privacy',
+    ko: '개인정보처리방침',
+    en: 'Privacy Policy',
+    ja: 'プライバシーポリシー',
+    category: 'menus',
+    subcategory: '푸터 메뉴'
+  },
+
+  // 섹션 - 히어로 섹션
+  {
+    id: 'hero_001',
+    key: 'hero.title',
+    ko: '메인 제목',
+    en: 'Main Title',
+    ja: 'メインタイトル',
+    category: 'sections',
+    subcategory: '히어로 섹션'
+  },
+  {
+    id: 'hero_002',
+    key: 'hero.subtitle',
+    ko: '부제목',
+    en: 'Subtitle',
+    ja: 'サブタイトル',
+    category: 'sections',
+    subcategory: '히어로 섹션'
+  },
+  {
+    id: 'hero_003',
+    key: 'hero.cta',
+    ko: '시작하기',
+    en: 'Get Started',
+    ja: '始める',
+    category: 'sections',
+    subcategory: '히어로 섹션'
+  },
+
+  // 섹션 - 특징 섹션
+  {
+    id: 'features_001',
+    key: 'features.title',
+    ko: '주요 특징',
+    en: 'Key Features',
+    ja: '主要機能',
+    category: 'sections',
+    subcategory: '특징 섹션'
+  },
+  {
+    id: 'features_002',
+    key: 'features.subtitle',
+    ko: '왜 우리를 선택해야 할까요?',
+    en: 'Why Choose Us?',
+    ja: 'なぜ私たちを選ぶべきか？',
+    category: 'sections',
+    subcategory: '특징 섹션'
+  },
+
+  // 섹션 - 통계 섹션
+  {
+    id: 'stats_001',
+    key: 'stats.users',
+    ko: '총 사용자',
+    en: 'Total Users',
+    ja: '総ユーザー数',
+    category: 'sections',
+    subcategory: '통계 섹션'
+  },
+  {
+    id: 'stats_002',
+    key: 'stats.campaigns',
+    ko: '진행 캠페인',
+    en: 'Active Campaigns',
+    ja: 'アクティブキャンペーン',
+    category: 'sections',
+    subcategory: '통계 섹션'
+  },
+  {
+    id: 'stats_003',
+    key: 'stats.reviews',
+    ko: '총 리뷰',
+    en: 'Total Reviews',
+    ja: '総レビュー数',
+    category: 'sections',
+    subcategory: '통계 섹션'
+  }
+]

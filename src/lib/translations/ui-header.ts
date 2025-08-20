@@ -338,5 +338,41 @@ export const HEADER_UI_TEXTS = [
     "createdAt": "2025-08-11T17:58:35.148Z",
     "updatedAt": "2025-08-11T17:58:35.148Z",
     "jp": "会員登録"
+  },
+  {
+    "id": "new-category-hospital",
+    "key": "category.hospital",
+    "ko": "병원",
+    "en": "Hospital",
+    "category": "header",
+    "description": "헤더 메뉴 - 병원",
+    "isEditable": true,
+    "createdAt": "2025-08-20T05:15:00.000Z",
+    "updatedAt": "2025-08-20T05:15:00.000Z",
+    "jp": "病院"
+  },
+  {
+    "id": "new-category-campaign",
+    "key": "category.campaign",
+    "ko": "캠페인",
+    "en": "Campaign",
+    "category": "header",
+    "description": "헤더 메뉴 - 캠페인",
+    "isEditable": true,
+    "createdAt": "2025-08-20T05:15:00.000Z",
+    "updatedAt": "2025-08-20T05:15:00.000Z",
+    "jp": "キャンペーン"
+  },
+  {
+    "id": "new-category-review",
+    "key": "category.review",
+    "ko": "구매평",
+    "en": "Review",
+    "category": "header",
+    "description": "헤더 메뉴 - 구매평",
+    "isEditable": true,
+    "createdAt": "2025-08-20T05:15:00.000Z",
+    "updatedAt": "2025-08-20T05:15:00.000Z",
+    "jp": "レビュー"
   }
 ];

@@ -739,7 +739,7 @@ function HomePage({
                               )}
                             </div>
                             <span className="text-xs text-gray-700 text-center leading-tight">
-                              {category.name}
+                              {contextT(category.name, category.name)}
                             </span>
                           </Link>
                         ))}
@@ -780,7 +780,7 @@ function HomePage({
                                 )}
                               </div>
                               <span className="text-sm text-gray-700 text-center">
-                                {category.name}
+                                {contextT(category.name, category.name)}
                               </span>
                             </Link>
                           ))}

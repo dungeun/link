@@ -59,6 +59,7 @@ export async function GET(
           platform: true,
           platforms: true,
           budget: true,
+          budgetType: true,
           targetFollowers: true,
           maxApplicants: true,
           startDate: true,
@@ -91,6 +92,21 @@ export async function GET(
                 select: {
                   companyName: true,
                   businessCategory: true
+                }
+              }
+            }
+          },
+          categories: {
+            select: {
+              id: true,
+              categoryId: true,
+              isPrimary: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  level: true
                 }
               }
             }
@@ -232,6 +248,7 @@ export async function PUT(
         description: body.description,
         platform: body.platform,
         budget: body.budget !== undefined ? Number(body.budget) : undefined,
+        budgetType: body.budgetType,
         targetFollowers: body.targetFollowers !== undefined ? Number(body.targetFollowers) : undefined,
         maxApplicants: body.maxApplicants !== undefined ? Number(body.maxApplicants) : undefined,
         requirements: body.requirements,

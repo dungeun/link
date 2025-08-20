@@ -150,7 +150,7 @@ function Header({ variant = 'default' }: HeaderProps) {
                 </div>
               ) : (
                 <h1 className="text-lg sm:text-xl lg:text-3xl font-black text-white truncate">
-                  {siteSettings.general.siteName || 'Revu'}
+                  {siteSettings.general.siteName || 'LinkPick'}
                 </h1>
               )}
             </Link>
@@ -166,7 +166,7 @@ function Header({ variant = 'default' }: HeaderProps) {
                     href={menu.href} 
                     className="hover:opacity-80 transition font-medium text-white"
                   >
-                    {menu.label}
+                    {t(menu.label, menu.label)}
                   </Link>
                 ))}
             </nav>
@@ -292,7 +292,7 @@ function Header({ variant = 'default' }: HeaderProps) {
                         onClick={() => setShowMobileMenu(false)}
                       >
                         <span className="w-2 h-2 bg-blue-400 rounded-full mr-4"></span>
-                        {menu.label}
+                        {t(menu.label, menu.label)}
                       </Link>
                     ))}
                   

@@ -67,16 +67,17 @@ export class UploadService {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
-      // 파일명 생성 (timestamp + random)
+      // 파일명 생성 (더 고유한 이름 생성)
       const timestamp = Date.now()
-      const randomString = Math.random().toString(36).substring(2, 10)
+      const randomString = Math.random().toString(36).substring(2, 15) // 더 긴 랜덤 문자열
+      const microseconds = process.hrtime.bigint().toString().slice(-6) // 마이크로초 추가
       const extension = file.name.split('.').pop()?.toLowerCase()
       
       if (!extension) {
         throw new Error('파일 확장자를 찾을 수 없습니다.')
       }
       
-      const filename = `${timestamp}_${randomString}.${extension}`
+      const filename = `${timestamp}_${microseconds}_${randomString}.${extension}`
 
       console.log('Generated filename:', filename)
 
@@ -259,50 +260,96 @@ export class UploadService {
   }
 
   /**
-   * 이미지 리사이징
+   * 이미지 리사이징 (개선된 버전)
    */
   private async resizeImage(
     buffer: Buffer,
     options?: ImageResizeOptions
   ): Promise<Buffer> {
     try {
-      let sharpInstance = sharp(buffer)
+      console.log('Starting image processing with Sharp...', {
+        inputSize: buffer.length,
+        options
+      })
+
+      let sharpInstance = sharp(buffer, {
+        failOnError: false, // 에러 시에도 계속 진행
+        limitInputPixels: false // 큰 이미지도 처리 가능
+      })
+
+      // 이미지 메타데이터 확인
+      const metadata = await sharpInstance.metadata()
+      console.log('Image metadata:', metadata)
+
+      // EXIF 방향 정보 자동 적용
+      sharpInstance = sharpInstance.rotate()
 
       // 리사이징 옵션 적용
       if (options?.width || options?.height) {
         sharpInstance = sharpInstance.resize({
           width: options.width,
           height: options.height,
-          fit: 'cover',
-          position: 'center'
+          fit: 'inside', // 비율 유지하면서 크기 조정
+          position: 'center',
+          withoutEnlargement: true // 원본보다 크게 만들지 않음
         })
       }
 
-      // 포맷 변환
+      // 포맷 변환 (더 안전한 처리)
       if (options?.format) {
         switch (options.format) {
           case 'jpeg':
             sharpInstance = sharpInstance.jpeg({ 
-              quality: options.quality || 80 
+              quality: Math.max(60, Math.min(95, options.quality || 85)), // 품질 범위 제한
+              progressive: true,
+              mozjpeg: true
             })
             break
           case 'png':
             sharpInstance = sharpInstance.png({ 
-              quality: options.quality || 80 
+              quality: Math.max(60, Math.min(95, options.quality || 85)),
+              progressive: true
             })
             break
           case 'webp':
             sharpInstance = sharpInstance.webp({ 
-              quality: options.quality || 80 
+              quality: Math.max(60, Math.min(95, options.quality || 85)),
+              effort: 4 // 압축 노력도 중간값
             })
             break
         }
+      } else {
+        // 기본적으로 JPEG로 변환 (호환성 최대화)
+        sharpInstance = sharpInstance.jpeg({ 
+          quality: 85,
+          progressive: true,
+          mozjpeg: true
+        })
       }
 
-      return await sharpInstance.toBuffer()
+      const result = await sharpInstance.toBuffer()
+      
+      console.log('Image processing completed:', {
+        originalSize: buffer.length,
+        processedSize: result.length,
+        compressionRatio: ((1 - result.length / buffer.length) * 100).toFixed(1) + '%'
+      })
+
+      return result
     } catch (error) {
-      console.error('Image resize failed:', error)
-      return buffer // 리사이징 실패 시 원본 반환
+      console.error('Image resize failed:', {
+        error: error instanceof Error ? error.message : String(error),
+        inputSize: buffer.length,
+        options
+      })
+      
+      // Sharp 처리 실패 시 간단한 버퍼 검증 후 원본 반환
+      if (buffer && buffer.length > 0) {
+        console.log('Returning original buffer due to processing failure')
+        return buffer
+      } else {
+        throw new Error('이미지 처리에 실패했으며 원본 파일도 손상되었습니다.')
+      }
     }
   }
 

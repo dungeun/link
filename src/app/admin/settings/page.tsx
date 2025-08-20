@@ -15,6 +15,17 @@ interface SystemSettings {
     registrationEnabled: boolean
     emailVerificationRequired: boolean
   }
+  company: {
+    name: string
+    ceo: string
+    businessNumber: string
+    telecomNumber: string
+    address: string
+    phone: string
+    email: string
+    supportHours: string
+    businessType: string
+  }
   website: {
     logo: string
     favicon: string
@@ -108,12 +119,23 @@ interface SystemSettings {
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SystemSettings>({
     general: {
-      siteName: 'Revu',
-      siteDescription: '리뷰 플랫폼 - 인플루언서와 브랜드를 연결하는 리뷰 마케팅 플랫폼',
-      supportEmail: 'support@revu.com',
+      siteName: 'LinkPick',
+      siteDescription: '인플루언서 마케팅 플랫폼 - 브랜드와 인플루언서를 연결하는 마케팅 플랫폼',
+      supportEmail: 'support@linkpick.com',
       maintenanceMode: false,
       registrationEnabled: true,
       emailVerificationRequired: true
+    },
+    company: {
+      name: 'LinkPick',
+      ceo: '홍길동',
+      businessNumber: '123-45-67890',
+      telecomNumber: '2024-서울강남-1234',
+      address: '서울특별시 강남구 테헤란로 123, 456호',
+      phone: '1588-1234',
+      email: 'support@linkpick.com',
+      supportHours: '평일 09:00~18:00 (주말/공휴일 휴무)',
+      businessType: '통신판매업'
     },
     website: {
       logo: '/logo.png',
@@ -178,7 +200,7 @@ export default function AdminSettingsPage() {
     },
     seo: {
       title: 'LinkPick - 인플루언서 마케팅 플랫폼',
-      description: '최고의 인플루언서와 브랜드를 연결하는 마케팅 플랫폼입니다.',
+      description: '브랜드와 인플루언서를 연결하는 혁신적인 마케팅 플랫폼입니다.',
       keywords: '인플루언서, 마케팅, 브랜드, 광고, 소셜미디어',
       author: 'LinkPick',
       robots: 'index, follow',
@@ -189,14 +211,14 @@ export default function AdminSettingsPage() {
       appleTouchIcon: '/apple-touch-icon.png',
       ogImage: '/og-image.svg',
       ogTitle: 'LinkPick - 인플루언서 마케팅 플랫폼',
-      ogDescription: '최고의 인플루언서와 브랜드를 연결하는 마케팅 플랫폼입니다.',
+      ogDescription: '브랜드와 인플루언서를 연결하는 혁신적인 마케팅 플랫폼입니다.',
       ogUrl: 'https://linkpick.com',
       ogSiteName: 'LinkPick',
       ogType: 'website',
       ogLocale: 'ko_KR',
       twitterCard: 'summary_large_image',
-      twitterSite: '@linkpick',
-      twitterCreator: '@linkpick',
+      twitterSite: '@revu',
+      twitterCreator: '@revu',
       twitterImage: '/og-image.svg',
       themeColor: '#3B82F6',
       msapplicationTileColor: '#3B82F6'
@@ -207,7 +229,7 @@ export default function AdminSettingsPage() {
   const [initialLoading, setInitialLoading] = useState(true)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState<'general' | 'website' | 'seo' | 'payments' | 'content' | 'notifications' | 'legal' | 'api'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'company' | 'website' | 'seo' | 'payments' | 'content' | 'notifications' | 'legal' | 'api'>('general')
   const [footerTextLang, setFooterTextLang] = useState<'ko' | 'en'>('ko')
 
   useEffect(() => {
@@ -323,6 +345,16 @@ export default function AdminSettingsPage() {
               }`}
             >
               일반 설정
+            </button>
+            <button
+              onClick={() => setActiveTab('company')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'company'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              회사 정보
             </button>
             <button
               onClick={() => setActiveTab('website')}
@@ -486,6 +518,160 @@ export default function AdminSettingsPage() {
               </div>
             </div>
           </div>
+          </div>
+        )}
+
+        {/* 회사 정보 설정 */}
+        {activeTab === 'company' && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">회사 정보</h2>
+            <div className="space-y-6">
+              {/* 기본 회사 정보 */}
+              <div>
+                <h3 className="text-md font-medium text-gray-900 mb-4">기본 정보</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      회사명
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.company.name}
+                      onChange={(e) => handleInputChange('company', 'name', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="회사명을 입력하세요"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      대표자명
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.company.ceo}
+                      onChange={(e) => handleInputChange('company', 'ceo', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="대표자명을 입력하세요"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      사업자등록번호
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.company.businessNumber}
+                      onChange={(e) => handleInputChange('company', 'businessNumber', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="000-00-00000"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      업종
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.company.businessType}
+                      onChange={(e) => handleInputChange('company', 'businessType', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="예: 통신판매업"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      통신판매신고번호
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.company.telecomNumber}
+                      onChange={(e) => handleInputChange('company', 'telecomNumber', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="0000-지역명-0000"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 연락처 정보 */}
+              <div>
+                <h3 className="text-md font-medium text-gray-900 mb-4">연락처 정보</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      대표 전화번호
+                    </label>
+                    <input
+                      type="tel"
+                      value={settings.company.phone}
+                      onChange={(e) => handleInputChange('company', 'phone', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="1588-0000"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      고객지원 이메일
+                    </label>
+                    <input
+                      type="email"
+                      value={settings.company.email}
+                      onChange={(e) => handleInputChange('company', 'email', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="support@company.com"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      고객지원 시간
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.company.supportHours}
+                      onChange={(e) => handleInputChange('company', 'supportHours', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="평일 09:00~18:00 (주말/공휴일 휴무)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 주소 정보 */}
+              <div>
+                <h3 className="text-md font-medium text-gray-900 mb-4">주소 정보</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    사업장 주소
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={settings.company.address}
+                    onChange={(e) => handleInputChange('company', 'address', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="사업장 주소를 입력하세요"
+                  />
+                </div>
+              </div>
+
+              {/* 미리보기 */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-sm font-medium text-gray-900 mb-3">푸터 미리보기</h4>
+                <div className="text-xs text-gray-600 space-y-1">
+                  <div className="font-medium">{settings.company.name}</div>
+                  <div>대표: {settings.company.ceo} | 사업자등록번호: {settings.company.businessNumber}</div>
+                  <div>{settings.company.businessType}: {settings.company.telecomNumber}</div>
+                  <div>📍 {settings.company.address}</div>
+                  <div>📞 {settings.company.phone} | ✉️ {settings.company.email}</div>
+                  <div>{settings.company.supportHours}</div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

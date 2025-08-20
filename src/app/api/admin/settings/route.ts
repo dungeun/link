@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const settingKeys = [
       'general',
       'website', 
+      'company',
       'payments',
       'content',
       'notifications',
@@ -86,6 +87,17 @@ export async function GET(request: NextRequest) {
           facebookPixelId: '',
           hotjarId: ''
         }
+      },
+      company: {
+        name: 'LinkPick',
+        ceo: '홍길동',
+        businessNumber: '123-45-67890',
+        telecomNumber: '2024-서울강남-1234',
+        address: '서울특별시 강남구 테헤란로 123, 456호',
+        phone: '1588-1234',
+        email: 'support@linkpick.com',
+        supportHours: '평일 09:00~18:00 (주말/공휴일 휴무)',
+        businessType: '통신판매업'
       },
       payments: {
         platformFeeRate: 15,

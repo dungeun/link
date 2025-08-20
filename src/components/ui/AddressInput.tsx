@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import AddressSearchModal from './AddressSearchModal'
 
 
 export interface AddressData {
@@ -29,7 +30,7 @@ interface AddressInputProps {
 }
 
 export default function AddressInput({ nationality, value, onChange, disabled = false }: AddressInputProps) {
-  const [isPostcodeOpen, setIsPostcodeOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [isKoreanAddress, setIsKoreanAddress] = useState(nationality === '대한민국')
   const [isScriptLoaded, setIsScriptLoaded] = useState(false)
 
@@ -99,8 +100,8 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
     // 클린업 함수는 제거 (전역 스크립트이므로)
   }, [isKoreanAddress])
 
-  // 카카오 우편번호 검색
-  const handleKakaoPostcode = () => {
+  // 우편번호 검색 모달 열기
+  const handleOpenAddressSearch = () => {
     if (!(window as any).daum || !(window as any).daum.Postcode) {
       if (!isScriptLoaded) {
         alert('우편번호 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
@@ -109,30 +110,22 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
       }
       return
     }
+    setIsModalOpen(true)
+  }
 
-    new (window as any).daum.Postcode({
-      oncomplete: function(data: any) {
-        const newAddress: AddressData = {
-          type: 'korea',
-          korea: {
-            zipCode: data.zonecode,
-            roadAddress: data.roadAddress,
-            jibunAddress: data.jibunAddress,
-            detailAddress: value?.korea?.detailAddress || '',
-            extraAddress: data.buildingName ? `(${data.buildingName})` : ''
-          }
-        }
-        onChange(newAddress)
-        setIsPostcodeOpen(false)
-      },
-      onclose: function(state: any) {
-        if (state === 'COMPLETE_CLOSE') {
-          setIsPostcodeOpen(false)
-        }
-      },
-      width: '100%',
-      height: '400px'
-    }).open()
+  // 우편번호 검색 완료 처리
+  const handleAddressComplete = (data: any) => {
+    const newAddress: AddressData = {
+      type: 'korea',
+      korea: {
+        zipCode: data.zonecode,
+        roadAddress: data.roadAddress,
+        jibunAddress: data.jibunAddress,
+        detailAddress: value?.korea?.detailAddress || '',
+        extraAddress: data.buildingName ? `(${data.buildingName})` : ''
+      }
+    }
+    onChange(newAddress)
   }
 
   // 한국 상세주소 변경
@@ -181,7 +174,7 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
           />
           <button
             type="button"
-            onClick={handleKakaoPostcode}
+            onClick={handleOpenAddressSearch}
             disabled={disabled || !isScriptLoaded}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
@@ -222,6 +215,13 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
             </span>
           )}
         </div>
+
+        {/* 우편번호 검색 모달 */}
+        <AddressSearchModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onComplete={handleAddressComplete}
+        />
       </div>
     )
   }
@@ -274,6 +274,13 @@ export default function AddressInput({ nationality, value, onChange, disabled = 
         placeholder="상세주소 (Street Address)"
         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         disabled={disabled}
+      />
+
+      {/* 우편번호 검색 모달 */}
+      <AddressSearchModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onComplete={handleAddressComplete}
       />
     </div>
   )

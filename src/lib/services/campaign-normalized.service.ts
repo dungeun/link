@@ -65,20 +65,20 @@ export class CampaignNormalizedService {
       images: result.campaignImages.map(img => ({
         url: img.imageUrl,
         type: img.type as any,
-        order: img.order,
+        order: img.order || 0,
         alt: img.alt || undefined,
         caption: img.caption || undefined
       })),
       keywords: result.campaignKeywords.map(k => ({
         keyword: k.keyword,
-        weight: k.weight
+        weight: k.weight || 0
       })),
       questions: result.campaignQuestions.map(q => ({
         question: q.question,
         type: q.type as any,
         required: q.required,
         options: q.options,
-        order: q.order
+        order: q.order || 0
       }))
     };
   }
@@ -140,7 +140,7 @@ export class CampaignNormalizedService {
     images: {
       url: string;
       type: 'MAIN' | 'HEADER' | 'THUMBNAIL' | 'DETAIL' | 'PRODUCT';
-      order: number;
+      order: number | null;
       alt?: string;
       caption?: string;
     }[]
@@ -158,7 +158,7 @@ export class CampaignNormalizedService {
             campaignId,
             imageUrl: img.url,
             type: img.type,
-            order: img.order,
+            order: img.order || 0,
             alt: img.alt,
             caption: img.caption
           }))

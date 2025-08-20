@@ -16,12 +16,17 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
+    const subcategory = searchParams.get('subcategory');
     const search = searchParams.get('search');
 
     const where: Record<string, unknown> = {};
     
     if (category) {
       where.category = category;
+    }
+    
+    if (subcategory) {
+      where.subcategory = subcategory;
     }
     
     if (search) {

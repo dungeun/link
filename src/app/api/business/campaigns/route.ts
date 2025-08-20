@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
         platform: platform || (platforms && platforms[0]) || 'INSTAGRAM',
         platforms: platforms ? JSON.stringify(platforms) : undefined,
         budget: budget !== undefined ? budget : 0,  // budget 필드 추가
+        budgetType: budgetType || 'FREE',  // budgetType 필드 추가
         maxApplicants: maxApplicants || 100,
         rewardAmount: rewardAmount || 0,
         startDate: startDateObj,
@@ -198,6 +199,7 @@ export async function GET(request: NextRequest) {
       platform: campaign.platform,
       platforms: campaign.platforms ? JSON.parse(campaign.platforms as string) : [campaign.platform],
       budget: campaign.budget || 0, // budget 필드 추가
+      budgetType: campaign.budgetType || 'FREE', // budgetType 필드 추가
       maxApplications: campaign.maxApplicants,
       rewardAmount: campaign.rewardAmount,
       startDate: campaign.startDate,

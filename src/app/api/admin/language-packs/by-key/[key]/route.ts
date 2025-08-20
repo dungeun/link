@@ -9,7 +9,7 @@ import { requireAdminAuth } from '@/lib/admin-auth'
 
 import { translateText } from '@/lib/services/google-translate.service'
 
-// GET /api/admin/language-packs/[key] - 특정 언어팩 조회
+// GET /api/admin/language-packs/by-key/[key] - 특정 언어팩 조회
 export async function GET(
   request: NextRequest,
   { params }: { params: { key: string } }
@@ -54,7 +54,7 @@ export async function GET(
   }
 }
 
-// PUT /api/admin/language-packs/[key] - 언어팩 수정
+// PUT /api/admin/language-packs/by-key/[key] - 언어팩 수정
 export async function PUT(
   request: NextRequest,
   { params }: { params: { key: string } }
@@ -144,7 +144,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/admin/language-packs/[key] - 언어팩 삭제
+// DELETE /api/admin/language-packs/by-key/[key] - 언어팩 삭제
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { key: string } }

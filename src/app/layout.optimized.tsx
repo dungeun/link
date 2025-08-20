@@ -11,7 +11,7 @@ const Providers = dynamic(() => import('@/contexts/Providers'), {
 })
 
 export const metadata: Metadata = {
-  title: 'Revu Platform',
+  title: 'LinkPick Platform',
   description: '인플루언서 마케팅 플랫폼',
 }
 

@@ -39,7 +39,9 @@ export default function EditCampaignPage() {
     title: '',
     description: '',
     platform: 'INSTAGRAM',
+    budgetType: 'FREE',
     budget: 0,
+    categoryId: '',
     targetFollowers: 0,
     maxApplicants: 100,
     requirements: '',
@@ -121,7 +123,9 @@ export default function EditCampaignPage() {
           title: campaign.title || '',
           description: campaign.description || '',
           platform: campaign.platforms?.[0] || campaign.platform || 'INSTAGRAM',
+          budgetType: campaign.budgetType || 'FREE',
           budget: campaign.budget || 0,
+          categoryId: campaign.categories?.[0]?.categoryId || '',
           targetFollowers: campaign.targetFollowers || 0,
           maxApplicants: campaign.maxApplicants || 100,
           requirements: campaign.requirements || '',
@@ -186,7 +190,9 @@ export default function EditCampaignPage() {
           thumbnailImageUrl: thumbnailImage,
           productImages,
           detailImages,
-          imageUrl: thumbnailImage || headerImage // 메인 이미지
+          imageUrl: thumbnailImage || headerImage, // 메인 이미지
+          budgetType: formData.budgetType,
+          categoryId: formData.categoryId
         })
       })
 
@@ -321,6 +327,36 @@ export default function EditCampaignPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="budgetType">캠페인 유형</Label>
+                  <Select
+                    value={formData.budgetType}
+                    onValueChange={(value) => setFormData({...formData, budgetType: value})}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="FREE">무료 캠페인</SelectItem>
+                      <SelectItem value="PAID">유료 캠페인</SelectItem>
+                      <SelectItem value="REVIEW">구매평 캠페인</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="categoryId">카테고리</Label>
+                  <Input
+                    id="categoryId"
+                    value={formData.categoryId}
+                    onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
+                    placeholder="카테고리 ID"
+                    className="mt-1"
+                  />
                 </div>
 
                 <div>
@@ -588,6 +624,7 @@ export default function EditCampaignPage() {
                 <ImageUpload
                   value={headerImage}
                   onChange={(value) => setHeaderImage(Array.isArray(value) ? value[0] || '' : value)}
+                  category="campaigns"
                   className="mt-2"
                 />
               </div>
@@ -597,6 +634,7 @@ export default function EditCampaignPage() {
                 <ImageUpload
                   value={thumbnailImage}
                   onChange={(value) => setThumbnailImage(Array.isArray(value) ? value[0] || '' : value)}
+                  category="campaigns"
                   className="mt-2"
                 />
               </div>
@@ -629,6 +667,7 @@ export default function EditCampaignPage() {
                         const url = Array.isArray(value) ? value[0] || '' : value;
                         if (url) setProductImages([...productImages, url]);
                       }}
+                      category="campaigns"
                       className="h-24"
                     />
                   </div>
@@ -690,6 +729,7 @@ export default function EditCampaignPage() {
                         const url = Array.isArray(value) ? value[0] || '' : value;
                         if (url) setDetailImages([...detailImages, url]);
                       }}
+                      category="campaigns"
                       className="w-full"
                     />
                     <p className="text-sm text-gray-500 mt-1">

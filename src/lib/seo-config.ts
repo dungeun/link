@@ -28,27 +28,27 @@ export interface MetadataConfig {
 }
 
 const defaultSeo: SeoConfig = {
-  title: 'Revu - 리뷰 마케팅 플랫폼',
-  description: '브랜드와 인플루언서를 연결하는 혁신적인 리뷰 마케팅 플랫폼입니다.',
-  keywords: '리뷰, 인플루언서, 마케팅, 브랜드, 광고, 소셜미디어',
-  author: 'Revu',
+  title: 'LinkPick - 인플루언서 마케팅 플랫폼',
+  description: '브랜드와 인플루언서를 연결하는 혁신적인 마케팅 플랫폼입니다.',
+  keywords: '인플루언서, 마케팅, 브랜드, 광고, 소셜미디어',
+  author: 'LinkPick',
   robots: 'index, follow',
-  canonical: 'https://revu.com'
+  canonical: 'https://linkpick.com'
 }
 
 const defaultMetadata: MetadataConfig = {
   favicon: '/favicon.svg',
   appleTouchIcon: '/apple-touch-icon.png',
   ogImage: '/og-image.svg',
-  ogTitle: 'Revu - 리뷰 마케팅 플랫폼',
-  ogDescription: '브랜드와 인플루언서를 연결하는 혁신적인 리뷰 마케팅 플랫폼입니다.',
-  ogUrl: 'https://revu.com',
-  ogSiteName: 'Revu',
+  ogTitle: 'LinkPick - 인플루언서 마케팅 플랫폼',
+  ogDescription: '브랜드와 인플루언서를 연결하는 혁신적인 마케팅 플랫폼입니다.',
+  ogUrl: 'https://linkpick.com',
+  ogSiteName: 'LinkPick',
   ogType: 'website',
   ogLocale: 'ko_KR',
   twitterCard: 'summary_large_image',
-  twitterSite: '@revu',
-  twitterCreator: '@revu',
+  twitterSite: '@linkpick',
+  twitterCreator: '@linkpick',
   twitterImage: '/og-image.svg',
   themeColor: '#3B82F6',
   msapplicationTileColor: '#3B82F6'

@@ -279,7 +279,12 @@ export default function TranslationManagementPage() {
             updateData.en = translations.en.text
           }
           if (translations.jp && !translations.jp.error) {
-            updateData.jp = translations.jp.text
+            // jp 결과를 ja 필드로 매핑하여 저장 (캠페인의 경우)
+            if (selectedType === 'campaign' || selectedType === 'post') {
+              updateData.ja = translations.jp.text // 캠페인/게시물은 ja 필드 사용
+            } else {
+              updateData.jp = translations.jp.text // 메뉴/메인섹션은 jp 필드 사용
+            }
           }
 
           // 번역 결과를 저장

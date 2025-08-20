@@ -18,7 +18,7 @@ interface CampaignCardProps {
   campaign: Campaign;
   index: number;
   onClick: (id: string) => void;
-  t?: (key: string, fallback?: string) => string;
+  t: (key: string, fallback?: string) => string;
 }
 
 const CampaignCard = memo(({ campaign, index, onClick, t }: CampaignCardProps) => {
@@ -44,11 +44,11 @@ const CampaignCard = memo(({ campaign, index, onClick, t }: CampaignCardProps) =
         )}
         <div className="absolute top-3 left-3 flex flex-col gap-1">
           <span className="bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-medium">
-            {t ? t('campaign.deadline', 'D-{days}').replace('{days}', campaign.deadline.toString()) : `D-${campaign.deadline}`}
+            {t('campaign.deadline', 'D-{days}').replace('{days}', campaign.deadline.toString())}
           </span>
           {campaign.campaignType === 'REVIEW' && (
             <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-medium">
-              {t ? t('campaign.review_type', '구매평') : '구매평'}
+              {t('campaign.review_type', '구매평')}
             </span>
           )}
         </div>
@@ -60,12 +60,12 @@ const CampaignCard = memo(({ campaign, index, onClick, t }: CampaignCardProps) =
         </h3>
         <div className="flex items-center justify-between">
           <span className="text-xs md:text-sm text-gray-500">
-            {t ? t('campaign.applicants_count', '{current}/{max}명').replace('{current}', campaign.applicants.toString()).replace('{max}', campaign.maxApplicants.toString()) : `${campaign.applicants}/${campaign.maxApplicants}명`}
+            {t('campaign.applicants_count', '{current}/{max}명').replace('{current}', campaign.applicants.toString()).replace('{max}', campaign.maxApplicants.toString())}
           </span>
           <div className="text-right">
             {campaign.campaignType === 'REVIEW' && campaign.reviewPrice ? (
               <div className="flex flex-col">
-                <span className="text-xs text-gray-400">{t ? t('campaign.review_price_label', '구매평 단가') : '구매평 단가'}</span>
+                <span className="text-xs text-gray-400">{t('campaign.review_price_label', '구매평 단가')}</span>
                 <span className="text-xs md:text-sm font-medium text-orange-600">
                   ₩{campaign.reviewPrice.toLocaleString()}
                 </span>

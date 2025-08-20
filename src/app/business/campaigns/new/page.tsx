@@ -399,6 +399,22 @@ export default function NewCampaignPage() {
       console.log('Form data before submit:', formData)
       console.log('Budget type:', formData.budgetType, 'Budget:', formData.budget)
       
+      // 신청 마감일 기본값 설정: applicationEndDate가 없으면 기본값 설정
+      let defaultApplicationEndDate = formData.applicationEndDate
+      if (!defaultApplicationEndDate) {
+        if (formData.announcementDate) {
+          // announcementDate가 있으면 그 전날로 설정
+          const announcementDateObj = new Date(formData.announcementDate)
+          announcementDateObj.setDate(announcementDateObj.getDate() - 1)
+          defaultApplicationEndDate = announcementDateObj.toISOString().split('T')[0]
+        } else {
+          // announcementDate도 없으면 endDate 3일 전으로 설정
+          const endDateObj = new Date(formData.endDate)
+          endDateObj.setDate(endDateObj.getDate() - 3)
+          defaultApplicationEndDate = endDateObj.toISOString().split('T')[0]
+        }
+      }
+
       const campaignData = {
         ...formData,
         budget: formData.budgetType === 'PAID' ? Number(formData.budget) || 0 : 0,  // 유료일 때만 예산 설정, Number로 확실히 변환
@@ -407,7 +423,7 @@ export default function NewCampaignPage() {
         questions: dynamicQuestions.filter(q => q.enabled !== false),
         // 날짜 필드들 (빈 문자열인 경우 null로 변환)
         applicationStartDate: formData.applicationStartDate || null,
-        applicationEndDate: formData.applicationEndDate || null,
+        applicationEndDate: defaultApplicationEndDate || null,  // 기본값 적용
         contentStartDate: formData.contentStartDate || null,
         contentEndDate: formData.contentEndDate || null,
         resultAnnouncementDate: formData.resultAnnouncementDate || null,

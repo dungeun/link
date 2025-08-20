@@ -179,11 +179,6 @@ export async function PUT(request: NextRequest) {
     if (type === 'campaign') {
       // 영어 번역 업데이트 또는 생성
       if (en !== undefined) {
-        console.log('[Campaign Translation] 영어 번역 저장:', {
-          campaignId: id,
-          enValue: en
-        })
-        
         await prisma.campaignTranslation.upsert({
           where: {
             campaignId_language: {
@@ -208,20 +203,11 @@ export async function PUT(request: NextRequest) {
             editedAt: new Date()
           }
         })
-        
-        console.log('[Campaign Translation] 영어 번역 저장 완료')
       }
 
       // 일본어 번역 업데이트 또는 생성
       if (ja !== undefined || jp !== undefined) {
         const jpValue = ja || jp  // Support both ja and jp for backward compatibility
-        console.log('[Campaign Translation] 일본어 번역 저장:', {
-          campaignId: id,
-          jpValue,
-          originalJa: ja,
-          originalJp: jp
-        })
-        
         await prisma.campaignTranslation.upsert({
           where: {
             campaignId_language: {
@@ -246,8 +232,6 @@ export async function PUT(request: NextRequest) {
             editedAt: new Date()
           }
         })
-        
-        console.log('[Campaign Translation] 일본어 번역 저장 완료')
       }
     } else if (type === 'post') {
       // 게시물 번역 처리

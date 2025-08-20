@@ -145,7 +145,7 @@ export default function LoginPage() {
       const credentials = {
         user: { email: 'influencer@example.com', password: 'influencer2024' },
         business: { email: 'business@company.com', password: 'business2024' },
-        admin: { email: 'admin@linkpick.co.kr', password: 'admin2024' }
+        admin: { email: 'admin@linkpick.com', password: 'admin2024' }
       }
       email = credentials[userType].email
       password = credentials[userType].password
@@ -222,7 +222,7 @@ export default function LoginPage() {
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                Revu
+                LinkPick
               </h1>
             </Link>
             <h2 className="text-xl text-gray-600">다시 만나서 반가워요!</h2>

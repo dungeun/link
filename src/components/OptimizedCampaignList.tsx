@@ -36,7 +36,7 @@ interface OptimizedCampaignListProps {
   category?: string
   sort?: string
   search?: string
-  t?: (key: string, fallback?: string) => string
+  t: (key: string, fallback?: string) => string
 }
 
 /**
@@ -98,7 +98,7 @@ function OptimizedCampaignList({
       logger.info(`Loaded campaigns - count: ${data.items?.length || data.length}, hasMore: ${data.hasMore}, cursor: ${data.nextCursor}`);
     } catch (err) {
       logger.error(`Failed to load campaigns - error: ${err instanceof Error ? err.message : String(err)}`);
-      setError('캠페인을 불러오는데 실패했습니다.');
+      setError(t('error.campaigns_load_failed', '캠페인을 불러오는데 실패했습니다.'));
     } finally {
       setLoading(false);
     }
@@ -156,8 +156,8 @@ function OptimizedCampaignList({
         <div className="text-center py-16 bg-gray-50 rounded-xl">
           <p className="text-gray-500">
             {search 
-              ? `"${search}"에 대한 검색 결과가 없습니다.`
-              : '캠페인이 없습니다.'}
+              ? t('campaigns.search_no_results', '"{search}"에 대한 검색 결과가 없습니다.').replace('{search}', search)
+              : t('campaigns.no_campaigns', '캠페인이 없습니다.')}
           </p>
         </div>
       ) : null}
@@ -177,7 +177,7 @@ function OptimizedCampaignList({
             onClick={loadMoreCampaigns}
             className="mt-2 text-blue-600 hover:text-blue-700 font-medium"
           >
-            다시 시도
+            {t('action.retry', '다시 시도')}
           </button>
         </div>
       )}
@@ -194,7 +194,7 @@ function OptimizedCampaignList({
       {/* 더 이상 로드할 캠페인이 없을 때 */}
       {!hasMore && campaigns.length > 0 && (
         <div className="text-center py-8 text-gray-500">
-          <p>모든 캠페인을 불러왔습니다.</p>
+          <p>{t('campaigns.all_loaded', '모든 캠페인을 불러왔습니다.')}</p>
         </div>
       )}
     </div>

@@ -80,7 +80,7 @@ export const businessProfileSchema = z.object({
 
 // 파일 업로드 스키마
 export const fileUploadSchema = z.object({
-  type: z.enum(['profile', 'campaign', 'content', 'document']),
+  type: z.enum(['profile', 'campaign', 'campaigns', 'content', 'document', 'temp']),
   maxSize: z.number().positive().default(15), // MB
   allowedTypes: z.array(z.string()).default([
     'image/jpeg',

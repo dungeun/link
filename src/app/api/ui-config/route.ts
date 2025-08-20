@@ -64,19 +64,52 @@ export async function GET(request: NextRequest) {
         orderBy: { menuOrder: 'asc' }
       });
 
-      categoryMenus = categories.map((cat, index) => ({
-        id: `cat-${cat.id}`,
-        name: cat.name,
-        categoryId: cat.slug,
-        icon: cat.icon || '',
-        href: `/category/${cat.slug}`,
-        order: cat.menuOrder || index + 1,
-        visible: true
-      }));
+      // 카테고리 이름을 번역 키로 매핑
+      const categoryNameMapping: Record<string, string> = {
+        '뷰티': 'category.beauty',
+        '패션': 'category.fashion', 
+        '맛집': 'category.food',
+        '여행': 'category.travel',
+        'IT/테크': 'category.tech',
+        '운동/헬스': 'category.fitness',
+        '라이프': 'category.lifestyle',
+        '반려동물': 'category.pet',
+        '육아': 'category.parenting',
+        '게임': 'category.game',
+        '교육': 'category.education',
+        '캠페인': 'category.campaign',
+        '병원': 'category.hospital',
+        '구매평': 'category.review',
+        '성형외과': 'category.plastic_surgery',
+        '피부과': 'category.dermatology',
+        '문화': 'category.culture',
+        '치과': 'category.dentistry',
+        '식품': 'category.food',
+        '안과': 'category.ophthalmology',
+        '생활': 'category.lifestyle',
+        '디지털': 'category.digital'
+      };
+      
+      categoryMenus = categories.map((cat, index) => {
+        // 번역 키 매핑 또는 기본 번역 키 사용
+        const translationKey = categoryNameMapping[cat.name] || `category.${cat.slug.replace(/-/g, '_')}`;
+        
+        const result = {
+          id: `cat-${cat.id}`,
+          name: translationKey, // 번역 키 사용
+          categoryId: cat.slug,
+          icon: cat.icon || '',
+          href: `/category/${cat.slug}`,
+          order: cat.menuOrder || index + 1,
+          visible: true
+        };
+        return result;
+      });
     } catch (error) {
       console.warn('Failed to fetch category menus:', error);
       // 기본 카테고리 메뉴 유지
     }
+    
 
     // Admin UI에서 관리하는 헤더 메뉴 가져오기
     let adminHeaderMenus = [];
@@ -109,7 +142,7 @@ export async function GET(request: NextRequest) {
 
         const adminMenu = {
           id: `admin-${menu.id}`,
-          label: displayText,  // 번역된 텍스트 사용
+          label: label,  // 번역 키 유지 (Header 컴포넌트에서 번역)
           languageKey: label,   // 원본 언어 키 보존  
           href: content.href || '#',
           order: menu.order || 999,
@@ -242,14 +275,14 @@ export async function GET(request: NextRequest) {
             },
           ],
           categoryMenus: categoryMenus.length > 0 ? categoryMenus : [
-            { id: 'cat-1', name: await getTranslation('category.beauty', language), categoryId: 'beauty', icon: '💄', href: '/category/beauty', order: 1, visible: true },
-            { id: 'cat-2', name: await getTranslation('category.fashion', language), categoryId: 'fashion', icon: '👗', href: '/category/fashion', order: 2, visible: true },
-            { id: 'cat-3', name: await getTranslation('category.food', language), categoryId: 'food', icon: '🍔', href: '/category/food', badge: await getTranslation('badge.hot', language), order: 3, visible: true },
-            { id: 'cat-4', name: await getTranslation('category.travel', language), categoryId: 'travel', icon: '✈️', href: '/category/travel', order: 4, visible: true },
-            { id: 'cat-5', name: await getTranslation('category.tech', language), categoryId: 'tech', icon: '💻', href: '/category/tech', order: 5, visible: true },
-            { id: 'cat-6', name: await getTranslation('category.fitness', language), categoryId: 'fitness', icon: '💪', href: '/category/fitness', order: 6, visible: true },
-            { id: 'cat-7', name: await getTranslation('category.lifestyle', language), categoryId: 'lifestyle', icon: '🌱', href: '/category/lifestyle', order: 7, visible: true },
-            { id: 'cat-8', name: await getTranslation('category.pet', language), categoryId: 'pet', icon: '🐕', href: '/category/pet', order: 8, visible: true },
+            { id: 'cat-1', name: 'category.beauty', categoryId: 'beauty', icon: '💄', href: '/category/beauty', order: 1, visible: true },
+            { id: 'cat-2', name: 'category.fashion', categoryId: 'fashion', icon: '👗', href: '/category/fashion', order: 2, visible: true },
+            { id: 'cat-3', name: 'category.food', categoryId: 'food', icon: '🍔', href: '/category/food', badge: 'badge.hot', order: 3, visible: true },
+            { id: 'cat-4', name: 'category.travel', categoryId: 'travel', icon: '✈️', href: '/category/travel', order: 4, visible: true },
+            { id: 'cat-5', name: 'category.tech', categoryId: 'tech', icon: '💻', href: '/category/tech', order: 5, visible: true },
+            { id: 'cat-6', name: 'category.fitness', categoryId: 'fitness', icon: '💪', href: '/category/fitness', order: 6, visible: true },
+            { id: 'cat-7', name: 'category.lifestyle', categoryId: 'lifestyle', icon: '🌱', href: '/category/lifestyle', order: 7, visible: true },
+            { id: 'cat-8', name: 'category.pet', categoryId: 'pet', icon: '🐕', href: '/category/pet', order: 8, visible: true },
           ],
           quickLinks: [
             { id: 'quick-1', title: await getTranslation('quicklink.events', language), icon: '🎁', link: '/events', order: 1, visible: true },
@@ -285,6 +318,11 @@ export async function GET(request: NextRequest) {
         // 저장된 설정의 헤더 메뉴를 Admin 메뉴로 교체
         if (savedConfig.header) {
           savedConfig.header.menus = allHeaderMenus;
+        }
+        
+        // 저장된 설정의 카테고리 메뉴를 동적 매핑 결과로 교체
+        if (savedConfig.mainPage && categoryMenus.length > 0) {
+          savedConfig.mainPage.categoryMenus = categoryMenus;
         }
         
         return NextResponse.json({ config: savedConfig });

@@ -17,7 +17,7 @@ import { ValidationHelper, fileUploadSchema } from '@/lib/utils/validation';
 import { PerformanceTimer } from '@/lib/utils/performance';
 
 // 허용된 파일 타입 상수
-const ALLOWED_FILE_TYPES = ['profile', 'campaign', 'content', 'document'] as const;
+const ALLOWED_FILE_TYPES = ['profile', 'campaign', 'campaigns', 'content', 'document', 'temp'] as const;
 const MAX_FILE_SIZE_MB = 20; // 20MB로 증가
 
 type FileType = typeof ALLOWED_FILE_TYPES[number];
@@ -57,7 +57,9 @@ export async function POST(request: NextRequest) {
       userId: user?.id, 
       type, 
       fileInfo,
-      hasFile: !!file 
+      hasFile: !!file,
+      timestamp: new Date().toISOString(),
+      userAgent: request.headers.get('user-agent')?.substring(0, 100)
     });
 
     if (!file || !file.size) {
@@ -99,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 이미지 파일인 경우 특별 검증
-    if (type === 'profile' || type === 'campaign') {
+    if (type === 'profile' || type === 'campaign' || type === 'campaigns') {
       const imageValidation = ValidationHelper.validateImageFile(file, MAX_FILE_SIZE_MB);
       if (!imageValidation.valid) {
         return createErrorResponse(
@@ -119,7 +121,12 @@ export async function POST(request: NextRequest) {
     }
     
     // 파일 업로드 - 성능 측정 포함
-    console.log('Attempting file upload with service...')
+    console.log('Attempting file upload with service...', {
+      fileName: file.name,
+      fileSize: file.size,
+      type: type,
+      contentType: file.type
+    })
     
     const uploadedFile = await PerformanceTimer.measure(
       'uploadService.uploadFile',
@@ -127,7 +134,7 @@ export async function POST(request: NextRequest) {
         file,
         type, // subfolder로 사용
         {
-          width: type === 'campaign' ? 1200 : undefined,
+          width: (type === 'campaign' || type === 'campaigns') ? 1200 : undefined,
           quality: 85,
           format: 'jpeg'
         }

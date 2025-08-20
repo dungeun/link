@@ -63,13 +63,6 @@ export async function POST(request: NextRequest) {
           }
 
           try {
-            console.log(`[Campaign Batch Translation] 번역 시작:`, {
-              campaignId: campaign.id,
-              title: campaign.title,
-              targetLang,
-              dbLang
-            })
-            
             const result = await googleTranslateService.translateText(
               campaign.title,
               targetLang,
@@ -77,10 +70,6 @@ export async function POST(request: NextRequest) {
             )
 
             if (result) {
-              console.log(`[Campaign Batch Translation] 번역 결과:`, {
-                campaignId: campaign.id,
-                result: result.text
-              })
               
               await prisma.campaignTranslation.upsert({
                 where: {
@@ -97,7 +86,7 @@ export async function POST(request: NextRequest) {
                 },
                 create: {
                   campaignId: campaign.id,
-                  language: targetLang,
+                  language: dbLang, // 데이터베이스 언어 코드 사용 (jp -> ja)
                   title: result.text,
                   description: '',
                   hashtags: [],
@@ -141,13 +130,6 @@ export async function POST(request: NextRequest) {
           }
 
           try {
-            console.log(`[Post Batch Translation] 번역 시작:`, {
-              postId: post.id,
-              title: post.title,
-              targetLang,
-              dbLang
-            })
-            
             const result = await googleTranslateService.translateText(
               post.title,
               targetLang,
@@ -155,10 +137,6 @@ export async function POST(request: NextRequest) {
             )
 
             if (result) {
-              console.log(`[Post Batch Translation] 번역 결과:`, {
-                postId: post.id,
-                result: result.text
-              })
               
               await prisma.postTranslation.upsert({
                 where: {
@@ -175,7 +153,7 @@ export async function POST(request: NextRequest) {
                 },
                 create: {
                   postId: post.id,
-                  language: targetLang,
+                  language: dbLang, // 데이터베이스 언어 코드 사용 (jp -> ja)
                   title: result.text,
                   content: '',
                   isAutoTranslated: true,
@@ -237,13 +215,6 @@ export async function POST(request: NextRequest) {
           }
 
           try {
-            console.log(`[Batch Translation] ${type} 번역 시작:`, {
-              packId: pack.id,
-              ko: pack.ko,
-              targetLang,
-              mappedLang
-            })
-            
             const result = await googleTranslateService.translateText(
               pack.ko,
               targetLang,
@@ -254,11 +225,6 @@ export async function POST(request: NextRequest) {
               const updateData = mappedLang === 'en' 
                 ? { en: result.text }
                 : { jp: result.text } // jp 필드로 저장 (LanguagePack은 jp 필드 사용)
-              
-              console.log(`[Batch Translation] ${type} 번역 저장:`, {
-                packId: pack.id,
-                updateData
-              })
 
               await prisma.languagePack.update({
                 where: { id: pack.id },
