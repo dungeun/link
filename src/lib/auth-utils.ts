@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '@/lib/auth/constants';
+import { getJWTSecret } from '@/lib/auth/constants';
 
 export interface AuthResult {
   isAuthenticated: boolean;
@@ -39,7 +39,7 @@ export async function verifyAuth(req: NextRequest): Promise<AuthResult> {
     }
 
     // JWT 토큰 검증
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId?: string; id?: string; email: string; name: string; type?: string; userType?: string };
+    const decoded = jwt.verify(token, getJWTSecret()) as { userId?: string; id?: string; email: string; name: string; type?: string; userType?: string };
     
     return {
       isAuthenticated: true,

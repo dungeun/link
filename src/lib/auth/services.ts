@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { User } from '@/lib/auth'
 import { prisma } from '@/lib/db/prisma'
-import { JWT_SECRET, REFRESH_SECRET } from '@/lib/auth/constants'
+import { getJWTSecret, getRefreshSecret } from '@/lib/auth/constants'
 import { logger } from '@/lib/utils/logger'
 
 export interface LoginCredentials {
@@ -58,13 +58,13 @@ class AuthServiceClass {
 
       const token = jwt.sign(
         { userId: user.id, email: user.email, type: user.type },
-        JWT_SECRET,
+        getJWTSecret(),
         { expiresIn: '1h' }
       )
 
       const refreshToken = jwt.sign(
         { userId: user.id },
-        REFRESH_SECRET,
+        getRefreshSecret(),
         { expiresIn: '7d' }
       )
 
@@ -146,13 +146,13 @@ class AuthServiceClass {
 
       const token = jwt.sign(
         { userId: user.id, email: user.email, type: user.type },
-        JWT_SECRET,
+        getJWTSecret(),
         { expiresIn: '1h' }
       )
 
       const refreshToken = jwt.sign(
         { userId: user.id },
-        REFRESH_SECRET,
+        getRefreshSecret(),
         { expiresIn: '7d' }
       )
 
@@ -174,17 +174,17 @@ class AuthServiceClass {
 
   async refreshToken(token: string): Promise<{ token: string; refreshToken: string }> {
     try {
-      const decoded = jwt.verify(token, REFRESH_SECRET) as { userId: string }
+      const decoded = jwt.verify(token, getRefreshSecret()) as { userId: string }
       
       const newToken = jwt.sign(
         { userId: decoded.userId },
-        JWT_SECRET,
+        getJWTSecret(),
         { expiresIn: '1h' }
       )
 
       const newRefreshToken = jwt.sign(
         { userId: decoded.userId },
-        REFRESH_SECRET,
+        getRefreshSecret(),
         { expiresIn: '7d' }
       )
 
@@ -196,7 +196,7 @@ class AuthServiceClass {
 
   async verifyToken(token: string): Promise<{ userId: string; email: string; type: string }> {
     try {
-      return jwt.verify(token, JWT_SECRET) as { userId: string; email: string; type: string }
+      return jwt.verify(token, getJWTSecret()) as { userId: string; email: string; type: string }
     } catch (error) {
       throw new Error('Invalid token')
     }
@@ -219,7 +219,7 @@ class AuthServiceClass {
 
   async validateToken(token: string): Promise<{ userId: string; email: string; type: string } | null> {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string; type: string }
+      const decoded = jwt.verify(token, getJWTSecret()) as { userId: string; email: string; type: string }
       return decoded
     } catch (error) {
       return null

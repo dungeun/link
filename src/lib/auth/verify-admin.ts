@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
-import { JWT_SECRET } from '@/lib/auth/constants'
+import { getJWTSecret } from '@/lib/auth/constants'
 
 export async function verifyAdmin(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function verifyAdmin(request: NextRequest) {
       return null
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { type?: string; [key: string]: unknown }
+    const decoded = jwt.verify(token, getJWTSecret()) as { type?: string; [key: string]: unknown }
     
     // 관리자 권한 확인
     const userType = decoded.type?.toLowerCase()

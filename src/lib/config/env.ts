@@ -117,8 +117,13 @@ class EnvironmentConfig {
     
     const missing = required.filter(key => !this.config[key])
     
-    if (missing.length > 0 && this.config.NODE_ENV === 'production') {
-      throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
+    // 빌드 타임에는 경고만, 런타임에 실제 실행될 때 에러
+    if (missing.length > 0) {
+      if (typeof window === 'undefined' && process.env.VERCEL) {
+        console.warn(`[Build Time] Missing environment variables: ${missing.join(', ')}`)
+      } else if (this.config.NODE_ENV === 'production') {
+        throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
+      }
     }
     
     this.validated = true

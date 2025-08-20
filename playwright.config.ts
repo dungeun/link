@@ -25,7 +25,7 @@ export default defineConfig({
     headless: process.env.PLAYWRIGHT_HEADLESS !== 'false',
     
     /* 로컬 개발 서버 */
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3001',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
     
     /* 서버 보안 차단 방지를 위한 User-Agent 설정 */
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -132,13 +132,13 @@ export default defineConfig({
     },
   ],
 
-  /* 개발 서버 자동 시작 */
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3001',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  /* 개발 서버 자동 시작 - 임시 비활성화 */
+  // webServer: {
+  //   command: 'npm run dev',
+  //   url: 'http://localhost:3001',
+  //   reuseExistingServer: !process.env.CI,
+  //   timeout: 120 * 1000,
+  // },
 
   /* 리포터 설정 - 개발 환경에서는 HTML, CI에서는 간단하게 */
   reporter: process.env.CI 

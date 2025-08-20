@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { JWT_SECRET } from '@/lib/auth/constants';
+import { getJWTSecret } from '@/lib/auth/constants';
 
 /**
  * Edge Runtime에서 사용 가능한 JWT 검증 함수
@@ -24,7 +24,7 @@ export async function verifyJWTEdge<T = unknown>(token: string): Promise<T | nul
   try {
     // Edge Runtime에서는 jose 라이브러리 사용
     const { jwtVerify } = await import('jose');
-    const secret = new TextEncoder().encode(JWT_SECRET);
+    const secret = new TextEncoder().encode(getJWTSecret());
 
     const { payload } = await jwtVerify(token, secret);
     return payload as T;

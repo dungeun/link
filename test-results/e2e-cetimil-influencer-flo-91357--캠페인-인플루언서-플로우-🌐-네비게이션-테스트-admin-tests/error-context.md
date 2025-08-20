@@ -1,0 +1,183 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - button "메뉴 토글":
+    - img
+  - link "LinkPick":
+    - /url: /
+    - heading "LinkPick" [level=1]
+  - navigation:
+    - link "header.menu.campaigns":
+      - /url: /campaigns
+    - link "header.menu.influencers":
+      - /url: /influencers
+    - link "header.menu.community":
+      - /url: /community
+    - link "header.menu.pricing":
+      - /url: /pricing
+  - navigation:
+    - button "언어 선택":
+      - text: 🇰🇷KO
+      - img
+    - link "로그인":
+      - /url: /login
+    - link "회원가입":
+      - /url: /register
+- main:
+  - link "🎯 NEW 인플루언서와 브랜드를 연결하는 가장 쉬운 방법 리뷰와 함께 성장의 기회를 만나보세요":
+    - /url: /campaigns
+    - text: 🎯 NEW
+    - heading "인플루언서와 브랜드를 연결하는 가장 쉬운 방법" [level=1]
+    - paragraph: 리뷰와 함께 성장의 기회를 만나보세요
+    - img
+  - heading "최대 30% 할인 첫 캠페인 특별 혜택" [level=2]
+  - paragraph: 지금 시작하고 특별한 혜택을 받아보세요
+  - link "💎 EVENT 최대 30% 할인 첫 캠페인 특별 혜택 지금 시작하고 특별한 혜택을 받아보세요":
+    - /url: /business/pricing
+    - text: 💎 EVENT
+    - heading "최대 30% 할인 첫 캠페인 특별 혜택" [level=1]
+    - paragraph: 지금 시작하고 특별한 혜택을 받아보세요
+    - img
+  - heading "인플루언서와 브랜드를 연결하는 가장 쉬운 방법" [level=2]
+  - paragraph: 리뷰와 함께 성장의 기회를 만나보세요
+  - button "Go to slide 1"
+  - button "Go to slide 2"
+  - link "뷰티":
+    - /url: /beauty
+    - img
+    - text: 뷰티
+  - link "HOT 패션":
+    - /url: /fashion
+    - img
+    - text: HOT 패션
+  - link "맛집":
+    - /url: /food
+    - img
+    - text: 맛집
+  - link "여행":
+    - /url: /travel
+    - img
+    - text: 여행
+  - link "신규 IT/테크":
+    - /url: /tech
+    - img
+    - text: 신규 IT/테크
+  - link "운동/헬스":
+    - /url: /fitness
+    - img
+    - text: 운동/헬스
+  - link "라이프":
+    - /url: /lifestyle
+    - img
+    - text: 라이프
+  - link "반려동물":
+    - /url: /pet
+    - img
+    - text: 반려동물
+  - link "육아":
+    - /url: /parenting
+    - img
+    - text: 육아
+  - link "게임":
+    - /url: /game
+    - img
+    - text: 게임
+  - link "교육":
+    - /url: /education
+    - img
+    - text: 교육
+  - link "뷰티":
+    - /url: /beauty
+    - img
+    - text: 뷰티
+  - link "HOT 패션":
+    - /url: /fashion
+    - img
+    - text: HOT 패션
+  - link "맛집":
+    - /url: /food
+    - img
+    - text: 맛집
+  - link "여행":
+    - /url: /travel
+    - img
+    - text: 여행
+  - link "신규 IT/테크":
+    - /url: /tech
+    - img
+    - text: 신규 IT/테크
+  - link "운동/헬스":
+    - /url: /fitness
+    - img
+    - text: 운동/헬스
+  - link "라이프":
+    - /url: /lifestyle
+    - img
+    - text: 라이프
+  - link "반려동물":
+    - /url: /pet
+    - img
+    - text: 반려동물
+  - link "육아":
+    - /url: /parenting
+    - img
+    - text: 육아
+  - link "게임":
+    - /url: /game
+    - img
+    - text: 게임
+  - link "교육":
+    - /url: /education
+    - img
+    - text: 교육
+  - link "🎁🎁 첫 캠페인 30% 할인":
+    - /url: /business/pricing
+  - link "📚📚 캠페인 가이드":
+    - /url: /guide
+  - link "💬💬 실시간 상담":
+    - /url: /support
+  - link "🎁🎁 첫 캠페인 30% 할인":
+    - /url: /business/pricing
+  - link "📚📚 캠페인 가이드":
+    - /url: /guide
+  - link "💬💬 실시간 상담":
+    - /url: /support
+  - link "🚀 지금 시작하세요! 첫 캠페인은 수수료 50% 할인 🎯":
+    - /url: /business/register
+    - heading "🚀 지금 시작하세요!" [level=3]
+    - paragraph: 첫 캠페인은 수수료 50% 할인
+    - text: 🎯
+- contentinfo:
+  - link "LinkPick":
+    - /url: /
+    - heading "LinkPick" [level=3]
+  - paragraph: 인플루언서 마케팅 플랫폼
+  - paragraph: Revu
+  - text: "대표: 홍길동사업자등록번호: 123-45-67890 통신판매업: 2024-서울강남-1234"
+  - img
+  - text: 서울특별시 강남구 테헤란로 123, 456호
+  - paragraph: 고객지원
+  - img
+  - text: 1588-1234|
+  - img
+  - text: support@revu.com
+  - paragraph: 평일 09:00~18:00 (주말/공휴일 휴무)
+  - paragraph: © 2024 LinkPick. All rights reserved.
+  - heading "바로가기" [level=4]
+  - list:
+    - listitem:
+      - link "이용약관":
+        - /url: /terms
+    - listitem:
+      - link "개인정보처리방침":
+        - /url: /privacy
+    - listitem:
+      - link "고객지원":
+        - /url: /support
+    - listitem:
+      - link "회사소개":
+        - /url: /about
+- region "Notifications (F8)":
+  - list
+```
