@@ -6,6 +6,4 @@
   },
   "env": {
     "SHARP_IGNORE_GLOBAL_LIBVIPS": "1"
-  },
-  "buildCommand": "npm install --platform=linux --arch=x64 sharp && npm run build"
-}
+  }
