@@ -30,6 +30,11 @@ export default async function PageBackupCampaigns() {
   // 단일 통합 쿼리로 모든 데이터 프리로드 (N+1 문제 완전 해결)
   const preloadedData = await preloadHomePageData()
   
+  // 백업 호환성을 위해 source 프로퍼티 추가
+  if (!preloadedData.metadata.source) {
+    preloadedData.metadata.source = preloadedData.metadata.cached ? 'cache' : 'database'
+  }
+  
   console.log(`Page loaded in ${Date.now() - startTime}ms, cached: ${preloadedData.metadata.cached}`)
 
   // 클라이언트 컴포넌트에 모든 프리로드된 데이터 전달
