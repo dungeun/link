@@ -2,15 +2,52 @@
  * 캐시 생성 스크립트 (JavaScript 버전)
  */
 
-const { PrismaClient } = require('@prisma/client');
 const fs = require('fs').promises;
 const path = require('path');
 
-const prisma = new PrismaClient();
+// DATABASE_URL 환경 변수 확인 (Prisma Client 로드 전에 체크)
+const hasDatabaseUrl = !!process.env.DATABASE_URL;
+
+let prisma = null;
+if (hasDatabaseUrl) {
+  const { PrismaClient } = require('@prisma/client');
+  prisma = new PrismaClient();
+} else {
+  console.log('⚠️  DATABASE_URL 환경 변수가 설정되지 않았습니다.');
+  console.log('🔄 캐시 생성을 건너뛰고 빈 캐시 파일을 생성합니다.');
+}
 
 async function generateCampaignCache() {
   const startTime = Date.now();
   console.log('📦 캠페인 캐시 생성 중...');
+
+  // DATABASE_URL이 없는 경우 빈 캐시 파일 생성
+  if (!prisma) {
+    try {
+      const CACHE_DIR = path.join(process.cwd(), 'public/cache');
+      await fs.mkdir(CACHE_DIR, { recursive: true });
+
+      const emptyCache = {
+        featured: [],
+        all: [],
+        byCategory: {},
+        total: 0,
+        generatedAt: new Date().toISOString(),
+        error: 'DATABASE_URL not configured'
+      };
+
+      await fs.writeFile(
+        path.join(CACHE_DIR, 'campaigns.json'),
+        JSON.stringify(emptyCache, null, 2)
+      );
+
+      console.log('✅ 빈 캐시 파일이 생성되었습니다.');
+      return;
+    } catch (error) {
+      console.error('❌ 빈 캐시 파일 생성 실패:', error);
+      throw error;
+    }
+  }
 
   try {
     const CACHE_DIR = path.join(process.cwd(), 'public/cache');
@@ -137,7 +174,9 @@ async function main() {
     console.error('❌ 캐시 생성 실패:', error);
     process.exit(1);
   } finally {
-    await prisma.$disconnect();
+    if (prisma) {
+      await prisma.$disconnect();
+    }
   }
 }
 
