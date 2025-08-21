@@ -135,6 +135,7 @@ function HomePage({
   
   // JSON 기반 정적 UI 텍스트 번역 함수
   const getStaticTexts = (lang: LanguageCode) => {
+    if (!staticUITexts) return null
     const adjustedLang = lang
     return staticUITexts[adjustedLang] || staticUITexts['ko'] || null
   }
