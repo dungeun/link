@@ -4,25 +4,16 @@ import {
   LanguageCode, 
   isLanguageCode
 } from '@/types/global'
-import { homepageManager } from '@/lib/cache/homepage-manager'
-import { loadStaticUITexts } from '@/lib/cache/json-loader'
 import { preloadHomePageData } from '@/lib/cache/preload-service'
 import { getSeoConfig } from '@/lib/seo-config'
 import { prisma } from '@/lib/db/prisma'
-import type { Metadata, Viewport } from 'next'
+import type { Metadata } from 'next'
 
 // 검색엔진 수준 최적화: 정적 생성 + ISR (10분마다 갱신)
 export const revalidate = 600
 
-// Viewport 설정 (theme-color 포함)
-export const viewport: Viewport = {
-  themeColor: '#3B82F6',
-  width: 'device-width',
-  initialScale: 1,
-}
-
 // 서버 컴포넌트 - 모든 필요 데이터를 미리 프리로드
-export default async function Page() {
+export default async function PageBackupCampaigns() {
   const startTime = Date.now()
   
   // 서버에서 Accept-Language 헤더로 초기 언어 감지
@@ -36,28 +27,19 @@ export default async function Page() {
     initialLanguage = 'jp'
   }
   
-  // 하이브리드 접근: JSON + 캠페인 데이터
-  const [sectionsData, staticTexts, fullData] = await Promise.all([
-    homepageManager.getSectionsByLanguage(initialLanguage),
-    loadStaticUITexts(initialLanguage),
-    preloadHomePageData() // 캠페인, 언어팩, 카테고리 통계 포함
-  ])
+  // 단일 통합 쿼리로 모든 데이터 프리로드 (N+1 문제 완전 해결)
+  const preloadedData = await preloadHomePageData()
   
-  console.log(`Page loaded in ${Date.now() - startTime}ms, hybrid: sections=${sectionsData.length}, campaigns=${fullData.campaigns.length}`)
+  console.log(`Page loaded in ${Date.now() - startTime}ms, cached: ${preloadedData.metadata.cached}`)
 
-  // 클라이언트 컴포넌트에 하이브리드 데이터 전달
+  // 클라이언트 컴포넌트에 모든 프리로드된 데이터 전달
   return <HomePage 
-    initialSections={sectionsData} 
+    initialSections={preloadedData.sections} 
     initialLanguage={initialLanguage}
-    staticUITexts={staticTexts}
-    initialCampaigns={fullData.campaigns}
-    initialLanguagePacks={fullData.languagePacks}
-    initialCategoryStats={fullData.categoryStats}
-    preloadMetadata={{
-      cached: true,
-      loadTime: Date.now() - startTime,
-      source: 'hybrid'
-    }}
+    initialLanguagePacks={preloadedData.languagePacks}
+    initialCampaigns={preloadedData.campaigns}
+    initialCategoryStats={preloadedData.categoryStats}
+    preloadMetadata={preloadedData.metadata}
   />
 }
 
@@ -108,7 +90,11 @@ export async function generateMetadata(): Promise<Metadata> {
         creator: '@linkpick_kr',
       },
       robots: seoConfig.robots || 'index, follow',
-      authors: [{ name: seoConfig.author || siteName }]
+      authors: [{ name: seoConfig.author || siteName }],
+      other: {
+        'theme-color': '#3B82F6',
+        'msapplication-TileColor': '#3B82F6',
+      }
     }
   } catch (error) {
     console.error('Error generating metadata:', error)

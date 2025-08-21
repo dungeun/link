@@ -321,11 +321,13 @@ export default function CampaignDetailPage() {
         />
 
         {/* 메인 컨텐츠 */}
-        <div className="container mx-auto px-6 -mt-32 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* 왼쪽: 캠페인 정보 */}
-            <div className="lg:col-span-2 space-y-6">
-              <CampaignTabs campaign={campaign} />
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <CampaignTabs campaign={campaign} />
+              </div>
             </div>
 
             {/* 오른쪽: 사이드바 */}

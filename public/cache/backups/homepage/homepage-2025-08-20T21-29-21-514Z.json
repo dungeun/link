@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "version": "2025.08.21.0605",
-    "lastUpdated": "2025-08-20T21:05:04.042Z",
+    "version": "2025.08.21.0629",
+    "lastUpdated": "2025-08-20T21:29:03.062Z",
     "orderedAt": "2025-08-20T23:45:00.000Z",
     "backupLevel": "default"
   },
@@ -68,7 +68,7 @@
         ]
       }
     },
-    "categories": {
+    "category": {
       "type": "category",
       "visible": true,
       "data": {
@@ -76,9 +76,9 @@
           {
             "id": "cat-cmegigprq0000ldk0ht2s86jx",
             "name": {
-              "ko": "category.campaign",
-              "en": "[EN] category.campaign",
-              "jp": "[JP] category.campaign"
+              "ko": "캠페인",
+              "en": "[EN] 캠페인",
+              "jp": "[JP] 캠페인"
             },
             "slug": "campaign",
             "icon": "📢",
@@ -91,9 +91,9 @@
           {
             "id": "cat-cmegssrz7000pkuzf4xw5rjo6",
             "name": {
-              "ko": "category.food",
-              "en": "[EN] category.food",
-              "jp": "[JP] category.food"
+              "ko": "맛집",
+              "en": "[EN] 맛집",
+              "jp": "[JP] 맛집"
             },
             "slug": "restaurant-review",
             "icon": "🍴",
@@ -106,9 +106,9 @@
           {
             "id": "cat-cmegigpty0001ldk0lpmjr3im",
             "name": {
-              "ko": "category.hospital",
-              "en": "[EN] category.hospital",
-              "jp": "[JP] category.hospital"
+              "ko": "병원",
+              "en": "[EN] 병원",
+              "jp": "[JP] 병원"
             },
             "slug": "hospital",
             "icon": "🏥",
@@ -121,9 +121,9 @@
           {
             "id": "cat-cmegsrtpz0003kuzfkx9hcb4s",
             "name": {
-              "ko": "category.food",
-              "en": "[EN] category.food",
-              "jp": "[JP] category.food"
+              "ko": "맛집",
+              "en": "[EN] 맛집",
+              "jp": "[JP] 맛집"
             },
             "slug": "restaurant",
             "icon": "🍽️",
@@ -136,9 +136,9 @@
           {
             "id": "cat-cmegsn6c40005jutsv13arj0v",
             "name": {
-              "ko": "category.plastic_surgery",
-              "en": "[EN] category.plastic_surgery",
-              "jp": "[JP] category.plastic_surgery"
+              "ko": "성형외과",
+              "en": "[EN] 성형외과",
+              "jp": "[JP] 성형외과"
             },
             "slug": "plastic-surgery",
             "icon": "✨",
@@ -151,9 +151,9 @@
           {
             "id": "cat-cmegsrw8j0005kuzf5oz6fs4j",
             "name": {
-              "ko": "category.beauty",
-              "en": "[EN] category.beauty",
-              "jp": "[JP] category.beauty"
+              "ko": "뷰티",
+              "en": "[EN] 뷰티",
+              "jp": "[JP] 뷰티"
             },
             "slug": "beauty",
             "icon": "💄",
@@ -166,9 +166,9 @@
           {
             "id": "cat-cmegssul0000rkuzfjh0vw4l6",
             "name": {
-              "ko": "category.beauty",
-              "en": "[EN] category.beauty",
-              "jp": "[JP] category.beauty"
+              "ko": "뷰티",
+              "en": "[EN] 뷰티",
+              "jp": "[JP] 뷰티"
             },
             "slug": "beauty-review",
             "icon": "💋",
@@ -181,9 +181,9 @@
           {
             "id": "cat-cmegigpwq0002ldk0oxn9fqzc",
             "name": {
-              "ko": "category.review",
-              "en": "[EN] category.review",
-              "jp": "[JP] category.review"
+              "ko": "구매평",
+              "en": "[EN] 구매평",
+              "jp": "[JP] 구매평"
             },
             "slug": "review",
             "icon": "⭐",
@@ -196,9 +196,9 @@
           {
             "id": "cat-cmegsn6ss0007juts8spmpv6i",
             "name": {
-              "ko": "category.dermatology",
-              "en": "[EN] category.dermatology",
-              "jp": "[JP] category.dermatology"
+              "ko": "피부과",
+              "en": "[EN] 피부과",
+              "jp": "[JP] 피부과"
             },
             "slug": "dermatology",
             "icon": "🧴",
@@ -211,9 +211,9 @@
           {
             "id": "cat-cmegsswlt000tkuzft46muyt1",
             "name": {
-              "ko": "category.travel",
-              "en": "[EN] category.travel",
-              "jp": "[JP] category.travel"
+              "ko": "여행",
+              "en": "[EN] 여행",
+              "jp": "[JP] 여행"
             },
             "slug": "travel-review",
             "icon": "🧳",
@@ -226,9 +226,9 @@
           {
             "id": "cat-cmegss1xi0009kuzfxja6riw7",
             "name": {
-              "ko": "category.culture",
-              "en": "[EN] category.culture",
-              "jp": "[JP] category.culture"
+              "ko": "문화",
+              "en": "[EN] 문화",
+              "jp": "[JP] 문화"
             },
             "slug": "culture",
             "icon": "🎭",
@@ -241,9 +241,9 @@
           {
             "id": "cat-cmegsn7820009jutsj4zglujo",
             "name": {
-              "ko": "category.dentistry",
-              "en": "[EN] category.dentistry",
-              "jp": "[JP] category.dentistry"
+              "ko": "치과",
+              "en": "[EN] 치과",
+              "jp": "[JP] 치과"
             },
             "slug": "dentistry",
             "icon": "🦷",
@@ -256,9 +256,9 @@
           {
             "id": "cat-cmegssyl6000vkuzftccexw3f",
             "name": {
-              "ko": "category.culture",
-              "en": "[EN] category.culture",
-              "jp": "[JP] category.culture"
+              "ko": "문화",
+              "en": "[EN] 문화",
+              "jp": "[JP] 문화"
             },
             "slug": "culture-review",
             "icon": "🎨",
@@ -271,9 +271,9 @@
           {
             "id": "cat-cmegss432000bkuzf3nfvsqad",
             "name": {
-              "ko": "category.food",
-              "en": "[EN] category.food",
-              "jp": "[JP] category.food"
+              "ko": "식품",
+              "en": "[EN] 식품",
+              "jp": "[JP] 식품"
             },
             "slug": "food",
             "icon": "🥘",
@@ -286,9 +286,9 @@
           {
             "id": "cat-cmegsn7mi000bjutsqbbjtygm",
             "name": {
-              "ko": "category.ophthalmology",
-              "en": "[EN] category.ophthalmology",
-              "jp": "[JP] category.ophthalmology"
+              "ko": "안과",
+              "en": "[EN] 안과",
+              "jp": "[JP] 안과"
             },
             "slug": "ophthalmology",
             "icon": "👁️",
@@ -301,9 +301,9 @@
           {
             "id": "cat-cmegst0l9000xkuzf2xusyh02",
             "name": {
-              "ko": "category.food",
-              "en": "[EN] category.food",
-              "jp": "[JP] category.food"
+              "ko": "식품",
+              "en": "[EN] 식품",
+              "jp": "[JP] 식품"
             },
             "slug": "food-review",
             "icon": "🍎",
@@ -316,9 +316,9 @@
           {
             "id": "cat-cmegss6ym000dkuzfbz47y1h4",
             "name": {
-              "ko": "category.lifestyle",
-              "en": "[EN] category.lifestyle",
-              "jp": "[JP] category.lifestyle"
+              "ko": "생활",
+              "en": "[EN] 생활",
+              "jp": "[JP] 생활"
             },
             "slug": "lifestyle",
             "icon": "🏡",
@@ -331,9 +331,9 @@
           {
             "id": "cat-cmegst2mn000zkuzfqj1tuswo",
             "name": {
-              "ko": "category.lifestyle",
-              "en": "[EN] category.lifestyle",
-              "jp": "[JP] category.lifestyle"
+              "ko": "생활",
+              "en": "[EN] 생활",
+              "jp": "[JP] 생활"
             },
             "slug": "daily-review",
             "icon": "🛍️",
@@ -346,9 +346,9 @@
           {
             "id": "cat-cmegst5k60011kuzf4r4z9tmp",
             "name": {
-              "ko": "category.digital",
-              "en": "[EN] category.digital",
-              "jp": "[JP] category.digital"
+              "ko": "디지털",
+              "en": "[EN] 디지털",
+              "jp": "[JP] 디지털"
             },
             "slug": "digital-review",
             "icon": "💻",
@@ -361,9 +361,9 @@
           {
             "id": "cat-cmegss8r3000fkuzfkp639r91",
             "name": {
-              "ko": "category.digital",
-              "en": "[EN] category.digital",
-              "jp": "[JP] category.digital"
+              "ko": "디지털",
+              "en": "[EN] 디지털",
+              "jp": "[JP] 디지털"
             },
             "slug": "digital",
             "icon": "📱",

@@ -9,9 +9,9 @@
     "hero",
     "category",
     "quicklinks",
-    "active-campaigns",
+    "promo",
     "ranking",
-    "promo"
+    "recommended"
   ],
   "sections": {
     "hero": {
@@ -315,63 +315,7 @@
           "en": "🏆 This Week's Popular Campaigns",
           "jp": "🏆 今週の人気キャンペーン"
         },
-        "subtitle": {
-          "ko": "가장 인기있는 캠페인을 확인해보세요",
-          "en": "Check out the most popular campaigns",
-          "jp": "最も人気のあるキャンペーンをチェック"
-        },
-        "sectionName": {
-          "ko": "인기 랭킹",
-          "en": "Popular Ranking",
-          "jp": "人気ランキング"
-        },
-        "campaigns": [
-          {
-            "id": "rank-1",
-            "rank": 1,
-            "title": {
-              "ko": "신상 뷰티 아이템 체험단",
-              "en": "New Beauty Item Experience",
-              "jp": "新商品美容アイテム体験団"
-            },
-            "brand": "Beauty Co.",
-            "category": "beauty",
-            "image": "",
-            "participants": 156,
-            "dueDate": "2025-08-30",
-            "isHot": true
-          },
-          {
-            "id": "rank-2", 
-            "rank": 2,
-            "title": {
-              "ko": "여름 패션 룩북 모델",
-              "en": "Summer Fashion Lookbook Model",
-              "jp": "夏ファッションルックブックモデル"
-            },
-            "brand": "Fashion Brand",
-            "category": "fashion",
-            "image": "",
-            "participants": 142,
-            "dueDate": "2025-08-28",
-            "isHot": false
-          },
-          {
-            "id": "rank-3",
-            "rank": 3,
-            "title": {
-              "ko": "맛집 리뷰 체험단",
-              "en": "Restaurant Review Experience",
-              "jp": "グルメレビュー体験団"
-            },
-            "brand": "Food World",
-            "category": "food",
-            "image": "",
-            "participants": 128,
-            "dueDate": "2025-09-05",
-            "isHot": false
-          }
-        ]
+        "campaigns": []
       }
     },
     "active-campaigns": {
@@ -383,144 +327,7 @@
           "en": "🔥 Active Campaigns",
           "jp": "🔥 進行中のキャンペーン"
         },
-        "subtitle": {
-          "ko": "지금 바로 참여할 수 있는 캠페인들",
-          "en": "Campaigns you can join right now",
-          "jp": "今すぐ参加できるキャンペーン"
-        },
-        "sectionName": {
-          "ko": "인기 캠페인",
-          "en": "Popular Campaigns", 
-          "jp": "人気キャンペーン"
-        },
         "limit": 12,
-        "viewMore": {
-          "ko": "더 많은 캠페인 보기",
-          "en": "View More Campaigns",
-          "jp": "もっと多くのキャンペーンを見る"
-        },
-        "campaigns": [
-          {
-            "id": "camp-1",
-            "title": {
-              "ko": "프리미엄 스킨케어 세트 체험",
-              "en": "Premium Skincare Set Experience",
-              "jp": "プレミアムスキンケアセット体験"
-            },
-            "brand": "Luxury Beauty",
-            "category": "beauty",
-            "image": "",
-            "thumbnail": "",
-            "description": {
-              "ko": "고급 스킨케어 라인의 신제품을 체험하고 리뷰해주세요",
-              "en": "Experience and review new products from premium skincare line",
-              "jp": "高級スキンケアラインの新製品を体験してレビューしてください"
-            },
-            "reward": {
-              "type": "product",
-              "value": "150,000원 상당 제품",
-              "valueEn": "Product worth $120",
-              "valueJp": "15,000円相当の製品"
-            },
-            "participants": 24,
-            "maxParticipants": 50,
-            "dueDate": "2025-09-15",
-            "tags": ["뷰티", "스킨케어", "프리미엄"],
-            "isHot": true,
-            "isNew": false,
-            "difficulty": "easy"
-          },
-          {
-            "id": "camp-2",
-            "title": {
-              "ko": "여름 아우터 스타일링 챌린지",
-              "en": "Summer Outer Styling Challenge",
-              "jp": "夏アウタースタイリングチャレンジ"
-            },
-            "brand": "Fashion Nova",
-            "category": "fashion",
-            "image": "",
-            "thumbnail": "",
-            "description": {
-              "ko": "트렌디한 여름 아우터로 나만의 스타일링을 완성하세요",
-              "en": "Complete your own styling with trendy summer outerwear",
-              "jp": "トレンディな夏のアウターで自分だけのスタイリングを完成させよう"
-            },
-            "reward": {
-              "type": "cash",
-              "value": "50,000원",
-              "valueEn": "$40",
-              "valueJp": "5,000円"
-            },
-            "participants": 18,
-            "maxParticipants": 30,
-            "dueDate": "2025-08-25",
-            "tags": ["패션", "스타일링", "여름"],
-            "isHot": false,
-            "isNew": true,
-            "difficulty": "medium"
-          },
-          {
-            "id": "camp-3",
-            "title": {
-              "ko": "건강한 한식 레시피 리뷰",
-              "en": "Healthy Korean Recipe Review",
-              "jp": "健康的な韓国料理レシピレビュー"
-            },
-            "brand": "K-Food World",
-            "category": "food",
-            "image": "",
-            "thumbnail": "",
-            "description": {
-              "ko": "전통 한식의 건강한 레시피를 체험하고 공유해주세요",
-              "en": "Experience and share healthy traditional Korean recipes",
-              "jp": "伝統的な韓国料理の健康的なレシピを体験してシェアしてください"
-            },
-            "reward": {
-              "type": "product",
-              "value": "한식 재료 세트",
-              "valueEn": "Korean ingredient set",
-              "valueJp": "韓国料理材料セット"
-            },
-            "participants": 35,
-            "maxParticipants": 40,
-            "dueDate": "2025-09-01",
-            "tags": ["음식", "한식", "건강"],
-            "isHot": false,
-            "isNew": false,
-            "difficulty": "hard"
-          },
-          {
-            "id": "camp-4",
-            "title": {
-              "ko": "스마트 홈 가전 체험단",
-              "en": "Smart Home Appliance Experience",
-              "jp": "スマートホーム家電体験団"
-            },
-            "brand": "Tech Innovations",
-            "category": "tech",
-            "image": "",
-            "thumbnail": "",
-            "description": {
-              "ko": "최신 스마트 홈 가전을 체험하고 사용 후기를 작성하세요",
-              "en": "Experience the latest smart home appliances and write reviews",
-              "jp": "最新のスマートホーム家電を体験して使用レビューを書いてください"
-            },
-            "reward": {
-              "type": "cash",
-              "value": "100,000원",
-              "valueEn": "$80",
-              "valueJp": "10,000円"
-            },
-            "participants": 12,
-            "maxParticipants": 25,
-            "dueDate": "2025-09-10",
-            "tags": ["IT", "스마트홈", "가전"],
-            "isHot": true,
-            "isNew": true,
-            "difficulty": "easy"
-          }
-        ],
         "filters": {
           "status": "active",
           "featured": true

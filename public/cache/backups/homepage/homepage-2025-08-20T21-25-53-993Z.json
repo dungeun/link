@@ -1,17 +1,17 @@
 {
   "metadata": {
-    "version": "2025.08.21.0601",
-    "lastUpdated": "2025-08-20T21:01:59.960Z",
+    "version": "2025.08.21.0615",
+    "lastUpdated": "2025-08-20T21:15:40.243Z",
     "orderedAt": "2025-08-20T23:45:00.000Z",
     "backupLevel": "default"
   },
   "sectionOrder": [
     "hero",
     "category",
-    "ranking",
     "quicklinks",
-    "recommended",
-    "promo"
+    "promo",
+    "ranking",
+    "recommended"
   ],
   "sections": {
     "hero": {
@@ -20,7 +20,7 @@
       "data": {
         "slides": [
           {
-            "id": "slide-1",
+            "id": "1",
             "title": {
               "ko": "인플루언서와 브랜드를\n연결하는 가장 쉬운 방법",
               "en": "[EN] 인플루언서와 브랜드를\n연결하는 가장 쉬운 방법",
@@ -36,119 +36,39 @@
               "en": "[EN] 🎯 NEW",
               "jp": "[JP] 🎯 NEW"
             },
-            "bgColor": "bg-gradient-to-br from-blue-400 to-blue-600",
+            "bgColor": "bg-gradient-to-br from-indigo-600 to-purple-600",
             "backgroundImage": null,
             "link": "/campaigns",
             "order": 1,
             "visible": true
           },
           {
-            "id": "slide-2",
+            "id": "2",
             "title": {
-              "ko": "hero.slide2.title",
-              "en": "[EN] hero.slide2.title",
-              "jp": "[JP] hero.slide2.title"
+              "ko": "최대 30% 할인\n첫 캠페인 특별 혜택",
+              "en": "[EN] 최대 30% 할인\n첫 캠페인 특별 혜택",
+              "jp": "[JP] 최대 30% 할인\n첫 캠페인 특별 혜택"
             },
             "subtitle": {
-              "ko": "hero.slide2.subtitle",
-              "en": "[EN] hero.slide2.subtitle",
-              "jp": "[JP] hero.slide2.subtitle"
-            },
-            "tag": null,
-            "bgColor": "bg-gradient-to-br from-gray-800 to-gray-900",
-            "backgroundImage": null,
-            "link": "/campaigns",
-            "order": 2,
-            "visible": true
-          },
-          {
-            "id": "slide-3",
-            "title": {
-              "ko": "hero.slide3.title",
-              "en": "[EN] hero.slide3.title",
-              "jp": "[JP] hero.slide3.title"
-            },
-            "subtitle": {
-              "ko": "hero.slide3.subtitle",
-              "en": "[EN] hero.slide3.subtitle",
-              "jp": "[JP] hero.slide3.subtitle"
-            },
-            "tag": null,
-            "bgColor": "bg-gradient-to-br from-green-400 to-green-600",
-            "backgroundImage": null,
-            "link": "/campaigns",
-            "order": 3,
-            "visible": true
-          },
-          {
-            "id": "slide-4",
-            "title": {
-              "ko": "hero.slide4.title",
-              "en": "[EN] hero.slide4.title",
-              "jp": "[JP] hero.slide4.title"
-            },
-            "subtitle": {
-              "ko": "hero.slide4.subtitle",
-              "en": "[EN] hero.slide4.subtitle",
-              "jp": "[JP] hero.slide4.subtitle"
+              "ko": "지금 시작하고 특별한 혜택을 받아보세요",
+              "en": "[EN] 지금 시작하고 특별한 혜택을 받아보세요",
+              "jp": "[JP] 지금 시작하고 특별한 혜택을 받아보세요"
             },
             "tag": {
-              "ko": "hero.slide4.tag",
-              "en": "[EN] hero.slide4.tag",
-              "jp": "[JP] hero.slide4.tag"
+              "ko": "💎 EVENT",
+              "en": "[EN] 💎 EVENT",
+              "jp": "[JP] 💎 EVENT"
             },
-            "bgColor": "bg-gradient-to-br from-pink-400 to-pink-600",
+            "bgColor": "bg-gradient-to-br from-emerald-500 to-teal-600",
             "backgroundImage": null,
-            "link": "/campaigns",
-            "order": 4,
-            "visible": true
-          },
-          {
-            "id": "slide-5",
-            "title": {
-              "ko": "hero.slide5.title",
-              "en": "[EN] hero.slide5.title",
-              "jp": "[JP] hero.slide5.title"
-            },
-            "subtitle": {
-              "ko": "hero.slide5.subtitle",
-              "en": "[EN] hero.slide5.subtitle",
-              "jp": "[JP] hero.slide5.subtitle"
-            },
-            "tag": null,
-            "bgColor": "bg-gradient-to-br from-indigo-400 to-indigo-600",
-            "backgroundImage": null,
-            "link": "/campaigns",
-            "order": 5,
-            "visible": true
-          },
-          {
-            "id": "slide-6",
-            "title": {
-              "ko": "hero.slide6.title",
-              "en": "[EN] hero.slide6.title",
-              "jp": "[JP] hero.slide6.title"
-            },
-            "subtitle": {
-              "ko": "hero.slide6.subtitle",
-              "en": "[EN] hero.slide6.subtitle",
-              "jp": "[JP] hero.slide6.subtitle"
-            },
-            "tag": {
-              "ko": "hero.slide6.tag",
-              "en": "[EN] hero.slide6.tag",
-              "jp": "[JP] hero.slide6.tag"
-            },
-            "bgColor": "bg-gradient-to-br from-gray-700 to-gray-900",
-            "backgroundImage": null,
-            "link": "/campaigns",
-            "order": 6,
+            "link": "/business/pricing",
+            "order": 1,
             "visible": true
           }
         ]
       }
     },
-    "categories": {
+    "category": {
       "type": "category",
       "visible": true,
       "data": {
@@ -156,9 +76,9 @@
           {
             "id": "cat-cmegigprq0000ldk0ht2s86jx",
             "name": {
-              "ko": "category.campaign",
-              "en": "[EN] category.campaign",
-              "jp": "[JP] category.campaign"
+              "ko": "캠페인",
+              "en": "[EN] 캠페인",
+              "jp": "[JP] 캠페인"
             },
             "slug": "campaign",
             "icon": "📢",
@@ -171,9 +91,9 @@
           {
             "id": "cat-cmegssrz7000pkuzf4xw5rjo6",
             "name": {
-              "ko": "category.food",
-              "en": "[EN] category.food",
-              "jp": "[JP] category.food"
+              "ko": "맛집",
+              "en": "[EN] 맛집",
+              "jp": "[JP] 맛집"
             },
             "slug": "restaurant-review",
             "icon": "🍴",
@@ -186,9 +106,9 @@
           {
             "id": "cat-cmegigpty0001ldk0lpmjr3im",
             "name": {
-              "ko": "category.hospital",
-              "en": "[EN] category.hospital",
-              "jp": "[JP] category.hospital"
+              "ko": "병원",
+              "en": "[EN] 병원",
+              "jp": "[JP] 병원"
             },
             "slug": "hospital",
             "icon": "🏥",
@@ -201,9 +121,9 @@
           {
             "id": "cat-cmegsrtpz0003kuzfkx9hcb4s",
             "name": {
-              "ko": "category.food",
-              "en": "[EN] category.food",
-              "jp": "[JP] category.food"
+              "ko": "맛집",
+              "en": "[EN] 맛집",
+              "jp": "[JP] 맛집"
             },
             "slug": "restaurant",
             "icon": "🍽️",
@@ -216,9 +136,9 @@
           {
             "id": "cat-cmegsn6c40005jutsv13arj0v",
             "name": {
-              "ko": "category.plastic_surgery",
-              "en": "[EN] category.plastic_surgery",
-              "jp": "[JP] category.plastic_surgery"
+              "ko": "성형외과",
+              "en": "[EN] 성형외과",
+              "jp": "[JP] 성형외과"
             },
             "slug": "plastic-surgery",
             "icon": "✨",
@@ -231,9 +151,9 @@
           {
             "id": "cat-cmegsrw8j0005kuzf5oz6fs4j",
             "name": {
-              "ko": "category.beauty",
-              "en": "[EN] category.beauty",
-              "jp": "[JP] category.beauty"
+              "ko": "뷰티",
+              "en": "[EN] 뷰티",
+              "jp": "[JP] 뷰티"
             },
             "slug": "beauty",
             "icon": "💄",
@@ -246,9 +166,9 @@
           {
             "id": "cat-cmegssul0000rkuzfjh0vw4l6",
             "name": {
-              "ko": "category.beauty",
-              "en": "[EN] category.beauty",
-              "jp": "[JP] category.beauty"
+              "ko": "뷰티",
+              "en": "[EN] 뷰티",
+              "jp": "[JP] 뷰티"
             },
             "slug": "beauty-review",
             "icon": "💋",
@@ -261,9 +181,9 @@
           {
             "id": "cat-cmegigpwq0002ldk0oxn9fqzc",
             "name": {
-              "ko": "category.review",
-              "en": "[EN] category.review",
-              "jp": "[JP] category.review"
+              "ko": "구매평",
+              "en": "[EN] 구매평",
+              "jp": "[JP] 구매평"
             },
             "slug": "review",
             "icon": "⭐",
@@ -276,9 +196,9 @@
           {
             "id": "cat-cmegsn6ss0007juts8spmpv6i",
             "name": {
-              "ko": "category.dermatology",
-              "en": "[EN] category.dermatology",
-              "jp": "[JP] category.dermatology"
+              "ko": "피부과",
+              "en": "[EN] 피부과",
+              "jp": "[JP] 피부과"
             },
             "slug": "dermatology",
             "icon": "🧴",
@@ -291,9 +211,9 @@
           {
             "id": "cat-cmegsswlt000tkuzft46muyt1",
             "name": {
-              "ko": "category.travel",
-              "en": "[EN] category.travel",
-              "jp": "[JP] category.travel"
+              "ko": "여행",
+              "en": "[EN] 여행",
+              "jp": "[JP] 여행"
             },
             "slug": "travel-review",
             "icon": "🧳",
@@ -306,9 +226,9 @@
           {
             "id": "cat-cmegss1xi0009kuzfxja6riw7",
             "name": {
-              "ko": "category.culture",
-              "en": "[EN] category.culture",
-              "jp": "[JP] category.culture"
+              "ko": "문화",
+              "en": "[EN] 문화",
+              "jp": "[JP] 문화"
             },
             "slug": "culture",
             "icon": "🎭",
@@ -321,9 +241,9 @@
           {
             "id": "cat-cmegsn7820009jutsj4zglujo",
             "name": {
-              "ko": "category.dentistry",
-              "en": "[EN] category.dentistry",
-              "jp": "[JP] category.dentistry"
+              "ko": "치과",
+              "en": "[EN] 치과",
+              "jp": "[JP] 치과"
             },
             "slug": "dentistry",
             "icon": "🦷",
@@ -336,9 +256,9 @@
           {
             "id": "cat-cmegssyl6000vkuzftccexw3f",
             "name": {
-              "ko": "category.culture",
-              "en": "[EN] category.culture",
-              "jp": "[JP] category.culture"
+              "ko": "문화",
+              "en": "[EN] 문화",
+              "jp": "[JP] 문화"
             },
             "slug": "culture-review",
             "icon": "🎨",
@@ -351,9 +271,9 @@
           {
             "id": "cat-cmegss432000bkuzf3nfvsqad",
             "name": {
-              "ko": "category.food",
-              "en": "[EN] category.food",
-              "jp": "[JP] category.food"
+              "ko": "식품",
+              "en": "[EN] 식품",
+              "jp": "[JP] 식품"
             },
             "slug": "food",
             "icon": "🥘",
@@ -366,9 +286,9 @@
           {
             "id": "cat-cmegsn7mi000bjutsqbbjtygm",
             "name": {
-              "ko": "category.ophthalmology",
-              "en": "[EN] category.ophthalmology",
-              "jp": "[JP] category.ophthalmology"
+              "ko": "안과",
+              "en": "[EN] 안과",
+              "jp": "[JP] 안과"
             },
             "slug": "ophthalmology",
             "icon": "👁️",
@@ -381,9 +301,9 @@
           {
             "id": "cat-cmegst0l9000xkuzf2xusyh02",
             "name": {
-              "ko": "category.food",
-              "en": "[EN] category.food",
-              "jp": "[JP] category.food"
+              "ko": "식품",
+              "en": "[EN] 식품",
+              "jp": "[JP] 식품"
             },
             "slug": "food-review",
             "icon": "🍎",
@@ -396,9 +316,9 @@
           {
             "id": "cat-cmegss6ym000dkuzfbz47y1h4",
             "name": {
-              "ko": "category.lifestyle",
-              "en": "[EN] category.lifestyle",
-              "jp": "[JP] category.lifestyle"
+              "ko": "생활",
+              "en": "[EN] 생활",
+              "jp": "[JP] 생활"
             },
             "slug": "lifestyle",
             "icon": "🏡",
@@ -411,9 +331,9 @@
           {
             "id": "cat-cmegst2mn000zkuzfqj1tuswo",
             "name": {
-              "ko": "category.lifestyle",
-              "en": "[EN] category.lifestyle",
-              "jp": "[JP] category.lifestyle"
+              "ko": "생활",
+              "en": "[EN] 생활",
+              "jp": "[JP] 생활"
             },
             "slug": "daily-review",
             "icon": "🛍️",
@@ -426,9 +346,9 @@
           {
             "id": "cat-cmegst5k60011kuzf4r4z9tmp",
             "name": {
-              "ko": "category.digital",
-              "en": "[EN] category.digital",
-              "jp": "[JP] category.digital"
+              "ko": "디지털",
+              "en": "[EN] 디지털",
+              "jp": "[JP] 디지털"
             },
             "slug": "digital-review",
             "icon": "💻",
@@ -441,9 +361,9 @@
           {
             "id": "cat-cmegss8r3000fkuzfkp639r91",
             "name": {
-              "ko": "category.digital",
-              "en": "[EN] category.digital",
-              "jp": "[JP] category.digital"
+              "ko": "디지털",
+              "en": "[EN] 디지털",
+              "jp": "[JP] 디지털"
             },
             "slug": "digital",
             "icon": "📱",
@@ -462,39 +382,39 @@
       "data": {
         "links": [
           {
-            "id": "quick-1",
+            "id": "1",
             "title": {
-              "ko": "quicklink.events",
-              "en": "[EN] quicklink.events",
-              "jp": "[JP] quicklink.events"
+              "ko": "🎁 첫 캠페인 30%",
+              "en": "[EN] 🎁 첫 캠페인 30%",
+              "jp": "[JP] 🎁 첫 캠페인 30%"
             },
-            "url": "/events",
+            "url": "/business/pricing",
             "icon": "🎁",
             "order": 1,
             "visible": true
           },
           {
-            "id": "quick-2",
+            "id": "2",
             "title": {
-              "ko": "quicklink.coupons",
-              "en": "[EN] quicklink.coupons",
-              "jp": "[JP] quicklink.coupons"
+              "ko": "📚 캠페인 가이드",
+              "en": "[EN] 📚 캠페인 가이드",
+              "jp": "[JP] 📚 캠페인 가이드"
             },
-            "url": "/coupons",
-            "icon": "🎟️",
-            "order": 2,
+            "url": "/guide",
+            "icon": "📚",
+            "order": 1,
             "visible": true
           },
           {
-            "id": "quick-3",
+            "id": "3",
             "title": {
-              "ko": "quicklink.ranking",
-              "en": "[EN] quicklink.ranking",
-              "jp": "[JP] quicklink.ranking"
+              "ko": "💬 실시간 상담",
+              "en": "[EN] 💬 실시간 상담",
+              "jp": "[JP] 💬 실시간 상담"
             },
-            "url": "/ranking",
-            "icon": "🏆",
-            "order": 3,
+            "url": "/support",
+            "icon": "💬",
+            "order": 1,
             "visible": true
           }
         ]
@@ -505,18 +425,18 @@
       "visible": true,
       "data": {
         "title": {
-          "ko": "promo.title",
-          "en": "[EN] promo.title",
-          "jp": "[JP] promo.title"
+          "ko": "🚀 지금 시작하세요!",
+          "en": "[EN] 🚀 지금 시작하세요!",
+          "jp": "[JP] 🚀 지금 시작하세요!"
         },
         "subtitle": {
-          "ko": "promo.subtitle",
-          "en": "[EN] promo.subtitle",
-          "jp": "[JP] promo.subtitle"
+          "ko": "첫 캠페인은 수수료 50% 할인",
+          "en": "[EN] 첫 캠페인은 수수료 50% 할인",
+          "jp": "[JP] 첫 캠페인은 수수료 50% 할인"
         },
-        "icon": "📦",
+        "icon": "🎯",
         "image": "/images/promo-banner.jpg",
-        "link": "/register?promo=launch30",
+        "link": "/business/register",
         "backgroundColor": "#FEF3C7",
         "textColor": "#000000"
       }

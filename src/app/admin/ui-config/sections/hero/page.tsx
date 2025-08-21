@@ -2,13 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Trash2, Eye, EyeOff, Upload, Save, Globe } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Eye, EyeOff, Upload, Save, Globe, RefreshCw } from 'lucide-react';
 
 interface HeroSlide {
   id: string;
   title: string;
+  titleEn?: string;
+  titleJp?: string;
   subtitle: string;
+  subtitleEn?: string;
+  subtitleJp?: string;
   tag?: string;
+  tagEn?: string;
+  tagJp?: string;
   link?: string;
   bgColor: string;
   backgroundImage?: string;
@@ -16,6 +22,8 @@ interface HeroSlide {
   order: number;
   useFullImage?: boolean;
   fullImageUrl?: string;
+  fullImageUrlEn?: string;
+  fullImageUrlJp?: string;
   fullImageWidth?: number;
   fullImageHeight?: number;
 }
@@ -27,6 +35,7 @@ export default function HeroSectionEditPage() {
   const [saving, setSaving] = useState(false);
   const [autoTranslate, setAutoTranslate] = useState(true);
   const [sectionVisible, setSectionVisible] = useState(true);
+  const [translating, setTranslating] = useState(false);
 
   // DB에서 데이터 로드
   useEffect(() => {
@@ -36,16 +45,41 @@ export default function HeroSectionEditPage() {
   const loadSection = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/ui-sections/hero');
+      // JSON 파일에서 직접 로드
+      const response = await fetch('/cache/homepage-unified.json');
       
       if (response.ok) {
         const data = await response.json();
-        if (data.section) {
-          // content.slides 데이터를 slides 상태로 설정
-          if (data.section.content?.slides) {
-            setSlides(data.section.content.slides);
+        if (data.sections?.hero) {
+          const heroSection = data.sections.hero;
+          // JSON 데이터를 Admin 형식으로 변환
+          if (heroSection.data?.slides) {
+            const convertedSlides = heroSection.data.slides.map((slide: any) => ({
+              id: slide.id,
+              title: slide.title?.ko || slide.title || '',
+              titleEn: slide.title?.en || '',
+              titleJp: slide.title?.jp || '',
+              subtitle: slide.subtitle?.ko || slide.subtitle || '',
+              subtitleEn: slide.subtitle?.en || '',
+              subtitleJp: slide.subtitle?.jp || '',
+              tag: slide.tag?.ko || slide.tag || '',
+              tagEn: slide.tag?.en || '',
+              tagJp: slide.tag?.jp || '',
+              link: slide.link || '',
+              bgColor: slide.bgColor || 'bg-gradient-to-br from-blue-600 to-cyan-600',
+              backgroundImage: slide.backgroundImage || null,
+              visible: slide.visible !== false,
+              order: slide.order || 1,
+              useFullImage: slide.useFullImage || false,
+              fullImageUrl: slide.fullImageUrl || '',
+              fullImageUrlEn: slide.fullImageUrlEn || '',
+              fullImageUrlJp: slide.fullImageUrlJp || '',
+              fullImageWidth: slide.fullImageWidth || 0,
+              fullImageHeight: slide.fullImageHeight || 0
+            }));
+            setSlides(convertedSlides);
           }
-          setSectionVisible(data.section.visible);
+          setSectionVisible(heroSection.visible !== false);
         }
       } else {
         console.error('Failed to load section');
@@ -98,7 +132,7 @@ export default function HeroSectionEditPage() {
     }
   };
 
-  const handleFullImageUpload = async (slideId: string, file: File) => {
+  const handleFullImageUpload = async (slideId: string, file: File, lang: 'ko' | 'en' | 'jp' = 'ko') => {
     // 전체 이미지 업로드 로직
     const formData = new FormData();
     formData.append('file', file);
@@ -115,11 +149,21 @@ export default function HeroSectionEditPage() {
         // 이미지 크기 정보 가져오기
         const img = new Image();
         img.onload = () => {
-          handleUpdateSlide(slideId, { 
-            fullImageUrl: data.url,
-            fullImageWidth: img.width,
-            fullImageHeight: img.height
-          });
+          if (lang === 'ko') {
+            handleUpdateSlide(slideId, { 
+              fullImageUrl: data.url,
+              fullImageWidth: img.width,
+              fullImageHeight: img.height
+            });
+          } else if (lang === 'en') {
+            handleUpdateSlide(slideId, { 
+              fullImageUrlEn: data.url
+            });
+          } else if (lang === 'jp') {
+            handleUpdateSlide(slideId, { 
+              fullImageUrlJp: data.url
+            });
+          }
         };
         img.src = data.url;
       }
@@ -140,18 +184,119 @@ export default function HeroSectionEditPage() {
     }
   };
 
+  // 자동 번역 함수
+  const handleAutoTranslate = async () => {
+    if (!autoTranslate) {
+      alert('자동 번역이 비활성화되어 있습니다.');
+      return;
+    }
+
+    setTranslating(true);
+    alert('번역 중입니다...');
+    try {
+      // 모든 슬라이드 번역
+      const translatedSlides = await Promise.all(slides.map(async (slide) => {
+        const response = await fetch('/admin/translations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            texts: {
+              title: slide.title,
+              subtitle: slide.subtitle,
+              tag: slide.tag
+            },
+            targetLanguages: ['en', 'jp']
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('번역 실패');
+        }
+
+        const translated = await response.json();
+        
+        return {
+          ...slide,
+          titleEn: translated.title?.en || slide.titleEn,
+          titleJp: translated.title?.jp || slide.titleJp,
+          subtitleEn: translated.subtitle?.en || slide.subtitleEn,
+          subtitleJp: translated.subtitle?.jp || slide.subtitleJp,
+          tagEn: translated.tag?.en || slide.tagEn,
+          tagJp: translated.tag?.jp || slide.tagJp
+        };
+      }));
+
+      setSlides(translatedSlides);
+      alert('번역이 완료되었습니다.');
+    } catch (error) {
+      console.error('Translation error:', error);
+      alert('번역 중 오류가 발생했습니다.');
+    } finally {
+      setTranslating(false);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
+    
+    // 자동 번역이 활성화되어 있고 영어/일본어 번역이 비어있으면 먼저 번역
+    if (autoTranslate) {
+      const needsTranslation = slides.some(slide => 
+        !slide.titleEn || !slide.titleJp || 
+        !slide.subtitleEn || !slide.subtitleJp
+      );
+      
+      if (needsTranslation) {
+        alert('번역 중입니다. 잠시만 기다려주세요...');
+        await handleAutoTranslate();
+      }
+    }
+    
     try {
-      const response = await fetch('/api/admin/ui-sections/hero', {
-        method: 'PUT',
+      // JSON 형식으로 변환 (다국어 지원)
+      const convertedSlides = slides.map(slide => ({
+        id: slide.id,
+        title: {
+          ko: slide.title,
+          en: slide.titleEn || slide.title,
+          jp: slide.titleJp || slide.title
+        },
+        subtitle: {
+          ko: slide.subtitle,
+          en: slide.subtitleEn || slide.subtitle,
+          jp: slide.subtitleJp || slide.subtitle
+        },
+        tag: slide.tag ? {
+          ko: slide.tag,
+          en: slide.tagEn || slide.tag,
+          jp: slide.tagJp || slide.tag
+        } : slide.tag,
+        link: slide.link,
+        bgColor: slide.bgColor,
+        backgroundImage: slide.backgroundImage,
+        visible: slide.visible,
+        order: slide.order,
+        useFullImage: slide.useFullImage,
+        fullImageUrl: slide.fullImageUrl,
+        fullImageUrlEn: slide.fullImageUrlEn,
+        fullImageUrlJp: slide.fullImageUrlJp,
+        fullImageWidth: slide.fullImageWidth,
+        fullImageHeight: slide.fullImageHeight
+      }));
+
+      const response = await fetch('/api/admin/sections-to-json', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          content: { slides },
-          visible: sectionVisible,
-          autoTranslate // 자동 번역 옵션 전달
+          sectionId: 'hero',
+          data: {
+            slides: convertedSlides
+          },
+          visible: sectionVisible
         })
       });
 
@@ -209,25 +354,39 @@ export default function HeroSectionEditPage() {
             </div>
             <div className="flex items-center gap-4">
               {/* 자동 번역 토글 */}
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={autoTranslate}
-                  onChange={(e) => setAutoTranslate(e.target.checked)}
-                  className="sr-only"
-                />
-                <div className={`w-10 h-6 rounded-full transition-colors ${
-                  autoTranslate ? 'bg-blue-600' : 'bg-gray-300'
-                }`}>
-                  <div className={`w-4 h-4 bg-white rounded-full transition-transform mt-1 ${
-                    autoTranslate ? 'translate-x-5' : 'translate-x-1'
-                  }`} />
-                </div>
-                <span className="flex items-center gap-1 text-sm text-gray-700">
-                  <Globe className="w-4 h-4" />
-                  자동 번역
-                </span>
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoTranslate}
+                    onChange={(e) => setAutoTranslate(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={`w-10 h-6 rounded-full transition-colors ${
+                    autoTranslate ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}>
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform mt-1 ${
+                      autoTranslate ? 'translate-x-5' : 'translate-x-1'
+                    }`} />
+                  </div>
+                  <span className="flex items-center gap-1 text-sm text-gray-700">
+                    <Globe className="w-4 h-4" />
+                    자동 번역
+                  </span>
+                </label>
+                
+                {/* 번역 새로고침 버튼 */}
+                {autoTranslate && (
+                  <button
+                    onClick={handleAutoTranslate}
+                    disabled={translating}
+                    className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="한국어 기준으로 번역 새로고침"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${translating ? 'animate-spin' : ''}`} />
+                  </button>
+                )}
+              </div>
 
               {/* 섹션 표시 토글 */}
               <label className="flex items-center gap-2 cursor-pointer">
@@ -289,7 +448,7 @@ export default function HeroSectionEditPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">제목</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">제목 (한국어)</label>
                     <textarea
                       value={slide.title}
                       onChange={(e) => handleUpdateSlide(slide.id, { title: e.target.value })}
@@ -298,9 +457,31 @@ export default function HeroSectionEditPage() {
                       placeholder="슬라이드 제목을 입력하세요"
                     />
                   </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">제목 (영어)</label>
+                    <textarea
+                      value={slide.titleEn || ''}
+                      onChange={(e) => handleUpdateSlide(slide.id, { titleEn: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                      placeholder="Enter slide title in English"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">제목 (일본어)</label>
+                    <textarea
+                      value={slide.titleJp || ''}
+                      onChange={(e) => handleUpdateSlide(slide.id, { titleJp: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={2}
+                      placeholder="スライドのタイトルを入力してください"
+                    />
+                  </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">부제목</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">부제목 (한국어)</label>
                     <input
                       type="text"
                       value={slide.subtitle}
@@ -309,18 +490,65 @@ export default function HeroSectionEditPage() {
                       placeholder="슬라이드 부제목을 입력하세요"
                     />
                   </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">부제목 (영어)</label>
+                    <input
+                      type="text"
+                      value={slide.subtitleEn || ''}
+                      onChange={(e) => handleUpdateSlide(slide.id, { subtitleEn: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter slide subtitle in English"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">부제목 (일본어)</label>
+                    <input
+                      type="text"
+                      value={slide.subtitleJp || ''}
+                      onChange={(e) => handleUpdateSlide(slide.id, { subtitleJp: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="スライドのサブタイトルを入力してください"
+                    />
+                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">태그</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">태그 (한국어)</label>
                       <input
                         type="text"
                         value={slide.tag || ''}
                         onChange={(e) => handleUpdateSlide(slide.id, { tag: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="예: 🎯 NEW"
+                        placeholder="예: 🎯 신규"
                       />
                     </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">태그 (영어)</label>
+                      <input
+                        type="text"
+                        value={slide.tagEn || ''}
+                        onChange={(e) => handleUpdateSlide(slide.id, { tagEn: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g. 🎯 NEW"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">태그 (일본어)</label>
+                      <input
+                        type="text"
+                        value={slide.tagJp || ''}
+                        onChange={(e) => handleUpdateSlide(slide.id, { tagJp: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="例: 🎯 新規"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">링크</label>
@@ -393,29 +621,87 @@ export default function HeroSectionEditPage() {
                     </>
                   ) : (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">전체 이미지</label>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">전체 이미지 (언어별)</label>
+                      <div className="space-y-4">
+                        {/* 한국어 이미지 */}
+                        <div className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">🇰🇷 한국어 이미지</span>
+                            {slide.fullImageUrl && (
+                              <span className="text-xs text-green-600">✓ 업로드됨</span>
+                            )}
+                          </div>
                           <input
                             type="file"
                             accept="image/*"
                             onChange={(e) => {
                               const file = e.target.files?.[0];
-                              if (file) handleFullImageUpload(slide.id, file);
+                              if (file) handleFullImageUpload(slide.id, file, 'ko');
                             }}
                             className="hidden"
-                            id={`full-image-${slide.id}`}
+                            id={`full-image-ko-${slide.id}`}
                           />
                           <label
-                            htmlFor={`full-image-${slide.id}`}
-                            className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 cursor-pointer flex items-center gap-2"
+                            htmlFor={`full-image-ko-${slide.id}`}
+                            className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center justify-center gap-2"
                           >
                             <Upload className="w-4 h-4" />
-                            전체 이미지 업로드
+                            한국어 이미지 업로드
                           </label>
-                          {slide.fullImageUrl && (
-                            <span className="text-sm text-green-600">✓ 업로드 완료</span>
-                          )}
+                        </div>
+
+                        {/* 영어 이미지 */}
+                        <div className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">🇺🇸 영어 이미지</span>
+                            {slide.fullImageUrlEn && (
+                              <span className="text-xs text-green-600">✓ 업로드됨</span>
+                            )}
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFullImageUpload(slide.id, file, 'en');
+                            }}
+                            className="hidden"
+                            id={`full-image-en-${slide.id}`}
+                          />
+                          <label
+                            htmlFor={`full-image-en-${slide.id}`}
+                            className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center justify-center gap-2"
+                          >
+                            <Upload className="w-4 h-4" />
+                            영어 이미지 업로드
+                          </label>
+                        </div>
+
+                        {/* 일본어 이미지 */}
+                        <div className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">🇯🇵 일본어 이미지</span>
+                            {slide.fullImageUrlJp && (
+                              <span className="text-xs text-green-600">✓ 업로드됨</span>
+                            )}
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFullImageUpload(slide.id, file, 'jp');
+                            }}
+                            className="hidden"
+                            id={`full-image-jp-${slide.id}`}
+                          />
+                          <label
+                            htmlFor={`full-image-jp-${slide.id}`}
+                            className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center justify-center gap-2"
+                          >
+                            <Upload className="w-4 h-4" />
+                            일본어 이미지 업로드
+                          </label>
                         </div>
                         
                         {slide.fullImageUrl && slide.fullImageWidth && slide.fullImageHeight && (

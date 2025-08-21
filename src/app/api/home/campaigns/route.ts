@@ -57,7 +57,8 @@ export async function GET(request: NextRequest) {
         campaigns = await prisma.campaign.findMany({
           ...baseQuery,
           where: {
-            status: 'ACTIVE' // 승인된 캠페인만
+            status: 'ACTIVE', // 승인된 캠페인만
+            deletedAt: null // 삭제되지 않은 캠페인만
           },
           orderBy: {
             applications: {
@@ -74,6 +75,7 @@ export async function GET(request: NextRequest) {
           ...baseQuery,
           where: {
             status: 'ACTIVE', // 승인된 캠페인만
+            deletedAt: null, // 삭제되지 않은 캠페인만
             endDate: {
               gte: new Date() // 아직 마감되지 않은 캠페인만
             }
@@ -90,7 +92,8 @@ export async function GET(request: NextRequest) {
         campaigns = await prisma.campaign.findMany({
           ...baseQuery,
           where: {
-            status: 'ACTIVE' // 승인된 캠페인만
+            status: 'ACTIVE', // 승인된 캠페인만
+            deletedAt: null // 삭제되지 않은 캠페인만
           },
           orderBy: {
             createdAt: 'desc'
@@ -104,7 +107,8 @@ export async function GET(request: NextRequest) {
         campaigns = await prisma.campaign.findMany({
           ...baseQuery,
           where: {
-            status: 'ACTIVE' // 승인된 캠페인만
+            status: 'ACTIVE', // 승인된 캠페인만
+            deletedAt: null // 삭제되지 않은 캠페인만
           },
           orderBy: [
             {

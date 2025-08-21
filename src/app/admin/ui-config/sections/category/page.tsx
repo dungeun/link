@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Eye, EyeOff, Save, Globe, ChevronUp, ChevronDown, 
   Shield, Tag, ShoppingCart, AlertTriangle, Smartphone, Heart, BookOpen, 
-  ThumbsUp, Users, Flower2, GraduationCap } from 'lucide-react';
+  ThumbsUp, Users, Flower2, GraduationCap, RefreshCw } from 'lucide-react';
 
 interface CategoryMenu {
   id: string;
   name: string;
+  nameEn?: string;
+  nameJp?: string;
   link: string;
   icon?: string;
   iconType?: 'emoji' | 'lucide';
@@ -20,17 +22,17 @@ interface CategoryMenu {
 
 // 고정된 카테고리 메뉴 목록 (스크린샷 기반)
 const defaultCategories: CategoryMenu[] = [
-  { id: '1', name: '뷰티', link: '/beauty', icon: 'Shield', iconType: 'lucide', badge: '', visible: true, order: 1 },
-  { id: '2', name: '패션', link: '/fashion', icon: 'Tag', iconType: 'lucide', badge: '', visible: true, order: 2 },
-  { id: '3', name: '맛집', link: '/food', icon: 'ShoppingCart', iconType: 'lucide', badge: 'HOT', badgeColor: 'red', visible: true, order: 3 },
-  { id: '4', name: '여행', link: '/travel', icon: 'AlertTriangle', iconType: 'lucide', badge: '', visible: true, order: 4 },
-  { id: '5', name: 'IT/테크', link: '/tech', icon: 'Smartphone', iconType: 'lucide', badge: '', visible: true, order: 5 },
-  { id: '6', name: '운동/헬스', link: '/fitness', icon: 'Heart', iconType: 'lucide', badge: '', visible: true, order: 6 },
-  { id: '7', name: '라이프', link: '/lifestyle', icon: 'BookOpen', iconType: 'lucide', badge: '신규', badgeColor: 'blue', visible: true, order: 7 },
-  { id: '8', name: '반려동물', link: '/pet', icon: 'ThumbsUp', iconType: 'lucide', badge: '', visible: true, order: 8 },
-  { id: '9', name: '육아', link: '/parenting', icon: 'Users', iconType: 'lucide', badge: '', visible: true, order: 9 },
-  { id: '10', name: '게임', link: '/game', icon: 'Flower2', iconType: 'lucide', badge: '', visible: true, order: 10 },
-  { id: '11', name: '교육', link: '/education', icon: 'GraduationCap', iconType: 'lucide', badge: '', visible: true, order: 11 },
+  { id: '1', name: '뷰티', nameEn: 'Beauty', nameJp: 'ビューティー', link: '/beauty', icon: 'Shield', iconType: 'lucide', badge: '', visible: true, order: 1 },
+  { id: '2', name: '패션', nameEn: 'Fashion', nameJp: 'ファッション', link: '/fashion', icon: 'Tag', iconType: 'lucide', badge: '', visible: true, order: 2 },
+  { id: '3', name: '맛집', nameEn: 'Food', nameJp: 'グルメ', link: '/food', icon: 'ShoppingCart', iconType: 'lucide', badge: 'HOT', badgeColor: 'red', visible: true, order: 3 },
+  { id: '4', name: '여행', nameEn: 'Travel', nameJp: '旅行', link: '/travel', icon: 'AlertTriangle', iconType: 'lucide', badge: '', visible: true, order: 4 },
+  { id: '5', name: 'IT/테크', nameEn: 'IT/Tech', nameJp: 'IT/テック', link: '/tech', icon: 'Smartphone', iconType: 'lucide', badge: '', visible: true, order: 5 },
+  { id: '6', name: '운동/헬스', nameEn: 'Fitness', nameJp: 'フィットネス', link: '/fitness', icon: 'Heart', iconType: 'lucide', badge: '', visible: true, order: 6 },
+  { id: '7', name: '라이프', nameEn: 'Lifestyle', nameJp: 'ライフスタイル', link: '/lifestyle', icon: 'BookOpen', iconType: 'lucide', badge: '신규', badgeColor: 'blue', visible: true, order: 7 },
+  { id: '8', name: '반려동물', nameEn: 'Pet', nameJp: 'ペット', link: '/pet', icon: 'ThumbsUp', iconType: 'lucide', badge: '', visible: true, order: 8 },
+  { id: '9', name: '육아', nameEn: 'Parenting', nameJp: '育児', link: '/parenting', icon: 'Users', iconType: 'lucide', badge: '', visible: true, order: 9 },
+  { id: '10', name: '게임', nameEn: 'Games', nameJp: 'ゲーム', link: '/game', icon: 'Flower2', iconType: 'lucide', badge: '', visible: true, order: 10 },
+  { id: '11', name: '교육', nameEn: 'Education', nameJp: '教育', link: '/education', icon: 'GraduationCap', iconType: 'lucide', badge: '', visible: true, order: 11 },
 ];
 
 // Lucide 아이콘 컴포넌트 매핑
@@ -44,44 +46,51 @@ export default function CategorySectionEditPage() {
   const [categoryMenus, setCategoryMenus] = useState<CategoryMenu[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [autoTranslate, setAutoTranslate] = useState(true);
+  const [autoTranslate, setAutoTranslate] = useState(false);
   const [sectionVisible, setSectionVisible] = useState(true);
+  const [translating, setTranslating] = useState(false);
   const [gridLayout, setGridLayout] = useState('6x11');
 
-  // DB에서 데이터 로드
+  // JSON에서 데이터 로드 (DB 대신)
   useEffect(() => {
-    loadSection();
+    loadSectionFromJSON();
   }, []);
 
-  const loadSection = async () => {
+  const loadSectionFromJSON = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/ui-sections/category');
+      // JSON에서 직접 데이터 가져오기
+      const response = await fetch('/api/admin/sections-to-json?section=category');
       
       if (response.ok) {
         const data = await response.json();
-        if (data.section) {
-          // content.categories 데이터를 categoryMenus 상태로 설정
-          if (data.section.content?.categories) {
-            setCategoryMenus(data.section.content.categories);
-          } else {
-            // 데이터가 없으면 기본값 사용
-            setCategoryMenus(defaultCategories);
-          }
-          if (data.section.content?.gridLayout) {
-            setGridLayout(data.section.content.gridLayout);
-          }
-          setSectionVisible(data.section.visible);
+        if (data?.data?.categories) {
+          // JSON 데이터를 Admin 형식으로 변환
+          const convertedCategories = data.data.categories.map((cat: any) => ({
+            id: cat.id,
+            name: typeof cat.name === 'object' ? cat.name.ko : cat.name,
+            nameEn: typeof cat.name === 'object' ? cat.name.en : cat.name,
+            nameJp: typeof cat.name === 'object' ? cat.name.jp : cat.name,
+            link: cat.href || `/category/${cat.slug}`,
+            icon: cat.icon || '📁',
+            iconType: cat.icon && !cat.icon.startsWith('http') && cat.icon.length === 1 ? 'lucide' : 'emoji',
+            badge: cat.badge || '',
+            badgeColor: cat.badgeColor || '',
+            visible: cat.visible ?? true,
+            order: cat.order || 1
+          }));
+          setCategoryMenus(convertedCategories);
+        } else {
+          // 데이터가 없으면 기본값 사용
+          setCategoryMenus(defaultCategories);
         }
-      } else if (response.status === 404) {
-        // 섹션이 없으면 기본 데이터로 초기화
-        setCategoryMenus(defaultCategories);
+        setSectionVisible(data?.visible ?? true);
       } else {
-        console.error('Failed to load section');
+        // JSON이 없으면 기본 데이터로 초기화
         setCategoryMenus(defaultCategories);
       }
     } catch (error) {
-      console.error('Error loading section:', error);
+      console.error('Error loading section from JSON:', error);
       setCategoryMenus(defaultCategories);
     } finally {
       setLoading(false);
@@ -92,6 +101,8 @@ export default function CategorySectionEditPage() {
     const newCategory: CategoryMenu = {
       id: Date.now().toString(),
       name: '새 카테고리',
+      nameEn: 'New Category',
+      nameJp: '新しいカテゴリ',
       link: '/new-category',
       icon: 'Shield',
       iconType: 'lucide',
@@ -107,6 +118,54 @@ export default function CategorySectionEditPage() {
     setCategoryMenus(categoryMenus.map(cat => 
       cat.id === id ? { ...cat, ...updates } : cat
     ));
+  };
+
+  // 자동 번역 함수
+  const handleAutoTranslate = async () => {
+    if (!autoTranslate) {
+      alert('자동 번역이 비활성화되어 있습니다.');
+      return;
+    }
+
+    setTranslating(true);
+    alert('번역 중입니다...');
+    try {
+      const translatedCategories = await Promise.all(categoryMenus.map(async (cat) => {
+        const response = await fetch('/admin/translations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            texts: {
+              name: cat.name,
+              badge: cat.badge
+            },
+            targetLanguages: ['en', 'jp']
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('번역 실패');
+        }
+
+        const translated = await response.json();
+        
+        return {
+          ...cat,
+          nameEn: translated.name?.en || cat.nameEn,
+          nameJp: translated.name?.jp || cat.nameJp
+        };
+      }));
+
+      setCategoryMenus(translatedCategories);
+      alert('번역이 완료되었습니다.');
+    } catch (error) {
+      console.error('Translation error:', error);
+      alert('번역 중 오류가 발생했습니다.');
+    } finally {
+      setTranslating(false);
+    }
   };
 
   const handleDeleteCategory = (id: string) => {
@@ -141,24 +200,56 @@ export default function CategorySectionEditPage() {
 
   const handleSave = async () => {
     setSaving(true);
+    
+    // 자동 번역이 활성화되어 있고 영어/일본어 번역이 비어있으면 먼저 번역
+    if (autoTranslate) {
+      const needsTranslation = categoryMenus.some(cat => 
+        !cat.nameEn || !cat.nameJp
+      );
+      
+      if (needsTranslation) {
+        alert('번역 중입니다. 잠시만 기다려주세요...');
+        await handleAutoTranslate();
+      }
+    }
+    
     try {
-      const response = await fetch('/api/admin/ui-sections/category', {
-        method: 'PUT',
+      // JSON으로 직접 저장 (다국어 지원)
+      const convertedCategories = categoryMenus.map(cat => ({
+        id: cat.id,
+        name: {
+          ko: cat.name,
+          en: cat.nameEn || cat.name,
+          jp: cat.nameJp || cat.name
+        },
+        slug: cat.link?.replace('/category/', '').replace('/', '') || cat.name,
+        icon: cat.icon,
+        href: cat.link,
+        order: cat.order,
+        visible: cat.visible,
+        badge: cat.badge || null,
+        badgeColor: cat.badgeColor || null
+      }));
+
+      const response = await fetch('/api/admin/sections-to-json', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          content: { 
-            categories: categoryMenus,
-            gridLayout 
-          },
-          visible: sectionVisible,
-          autoTranslate // 자동 번역 옵션 전달
+          sectionId: 'category',
+          data: {
+            categories: convertedCategories,
+            gridLayout,
+            visible: sectionVisible
+          }
         })
       });
 
       if (response.ok) {
         alert('저장되었습니다.');
+        // 필요시 DB에도 저장 (선택적)
+        // await fetch('/api/admin/ui-sections/category', {...})
         router.push('/admin/ui-config?tab=sections');
       } else {
         throw new Error('Save failed');
@@ -252,25 +343,39 @@ export default function CategorySectionEditPage() {
             </div>
             <div className="flex items-center gap-4">
               {/* 자동 번역 토글 */}
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={autoTranslate}
-                  onChange={(e) => setAutoTranslate(e.target.checked)}
-                  className="sr-only"
-                />
-                <div className={`w-10 h-6 rounded-full transition-colors ${
-                  autoTranslate ? 'bg-blue-600' : 'bg-gray-300'
-                }`}>
-                  <div className={`w-4 h-4 bg-white rounded-full transition-transform mt-1 ${
-                    autoTranslate ? 'translate-x-5' : 'translate-x-1'
-                  }`} />
-                </div>
-                <span className="flex items-center gap-1 text-sm text-gray-700">
-                  <Globe className="w-4 h-4" />
-                  자동 번역
-                </span>
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoTranslate}
+                    onChange={(e) => setAutoTranslate(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={`w-10 h-6 rounded-full transition-colors ${
+                    autoTranslate ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}>
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform mt-1 ${
+                      autoTranslate ? 'translate-x-5' : 'translate-x-1'
+                    }`} />
+                  </div>
+                  <span className="flex items-center gap-1 text-sm text-gray-700">
+                    <Globe className="w-4 h-4" />
+                    자동 번역
+                  </span>
+                </label>
+                
+                {/* 번역 새로고침 버튼 */}
+                {autoTranslate && (
+                  <button
+                    onClick={handleAutoTranslate}
+                    disabled={translating}
+                    className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="한국어 기준으로 번역 새로고침"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${translating ? 'animate-spin' : ''}`} />
+                  </button>
+                )}
+              </div>
 
               {/* 섹션 표시 토글 */}
               <label className="flex items-center gap-2 cursor-pointer">
@@ -288,7 +393,7 @@ export default function CategorySectionEditPage() {
                   }`} />
                 </div>
                 <span className="flex items-center gap-1 text-sm text-gray-700">
-                  {sectionVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  <Eye className="w-4 h-4" />
                   섹션 표시
                 </span>
               </label>
@@ -395,84 +500,117 @@ export default function CategorySectionEditPage() {
                   </div>
 
                   {/* 카테고리 정보 입력 */}
-                  <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        카테고리명
-                      </label>
-                      <input
-                        type="text"
-                        value={category.name}
-                        onChange={(e) => handleUpdateCategory(category.id, { name: e.target.value })}
-                        className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
-                      />
+                  <div className="flex-1 space-y-3">
+                    {/* 첫 줄: 기본 정보 */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          링크 URL
+                        </label>
+                        <input
+                          type="text"
+                          value={category.link}
+                          onChange={(e) => handleUpdateCategory(category.id, { link: e.target.value })}
+                          className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                          placeholder="/category-url"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          아이콘
+                        </label>
+                        <select
+                          value={category.icon || ''}
+                          onChange={(e) => handleUpdateCategory(category.id, { 
+                            icon: e.target.value,
+                            iconType: 'lucide'
+                          })}
+                          className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                        >
+                          {iconOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          배지
+                        </label>
+                        <select
+                          value={category.badge || ''}
+                          onChange={(e) => handleUpdateCategory(category.id, { badge: e.target.value })}
+                          className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                        >
+                          {badgeOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          배지 색상
+                        </label>
+                        <select
+                          value={category.badgeColor || ''}
+                          onChange={(e) => handleUpdateCategory(category.id, { badgeColor: e.target.value })}
+                          className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                        >
+                          {badgeOptions.map(option => (
+                            <option key={option.value} value={option.color}>
+                              {option.label} {option.color && `(${option.color})`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        링크 URL
-                      </label>
-                      <input
-                        type="text"
-                        value={category.link}
-                        onChange={(e) => handleUpdateCategory(category.id, { link: e.target.value })}
-                        className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
-                        placeholder="/category-url"
-                      />
-                    </div>
+                    {/* 둘째 줄: 다국어 이름 */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          한국어 이름 🇰🇷
+                        </label>
+                        <input
+                          type="text"
+                          value={category.name}
+                          onChange={(e) => handleUpdateCategory(category.id, { name: e.target.value })}
+                          className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                          placeholder="맛집"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        아이콘
-                      </label>
-                      <select
-                        value={category.icon || ''}
-                        onChange={(e) => handleUpdateCategory(category.id, { 
-                          icon: e.target.value,
-                          iconType: 'lucide'
-                        })}
-                        className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
-                      >
-                        {iconOptions.map(option => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          영어 이름 🇺🇸
+                        </label>
+                        <input
+                          type="text"
+                          value={category.nameEn || ''}
+                          onChange={(e) => handleUpdateCategory(category.id, { nameEn: e.target.value })}
+                          className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                          placeholder="Food"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        배지
-                      </label>
-                      <select
-                        value={category.badge || ''}
-                        onChange={(e) => handleUpdateCategory(category.id, { badge: e.target.value })}
-                        className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
-                      >
-                        {badgeOptions.map(option => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        배지 색상
-                      </label>
-                      <select
-                        value={category.badgeColor || ''}
-                        onChange={(e) => handleUpdateCategory(category.id, { badgeColor: e.target.value })}
-                        className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
-                      >
-                        {badgeOptions.map(option => (
-                          <option key={option.value} value={option.color}>
-                            {option.label} {option.color && `(${option.color})`}
-                          </option>
-                        ))}
-                      </select>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          일본어 이름 🇯🇵
+                        </label>
+                        <input
+                          type="text"
+                          value={category.nameJp || ''}
+                          onChange={(e) => handleUpdateCategory(category.id, { nameJp: e.target.value })}
+                          className="w-full px-3 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                          placeholder="グルメ"
+                        />
+                      </div>
                     </div>
                   </div>
 

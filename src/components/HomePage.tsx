@@ -27,7 +27,16 @@ import {
   GraduationCap,
   Trophy,
   PlusCircle,
-  BarChart3
+  BarChart3,
+  Shield,
+  Tag,
+  ShoppingCart,
+  AlertTriangle,
+  Smartphone,
+  BookOpen,
+  ThumbsUp,
+  Users,
+  Flower2
 } from 'lucide-react'
 
 // Code splitting for heavy components
@@ -50,6 +59,7 @@ const ActiveCampaignsSection = dynamic(() => import('@/components/home/ActiveCam
   loading: () => <div className="h-64 bg-gray-100 rounded-xl animate-pulse" />,
   ssr: false
 })
+
 
 import { CriticalCSS } from '@/components/CriticalCSS'
 import Image from 'next/image'
@@ -189,6 +199,15 @@ function HomePage({
     'Heart': Heart,
     'Baby': Baby,
     'Gamepad2': Gamepad2,
+    'Shield': Shield,
+    'Tag': Tag,
+    'ShoppingCart': ShoppingCart,
+    'AlertTriangle': AlertTriangle,
+    'Smartphone': Smartphone,
+    'BookOpen': BookOpen,
+    'ThumbsUp': ThumbsUp,
+    'Users': Users,
+    'Flower2': Flower2,
     'GraduationCap': GraduationCap,
     'Trophy': Trophy,
     'PlusCircle': PlusCircle,
@@ -616,7 +635,7 @@ function HomePage({
                             href={category.link || category.url || `/category/${category.slug || category.categoryId || 'all'}`}
                             className="flex flex-col items-center gap-1.5 group"
                           >
-                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative">
+                            <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-50 transition-colors relative">
                               {renderCategoryIcon(category, 'small')}
                               {category.badge && (
                                 <span className={`absolute -top-1 -right-1 text-[8px] px-1 py-0.5 text-white rounded-full font-bold min-w-[14px] text-center leading-none ${
@@ -676,14 +695,9 @@ function HomePage({
                 ) : null
 
               case 'ranking':
-                return (
-                  <div key={section.id} className="mb-12">
-                    <h2 className="text-2xl font-bold mb-6">{getLocalizedText(section.data?.title)}</h2>
-                    <div className="text-center py-8 text-gray-500">
-                      랭킹 섹션 (임시)
-                    </div>
-                  </div>
-                )
+                return section.data ? (
+                  <RankingSection key={section.id} data={section.data} />
+                ) : null
 
               case 'recommended':
                 return (
@@ -696,14 +710,10 @@ function HomePage({
                 )
               case 'activeCampaigns':
               case 'campaigns':
-                return (
-                  <div key={section.id} className="mb-12">
-                    <h2 className="text-2xl font-bold mb-6">{getLocalizedText(section.data?.title)}</h2>
-                    <div className="text-center py-8 text-gray-500">
-                      활성 캠페인 섹션 (임시)
-                    </div>
-                  </div>
-                )
+              case 'active-campaigns':
+                return section.data ? (
+                  <ActiveCampaignsSection key={section.id} data={section.data} />
+                ) : null
               
 
               default:

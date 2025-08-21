@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Trash2, Eye, EyeOff, Save, Globe } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Eye, EyeOff, Save, Globe, RefreshCw } from 'lucide-react';
 
 interface QuickLink {
   id: string;
   title: string;
+  titleEn?: string;
+  titleJp?: string;
   link: string;
   icon?: string;
   visible: boolean;
@@ -20,6 +22,7 @@ export default function QuickLinksSectionEditPage() {
   const [saving, setSaving] = useState(false);
   const [autoTranslate, setAutoTranslate] = useState(true);
   const [sectionVisible, setSectionVisible] = useState(true);
+  const [translating, setTranslating] = useState(false);
 
   // DB에서 데이터 로드
   useEffect(() => {
@@ -29,45 +32,29 @@ export default function QuickLinksSectionEditPage() {
   const loadSection = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/ui-sections/quicklinks');
+      // JSON 파일에서 직접 로드
+      const response = await fetch('/cache/homepage-unified.json');
       
       if (response.ok) {
         const data = await response.json();
-        if (data.section) {
-          // content.links 데이터를 quickLinks 상태로 설정
-          if (data.section.content?.links) {
-            setQuickLinks(data.section.content.links);
+        if (data.sections?.quicklinks) {
+          const quicklinksSection = data.sections.quicklinks;
+          // JSON 데이터를 Admin 형식으로 변환
+          if (quicklinksSection.data?.links) {
+            const convertedLinks = quicklinksSection.data.links.map((link: any) => ({
+              id: link.id,
+              title: link.title?.ko || link.title || '',
+              titleEn: link.title?.en || '',
+              titleJp: link.title?.jp || '',
+              link: link.url || link.link || '',
+              icon: link.icon || '🔗',
+              visible: link.visible !== false,
+              order: link.order || 1
+            }));
+            setQuickLinks(convertedLinks);
           }
-          setSectionVisible(data.section.visible);
+          setSectionVisible(quicklinksSection.visible !== false);
         }
-      } else if (response.status === 404) {
-        // 섹션이 없으면 기본 데이터로 초기화
-        setQuickLinks([
-          { 
-            id: '1', 
-            title: '인플루언서 등록', 
-            link: '/register?type=influencer', 
-            icon: '🎯',
-            visible: true, 
-            order: 1 
-          },
-          { 
-            id: '2', 
-            title: '캠페인 의뢰', 
-            link: '/register?type=business', 
-            icon: '📢',
-            visible: true, 
-            order: 2 
-          },
-          { 
-            id: '3', 
-            title: '이용가이드', 
-            link: '/guide', 
-            icon: '📖',
-            visible: true, 
-            order: 3 
-          },
-        ]);
       } else {
         console.error('Failed to load section');
       }
@@ -112,18 +99,94 @@ export default function QuickLinksSectionEditPage() {
     }
   };
 
+  // 자동 번역 함수
+  const handleAutoTranslate = async () => {
+    if (!autoTranslate) {
+      alert('자동 번역이 비활성화되어 있습니다.');
+      return;
+    }
+
+    setTranslating(true);
+    alert('번역 중입니다...');
+    try {
+      const translatedLinks = await Promise.all(quickLinks.map(async (link) => {
+        const response = await fetch('/admin/translations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            texts: {
+              title: link.title
+            },
+            targetLanguages: ['en', 'jp']
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('번역 실패');
+        }
+
+        const translated = await response.json();
+        
+        return {
+          ...link,
+          titleEn: translated.title?.en || link.titleEn,
+          titleJp: translated.title?.jp || link.titleJp
+        };
+      }));
+
+      setQuickLinks(translatedLinks);
+      alert('번역이 완료되었습니다.');
+    } catch (error) {
+      console.error('Translation error:', error);
+      alert('번역 중 오류가 발생했습니다.');
+    } finally {
+      setTranslating(false);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
+    
+    // 자동 번역이 활성화되어 있고 영어/일본어 번역이 비어있으면 먼저 번역
+    if (autoTranslate) {
+      const needsTranslation = quickLinks.some(link => 
+        !link.titleEn || !link.titleJp
+      );
+      
+      if (needsTranslation) {
+        alert('번역 중입니다. 잠시만 기다려주세요...');
+        await handleAutoTranslate();
+      }
+    }
+    
     try {
-      const response = await fetch('/api/admin/ui-sections/quicklinks', {
-        method: 'PUT',
+      // JSON 형식으로 변환 (다국어 지원)
+      const convertedLinks = quickLinks.map(link => ({
+        id: link.id,
+        title: {
+          ko: link.title,
+          en: link.titleEn || link.title,
+          jp: link.titleJp || link.title
+        },
+        url: link.link,
+        icon: link.icon,
+        visible: link.visible,
+        order: link.order
+      }));
+
+      const response = await fetch('/api/admin/sections-to-json', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          content: { links: quickLinks },
-          visible: sectionVisible,
-          autoTranslate // 자동 번역 옵션 전달
+          sectionId: 'quicklinks',
+          data: {
+            links: convertedLinks
+          },
+          visible: sectionVisible
         })
       });
 
@@ -177,25 +240,39 @@ export default function QuickLinksSectionEditPage() {
             </div>
             <div className="flex items-center gap-4">
               {/* 자동 번역 토글 */}
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={autoTranslate}
-                  onChange={(e) => setAutoTranslate(e.target.checked)}
-                  className="sr-only"
-                />
-                <div className={`w-10 h-6 rounded-full transition-colors ${
-                  autoTranslate ? 'bg-blue-600' : 'bg-gray-300'
-                }`}>
-                  <div className={`w-4 h-4 bg-white rounded-full transition-transform mt-1 ${
-                    autoTranslate ? 'translate-x-5' : 'translate-x-1'
-                  }`} />
-                </div>
-                <span className="flex items-center gap-1 text-sm text-gray-700">
-                  <Globe className="w-4 h-4" />
-                  자동 번역
-                </span>
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoTranslate}
+                    onChange={(e) => setAutoTranslate(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={`w-10 h-6 rounded-full transition-colors ${
+                    autoTranslate ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}>
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform mt-1 ${
+                      autoTranslate ? 'translate-x-5' : 'translate-x-1'
+                    }`} />
+                  </div>
+                  <span className="flex items-center gap-1 text-sm text-gray-700">
+                    <Globe className="w-4 h-4" />
+                    자동 번역
+                  </span>
+                </label>
+                
+                {/* 번역 새로고침 버튼 */}
+                {autoTranslate && (
+                  <button
+                    onClick={handleAutoTranslate}
+                    disabled={translating}
+                    className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="한국어 기준으로 번역 새로고침"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${translating ? 'animate-spin' : ''}`} />
+                  </button>
+                )}
+              </div>
 
               {/* 섹션 표시 토글 */}
               <label className="flex items-center gap-2 cursor-pointer">
@@ -260,7 +337,7 @@ export default function QuickLinksSectionEditPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      제목
+                      제목 (한국어)
                     </label>
                     <input
                       type="text"
@@ -268,6 +345,32 @@ export default function QuickLinksSectionEditPage() {
                       onChange={(e) => handleUpdateLink(link.id, { title: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="링크 제목을 입력하세요"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      제목 (영어)
+                    </label>
+                    <input
+                      type="text"
+                      value={link.titleEn || ''}
+                      onChange={(e) => handleUpdateLink(link.id, { titleEn: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter link title in English"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      제목 (일본어)
+                    </label>
+                    <input
+                      type="text"
+                      value={link.titleJp || ''}
+                      onChange={(e) => handleUpdateLink(link.id, { titleJp: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="リンクのタイトルを入力してください"
                     />
                   </div>
 

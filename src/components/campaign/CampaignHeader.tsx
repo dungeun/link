@@ -101,7 +101,7 @@ export default function CampaignHeader({
   return (
     <>
       {/* 헤더 이미지 */}
-      <div className="relative h-96 bg-gray-900">
+      <div className="relative h-96 bg-gradient-to-br from-blue-600 to-indigo-700 overflow-hidden">
         {(() => {
           // 이미지 URL 우선순위: headerImageUrl > thumbnailImageUrl > imageUrl
           const imageUrl = campaign.headerImageUrl || campaign.thumbnailImageUrl || campaign.imageUrl;
@@ -112,30 +112,29 @@ export default function CampaignHeader({
                 src={imageUrl}
                 alt={campaign.title}
                 fill
-                className="object-cover opacity-80"
+                className="object-cover"
                 priority={true}
                 quality={85}
                 sizes="100vw"
                 onError={(e) => {
                   console.error('Failed to load header image:', imageUrl);
-                  // 이미지 로드 실패 시 숨김
-                  (e.target as HTMLImageElement).style.display = 'none';
+                  // 이미지 로드 실패 시에도 기본 gradient 배경이 보이도록 함
+                  (e.target as HTMLImageElement).style.opacity = '0';
                 }}
               />
             );
-          } else {
-            return <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600" />;
           }
+          return null; // 이미지가 없을 때는 배경 gradient만 사용
         })()}
         
         {/* 오버레이 */}
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/30" />
         
         {/* 뒤로가기 버튼 */}
         <div className="absolute top-6 left-6 z-10">
           <Button
             variant="ghost"
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-white/20 backdrop-blur-sm"
             onClick={() => router.back()}
           >
             ← 뒤로가기
@@ -147,7 +146,7 @@ export default function CampaignHeader({
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-white/20 backdrop-blur-sm"
             onClick={onShare}
           >
             <Share2 className="w-5 h-5" />
@@ -155,7 +154,7 @@ export default function CampaignHeader({
           <Button
             variant="ghost"
             size="icon"
-            className={`text-white hover:bg-white/20 ${isLiked ? 'text-red-500' : ''}`}
+            className={`text-white hover:bg-white/20 backdrop-blur-sm ${isLiked ? 'text-red-400' : ''}`}
             onClick={onLike}
           >
             <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
@@ -164,48 +163,60 @@ export default function CampaignHeader({
       </div>
 
       {/* 기본 정보 카드 */}
-      <div className="bg-white rounded-xl shadow-sm p-8">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{campaign.title}</h1>
-            <div className="flex items-center gap-4">
-              {getStatusBadge(campaign.status)}
-              <span className="text-gray-500">|</span>
-              <div className="flex items-center gap-2">
-                {(campaign.platforms || []).map((platform: any) => (
-                  <span key={platform} className="flex items-center gap-1 text-gray-600">
-                    {getPlatformIcon(platform)}
-                  </span>
-                ))}
+      <div className="bg-white shadow-lg border border-gray-100 mx-6 -mt-20 relative z-10 rounded-2xl">
+        <div className="p-8">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4 leading-tight">{campaign.title}</h1>
+              <div className="flex items-center gap-4 flex-wrap">
+                {getStatusBadge(campaign.status)}
+                <span className="text-gray-300">|</span>
+                <div className="flex items-center gap-3">
+                  {(campaign.platforms || []).map((platform: any, index: number) => {
+                    // 플랫폼이 객체인 경우 처리
+                    const platformName = typeof platform === 'string' 
+                      ? platform 
+                      : platform?.name || platform?.type || platform?.platform || 'UNKNOWN';
+                    
+                    return (
+                      <span key={index} className="flex items-center gap-1 text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+                        {getPlatformIcon(platformName)}
+                        <span className="text-sm font-medium capitalize">
+                          {platformName.toLowerCase()}
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* 비즈니스 정보 */}
-        <Link href={`/business/${campaign.business?.id || ''}`} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors mb-6">
-          <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden">
-            {campaign.business?.logo ? (
-              <Image
-                src={campaign.business?.logo || ''}
-                alt={campaign.business?.name || ''}
-                width={64}
-                height={64}
-                className="object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                <Users className="w-8 h-8" />
-              </div>
-            )}
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{campaign.business?.name || ''}</h3>
-            <p className="text-sm text-gray-600">
-              {campaign.categories?.[0]?.category?.name || campaign.business?.category || ''}
-            </p>
-          </div>
-        </Link>
+          {/* 비즈니스 정보 */}
+          <Link href={`/business/${campaign.business?.id || ''}`} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-100">
+            <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+              {campaign.business?.logo ? (
+                <Image
+                  src={campaign.business?.logo || ''}
+                  alt={campaign.business?.name || ''}
+                  width={64}
+                  height={64}
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <Users className="w-8 h-8" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-gray-900 text-lg truncate">{campaign.business?.name || ''}</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                {campaign.categories?.[0]?.category?.name || campaign.business?.category || ''}
+              </p>
+            </div>
+          </Link>
+        </div>
       </div>
     </>
   )

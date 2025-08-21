@@ -1,0 +1,338 @@
+{
+  "metadata": {
+    "version": "2025.8.21.633",
+    "lastUpdated": "2025-08-20T21:33:49.093Z",
+    "orderedAt": "2025-08-20T23:45:00.000Z",
+    "backupLevel": "default"
+  },
+  "sectionOrder": [
+    "hero",
+    "category",
+    "quicklinks",
+    "promo",
+    "ranking",
+    "recommended"
+  ],
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "visible": true,
+      "data": {
+        "slides": [
+          {
+            "id": "1",
+            "title": {
+              "ko": "인플루언서와 브랜드를\n연결하는 가장 쉬운 방법",
+              "en": "[EN] 인플루언서와 브랜드를\n연결하는 가장 쉬운 방법",
+              "jp": "[JP] 인플루언서와 브랜드를\n연결하는 가장 쉬운 방법"
+            },
+            "subtitle": {
+              "ko": "리뷰와 함께 성장의 기회를 만나보세요",
+              "en": "[EN] 리뷰와 함께 성장의 기회를 만나보세요",
+              "jp": "[JP] 리뷰와 함께 성장의 기회를 만나보세요"
+            },
+            "tag": {
+              "ko": "🎯 NEW",
+              "en": "[EN] 🎯 NEW",
+              "jp": "[JP] 🎯 NEW"
+            },
+            "bgColor": "bg-gradient-to-br from-indigo-600 to-purple-600",
+            "backgroundImage": null,
+            "link": "/campaigns",
+            "order": 1,
+            "visible": true
+          },
+          {
+            "id": "2",
+            "title": {
+              "ko": "최대 30% 할인\n첫 캠페인 특별 혜택",
+              "en": "[EN] 최대 30% 할인\n첫 캠페인 특별 혜택",
+              "jp": "[JP] 최대 30% 할인\n첫 캠페인 특별 혜택"
+            },
+            "subtitle": {
+              "ko": "지금 시작하고 특별한 혜택을 받아보세요",
+              "en": "[EN] 지금 시작하고 특별한 혜택을 받아보세요",
+              "jp": "[JP] 지금 시작하고 특별한 혜택을 받아보세요"
+            },
+            "tag": {
+              "ko": "💎 EVENT",
+              "en": "[EN] 💎 EVENT",
+              "jp": "[JP] 💎 EVENT"
+            },
+            "bgColor": "bg-gradient-to-br from-emerald-500 to-teal-600",
+            "backgroundImage": null,
+            "link": "/business/pricing",
+            "order": 1,
+            "visible": true
+          }
+        ]
+      }
+    },
+    "category": {
+      "type": "category",
+      "visible": true,
+      "data": {
+        "categories": [
+          {
+            "id": "1",
+            "name": {
+              "ko": "뷰티",
+              "en": "뷰티",
+              "jp": "뷰티"
+            },
+            "slug": "/beauty",
+            "icon": "Shield",
+            "href": "/beauty",
+            "order": 1,
+            "visible": true,
+            "badge": null,
+            "badgeColor": null
+          },
+          {
+            "id": "2",
+            "name": {
+              "ko": "패션",
+              "en": "패션",
+              "jp": "패션"
+            },
+            "slug": "/fashion",
+            "icon": "Tag",
+            "href": "/fashion",
+            "order": 2,
+            "visible": true,
+            "badge": null,
+            "badgeColor": null
+          },
+          {
+            "id": "3",
+            "name": {
+              "ko": "맛집",
+              "en": "맛집",
+              "jp": "맛집"
+            },
+            "slug": "/food",
+            "icon": "ShoppingCart",
+            "href": "/food",
+            "order": 3,
+            "visible": true,
+            "badge": "HOT",
+            "badgeColor": "red"
+          },
+          {
+            "id": "4",
+            "name": {
+              "ko": "여행",
+              "en": "여행",
+              "jp": "여행"
+            },
+            "slug": "/travel",
+            "icon": "AlertTriangle",
+            "href": "/travel",
+            "order": 4,
+            "visible": true,
+            "badge": null,
+            "badgeColor": null
+          },
+          {
+            "id": "5",
+            "name": {
+              "ko": "IT/테크",
+              "en": "IT/테크",
+              "jp": "IT/테크"
+            },
+            "slug": "/tech",
+            "icon": "Smartphone",
+            "href": "/tech",
+            "order": 5,
+            "visible": true,
+            "badge": null,
+            "badgeColor": null
+          },
+          {
+            "id": "6",
+            "name": {
+              "ko": "운동/헬스",
+              "en": "운동/헬스",
+              "jp": "운동/헬스"
+            },
+            "slug": "/fitness",
+            "icon": "Heart",
+            "href": "/fitness",
+            "order": 6,
+            "visible": true,
+            "badge": null,
+            "badgeColor": null
+          },
+          {
+            "id": "7",
+            "name": {
+              "ko": "라이프",
+              "en": "라이프",
+              "jp": "라이프"
+            },
+            "slug": "/lifestyle",
+            "icon": "BookOpen",
+            "href": "/lifestyle",
+            "order": 7,
+            "visible": true,
+            "badge": "신규",
+            "badgeColor": "blue"
+          },
+          {
+            "id": "8",
+            "name": {
+              "ko": "반려동물",
+              "en": "반려동물",
+              "jp": "반려동물"
+            },
+            "slug": "/pet",
+            "icon": "ThumbsUp",
+            "href": "/pet",
+            "order": 8,
+            "visible": true,
+            "badge": null,
+            "badgeColor": null
+          },
+          {
+            "id": "9",
+            "name": {
+              "ko": "육아",
+              "en": "육아",
+              "jp": "육아"
+            },
+            "slug": "/parenting",
+            "icon": "Users",
+            "href": "/parenting",
+            "order": 9,
+            "visible": true,
+            "badge": null,
+            "badgeColor": null
+          },
+          {
+            "id": "10",
+            "name": {
+              "ko": "게임",
+              "en": "게임",
+              "jp": "게임"
+            },
+            "slug": "/game",
+            "icon": "Flower2",
+            "href": "/game",
+            "order": 10,
+            "visible": true,
+            "badge": null,
+            "badgeColor": null
+          },
+          {
+            "id": "11",
+            "name": {
+              "ko": "교육",
+              "en": "교육",
+              "jp": "교육"
+            },
+            "slug": "/education",
+            "icon": "GraduationCap",
+            "href": "/education",
+            "order": 11,
+            "visible": true,
+            "badge": null,
+            "badgeColor": null
+          }
+        ]
+      }
+    },
+    "quicklinks": {
+      "type": "quicklinks",
+      "visible": true,
+      "data": {
+        "links": [
+          {
+            "id": "1",
+            "title": {
+              "ko": "🎁 첫 캠페인 30%",
+              "en": "[EN] 🎁 첫 캠페인 30%",
+              "jp": "[JP] 🎁 첫 캠페인 30%"
+            },
+            "url": "/business/pricing",
+            "icon": "🎁",
+            "order": 1,
+            "visible": true
+          },
+          {
+            "id": "2",
+            "title": {
+              "ko": "📚 캠페인 가이드",
+              "en": "[EN] 📚 캠페인 가이드",
+              "jp": "[JP] 📚 캠페인 가이드"
+            },
+            "url": "/guide",
+            "icon": "📚",
+            "order": 1,
+            "visible": true
+          },
+          {
+            "id": "3",
+            "title": {
+              "ko": "💬 실시간 상담",
+              "en": "[EN] 💬 실시간 상담",
+              "jp": "[JP] 💬 실시간 상담"
+            },
+            "url": "/support",
+            "icon": "💬",
+            "order": 1,
+            "visible": true
+          }
+        ]
+      }
+    },
+    "promo": {
+      "type": "promo",
+      "visible": true,
+      "data": {
+        "title": {
+          "ko": "🚀 지금 시작하세요!",
+          "en": "[EN] 🚀 지금 시작하세요!",
+          "jp": "[JP] 🚀 지금 시작하세요!"
+        },
+        "subtitle": {
+          "ko": "첫 캠페인은 수수료 50% 할인",
+          "en": "[EN] 첫 캠페인은 수수료 50% 할인",
+          "jp": "[JP] 첫 캠페인은 수수료 50% 할인"
+        },
+        "icon": "🎯",
+        "image": "/images/promo-banner.jpg",
+        "link": "/business/register",
+        "backgroundColor": "#FEF3C7",
+        "textColor": "#000000"
+      }
+    },
+    "ranking": {
+      "type": "ranking",
+      "visible": true,
+      "data": {
+        "title": {
+          "ko": "🏆 이주의 인기 캠페인",
+          "en": "🏆 This Week's Popular Campaigns",
+          "jp": "🏆 今週の人気キャンペーン"
+        },
+        "campaigns": []
+      }
+    },
+    "active-campaigns": {
+      "type": "campaigns",
+      "visible": true,
+      "data": {
+        "title": {
+          "ko": "🔥 진행중인 캠페인",
+          "en": "🔥 Active Campaigns",
+          "jp": "🔥 進行中のキャンペーン"
+        },
+        "limit": 12,
+        "filters": {
+          "status": "active",
+          "featured": true
+        }
+      }
+    }
+  }
+}
