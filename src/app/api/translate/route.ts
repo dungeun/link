@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // 간단한 Mock 번역 함수 (실제로는 Google Translate API 사용)
 function mockTranslate(text: string, targetLang: string): string {
-  // 이모지는 그대로 유지
-  const emojiRegex = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu;
+  // 이모지는 그대로 유지 (ES5 호환 형태)
+  const emojiRegex = /[\uD83C-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u26FF]|[\u2700-\u27BF]/g;
   const emojis = text.match(emojiRegex) || [];
   const textWithoutEmoji = text.replace(emojiRegex, '').trim();
   
