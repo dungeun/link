@@ -21,7 +21,7 @@ export async function GET() {
       data: headerData
     })
   } catch (error) {
-    logger.error('Failed to get header data', error as Error, { module: 'HeaderAPI' })
+    logger.errorWithException('Failed to get header data', error as Error, 'HeaderAPI')
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    logger.error('Failed to update header', error as Error, { module: 'HeaderAPI' })
+    logger.errorWithException('Failed to update header', error as Error, 'HeaderAPI')
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
