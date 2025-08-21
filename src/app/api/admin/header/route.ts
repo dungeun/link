@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
+import { authService } from '@/lib/auth/services'
 import { logger } from '@/lib/logger'
 import { headerManager, MenuUpdateData, HeaderLogo, HeaderCTAButton } from '@/lib/cache/header-manager'
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authorization.replace('Bearer ', '')
-    const payload = await verifyToken(token)
+    const payload = await authService.verifyToken(token)
     
     if (!payload || payload.type !== 'ADMIN') {
       return NextResponse.json(
