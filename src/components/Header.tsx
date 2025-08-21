@@ -133,7 +133,7 @@ function Header({ variant = 'default' }: HeaderProps) {
     
     // 현재 언어 확인
     const currentLang = currentLanguage || 'ko'
-    const normalizedLang = currentLang === 'ja' ? 'jp' : currentLang === 'jp' ? 'jp' : currentLang === 'en' ? 'en' : 'ko'
+    const normalizedLang = (currentLang as string) === 'ja' ? 'jp' : (currentLang as string) === 'jp' ? 'jp' : currentLang === 'en' ? 'en' : 'ko'
     
     // 현재 선택된 언어로 먼저 시도
     if (textObj[normalizedLang]) {
