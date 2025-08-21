@@ -45,7 +45,7 @@ export default async function PageBackupCampaigns() {
     initialLanguagePacks={preloadedData.languagePacks}
     initialCampaigns={preloadedData.campaigns}
     initialCategoryStats={preloadedData.categoryStats}
-    preloadMetadata={preloadedData.metadata}
+    preloadMetadata={preloadedData.metadata as any}
   />
 }
 
