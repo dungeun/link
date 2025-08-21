@@ -31,8 +31,9 @@ export default async function PageBackupCampaigns() {
   const preloadedData = await preloadHomePageData()
   
   // 백업 호환성을 위해 source 프로퍼티 추가
-  if (!preloadedData.metadata.source) {
-    preloadedData.metadata.source = preloadedData.metadata.cached ? 'cache' : 'database'
+  const metadata = preloadedData.metadata as any
+  if (!metadata.source) {
+    metadata.source = metadata.cached ? 'cache' : 'database'
   }
   
   console.log(`Page loaded in ${Date.now() - startTime}ms, cached: ${preloadedData.metadata.cached}`)
