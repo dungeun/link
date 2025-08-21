@@ -49,7 +49,8 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
       metadata: {
         ...preloadedCache.metadata,
         cached: true,
-        loadTime: Date.now() - startTime
+        loadTime: Date.now() - startTime,
+        source: 'cache'
       }
     };
   }
@@ -244,7 +245,8 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
       metadata: {
         totalCampaigns: campaigns.length,
         loadTime: Date.now() - startTime,
-        cached: false
+        cached: false,
+        source: 'database'
       }
     };
 
@@ -269,7 +271,8 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
       metadata: {
         totalCampaigns: 0,
         loadTime: Date.now() - startTime,
-        cached: false
+        cached: false,
+        source: 'error'
       }
     };
   }
