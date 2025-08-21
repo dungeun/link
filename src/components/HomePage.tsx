@@ -95,6 +95,9 @@ interface Campaign extends Omit<BaseCampaign, 'startDate' | 'endDate' | 'created
 interface HomePageProps {
   initialSections: any[] // JSON-first 섹션 데이터
   initialLanguage?: LanguageCode
+  initialLanguagePacks?: Record<string, any>
+  initialCampaigns?: any[]
+  initialCategoryStats?: Record<string, number>
   staticUITexts?: StaticUITexts | null
   preloadMetadata?: {
     loadTime: number
@@ -105,7 +108,10 @@ interface HomePageProps {
 
 function HomePage({ 
   initialSections, 
-  initialLanguage = 'ko', 
+  initialLanguage = 'ko',
+  initialLanguagePacks = {},
+  initialCampaigns = [],
+  initialCategoryStats = {},
   staticUITexts = null,
   preloadMetadata
 }: HomePageProps) {
