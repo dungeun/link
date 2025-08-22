@@ -1,12 +1,12 @@
 // 정산 스케줄러 관리 API
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { requireAdminAuth } from '@/lib/admin-auth';
+export const dynamic = "force-dynamic";
+import { requireAdminAuth } from "@/lib/admin-auth";
 
 // Dynamic route configuration
-import { settlementScheduler } from '@/lib/scheduler/settlement-scheduler';
+import { settlementScheduler } from "@/lib/scheduler/settlement-scheduler";
 
 // 스케줄러 상태 조회
 export async function GET(request: NextRequest) {
@@ -20,13 +20,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: status
+      data: status,
     });
   } catch (error) {
-    console.error('스케줄러 상태 조회 오류:', error);
+    console.error("스케줄러 상태 조회 오류:", error);
     return NextResponse.json(
-      { error: '스케줄러 상태 조회 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { error: "스케줄러 상태 조회 중 오류가 발생했습니다." },
+      { status: 500 },
     );
   }
 }
@@ -42,38 +42,38 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { action } = body;
 
-    if (!action || !['start', 'stop', 'manual'].includes(action)) {
+    if (!action || !["start", "stop", "manual"].includes(action)) {
       return NextResponse.json(
-        { error: '유효하지 않은 액션입니다.' },
-        { status: 400 }
+        { error: "유효하지 않은 액션입니다." },
+        { status: 400 },
       );
     }
 
     let result;
-    
+
     switch (action) {
-      case 'start':
+      case "start":
         settlementScheduler.start();
-        result = { message: '스케줄러가 시작되었습니다.' };
+        result = { message: "스케줄러가 시작되었습니다." };
         break;
-      case 'stop':
+      case "stop":
         settlementScheduler.stop();
-        result = { message: '스케줄러가 중지되었습니다.' };
+        result = { message: "스케줄러가 중지되었습니다." };
         break;
-      case 'manual':
+      case "manual":
         result = await settlementScheduler.runManualSettlement();
         break;
     }
 
     return NextResponse.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
-    console.error('스케줄러 제어 오류:', error);
+    console.error("스케줄러 제어 오류:", error);
     return NextResponse.json(
-      { error: '스케줄러 제어 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { error: "스케줄러 제어 중 오류가 발생했습니다." },
+      { status: 500 },
     );
   }
 }

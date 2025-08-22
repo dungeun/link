@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 
 export default function BusinessCampaignDetailPage() {
-  const params = useParams()
-  const router = useRouter()
+  const params = useParams();
+  const router = useRouter();
 
   useEffect(() => {
     // 통합된 캠페인 상세 페이지로 리다이렉트
-    router.replace(`/campaigns/${params.id}`)
-  }, [params.id, router])
+    router.replace(`/campaigns/${params.id}`);
+  }, [params.id, router]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -19,5 +19,5 @@ export default function BusinessCampaignDetailPage() {
         <p className="mt-4 text-gray-600">리다이렉트 중...</p>
       </div>
     </div>
-  )
+  );
 }

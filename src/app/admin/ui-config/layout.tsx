@@ -1,9 +1,9 @@
-import AdminLayout from '@/components/admin/AdminLayout'
+import AdminLayout from "@/components/admin/AdminLayout";
 
 export default function UIConfigLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return <AdminLayout>{children}</AdminLayout>
+  return <AdminLayout>{children}</AdminLayout>;
 }

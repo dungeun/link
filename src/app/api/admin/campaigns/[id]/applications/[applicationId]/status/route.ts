@@ -1,46 +1,45 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { prisma } from '@/lib/db/prisma'
+export const dynamic = "force-dynamic";
+import { prisma } from "@/lib/db/prisma";
 
 // Dynamic route configuration
-import { requireAdminAuth } from '@/lib/admin-auth'
+import { requireAdminAuth } from "@/lib/admin-auth";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string, applicationId: string } }
+  { params }: { params: { id: string; applicationId: string } },
 ) {
   try {
     // 관리자 인증 확인
-    const authResult = await requireAdminAuth(request)
+    const authResult = await requireAdminAuth(request);
     if (authResult.error) {
-      return authResult.error
+      return authResult.error;
     }
-    const { user } = authResult
+    const { user } = authResult;
 
-    const { status } = await request.json()
-    const applicationId = params.applicationId
+    const { status } = await request.json();
+    const applicationId = params.applicationId;
 
     // 지원 상태 업데이트
     const updatedApplication = await prisma.campaignApplication.update({
       where: { id: applicationId },
-      data: { 
+      data: {
         status,
-        reviewedAt: new Date()
-      }
-    })
+        reviewedAt: new Date(),
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      application: updatedApplication
-    })
-
+      application: updatedApplication,
+    });
   } catch (error) {
-    console.error('Application status update API error:', error)
+    console.error("Application status update API error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

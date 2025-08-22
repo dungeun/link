@@ -13,11 +13,7 @@
     "hero",
     "category"
   ],
-  "languages": [
-    "ko",
-    "en",
-    "jp"
-  ],
+  "languages": ["ko", "en", "jp"],
   "sizeInfo": {
     "all": "7.580078125KB",
     "perLanguage": [

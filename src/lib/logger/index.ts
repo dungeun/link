@@ -1,20 +1,20 @@
-import pino from 'pino';
-import type { Logger } from 'pino';
+import pino from "pino";
+import type { Logger } from "pino";
 
 // 환경 변수
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isProduction = process.env.NODE_ENV === 'production';
-const isTest = process.env.NODE_ENV === 'test';
+const isDevelopment = process.env.NODE_ENV === "development";
+const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
 
 // 브라우저 환경 체크
-const isBrowser = typeof window !== 'undefined';
+const isBrowser = typeof window !== "undefined";
 
 // 로그 레벨 설정
 const getLogLevel = () => {
-  if (isTest) return 'silent';
-  if (isDevelopment) return 'debug';
-  if (isProduction) return 'warn'; // 프로덕션에서는 warn 이상만
-  return process.env.LOG_LEVEL || 'info';
+  if (isTest) return "silent";
+  if (isDevelopment) return "debug";
+  if (isProduction) return "warn"; // 프로덕션에서는 warn 이상만
+  return process.env.LOG_LEVEL || "info";
 };
 
 // 로그 이벤트 타입
@@ -36,13 +36,13 @@ const createLogger = (): Logger => {
       level: getLogLevel(),
       browser: {
         transmit: {
-          level: 'error',
+          level: "error",
           send: (level: any, logEvent: any) => {
             // 프로덕션에서만 에러를 서버로 전송
-            if (isProduction && level.label === 'error') {
-              fetch('/api/logs', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            if (isProduction && level.label === "error") {
+              fetch("/api/logs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(logEvent),
               }).catch(console.error);
             }
@@ -85,7 +85,7 @@ export const createApiLogger = (req: Request, userId?: string) => {
     path: url.pathname,
     userId,
     requestId: crypto.randomUUID(),
-    userAgent: req.headers.get('user-agent'),
+    userAgent: req.headers.get("user-agent"),
   });
 };
 
@@ -93,15 +93,16 @@ export const createApiLogger = (req: Request, userId?: string) => {
 export const logError = (
   error: Error | unknown,
   context?: string,
-  additionalData?: Record<string, unknown>
+  additionalData?: Record<string, unknown>,
 ) => {
-  const errorObj = error instanceof Error
-    ? {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      }
-    : { error: String(error) };
+  const errorObj =
+    error instanceof Error
+      ? {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+        }
+      : { error: String(error) };
 
   logger.error({
     ...errorObj,
@@ -118,10 +119,13 @@ export const createPerformanceLogger = (operation: string) => {
   return {
     end: (metadata?: Record<string, unknown>) => {
       const duration = Date.now() - startTime;
-      perfLogger.info({
-        duration,
-        ...metadata,
-      }, `Operation ${operation} completed in ${duration}ms`);
+      perfLogger.info(
+        {
+          duration,
+          ...metadata,
+        },
+        `Operation ${operation} completed in ${duration}ms`,
+      );
     },
   };
 };
@@ -130,22 +134,28 @@ export const createPerformanceLogger = (operation: string) => {
 export const logDbQuery = (
   query: string,
   params?: unknown[],
-  duration?: number
+  duration?: number,
 ) => {
-  const dbLogger = logger.child({ component: 'database' });
-  
+  const dbLogger = logger.child({ component: "database" });
+
   if (isDevelopment) {
-    dbLogger.debug({
-      query,
-      params,
-      duration,
-    }, 'Database query executed');
+    dbLogger.debug(
+      {
+        query,
+        params,
+        duration,
+      },
+      "Database query executed",
+    );
   } else if (duration && duration > 1000) {
     // 프로덕션에서는 느린 쿼리만 로깅
-    dbLogger.warn({
-      query: query.substring(0, 100), // 쿼리 일부만
-      duration,
-    }, 'Slow query detected');
+    dbLogger.warn(
+      {
+        query: query.substring(0, 100), // 쿼리 일부만
+        duration,
+      },
+      "Slow query detected",
+    );
   }
 };
 
@@ -153,37 +163,48 @@ export const logDbQuery = (
 export const logUserActivity = (
   userId: string,
   action: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ) => {
-  logger.info({
-    userId,
-    action,
-    ...metadata,
-    timestamp: new Date().toISOString(),
-  }, `User activity: ${action}`);
+  logger.info(
+    {
+      userId,
+      action,
+      ...metadata,
+      timestamp: new Date().toISOString(),
+    },
+    `User activity: ${action}`,
+  );
 };
 
 // 보안 이벤트 로거
 export const logSecurityEvent = (
   event: string,
   userId?: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ) => {
-  logger.warn({
-    securityEvent: event,
-    userId,
-    ...metadata,
-    timestamp: new Date().toISOString(),
-  }, `Security event: ${event}`);
+  logger.warn(
+    {
+      securityEvent: event,
+      userId,
+      ...metadata,
+      timestamp: new Date().toISOString(),
+    },
+    `Security event: ${event}`,
+  );
 };
 
 // 레거시 console 호환성 (마이그레이션용)
 export const legacyLogger = {
-  log: (...args: unknown[]) => logger.info(args.map(arg => String(arg)).join(' ')),
-  error: (...args: unknown[]) => logger.error(args.map(arg => String(arg)).join(' ')),
-  warn: (...args: unknown[]) => logger.warn(args.map(arg => String(arg)).join(' ')),
-  debug: (...args: unknown[]) => logger.debug(args.map(arg => String(arg)).join(' ')),
-  info: (...args: unknown[]) => logger.info(args.map(arg => String(arg)).join(' ')),
+  log: (...args: unknown[]) =>
+    logger.info(args.map((arg) => String(arg)).join(" ")),
+  error: (...args: unknown[]) =>
+    logger.error(args.map((arg) => String(arg)).join(" ")),
+  warn: (...args: unknown[]) =>
+    logger.warn(args.map((arg) => String(arg)).join(" ")),
+  debug: (...args: unknown[]) =>
+    logger.debug(args.map((arg) => String(arg)).join(" ")),
+  info: (...args: unknown[]) =>
+    logger.info(args.map((arg) => String(arg)).join(" ")),
 };
 
 // 전역 에러 핸들러는 Next.js에서 자동 처리하므로 제거

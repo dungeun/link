@@ -37,24 +37,24 @@ class MemoryMonitor {
       heapTotal: this.formatBytes(usage.heapTotal),
       heapUsed: this.formatBytes(usage.heapUsed),
       external: this.formatBytes(usage.external),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
   private checkMemoryLeak(): void {
     const current = this.getCurrentMemory();
-    
+
     // 임계값 확인
     const rssValue = parseInt(current.rss);
     const externalValue = parseInt(current.external);
-    
+
     if (rssValue > this.alertThreshold || externalValue > this.alertThreshold) {
       console.warn(`[MEMORY WARNING] High memory usage detected:`);
       console.warn(`  RSS: ${current.rss}, External: ${current.external}`);
-      
+
       // 가비지 컬렉션 강제 실행 (가능한 경우)
       if (global.gc) {
-        console.log('[MEMORY] Forcing garbage collection...');
+        console.log("[MEMORY] Forcing garbage collection...");
         global.gc();
       }
     }
@@ -68,10 +68,11 @@ class MemoryMonitor {
     this.lastMemory = current;
   }
 
-  public start(intervalMs = 30000): void { // 30초마다 체크
+  public start(intervalMs = 30000): void {
+    // 30초마다 체크
     if (this.interval) return;
 
-    console.log('[MEMORY] Starting optimized memory monitoring...');
+    console.log("[MEMORY] Starting optimized memory monitoring...");
     this.interval = setInterval(() => {
       this.checkMemoryLeak();
     }, intervalMs);
@@ -81,7 +82,7 @@ class MemoryMonitor {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
-      console.log('[MEMORY] Stopped memory monitoring');
+      console.log("[MEMORY] Stopped memory monitoring");
     }
   }
 
@@ -95,18 +96,18 @@ class MemoryMonitor {
 
   public logCurrentUsage(): void {
     const current = this.getCurrentMemory();
-    console.log('[DEBUG] Memory Usage:', current);
+    console.log("[DEBUG] Memory Usage:", current);
   }
 
   // 수동으로 메모리 정리 시도
   public cleanup(): void {
-    console.log('[MEMORY] Manual cleanup initiated...');
-    
+    console.log("[MEMORY] Manual cleanup initiated...");
+
     if (global.gc) {
       global.gc();
-      console.log('[MEMORY] Garbage collection completed');
+      console.log("[MEMORY] Garbage collection completed");
     } else {
-      console.log('[MEMORY] Garbage collection not available');
+      console.log("[MEMORY] Garbage collection not available");
     }
 
     // 새로운 메모리 상태 확인
@@ -119,7 +120,7 @@ class MemoryMonitor {
 export const memoryMonitor = MemoryMonitor.getInstance();
 
 // 개발 환경에서만 자동 시작
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   // 시작 시 한 번만 실행
   if (!(global as any).memoryMonitorStarted) {
     memoryMonitor.start();
@@ -128,12 +129,12 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // 프로세스 종료 시 정리
-process.on('SIGINT', () => {
+process.on("SIGINT", () => {
   memoryMonitor.stop();
   process.exit(0);
 });
 
-process.on('SIGTERM', () => {
+process.on("SIGTERM", () => {
   memoryMonitor.stop();
   process.exit(0);
 });

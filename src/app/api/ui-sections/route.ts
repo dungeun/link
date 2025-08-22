@@ -1,34 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import prisma from '@/lib/db/prisma';
+export const dynamic = "force-dynamic";
+import prisma from "@/lib/db/prisma";
 
 // Dynamic route configuration
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 // GET: UISection 조회
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const sectionId = searchParams.get('sectionId');
-    const type = searchParams.get('type');
-    const visible = searchParams.get('visible');
+    const sectionId = searchParams.get("sectionId");
+    const type = searchParams.get("type");
+    const visible = searchParams.get("visible");
 
     const where: Record<string, unknown> = {};
     if (sectionId) where.sectionId = sectionId;
     if (type) where.type = type;
-    if (visible !== null) where.visible = visible === 'true';
+    if (visible !== null) where.visible = visible === "true";
 
     const sections = await prisma.uISection.findMany({
       where,
-      orderBy: { order: 'asc' }
+      orderBy: { order: "asc" },
     });
 
     return NextResponse.json({ sections });
   } catch (error) {
-    logger.error('Error fetching UI sections:', error as string);
-    return NextResponse.json({ error: 'Failed to fetch UI sections' }, { status: 500 });
+    logger.error("Error fetching UI sections:", error as string);
+    return NextResponse.json(
+      { error: "Failed to fetch UI sections" },
+      { status: 500 },
+    );
   }
 }
 
@@ -36,11 +39,21 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sectionId, type, title, subtitle, content, order, visible, translations, settings } = body;
+    const {
+      sectionId,
+      type,
+      title,
+      subtitle,
+      content,
+      order,
+      visible,
+      translations,
+      settings,
+    } = body;
 
     // 기존 섹션 확인
     const existing = await prisma.uISection.findUnique({
-      where: { sectionId }
+      where: { sectionId },
     });
 
     if (existing) {
@@ -55,8 +68,8 @@ export async function POST(request: NextRequest) {
           order,
           visible,
           translations,
-          settings
-        }
+          settings,
+        },
       });
       return NextResponse.json({ section: updated });
     } else {
@@ -71,14 +84,17 @@ export async function POST(request: NextRequest) {
           order,
           visible,
           translations,
-          settings
-        }
+          settings,
+        },
       });
       return NextResponse.json({ section: created });
     }
   } catch (error) {
-    logger.error('Error creating/updating UI section:', error as string);
-    return NextResponse.json({ error: 'Failed to save UI section' }, { status: 500 });
+    logger.error("Error creating/updating UI section:", error as string);
+    return NextResponse.json(
+      { error: "Failed to save UI section" },
+      { status: 500 },
+    );
   }
 }
 
@@ -90,13 +106,16 @@ export async function PUT(request: NextRequest) {
 
     const updated = await prisma.uISection.update({
       where: { id },
-      data: updateData
+      data: updateData,
     });
 
     return NextResponse.json({ section: updated });
   } catch (error) {
-    logger.error('Error updating UI section:', error as string);
-    return NextResponse.json({ error: 'Failed to update UI section' }, { status: 500 });
+    logger.error("Error updating UI section:", error as string);
+    return NextResponse.json(
+      { error: "Failed to update UI section" },
+      { status: 500 },
+    );
   }
 }
 
@@ -104,19 +123,25 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: 'Section ID required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Section ID required" },
+        { status: 400 },
+      );
     }
 
     await prisma.uISection.delete({
-      where: { id }
+      where: { id },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Error deleting UI section:', error as string);
-    return NextResponse.json({ error: 'Failed to delete UI section' }, { status: 500 });
+    logger.error("Error deleting UI section:", error as string);
+    return NextResponse.json(
+      { error: "Failed to delete UI section" },
+      { status: 500 },
+    );
   }
 }

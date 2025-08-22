@@ -3,11 +3,17 @@
  * 데이터 변경 시 관련된 모든 캐시를 일관성 있게 무효화
  */
 
-import { UnifiedCache } from '../cache/unified-cache.service';
+import { UnifiedCache } from "../cache/unified-cache.service";
 
 export interface InvalidationEvent {
-  type: 'create' | 'update' | 'delete';
-  entity: 'campaign' | 'user' | 'application' | 'content' | 'payment' | 'category';
+  type: "create" | "update" | "delete";
+  entity:
+    | "campaign"
+    | "user"
+    | "application"
+    | "content"
+    | "payment"
+    | "category";
   entityId: string;
   relatedEntities?: {
     type: string;
@@ -21,30 +27,33 @@ export class CacheInvalidationService {
    * 메인 무효화 메소드
    */
   static async invalidate(event: InvalidationEvent) {
-    console.log('Cache invalidation:', event);
+    console.log("Cache invalidation:", event);
 
     try {
       switch (event.entity) {
-        case 'campaign':
+        case "campaign":
           await this.invalidateCampaignCache(event);
           break;
-        case 'user':
+        case "user":
           await this.invalidateUserCache(event);
           break;
-        case 'application':
+        case "application":
           await this.invalidateApplicationCache(event);
           break;
-        case 'content':
+        case "content":
           await this.invalidateContentCache(event);
           break;
-        case 'payment':
+        case "payment":
           await this.invalidatePaymentCache(event);
           break;
-        case 'category':
+        case "category":
           await this.invalidateCategoryCache(event);
           break;
         default:
-          console.warn('Unknown entity type for cache invalidation:', event.entity);
+          console.warn(
+            "Unknown entity type for cache invalidation:",
+            event.entity,
+          );
       }
 
       // 관련 엔티티들의 캐시도 무효화
@@ -53,13 +62,12 @@ export class CacheInvalidationService {
           await this.invalidate({
             type: event.type,
             entity: related.type as any,
-            entityId: related.id
+            entityId: related.id,
           });
         }
       }
-
     } catch (error) {
-      console.error('Cache invalidation failed:', error, event);
+      console.error("Cache invalidation failed:", error, event);
       // 캐시 무효화 실패는 시스템 동작을 막지 않음
     }
   }
@@ -81,19 +89,23 @@ export class CacheInvalidationService {
 
     // 4. 비즈니스별 캐시 무효화
     if (event.metadata?.businessId) {
-      await UnifiedCache.users.invalidatePattern(`business:${event.metadata.businessId}:*`);
+      await UnifiedCache.users.invalidatePattern(
+        `business:${event.metadata.businessId}:*`,
+      );
     }
 
     // 5. 카테고리별 캐시 무효화
     if (event.metadata?.categoryIds) {
       for (const categoryId of event.metadata.categoryIds) {
-        await UnifiedCache.campaigns.invalidatePattern(`category:${categoryId}:*`);
+        await UnifiedCache.campaigns.invalidatePattern(
+          `category:${categoryId}:*`,
+        );
       }
     }
 
     // 6. 해시태그 검색 캐시 무효화
     if (event.metadata?.hashtags) {
-      await UnifiedCache.campaigns.invalidatePattern('hashtag_search:*');
+      await UnifiedCache.campaigns.invalidatePattern("hashtag_search:*");
     }
 
     console.log(`Campaign cache invalidated: ${type} ${entityId}`);
@@ -116,11 +128,13 @@ export class CacheInvalidationService {
 
     // 4. 사용자 타입별 캐시 무효화
     if (event.metadata?.userType) {
-      await UnifiedCache.users.invalidatePattern(`type:${event.metadata.userType}:*`);
+      await UnifiedCache.users.invalidatePattern(
+        `type:${event.metadata.userType}:*`,
+      );
     }
 
     // 5. 비즈니스 사용자인 경우 관련 캠페인 캐시도 무효화
-    if (event.metadata?.userType === 'BUSINESS') {
+    if (event.metadata?.userType === "BUSINESS") {
       await UnifiedCache.campaigns.invalidatePattern(`business:${entityId}:*`);
     }
 
@@ -140,14 +154,16 @@ export class CacheInvalidationService {
     if (event.metadata?.campaignId) {
       await this.invalidateCampaignCache({
         type,
-        entity: 'campaign',
-        entityId: event.metadata.campaignId
+        entity: "campaign",
+        entityId: event.metadata.campaignId,
       });
     }
 
     // 3. 관련 사용자 캐시 무효화
     if (event.metadata?.influencerId) {
-      await UnifiedCache.users.invalidatePattern(`user:${event.metadata.influencerId}:*`);
+      await UnifiedCache.users.invalidatePattern(
+        `user:${event.metadata.influencerId}:*`,
+      );
     }
 
     // 4. 관리자 통계 캐시 무효화
@@ -169,9 +185,9 @@ export class CacheInvalidationService {
     if (event.metadata?.applicationId) {
       await this.invalidateApplicationCache({
         type,
-        entity: 'application',
+        entity: "application",
         entityId: event.metadata.applicationId,
-        metadata: event.metadata
+        metadata: event.metadata,
       });
     }
 
@@ -189,15 +205,17 @@ export class CacheInvalidationService {
 
     // 2. 사용자 캐시 무효화
     if (event.metadata?.userId) {
-      await UnifiedCache.users.invalidatePattern(`user:${event.metadata.userId}:*`);
+      await UnifiedCache.users.invalidatePattern(
+        `user:${event.metadata.userId}:*`,
+      );
     }
 
     // 3. 관련 캠페인 캐시 무효화
     if (event.metadata?.campaignId) {
       await this.invalidateCampaignCache({
         type,
-        entity: 'campaign',
-        entityId: event.metadata.campaignId
+        entity: "campaign",
+        entityId: event.metadata.campaignId,
       });
     }
 
@@ -231,31 +249,31 @@ export class CacheInvalidationService {
   static async smartInvalidate(
     entity: string,
     entityId: string,
-    changedFields: string[] = []
+    changedFields: string[] = [],
   ) {
     // 변경된 필드에 따라 필요한 캐시만 무효화
     const invalidationMap: Record<string, Record<string, string[]>> = {
       campaign: {
-        'title,description': ['campaigns:list', 'campaigns:search'],
-        'status': ['campaigns:list', 'admin:stats'],
-        'budget,rewardAmount': ['campaigns:list', 'campaigns:ranking'],
-        'hashtags': ['campaigns:hashtag_search'],
-        'categories': ['campaigns:category', 'categories:stats']
+        "title,description": ["campaigns:list", "campaigns:search"],
+        status: ["campaigns:list", "admin:stats"],
+        "budget,rewardAmount": ["campaigns:list", "campaigns:ranking"],
+        hashtags: ["campaigns:hashtag_search"],
+        categories: ["campaigns:category", "categories:stats"],
       },
       user: {
-        'name,email': ['users:list', 'users:search'],
-        'type': ['users:type', 'admin:stats'],
-        'isVerified': ['users:verified', 'admin:stats']
-      }
+        "name,email": ["users:list", "users:search"],
+        type: ["users:type", "admin:stats"],
+        isVerified: ["users:verified", "admin:stats"],
+      },
     };
 
     const entityMap = invalidationMap[entity];
     if (!entityMap) {
       // 매핑이 없으면 전체 무효화
       return this.invalidate({
-        type: 'update',
+        type: "update",
         entity: entity as any,
-        entityId
+        entityId,
       });
     }
 
@@ -263,42 +281,42 @@ export class CacheInvalidationService {
     const cachesToInvalidate = new Set<string>();
     for (const field of changedFields) {
       for (const [fieldPattern, caches] of Object.entries(entityMap)) {
-        if (fieldPattern.split(',').includes(field)) {
-          caches.forEach(cache => cachesToInvalidate.add(cache));
+        if (fieldPattern.split(",").includes(field)) {
+          caches.forEach((cache) => cachesToInvalidate.add(cache));
         }
       }
     }
 
     // 선택적 캐시 무효화 실행
     for (const cachePattern of cachesToInvalidate) {
-      const [namespace, key] = cachePattern.split(':');
-      
+      const [namespace, key] = cachePattern.split(":");
+
       // 타입 안전한 캐시 접근
       let cacheNamespace;
       switch (namespace) {
-        case 'campaigns':
+        case "campaigns":
           cacheNamespace = UnifiedCache.campaigns;
           break;
-        case 'users':
+        case "users":
           cacheNamespace = UnifiedCache.users;
           break;
-        case 'admin':
+        case "admin":
           cacheNamespace = UnifiedCache.admin;
           break;
-        case 'stats':
+        case "stats":
           cacheNamespace = UnifiedCache.stats;
           break;
-        case 'categories':
+        case "categories":
           cacheNamespace = UnifiedCache.categories;
           break;
-        case 'responses':
+        case "responses":
           cacheNamespace = UnifiedCache.responses;
           break;
         default:
           console.warn(`Unknown cache namespace: ${namespace}`);
           continue;
       }
-      
+
       if (key) {
         await cacheNamespace.invalidatePattern(`${key}:*`);
       } else {
@@ -306,14 +324,16 @@ export class CacheInvalidationService {
       }
     }
 
-    console.log(`Smart cache invalidation: ${entity}:${entityId} fields:${changedFields.join(',')} caches:${Array.from(cachesToInvalidate).join(',')}`);
+    console.log(
+      `Smart cache invalidation: ${entity}:${entityId} fields:${changedFields.join(",")} caches:${Array.from(cachesToInvalidate).join(",")}`,
+    );
   }
 
   /**
    * 전체 캐시 무효화 (비상시 사용)
    */
   static async invalidateAll() {
-    console.log('Invalidating all caches');
+    console.log("Invalidating all caches");
 
     await Promise.all([
       UnifiedCache.campaigns.flush(),
@@ -322,26 +342,32 @@ export class CacheInvalidationService {
       UnifiedCache.responses.flush(),
       UnifiedCache.responses.flush(),
       UnifiedCache.categories.flush(),
-      UnifiedCache.admin.flush()
+      UnifiedCache.admin.flush(),
     ]);
 
-    console.log('All caches invalidated');
+    console.log("All caches invalidated");
   }
 
   /**
    * 캐시 무효화 이벤트 생성 헬퍼
    */
   static createEvent(
-    type: 'create' | 'update' | 'delete',
-    entity: 'campaign' | 'user' | 'application' | 'content' | 'payment' | 'category',
+    type: "create" | "update" | "delete",
+    entity:
+      | "campaign"
+      | "user"
+      | "application"
+      | "content"
+      | "payment"
+      | "category",
     entityId: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): InvalidationEvent {
     return {
       type,
       entity,
       entityId,
-      metadata
+      metadata,
     };
   }
 
@@ -362,6 +388,8 @@ export class CacheInvalidationService {
       }
     }
 
-    console.log(`Batch cache invalidation completed: ${uniqueInvalidations.size} unique invalidations`);
+    console.log(
+      `Batch cache invalidation completed: ${uniqueInvalidations.size} unique invalidations`,
+    );
   }
 }

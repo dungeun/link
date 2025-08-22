@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useUIConfigStore } from '@/lib/stores/ui-config.store';
+import { useState } from "react";
+import { useUIConfigStore } from "@/lib/stores/ui-config.store";
 
 // Use the FooterColumn type from the store
 
@@ -9,13 +9,13 @@ export function FooterConfigImproved() {
   const { config, updateFooterColumns, setConfig } = useUIConfigStore();
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [isAddingItem, setIsAddingItem] = useState<number | null>(null);
-  const [newColumnTitle, setNewColumnTitle] = useState('');
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemUrl, setNewItemUrl] = useState('/');
+  const [newColumnTitle, setNewColumnTitle] = useState("");
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemUrl, setNewItemUrl] = useState("/");
 
-  const generateFooterKey = (type: 'column' | 'item', index?: number) => {
+  const generateFooterKey = (type: "column" | "item", index?: number) => {
     const timestamp = Date.now();
-    if (type === 'column') {
+    if (type === "column") {
       return `footer.column.custom_${timestamp}`;
     } else {
       return `footer.item.custom_${timestamp}`;
@@ -24,36 +24,38 @@ export function FooterConfigImproved() {
 
   const handleAddColumn = async () => {
     if (!newColumnTitle.trim()) {
-      alert('컬럼 제목을 입력해주세요.');
+      alert("컬럼 제목을 입력해주세요.");
       return;
     }
 
     try {
-      const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
+      const token =
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("auth-token");
       if (!token) {
-        alert('인증이 필요합니다.');
+        alert("인증이 필요합니다.");
         return;
       }
 
-      const columnKey = generateFooterKey('column');
+      const columnKey = generateFooterKey("column");
 
       // 언어팩에 추가
-      const response = await fetch('/api/admin/language-packs/auto-translate', {
-        method: 'POST',
+      const response = await fetch("/api/admin/language-packs/auto-translate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           key: columnKey,
           ko: newColumnTitle,
-          category: 'footer',
-          autoTranslate: true
+          category: "footer",
+          autoTranslate: true,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('언어팩 추가 실패');
+        throw new Error("언어팩 추가 실패");
       }
 
       const languagePackData = await response.json();
@@ -63,55 +65,58 @@ export function FooterConfigImproved() {
         id: Date.now().toString(),
         title: columnKey,
         links: [],
-        order: (config.footer.columns?.length || 0) + 1
+        order: (config.footer.columns?.length || 0) + 1,
       };
 
       const updatedColumns = [...(config.footer.columns || []), newColumn];
       updateFooterColumns(updatedColumns);
 
-      setNewColumnTitle('');
+      setNewColumnTitle("");
       setIsAddingColumn(false);
 
-      alert(`컬럼이 추가되었습니다.\n한국어: ${languagePackData.ko}\n영어: ${languagePackData.en}\n일본어: ${languagePackData.ja}`);
-
+      alert(
+        `컬럼이 추가되었습니다.\n한국어: ${languagePackData.ko}\n영어: ${languagePackData.en}\n일본어: ${languagePackData.ja}`,
+      );
     } catch (error) {
-      console.error('컬럼 추가 실패:', error);
-      alert('컬럼 추가 중 오류가 발생했습니다.');
+      console.error("컬럼 추가 실패:", error);
+      alert("컬럼 추가 중 오류가 발생했습니다.");
     }
   };
 
   const handleAddItem = async (columnIndex: number) => {
     if (!newItemName.trim()) {
-      alert('메뉴 이름을 입력해주세요.');
+      alert("메뉴 이름을 입력해주세요.");
       return;
     }
 
     try {
-      const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
+      const token =
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("auth-token");
       if (!token) {
-        alert('인증이 필요합니다.');
+        alert("인증이 필요합니다.");
         return;
       }
 
-      const itemKey = generateFooterKey('item');
+      const itemKey = generateFooterKey("item");
 
       // 언어팩에 추가
-      const response = await fetch('/api/admin/language-packs/auto-translate', {
-        method: 'POST',
+      const response = await fetch("/api/admin/language-packs/auto-translate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           key: itemKey,
           ko: newItemName,
-          category: 'footer',
-          autoTranslate: true
+          category: "footer",
+          autoTranslate: true,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('언어팩 추가 실패');
+        throw new Error("언어팩 추가 실패");
       }
 
       const languagePackData = await response.json();
@@ -121,99 +126,110 @@ export function FooterConfigImproved() {
       updatedColumns[columnIndex].links.push({
         id: Date.now().toString(),
         label: itemKey,
-        href: newItemUrl || '/',
+        href: newItemUrl || "/",
         order: (updatedColumns[columnIndex].links?.length || 0) + 1,
-        visible: true
+        visible: true,
       });
 
       updateFooterColumns(updatedColumns);
 
-      setNewItemName('');
-      setNewItemUrl('/');
+      setNewItemName("");
+      setNewItemUrl("/");
       setIsAddingItem(null);
 
-      alert(`메뉴가 추가되었습니다.\n한국어: ${languagePackData.ko}\n영어: ${languagePackData.en}\n일본어: ${languagePackData.ja}`);
-
+      alert(
+        `메뉴가 추가되었습니다.\n한국어: ${languagePackData.ko}\n영어: ${languagePackData.en}\n일본어: ${languagePackData.ja}`,
+      );
     } catch (error) {
-      console.error('메뉴 추가 실패:', error);
-      alert('메뉴 추가 중 오류가 발생했습니다.');
+      console.error("메뉴 추가 실패:", error);
+      alert("메뉴 추가 중 오류가 발생했습니다.");
     }
   };
 
   const handleDeleteColumn = async (columnIndex: number) => {
-    if (!confirm('이 컬럼과 모든 하위 메뉴를 삭제하시겠습니까?')) {
+    if (!confirm("이 컬럼과 모든 하위 메뉴를 삭제하시겠습니까?")) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
+      const token =
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("auth-token");
       const column = config.footer.columns[columnIndex];
 
       // 커스텀 컬럼인 경우 언어팩에서 삭제
-      if (token && column.title.includes('custom_')) {
+      if (token && column.title.includes("custom_")) {
         await fetch(`/api/admin/language-packs/${column.title}`, {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
         // 하위 아이템들도 언어팩에서 삭제
         for (const item of column.links) {
-          if (item.label.includes('custom_')) {
+          if (item.label.includes("custom_")) {
             await fetch(`/api/admin/language-packs/${item.label}`, {
-              method: 'DELETE',
+              method: "DELETE",
               headers: {
-                'Authorization': `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
               },
             });
           }
         }
       }
 
-      const updatedColumns = config.footer.columns.filter((_, index) => index !== columnIndex);
+      const updatedColumns = config.footer.columns.filter(
+        (_, index) => index !== columnIndex,
+      );
       updateFooterColumns(updatedColumns);
-
     } catch (error) {
-      console.error('컬럼 삭제 실패:', error);
-      alert('컬럼 삭제 중 오류가 발생했습니다.');
+      console.error("컬럼 삭제 실패:", error);
+      alert("컬럼 삭제 중 오류가 발생했습니다.");
     }
   };
 
   const handleDeleteItem = async (columnIndex: number, itemIndex: number) => {
-    if (!confirm('이 메뉴를 삭제하시겠습니까?')) {
+    if (!confirm("이 메뉴를 삭제하시겠습니까?")) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
+      const token =
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("auth-token");
       const item = config.footer.columns[columnIndex].links[itemIndex];
 
       // 커스텀 아이템인 경우 언어팩에서 삭제
-      if (token && item.label.includes('custom_')) {
+      if (token && item.label.includes("custom_")) {
         await fetch(`/api/admin/language-packs/${item.label}`, {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
       }
 
       const updatedColumns = [...config.footer.columns];
-      updatedColumns[columnIndex].links = updatedColumns[columnIndex].links.filter((_, index) => index !== itemIndex);
+      updatedColumns[columnIndex].links = updatedColumns[
+        columnIndex
+      ].links.filter((_, index) => index !== itemIndex);
       updateFooterColumns(updatedColumns);
-
     } catch (error) {
-      console.error('메뉴 삭제 실패:', error);
-      alert('메뉴 삭제 중 오류가 발생했습니다.');
+      console.error("메뉴 삭제 실패:", error);
+      alert("메뉴 삭제 중 오류가 발생했습니다.");
     }
   };
 
-  const handleUpdateItem = (columnIndex: number, itemIndex: number, updates: Partial<{ label: string; href: string }>) => {
+  const handleUpdateItem = (
+    columnIndex: number,
+    itemIndex: number,
+    updates: Partial<{ label: string; href: string }>,
+  ) => {
     const updatedColumns = [...config.footer.columns];
     updatedColumns[columnIndex].links[itemIndex] = {
       ...updatedColumns[columnIndex].links[itemIndex],
-      ...updates
+      ...updates,
     };
     updateFooterColumns(updatedColumns);
   };
@@ -255,7 +271,7 @@ export function FooterConfigImproved() {
               <button
                 onClick={() => {
                   setIsAddingColumn(false);
-                  setNewColumnTitle('');
+                  setNewColumnTitle("");
                 }}
                 className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
               >
@@ -274,8 +290,10 @@ export function FooterConfigImproved() {
             <div key={columnIndex} className="bg-gray-50 rounded-lg p-4">
               <div className="flex justify-between links-center mb-3">
                 <h3 className="font-semibold">
-                  {column.title.includes('.') ? (
-                    <code className="text-sm bg-gray-200 px-2 py-1 rounded">{column.title}</code>
+                  {column.title.includes(".") ? (
+                    <code className="text-sm bg-gray-200 px-2 py-1 rounded">
+                      {column.title}
+                    </code>
                   ) : (
                     column.title
                   )}
@@ -286,18 +304,38 @@ export function FooterConfigImproved() {
                     className="text-blue-600 hover:text-blue-800"
                     title="메뉴 추가"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
                     </svg>
                   </button>
-                  {column.title.includes('custom_') && (
+                  {column.title.includes("custom_") && (
                     <button
                       onClick={() => handleDeleteColumn(columnIndex)}
                       className="text-red-500 hover:text-red-700"
                       title="컬럼 삭제"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                     </button>
                   )}
@@ -331,8 +369,8 @@ export function FooterConfigImproved() {
                     <button
                       onClick={() => {
                         setIsAddingItem(null);
-                        setNewItemName('');
-                        setNewItemUrl('/');
+                        setNewItemName("");
+                        setNewItemUrl("/");
                       }}
                       className="px-3 py-1 bg-gray-400 text-white rounded text-sm hover:bg-gray-500"
                     >
@@ -345,27 +383,42 @@ export function FooterConfigImproved() {
               {/* 아이템 목록 */}
               <div className="space-y-2">
                 {column.links?.map((item, itemIndex) => (
-                  <div key={itemIndex} className="flex links-center space-x-2 bg-white p-2 rounded">
+                  <div
+                    key={itemIndex}
+                    className="flex links-center space-x-2 bg-white p-2 rounded"
+                  >
                     <input
                       type="text"
                       value={item.href}
-                      onChange={(e) => handleUpdateItem(columnIndex, itemIndex, { href: e.target.value })}
+                      onChange={(e) =>
+                        handleUpdateItem(columnIndex, itemIndex, {
+                          href: e.target.value,
+                        })
+                      }
                       className="flex-1 px-2 py-1 border rounded text-sm"
                       placeholder="URL"
                     />
-                    {item.label.includes('custom_') && (
+                    {item.label.includes("custom_") && (
                       <button
                         onClick={() => handleDeleteItem(columnIndex, itemIndex)}
                         className="text-red-500 hover:text-red-700"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     )}
-                    <div className="text-xs text-gray-500">
-                      {item.label}
-                    </div>
+                    <div className="text-xs text-gray-500">{item.label}</div>
                   </div>
                 ))}
               </div>
@@ -375,7 +428,8 @@ export function FooterConfigImproved() {
 
         {(!config.footer.columns || config.footer.columns.length === 0) && (
           <div className="text-center py-8 text-gray-500">
-            푸터 컬럼이 없습니다. 위의 &quot;컬럼 추가&quot; 버튼을 클릭하여 컬럼을 추가하세요.
+            푸터 컬럼이 없습니다. 위의 &quot;컬럼 추가&quot; 버튼을 클릭하여
+            컬럼을 추가하세요.
           </div>
         )}
       </div>

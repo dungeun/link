@@ -1,158 +1,194 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useCallback, useMemo, memo } from 'react'
-import Link from 'next/link'
-import { apiGet } from '@/lib/api/client'
-import { Plus, Search, Filter, Eye, Edit, Users, TrendingUp, Trash2 } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import Link from "next/link";
+import { apiGet } from "@/lib/api/client";
+import {
+  Plus,
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Users,
+  TrendingUp,
+  Trash2,
+} from "lucide-react";
 
 interface Campaign {
-  id: string
-  title: string
-  status: string
-  budget: number | { amount: number; type?: string; currency?: string }
-  applications: number
-  maxApplications: number
-  deadline: string
-  category: string
-  viewCount: number
-  platforms: string[]
+  id: string;
+  title: string;
+  status: string;
+  budget: number | { amount: number; type?: string; currency?: string };
+  applications: number;
+  maxApplications: number;
+  deadline: string;
+  category: string;
+  viewCount: number;
+  platforms: string[];
 }
 
 function CampaignManagementTab() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [stats, setStats] = useState({
     totalCampaigns: 0,
     activeCampaigns: 0,
     completedCampaigns: 0,
-    totalBudget: 0
-  })
+    totalBudget: 0,
+  });
 
   // 캠페인 삭제 핸들러 - 메모이제이션
-  const handleDeleteCampaign = useCallback(async (campaignId: string, campaignTitle: string) => {
-    if (!confirm(`"${campaignTitle}" 캠페인을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/business/campaigns/${campaignId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
-        }
-      })
-
-      if (response.ok) {
-        alert('캠페인이 성공적으로 삭제되었습니다.')
-        await fetchCampaigns() // 목록 새로고침
-      } else {
-        const error = await response.json()
-        alert(error.message || '캠페인 삭제에 실패했습니다.')
+  const handleDeleteCampaign = useCallback(
+    async (campaignId: string, campaignTitle: string) => {
+      if (
+        !confirm(
+          `"${campaignTitle}" 캠페인을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
+        )
+      ) {
+        return;
       }
-    } catch (error) {
-      console.error('캠페인 삭제 중 오류:', error)
-      alert('캠페인 삭제 중 오류가 발생했습니다.')
-    }
-  }, [])
+
+      try {
+        const response = await fetch(`/api/business/campaigns/${campaignId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
+          },
+        });
+
+        if (response.ok) {
+          alert("캠페인이 성공적으로 삭제되었습니다.");
+          await fetchCampaigns(); // 목록 새로고침
+        } else {
+          const error = await response.json();
+          alert(error.message || "캠페인 삭제에 실패했습니다.");
+        }
+      } catch (error) {
+        console.error("캠페인 삭제 중 오류:", error);
+        alert("캠페인 삭제 중 오류가 발생했습니다.");
+      }
+    },
+    [],
+  );
 
   // 캠페인 데이터 조회 - 메모이제이션
   const fetchCampaigns = useCallback(async () => {
     try {
-      setLoading(true)
-      console.log('[CampaignManagementTab] Fetching campaigns...')
-      
+      setLoading(true);
+      console.log("[CampaignManagementTab] Fetching campaigns...");
+
       // 현재 사용자 정보 확인
-      const currentUser = localStorage.getItem('user')
-      console.log('[CampaignManagementTab] Current user:', currentUser)
-      
-      const response = await apiGet('/api/business/campaigns')
-      console.log('[CampaignManagementTab] Response status:', response.status)
-      console.log('[CampaignManagementTab] Response URL:', response.url)
-      
+      const currentUser = localStorage.getItem("user");
+      console.log("[CampaignManagementTab] Current user:", currentUser);
+
+      const response = await apiGet("/api/business/campaigns");
+      console.log("[CampaignManagementTab] Response status:", response.status);
+      console.log("[CampaignManagementTab] Response URL:", response.url);
+
       if (response.ok) {
-        const data = await response.json()
-        console.log('[CampaignManagementTab] Full response data:', data)
-        
+        const data = await response.json();
+        console.log("[CampaignManagementTab] Full response data:", data);
+
         // 응답 구조 처리 (success 래퍼가 있을 수 있음)
-        const campaignsData = data.data?.campaigns || data.campaigns || []
-        console.log('[CampaignManagementTab] Campaigns extracted:', campaignsData.length)
-        
+        const campaignsData = data.data?.campaigns || data.campaigns || [];
+        console.log(
+          "[CampaignManagementTab] Campaigns extracted:",
+          campaignsData.length,
+        );
+
         // 각 캠페인의 businessId 확인
         campaignsData.forEach((campaign: any, index: number) => {
-          console.log(`[Campaign ${index}] ID: ${campaign.id}, Title: ${campaign.title}, BusinessId: ${campaign.businessId}`)
-        })
-        
-        setCampaigns(campaignsData)
-        
+          console.log(
+            `[Campaign ${index}] ID: ${campaign.id}, Title: ${campaign.title}, BusinessId: ${campaign.businessId}`,
+          );
+        });
+
+        setCampaigns(campaignsData);
+
         // 통계 계산
         setStats({
           totalCampaigns: campaignsData.length,
-          activeCampaigns: campaignsData.filter((c: Campaign) => c.status === 'ACTIVE').length,
-          completedCampaigns: campaignsData.filter((c: Campaign) => c.status === 'COMPLETED').length,
+          activeCampaigns: campaignsData.filter(
+            (c: Campaign) => c.status === "ACTIVE",
+          ).length,
+          completedCampaigns: campaignsData.filter(
+            (c: Campaign) => c.status === "COMPLETED",
+          ).length,
           totalBudget: campaignsData.reduce((sum: number, c: Campaign) => {
-            const amount = typeof c.budget === 'object' ? c.budget?.amount : c.budget;
+            const amount =
+              typeof c.budget === "object" ? c.budget?.amount : c.budget;
             return sum + (amount || 0);
-          }, 0)
-        })
+          }, 0),
+        });
       }
     } catch (error) {
-      console.error('캠페인 데이터 조회 실패:', error)
+      console.error("캠페인 데이터 조회 실패:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   // 컴포넌트 마운트시 데이터 조회
   useEffect(() => {
-    fetchCampaigns()
-  }, [fetchCampaigns])
+    fetchCampaigns();
+  }, [fetchCampaigns]);
 
   // 캠페인 필터링 - 메모이제이션
-  const filteredCampaigns = useMemo(() => campaigns.filter(campaign => {
-    const matchesSearch = campaign.title.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = filterStatus === 'all' || campaign.status === filterStatus
-    return matchesSearch && matchesStatus
-  }), [campaigns, searchTerm, filterStatus])
+  const filteredCampaigns = useMemo(
+    () =>
+      campaigns.filter((campaign) => {
+        const matchesSearch = campaign.title
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const matchesStatus =
+          filterStatus === "all" || campaign.status === filterStatus;
+        return matchesSearch && matchesStatus;
+      }),
+    [campaigns, searchTerm, filterStatus],
+  );
 
   // 상태 배지 생성 - 메모이제이션
   const getStatusBadge = useCallback((status: string) => {
     const statusConfig = {
-      DRAFT: { color: 'bg-gray-100 text-gray-700', text: '초안' },
-      ACTIVE: { color: 'bg-green-100 text-green-700', text: '진행중' },
-      PAUSED: { color: 'bg-yellow-100 text-yellow-700', text: '일시중지' },
-      COMPLETED: { color: 'bg-blue-100 text-blue-700', text: '완료' }
-    }
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.DRAFT
+      DRAFT: { color: "bg-gray-100 text-gray-700", text: "초안" },
+      ACTIVE: { color: "bg-green-100 text-green-700", text: "진행중" },
+      PAUSED: { color: "bg-yellow-100 text-yellow-700", text: "일시중지" },
+      COMPLETED: { color: "bg-blue-100 text-blue-700", text: "완료" },
+    };
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.DRAFT;
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.color}`}>
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-medium ${config.color}`}
+      >
         {config.text}
       </span>
-    )
-  }, [])
+    );
+  }, []);
 
   // 마감 시간 텍스트 계산 - 메모이제이션
   const getDeadlineText = useCallback((deadline: string) => {
-    const now = new Date()
-    const deadlineDate = new Date(deadline)
-    const diffTime = deadlineDate.getTime() - now.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
-    if (diffDays < 0) return '마감됨'
-    if (diffDays === 0) return '오늘 마감'
-    if (diffDays === 1) return '내일 마감'
-    if (diffDays <= 7) return `${diffDays}일 남음`
-    return new Date(deadline).toLocaleDateString()
-  }, [])
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const diffTime = deadlineDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return "마감됨";
+    if (diffDays === 0) return "오늘 마감";
+    if (diffDays === 1) return "내일 마감";
+    if (diffDays <= 7) return `${diffDays}일 남음`;
+    return new Date(deadline).toLocaleDateString();
+  }, []);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -163,11 +199,23 @@ function CampaignManagementTab() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">전체 캠페인</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalCampaigns}</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {stats.totalCampaigns}
+              </p>
             </div>
             <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="w-6 h-6 text-indigo-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
             </div>
           </div>
@@ -177,7 +225,9 @@ function CampaignManagementTab() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">진행중</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.activeCampaigns}</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {stats.activeCampaigns}
+              </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-green-600" />
@@ -189,11 +239,23 @@ function CampaignManagementTab() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">완료됨</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.completedCampaigns}</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {stats.completedCampaigns}
+              </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-6 h-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
           </div>
@@ -203,11 +265,23 @@ function CampaignManagementTab() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">총 예산</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">₩{stats.totalBudget.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                ₩{stats.totalBudget.toLocaleString()}
+              </p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-6 h-6 text-purple-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
           </div>
@@ -241,12 +315,11 @@ function CampaignManagementTab() {
               <option value="PAUSED">일시중지</option>
               <option value="COMPLETED">완료</option>
             </select>
-            <Link 
-              href="/business/campaigns/new" 
+            <Link
+              href="/business/campaigns/new"
               className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              새 캠페인
+              <Plus className="w-5 h-5 mr-2" />새 캠페인
             </Link>
           </div>
         </div>
@@ -256,28 +329,41 @@ function CampaignManagementTab() {
           {filteredCampaigns.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500">캠페인이 없습니다.</p>
-              <Link 
-                href="/business/campaigns/new" 
+              <Link
+                href="/business/campaigns/new"
                 className="inline-flex items-center mt-4 text-indigo-600 hover:text-indigo-700 font-medium"
               >
-                <Plus className="w-5 h-5 mr-1" />
-                첫 캠페인 만들기
+                <Plus className="w-5 h-5 mr-1" />첫 캠페인 만들기
               </Link>
             </div>
           ) : (
             filteredCampaigns.map((campaign) => (
-              <div key={campaign.id} className="border border-gray-200 rounded-lg p-6 hover:border-gray-300 transition-colors">
+              <div
+                key={campaign.id}
+                className="border border-gray-200 rounded-lg p-6 hover:border-gray-300 transition-colors"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{campaign.title}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {campaign.title}
+                      </h3>
                       {getStatusBadge(campaign.status)}
                     </div>
                     <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                       <span>카테고리: {campaign.category}</span>
-                      <span>예산: ₩{((typeof campaign.budget === 'object' ? campaign.budget?.amount : campaign.budget) || 0).toLocaleString()}</span>
+                      <span>
+                        예산: ₩
+                        {(
+                          (typeof campaign.budget === "object"
+                            ? campaign.budget?.amount
+                            : campaign.budget) || 0
+                        ).toLocaleString()}
+                      </span>
                       <span>조회수: {campaign.viewCount}</span>
-                      <span className="text-red-600 font-medium">{getDeadlineText(campaign.deadline)}</span>
+                      <span className="text-red-600 font-medium">
+                        {getDeadlineText(campaign.deadline)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -287,30 +373,31 @@ function CampaignManagementTab() {
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-gray-400" />
                       <span className="text-sm text-gray-600">
-                        지원자 {campaign.applications}/{campaign.maxApplications}명
+                        지원자 {campaign.applications}/
+                        {campaign.maxApplications}명
                       </span>
                     </div>
                     <div className="text-sm text-gray-500">
-                      플랫폼: {campaign.platforms?.join(', ') || '-'}
+                      플랫폼: {campaign.platforms?.join(", ") || "-"}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Link 
+                    <Link
                       href={`/business/campaigns/${campaign.id}`}
                       className="inline-flex items-center px-3 py-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium border border-indigo-600 rounded-md hover:bg-indigo-50 transition-colors"
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       상세보기
                     </Link>
-                    <Link 
+                    <Link
                       href={`/business/campaigns/${campaign.id}/applicants`}
                       className="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 font-medium border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                     >
                       <Users className="w-4 h-4 mr-1" />
                       지원자
                     </Link>
-                    <Link 
+                    <Link
                       href={`/business/campaigns/${campaign.id}/edit`}
                       className="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 font-medium border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                     >
@@ -318,7 +405,9 @@ function CampaignManagementTab() {
                       수정
                     </Link>
                     <button
-                      onClick={() => handleDeleteCampaign(campaign.id, campaign.title)}
+                      onClick={() =>
+                        handleDeleteCampaign(campaign.id, campaign.title)
+                      }
                       className="inline-flex items-center px-3 py-1.5 text-sm text-red-600 hover:text-red-700 font-medium border border-red-300 rounded-md hover:bg-red-50 transition-colors"
                     >
                       <Trash2 className="w-4 h-4 mr-1" />
@@ -332,8 +421,8 @@ function CampaignManagementTab() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // React.memo로 성능 최적화
-export default memo(CampaignManagementTab)
+export default memo(CampaignManagementTab);

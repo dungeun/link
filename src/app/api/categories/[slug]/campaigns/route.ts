@@ -1,72 +1,72 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { prisma } from '@/lib/db/prisma'
+export const dynamic = "force-dynamic";
+import { prisma } from "@/lib/db/prisma";
 
 // Dynamic route configuration
 // GET /api/categories/[slug]/campaigns - 카테고리별 캠페인 목록 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: { slug: string } },
 ) {
   try {
-    const { searchParams } = new URL(request.url)
-    const search = searchParams.get('search') || ''
-    const sort = searchParams.get('sort') || 'latest'
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '12')
-    const offset = (page - 1) * limit
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("search") || "";
+    const sort = searchParams.get("sort") || "latest";
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "12");
+    const offset = (page - 1) * limit;
 
     // 먼저 카테고리 찾기
     const category = await prisma.category.findUnique({
-      where: { 
+      where: {
         slug: params.slug,
-        isActive: true
-      }
-    })
+        isActive: true,
+      },
+    });
 
     if (!category) {
       return NextResponse.json(
-        { success: false, error: 'Category not found' },
-        { status: 404 }
-      )
+        { success: false, error: "Category not found" },
+        { status: 404 },
+      );
     }
 
     // 검색 및 정렬 조건 설정
     const whereConditions: Record<string, unknown> = {
       categories: {
         some: {
-          categoryId: category.id
-        }
+          categoryId: category.id,
+        },
       },
-      status: 'ACTIVE'
-    }
+      status: "ACTIVE",
+    };
 
     if (search) {
       whereConditions.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
-      ]
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
     }
 
     // 정렬 조건 설정
-    let orderBy: Record<string, 'asc' | 'desc'> = { createdAt: 'desc' } // 기본값: 최신 순
+    let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" }; // 기본값: 최신 순
 
     switch (sort) {
-      case 'budget_high':
-        orderBy = { budget: 'desc' }
-        break
-      case 'budget_low':
-        orderBy = { budget: 'asc' }
-        break
-      case 'popular':
-        orderBy = { viewCount: 'desc' }
-        break
-      case 'latest':
+      case "budget_high":
+        orderBy = { budget: "desc" };
+        break;
+      case "budget_low":
+        orderBy = { budget: "asc" };
+        break;
+      case "popular":
+        orderBy = { viewCount: "desc" };
+        break;
+      case "latest":
       default:
-        orderBy = { createdAt: 'desc' }
-        break
+        orderBy = { createdAt: "desc" };
+        break;
     }
 
     // 캠페인 조회
@@ -75,24 +75,24 @@ export async function GET(
         where: whereConditions,
         include: {
           business: {
-            select: { name: true }
+            select: { name: true },
           },
           categories: {
             include: {
               category: {
-                select: { name: true, icon: true }
-              }
-            }
-          }
+                select: { name: true, icon: true },
+              },
+            },
+          },
         },
         orderBy,
         skip: offset,
-        take: limit
+        take: limit,
       }),
-      prisma.campaign.count({ where: whereConditions })
-    ])
+      prisma.campaign.count({ where: whereConditions }),
+    ]);
 
-    const totalPages = Math.ceil(totalCount / limit)
+    const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
       success: true,
@@ -103,14 +103,14 @@ export async function GET(
         totalCount,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
-    })
+        hasPrev: page > 1,
+      },
+    });
   } catch (error) {
-    console.error('Error fetching category campaigns:', error)
+    console.error("Error fetching category campaigns:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch campaigns' },
-      { status: 500 }
-    )
+      { success: false, error: "Failed to fetch campaigns" },
+      { status: 500 },
+    );
   }
 }

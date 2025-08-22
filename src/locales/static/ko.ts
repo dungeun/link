@@ -8,13 +8,15 @@ export const translations = {
   "admin.ui.tab.footer": "푸터 설정",
   "admin.ui.tab.sections": "섹션 관리",
   "admin.ui.tab.sectionOrder": "섹션 순서",
-  "admin.ui.dbConnected": "이 페이지는 데이터베이스와 완전히 연동되어 있습니다. 모든 변경사항이 실시간으로 저장되며, 자동 번역 기능이 포함되어 있습니다.",
+  "admin.ui.dbConnected":
+    "이 페이지는 데이터베이스와 완전히 연동되어 있습니다. 모든 변경사항이 실시간으로 저장되며, 자동 번역 기능이 포함되어 있습니다.",
   "admin.header.title": "헤더 메뉴 설정",
   "admin.header.addMenu": "메뉴 추가",
   "admin.header.menuName": "메뉴 이름",
   "admin.header.linkUrl": "링크 URL",
   "admin.header.icon": "아이콘",
-  "admin.header.autoTranslate": "메뉴 이름은 자동으로 영어와 일본어로 번역됩니다.",
+  "admin.header.autoTranslate":
+    "메뉴 이름은 자동으로 영어와 일본어로 번역됩니다.",
   "admin.footer.title": "푸터 섹션 설정",
   "admin.footer.addSection": "섹션 추가",
   "admin.footer.sectionTitle": "섹션 제목",
@@ -23,7 +25,8 @@ export const translations = {
   "admin.footer.visible": "표시",
   "admin.footer.hidden": "숨김",
   "admin.footer.delete": "삭제",
-  "admin.footer.noSections": "푸터 섹션이 없습니다. 위의 \"섹션 추가\" 버튼을 클릭하여 섹션을 추가하세요.",
+  "admin.footer.noSections":
+    '푸터 섹션이 없습니다. 위의 "섹션 추가" 버튼을 클릭하여 섹션을 추가하세요.',
   "admin.footer.noLinks": "링크가 없습니다.",
   "header.notification": "알림",
   "header.no_notifications": "알림이 없습니다",
@@ -103,7 +106,7 @@ export const translations = {
   "category.review": "구매평",
   "category.digital": "디지털",
   "category.restaurant": "맛집",
-  "category.restaurant_review": "맛집 리뷰"
+  "category.restaurant_review": "맛집 리뷰",
 } as const;
 
 export type TranslationKey = keyof typeof translations;

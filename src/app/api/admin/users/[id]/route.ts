@@ -1,28 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
-import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 // API 라우트를 동적으로 설정 (정적 생성 방지)
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 // 인증 미들웨어
 async function authenticate(request: NextRequest) {
   const JWT_SECRET = process.env.JWT_SECRET;
   if (!JWT_SECRET) {
-    console.error('JWT_SECRET is not configured');
+    console.error("JWT_SECRET is not configured");
     return null;
   }
   const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value;
+  const token = cookieStore.get("auth-token")?.value;
 
   if (!token) {
     return null;
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string; type: string; name: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      id: string;
+      email: string;
+      type: string;
+      name: string;
+    };
     return decoded;
   } catch (error) {
     return null;
@@ -32,23 +37,23 @@ async function authenticate(request: NextRequest) {
 // GET /api/admin/users/[id] - 특정 사용자 상세 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const user = await authenticate(request);
     if (!user) {
       return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
+        { error: "인증이 필요합니다." },
+        { status: 401 },
       );
     }
-    
+
     // 관리자만 접근 가능
     const userType = user.type?.toLowerCase();
-    if (userType !== 'admin') {
+    if (userType !== "admin") {
       return NextResponse.json(
-        { error: '관리자만 접근할 수 있습니다.' },
-        { status: 403 }
+        { error: "관리자만 접근할 수 있습니다." },
+        { status: 403 },
       );
     }
 
@@ -60,24 +65,24 @@ export async function GET(
         businessProfile: true,
         campaigns: {
           select: {
-            id: true
-          }
+            id: true,
+          },
         },
         applications: {
           where: {
-            status: 'APPROVED'
+            status: "APPROVED",
           },
           select: {
-            id: true
-          }
-        }
-      }
+            id: true,
+          },
+        },
+      },
     });
 
     if (!userDetail) {
       return NextResponse.json(
-        { error: '사용자를 찾을 수 없습니다.' },
-        { status: 404 }
+        { error: "사용자를 찾을 수 없습니다." },
+        { status: 404 },
       );
     }
 
@@ -87,42 +92,57 @@ export async function GET(
       name: userDetail.name,
       email: userDetail.email,
       type: userDetail.type.toLowerCase(),
-      status: userDetail.status?.toLowerCase() || 'active',
-      createdAt: userDetail.createdAt.toISOString().split('T')[0],
-      lastLogin: userDetail.lastLogin ? userDetail.lastLogin.toISOString().split('T')[0] : '미접속',
+      status: userDetail.status?.toLowerCase() || "active",
+      createdAt: userDetail.createdAt.toISOString().split("T")[0],
+      lastLogin: userDetail.lastLogin
+        ? userDetail.lastLogin.toISOString().split("T")[0]
+        : "미접속",
       verified: userDetail.verified || false,
-      campaigns: userDetail.type === 'BUSINESS' ? userDetail.campaigns?.length || 0 : userDetail.applications?.length || 0,
-      applications: userDetail.type === 'INFLUENCER' ? userDetail.applications?.length || 0 : undefined,
-      phone: userDetail.profile?.phone || '미등록',
-      address: userDetail.type === 'BUSINESS' ? userDetail.businessProfile?.businessAddress : 
-        (userDetail.profile as { address?: string } | null)?.address || '미등록',
-      profile: userDetail.profile ? {
-        bio: userDetail.profile.bio,
-        instagram: userDetail.profile.instagram,
-        instagramFollowers: userDetail.profile.instagramFollowers,
-        youtube: userDetail.profile.youtube,
-        youtubeSubscribers: userDetail.profile.youtubeSubscribers,
-        tiktok: userDetail.profile.tiktok,
-        tiktokFollowers: userDetail.profile.tiktokFollowers,
-        followerCount: userDetail.profile.followerCount,
-        categories: userDetail.profile.categories,
-        phone: userDetail.profile.phone
-      } : undefined,
-      businessProfile: userDetail.businessProfile ? {
-        companyName: userDetail.businessProfile.companyName,
-        businessNumber: userDetail.businessProfile.businessNumber,
-        representativeName: userDetail.businessProfile.representativeName,
-        businessAddress: userDetail.businessProfile.businessAddress,
-        businessCategory: userDetail.businessProfile.businessCategory
-      } : undefined
+      campaigns:
+        userDetail.type === "BUSINESS"
+          ? userDetail.campaigns?.length || 0
+          : userDetail.applications?.length || 0,
+      applications:
+        userDetail.type === "INFLUENCER"
+          ? userDetail.applications?.length || 0
+          : undefined,
+      phone: userDetail.profile?.phone || "미등록",
+      address:
+        userDetail.type === "BUSINESS"
+          ? userDetail.businessProfile?.businessAddress
+          : (userDetail.profile as { address?: string } | null)?.address ||
+            "미등록",
+      profile: userDetail.profile
+        ? {
+            bio: userDetail.profile.bio,
+            instagram: userDetail.profile.instagram,
+            instagramFollowers: userDetail.profile.instagramFollowers,
+            youtube: userDetail.profile.youtube,
+            youtubeSubscribers: userDetail.profile.youtubeSubscribers,
+            tiktok: userDetail.profile.tiktok,
+            tiktokFollowers: userDetail.profile.tiktokFollowers,
+            followerCount: userDetail.profile.followerCount,
+            categories: userDetail.profile.categories,
+            phone: userDetail.profile.phone,
+          }
+        : undefined,
+      businessProfile: userDetail.businessProfile
+        ? {
+            companyName: userDetail.businessProfile.companyName,
+            businessNumber: userDetail.businessProfile.businessNumber,
+            representativeName: userDetail.businessProfile.representativeName,
+            businessAddress: userDetail.businessProfile.businessAddress,
+            businessCategory: userDetail.businessProfile.businessCategory,
+          }
+        : undefined,
     };
 
     return NextResponse.json(formattedUser);
   } catch (error) {
-    console.error('사용자 상세 조회 오류:', error);
+    console.error("사용자 상세 조회 오류:", error);
     return NextResponse.json(
-      { error: '사용자 정보를 불러오는데 실패했습니다.' },
-      { status: 500 }
+      { error: "사용자 정보를 불러오는데 실패했습니다." },
+      { status: 500 },
     );
   } finally {
     await prisma.$disconnect();
@@ -132,70 +152,70 @@ export async function GET(
 // PUT /api/admin/users/[id] - 사용자 정보 업데이트
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const user = await authenticate(request);
     if (!user) {
       return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
+        { error: "인증이 필요합니다." },
+        { status: 401 },
       );
     }
-    
+
     // 관리자만 접근 가능
     const userType = user.type?.toLowerCase();
-    if (userType !== 'admin') {
+    if (userType !== "admin") {
       return NextResponse.json(
-        { error: '관리자만 접근할 수 있습니다.' },
-        { status: 403 }
+        { error: "관리자만 접근할 수 있습니다." },
+        { status: 403 },
       );
     }
 
     const body = await request.json();
     const { name, status, type, phone, verified, statusReason } = body;
 
-    console.log('User update request:', { userId: params.id, body });
+    console.log("User update request:", { userId: params.id, body });
 
     // 사용자 기본 정보 업데이트
     const updateData: Record<string, unknown> = {};
-    
+
     if (name !== undefined) {
       updateData.name = name;
     }
-    
+
     if (status !== undefined) {
       // status를 대문자로 변환하고 유효성 검사
       const normalizedStatus = status.toUpperCase();
-      if (['ACTIVE', 'INACTIVE', 'SUSPENDED'].includes(normalizedStatus)) {
+      if (["ACTIVE", "INACTIVE", "SUSPENDED"].includes(normalizedStatus)) {
         updateData.status = normalizedStatus;
         updateData.statusUpdatedAt = new Date();
       } else {
-        console.error('Invalid status value:', status);
+        console.error("Invalid status value:", status);
         return NextResponse.json(
           { error: `잘못된 상태 값입니다: ${status}` },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
-    
+
     if (type !== undefined) {
       const normalizedType = type.toUpperCase();
-      if (['ADMIN', 'BUSINESS', 'INFLUENCER'].includes(normalizedType)) {
+      if (["ADMIN", "BUSINESS", "INFLUENCER"].includes(normalizedType)) {
         updateData.type = normalizedType;
       } else {
-        console.error('Invalid type value:', type);
+        console.error("Invalid type value:", type);
         return NextResponse.json(
           { error: `잘못된 사용자 유형입니다: ${type}` },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
-    
+
     if (verified !== undefined) {
       updateData.verified = Boolean(verified);
     }
-    
+
     if (statusReason !== undefined) {
       updateData.statusReason = statusReason;
     }
@@ -208,8 +228,8 @@ export async function PUT(
         data: updateData,
         include: {
           profile: true,
-          businessProfile: true
-        }
+          businessProfile: true,
+        },
       });
 
       // 전화번호가 포함된 경우 프로필 업데이트
@@ -220,8 +240,8 @@ export async function PUT(
           update: { phone },
           create: {
             userId: params.id,
-            phone
-          }
+            phone,
+          },
         });
       }
 
@@ -230,20 +250,20 @@ export async function PUT(
         where: { id: params.id },
         include: {
           profile: true,
-          businessProfile: true
-        }
+          businessProfile: true,
+        },
       });
     });
 
     return NextResponse.json({
-      message: '사용자 정보가 업데이트되었습니다.',
-      user: updatedUser
+      message: "사용자 정보가 업데이트되었습니다.",
+      user: updatedUser,
     });
   } catch (error) {
-    console.error('사용자 업데이트 오류:', error);
+    console.error("사용자 업데이트 오류:", error);
     return NextResponse.json(
-      { error: '사용자 정보 업데이트에 실패했습니다.' },
-      { status: 500 }
+      { error: "사용자 정보 업데이트에 실패했습니다." },
+      { status: 500 },
     );
   } finally {
     await prisma.$disconnect();

@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { memo } from 'react'
+import { memo } from "react";
 
 interface DashboardStats {
-  totalUsers: number
-  activeUsers: number
-  totalCampaigns: number
-  activeCampaigns: number
-  revenue: number
-  growth: number
-  newUsers: number
-  pendingApprovals: number
-  userGrowthRate?: number
-  campaignGrowthRate?: number
-  revenueTargetAchievement?: number
+  totalUsers: number;
+  activeUsers: number;
+  totalCampaigns: number;
+  activeCampaigns: number;
+  revenue: number;
+  growth: number;
+  newUsers: number;
+  pendingApprovals: number;
+  userGrowthRate?: number;
+  campaignGrowthRate?: number;
+  revenueTargetAchievement?: number;
 }
 
 interface StatsCardsProps {
-  stats: DashboardStats
+  stats: DashboardStats;
 }
 
 function StatsCards({ stats }: StatsCardsProps) {
@@ -36,16 +36,31 @@ function StatsCards({ stats }: StatsCardsProps) {
             </p>
           </div>
           <div className="p-3 bg-blue-100 rounded-full">
-            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            <svg
+              className="w-6 h-6 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+              />
             </svg>
           </div>
         </div>
         <div className="mt-4">
-          <span className={`text-sm font-medium ${
-            (stats.userGrowthRate || 0) >= 0 ? 'text-green-500' : 'text-red-500'
-          }`}>
-            {(stats.userGrowthRate || 0) >= 0 ? '+' : ''}{stats.userGrowthRate || 0}%
+          <span
+            className={`text-sm font-medium ${
+              (stats.userGrowthRate || 0) >= 0
+                ? "text-green-500"
+                : "text-red-500"
+            }`}
+          >
+            {(stats.userGrowthRate || 0) >= 0 ? "+" : ""}
+            {stats.userGrowthRate || 0}%
           </span>
           <span className="text-gray-500 text-sm ml-2">지난달 대비</span>
         </div>
@@ -64,16 +79,31 @@ function StatsCards({ stats }: StatsCardsProps) {
             </p>
           </div>
           <div className="p-3 bg-green-100 rounded-full">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-6 h-6 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
         </div>
         <div className="mt-4">
-          <span className={`text-sm font-medium ${
-            (stats.campaignGrowthRate || 0) >= 0 ? 'text-green-500' : 'text-red-500'
-          }`}>
-            {(stats.campaignGrowthRate || 0) >= 0 ? '+' : ''}{stats.campaignGrowthRate || 0}%
+          <span
+            className={`text-sm font-medium ${
+              (stats.campaignGrowthRate || 0) >= 0
+                ? "text-green-500"
+                : "text-red-500"
+            }`}
+          >
+            {(stats.campaignGrowthRate || 0) >= 0 ? "+" : ""}
+            {stats.campaignGrowthRate || 0}%
           </span>
           <span className="text-gray-500 text-sm ml-2">지난달 대비</span>
         </div>
@@ -92,13 +122,25 @@ function StatsCards({ stats }: StatsCardsProps) {
             </p>
           </div>
           <div className="p-3 bg-yellow-100 rounded-full">
-            <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-6 h-6 text-yellow-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
         </div>
         <div className="mt-4">
-          <span className="text-green-500 text-sm font-medium">+{stats.growth}%</span>
+          <span className="text-green-500 text-sm font-medium">
+            +{stats.growth}%
+          </span>
           <span className="text-gray-500 text-sm ml-2">지난달 대비</span>
         </div>
       </div>
@@ -111,24 +153,35 @@ function StatsCards({ stats }: StatsCardsProps) {
             <p className="text-2xl font-bold text-gray-900 mt-1">
               {stats.pendingApprovals}
             </p>
-            <p className="text-sm text-gray-500 mt-1">
-              즉시 처리 필요
-            </p>
+            <p className="text-sm text-gray-500 mt-1">즉시 처리 필요</p>
           </div>
           <div className="p-3 bg-red-100 rounded-full">
-            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-6 h-6 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
         </div>
         <div className="mt-4">
-          <a href="/admin/approvals" className="text-blue-600 text-sm font-medium hover:text-blue-700">
+          <a
+            href="/admin/approvals"
+            className="text-blue-600 text-sm font-medium hover:text-blue-700"
+          >
             승인 관리 →
           </a>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default memo(StatsCards)
+export default memo(StatsCards);

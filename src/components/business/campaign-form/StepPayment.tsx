@@ -1,20 +1,26 @@
 interface StepPaymentProps {
-  baseFee: number
-  platformFee: number
-  budget?: number
-  budgetType?: string
-  reviewPrice?: number
+  baseFee: number;
+  platformFee: number;
+  budget?: number;
+  budgetType?: string;
+  reviewPrice?: number;
 }
 
-export default function StepPayment({ baseFee, platformFee, budget = 0, budgetType = 'FREE', reviewPrice = 0 }: StepPaymentProps) {
-  const campaignBudget = budgetType === 'PAID' ? budget : 0
-  const reviewBudget = budgetType === 'REVIEW' ? reviewPrice : 0
-  const totalAmount = baseFee + platformFee + campaignBudget + reviewBudget
+export default function StepPayment({
+  baseFee,
+  platformFee,
+  budget = 0,
+  budgetType = "FREE",
+  reviewPrice = 0,
+}: StepPaymentProps) {
+  const campaignBudget = budgetType === "PAID" ? budget : 0;
+  const reviewBudget = budgetType === "REVIEW" ? reviewPrice : 0;
+  const totalAmount = baseFee + platformFee + campaignBudget + reviewBudget;
 
   return (
     <>
       <h2 className="text-xl font-semibold text-gray-900 mb-4">결제 정보</h2>
-      
+
       <div className="bg-gray-50 rounded-lg p-6 mb-6">
         <h3 className="font-semibold text-lg mb-4">캠페인 비용 상세</h3>
         <div className="space-y-3">
@@ -22,16 +28,20 @@ export default function StepPayment({ baseFee, platformFee, budget = 0, budgetTy
             <span className="text-gray-600">캠페인 등록비</span>
             <span className="font-medium">₩{baseFee.toLocaleString()}</span>
           </div>
-          {budgetType === 'PAID' && campaignBudget > 0 && (
+          {budgetType === "PAID" && campaignBudget > 0 && (
             <div className="flex justify-between items-center">
               <span className="text-gray-600">인플루언서 보상 예산</span>
-              <span className="font-medium">₩{campaignBudget.toLocaleString()}</span>
+              <span className="font-medium">
+                ₩{campaignBudget.toLocaleString()}
+              </span>
             </div>
           )}
-          {budgetType === 'REVIEW' && reviewBudget > 0 && (
+          {budgetType === "REVIEW" && reviewBudget > 0 && (
             <div className="flex justify-between items-center">
               <span className="text-gray-600">구매평 단가 (개당)</span>
-              <span className="font-medium">₩{reviewBudget.toLocaleString()}</span>
+              <span className="font-medium">
+                ₩{reviewBudget.toLocaleString()}
+              </span>
             </div>
           )}
           <div className="flex justify-between items-center">
@@ -41,7 +51,9 @@ export default function StepPayment({ baseFee, platformFee, budget = 0, budgetTy
           <div className="border-t pt-3">
             <div className="flex justify-between items-center">
               <span className="font-semibold">총 결제 금액</span>
-              <span className="text-xl font-bold text-indigo-600">₩{totalAmount.toLocaleString()}</span>
+              <span className="text-xl font-bold text-indigo-600">
+                ₩{totalAmount.toLocaleString()}
+              </span>
             </div>
           </div>
         </div>
@@ -57,5 +69,5 @@ export default function StepPayment({ baseFee, platformFee, budget = 0, budgetTy
         </ul>
       </div>
     </>
-  )
+  );
 }

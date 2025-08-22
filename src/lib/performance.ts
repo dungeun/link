@@ -33,7 +33,7 @@ class PerformanceMonitor {
     this.metrics.push({
       name,
       duration,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     this.timers.delete(name);
@@ -43,10 +43,7 @@ class PerformanceMonitor {
   /**
    * Measure the performance of an async function
    */
-  async measure<T>(
-    name: string,
-    fn: () => Promise<T>
-  ): Promise<T> {
+  async measure<T>(name: string, fn: () => Promise<T>): Promise<T> {
     this.startTimer(name);
     try {
       const result = await fn();
@@ -68,17 +65,29 @@ class PerformanceMonitor {
   /**
    * Get metrics summary
    */
-  getSummary(): Record<string, { count: number; total: number; average: number; min: number; max: number }> {
-    const summary: Record<string, { count: number; total: number; average: number; min: number; max: number }> = {};
+  getSummary(): Record<
+    string,
+    { count: number; total: number; average: number; min: number; max: number }
+  > {
+    const summary: Record<
+      string,
+      {
+        count: number;
+        total: number;
+        average: number;
+        min: number;
+        max: number;
+      }
+    > = {};
 
-    this.metrics.forEach(metric => {
+    this.metrics.forEach((metric) => {
       if (!summary[metric.name]) {
         summary[metric.name] = {
           count: 0,
           total: 0,
           average: 0,
           min: Infinity,
-          max: -Infinity
+          max: -Infinity,
         };
       }
 
@@ -106,7 +115,7 @@ class PerformanceMonitor {
    */
   logSummary(): void {
     const summary = this.getSummary();
-    console.log('Performance Summary:');
+    console.log("Performance Summary:");
     Object.entries(summary).forEach(([name, stats]) => {
       console.log(`  ${name}:`);
       console.log(`    Count: ${stats.count}`);
@@ -121,12 +130,18 @@ class PerformanceMonitor {
 export const performanceMonitor = new PerformanceMonitor();
 
 // Performance decorators for methods
-export function measurePerformance(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
+export function measurePerformance(
+  target: unknown,
+  propertyKey: string,
+  descriptor: PropertyDescriptor,
+) {
   const originalMethod = descriptor.value;
 
   descriptor.value = async function (...args: unknown[]) {
     const name = `${(target as any).constructor.name}.${propertyKey}`;
-    return performanceMonitor.measure(name, () => originalMethod.apply(this, args));
+    return performanceMonitor.measure(name, () =>
+      originalMethod.apply(this, args),
+    );
   };
 
   return descriptor;
@@ -139,18 +154,21 @@ export interface QueryMetrics {
   rowCount?: number;
 }
 
-export function logSlowQuery(metrics: QueryMetrics, threshold: number = 1000): void {
+export function logSlowQuery(
+  metrics: QueryMetrics,
+  threshold: number = 1000,
+): void {
   if (metrics.duration > threshold) {
     console.warn(`Slow query detected (${metrics.duration.toFixed(2)}ms):`, {
       query: metrics.query,
-      rowCount: metrics.rowCount
+      rowCount: metrics.rowCount,
     });
   }
 }
 
 // Core Web Vitals monitoring
 interface WebVitalMetric {
-  name: 'CLS' | 'FID' | 'FCP' | 'LCP' | 'TTFB' | 'TBT';
+  name: "CLS" | "FID" | "FCP" | "LCP" | "TTFB" | "TBT";
   value: number;
   delta: number;
   id: string;
@@ -161,7 +179,7 @@ class WebVitalsMonitor {
   private observers: PerformanceObserver[] = [];
 
   constructor() {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       this.initializeObservers();
     }
   }
@@ -173,16 +191,16 @@ class WebVitalsMonitor {
         const entries = entryList.getEntries();
         const lastEntry = entries[entries.length - 1];
         this.recordVital({
-          name: 'LCP',
+          name: "LCP",
           value: lastEntry.startTime,
           delta: lastEntry.startTime,
-          id: (lastEntry as any).id || 'lcp'
+          id: (lastEntry as any).id || "lcp",
         });
       });
-      lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+      lcpObserver.observe({ entryTypes: ["largest-contentful-paint"] });
       this.observers.push(lcpObserver);
     } catch (e) {
-      console.warn('LCP observer failed:', e);
+      console.warn("LCP observer failed:", e);
     }
 
     // FID Observer
@@ -191,17 +209,17 @@ class WebVitalsMonitor {
         const entries = entryList.getEntries();
         entries.forEach((entry: any) => {
           this.recordVital({
-            name: 'FID',
+            name: "FID",
             value: entry.processingStart - entry.startTime,
             delta: entry.processingStart - entry.startTime,
-            id: entry.entryType
+            id: entry.entryType,
           });
         });
       });
-      fidObserver.observe({ entryTypes: ['first-input'] });
+      fidObserver.observe({ entryTypes: ["first-input"] });
       this.observers.push(fidObserver);
     } catch (e) {
-      console.warn('FID observer failed:', e);
+      console.warn("FID observer failed:", e);
     }
 
     // CLS Observer
@@ -213,18 +231,18 @@ class WebVitalsMonitor {
           if (!entry.hadRecentInput) {
             clsValue += entry.value;
             this.recordVital({
-              name: 'CLS',
+              name: "CLS",
               value: clsValue,
               delta: entry.value,
-              id: 'cls'
+              id: "cls",
             });
           }
         });
       });
-      clsObserver.observe({ entryTypes: ['layout-shift'] });
+      clsObserver.observe({ entryTypes: ["layout-shift"] });
       this.observers.push(clsObserver);
     } catch (e) {
-      console.warn('CLS observer failed:', e);
+      console.warn("CLS observer failed:", e);
     }
 
     // TBT calculation using long tasks
@@ -237,26 +255,26 @@ class WebVitalsMonitor {
             const blockingTime = entry.duration - 50;
             tbtValue += blockingTime;
             this.recordVital({
-              name: 'TBT',
+              name: "TBT",
               value: tbtValue,
               delta: blockingTime,
-              id: 'tbt'
+              id: "tbt",
             });
           }
         });
       });
-      longTaskObserver.observe({ entryTypes: ['longtask'] });
+      longTaskObserver.observe({ entryTypes: ["longtask"] });
       this.observers.push(longTaskObserver);
     } catch (e) {
-      console.warn('TBT observer failed:', e);
+      console.warn("TBT observer failed:", e);
     }
   }
 
   private recordVital(vital: WebVitalMetric) {
     this.vitals.set(vital.name, vital);
-    
+
     // Send to analytics in production
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       this.sendToAnalytics(vital);
     } else {
       console.log(`Web Vital - ${vital.name}:`, vital.value);
@@ -266,22 +284,22 @@ class WebVitalsMonitor {
   private sendToAnalytics(vital: WebVitalMetric) {
     // Example implementation - replace with your analytics service
     try {
-      if (typeof (window as any).gtag !== 'undefined') {
-        (window as any).gtag('event', vital.name, {
+      if (typeof (window as any).gtag !== "undefined") {
+        (window as any).gtag("event", vital.name, {
           custom_parameter_1: vital.value,
-          custom_parameter_2: vital.id
+          custom_parameter_2: vital.id,
         });
       }
 
       // Send to custom endpoint
-      fetch('/api/analytics/web-vitals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      fetch("/api/analytics/web-vitals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...vital,
           url: window.location.href,
-          timestamp: Date.now()
-        })
+          timestamp: Date.now(),
+        }),
       }).catch(() => {}); // Fail silently
     } catch (e) {
       // Fail silently in production
@@ -296,23 +314,29 @@ class WebVitalsMonitor {
     return vitals;
   }
 
-  checkBudgets(): { passed: boolean; results: Record<string, { value: number; budget: number; passed: boolean }> } {
+  checkBudgets(): {
+    passed: boolean;
+    results: Record<string, { value: number; budget: number; passed: boolean }>;
+  } {
     const budgets = {
-      LCP: 2500,  // 2.5s
-      FID: 100,   // 100ms
-      CLS: 0.1,   // 0.1
-      TBT: 200,   // 200ms
-      TTFB: 600   // 600ms
+      LCP: 2500, // 2.5s
+      FID: 100, // 100ms
+      CLS: 0.1, // 0.1
+      TBT: 200, // 200ms
+      TTFB: 600, // 600ms
     };
 
-    const results: Record<string, { value: number; budget: number; passed: boolean }> = {};
+    const results: Record<
+      string,
+      { value: number; budget: number; passed: boolean }
+    > = {};
     let allPassed = true;
 
     Object.entries(budgets).forEach(([name, budget]) => {
       const vital = this.vitals.get(name as keyof typeof budgets);
       const value = vital?.value || 0;
       const passed = value <= budget;
-      
+
       results[name] = { value, budget, passed };
       if (!passed) allPassed = false;
     });
@@ -321,7 +345,7 @@ class WebVitalsMonitor {
   }
 
   disconnect() {
-    this.observers.forEach(observer => observer.disconnect());
+    this.observers.forEach((observer) => observer.disconnect());
     this.observers = [];
     this.vitals.clear();
   }
@@ -334,26 +358,26 @@ export const webVitalsMonitor = new WebVitalsMonitor();
 export function useWebVitals() {
   const getVitals = () => webVitalsMonitor.getVitals();
   const checkBudgets = () => webVitalsMonitor.checkBudgets();
-  
+
   return { getVitals, checkBudgets };
 }
 
 // Initialize monitoring on app start
 export function initializePerformanceMonitoring() {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     // Report on page unload
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       const budget = webVitalsMonitor.checkBudgets();
-      
-      if (navigator.sendBeacon && process.env.NODE_ENV === 'production') {
+
+      if (navigator.sendBeacon && process.env.NODE_ENV === "production") {
         const report = {
           url: window.location.href,
           vitals: webVitalsMonitor.getVitals(),
           budget: budget,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
-        
-        navigator.sendBeacon('/api/performance', JSON.stringify(report));
+
+        navigator.sendBeacon("/api/performance", JSON.stringify(report));
       }
     });
   }

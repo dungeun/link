@@ -4,23 +4,27 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  type: 'ADMIN' | 'BUSINESS' | 'INFLUENCER';
+  type: "ADMIN" | "BUSINESS" | "INFLUENCER";
 }
 
 // Deprecated: useAuth 훅을 사용하세요
 export const AuthService = {
   login: () => {
-    console.warn('AuthService.login is deprecated. Use useAuth hook instead.');
+    console.warn("AuthService.login is deprecated. Use useAuth hook instead.");
   },
   logout: () => {
-    console.warn('AuthService.logout is deprecated. Use useAuth hook instead.');
+    console.warn("AuthService.logout is deprecated. Use useAuth hook instead.");
   },
   getCurrentUser: (): User | null => {
-    console.warn('AuthService.getCurrentUser is deprecated. Use useAuth hook instead.');
+    console.warn(
+      "AuthService.getCurrentUser is deprecated. Use useAuth hook instead.",
+    );
     return null;
   },
   isLoggedIn: (): boolean => {
-    console.warn('AuthService.isLoggedIn is deprecated. Use useAuth hook instead.');
+    console.warn(
+      "AuthService.isLoggedIn is deprecated. Use useAuth hook instead.",
+    );
     return false;
-  }
+  },
 };

@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
-import { requireAdminAuth } from '@/lib/admin-auth';
-import { AdminCache } from '@/lib/cache/admin-cache';
-import { logger } from '@/lib/logger/structured-logger';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import { requireAdminAuth } from "@/lib/admin-auth";
+import { AdminCache } from "@/lib/cache/admin-cache";
+import { logger } from "@/lib/logger/structured-logger";
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 // GET /api/admin/dashboard - 최적화된 관리자 대시보드 통계
 export async function GET(request: NextRequest) {
@@ -19,13 +19,13 @@ export async function GET(request: NextRequest) {
     // 캐시 확인
     const cached = await AdminCache.getDashboardStats();
     if (cached) {
-      logger.info('Dashboard data served from cache');
+      logger.info("Dashboard data served from cache");
       return NextResponse.json(cached);
     }
 
     // 병렬 쿼리 실행 - 최적화된 버전
     const startTime = Date.now();
-    
+
     // 날짜 계산 (재사용)
     const now = new Date();
     const todayStart = new Date(now.setHours(0, 0, 0, 0));
@@ -39,147 +39,150 @@ export async function GET(request: NextRequest) {
       totalCampaigns,
       activeCampaigns,
       newUsersToday,
-      previousMonthUsers
+      previousMonthUsers,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({
-        where: { lastLogin: { gte: sevenDaysAgo } }
+        where: { lastLogin: { gte: sevenDaysAgo } },
       }),
       prisma.campaign.count(),
       prisma.campaign.count({
-        where: { status: 'ACTIVE' }
+        where: { status: "ACTIVE" },
       }),
       prisma.user.count({
-        where: { createdAt: { gte: todayStart } }
+        where: { createdAt: { gte: todayStart } },
       }),
       prisma.user.count({
-        where: { createdAt: { lt: thirtyDaysAgo } }
-      })
+        where: { createdAt: { lt: thirtyDaysAgo } },
+      }),
     ]);
 
     // 병렬 쿼리 그룹 2: 승인 대기 및 결제
-    const [
-      pendingBusinessProfiles,
-      pendingInfluencerProfiles,
-      totalPayments
-    ] = await Promise.all([
-      prisma.businessProfile.count({
-        where: { isVerified: false }
-      }),
-      prisma.profile.count({
-        where: { isVerified: false }
-      }),
-      prisma.payment.aggregate({
-        where: { status: 'COMPLETED' },
-        _sum: { amount: true }
-      })
-    ]);
+    const [pendingBusinessProfiles, pendingInfluencerProfiles, totalPayments] =
+      await Promise.all([
+        prisma.businessProfile.count({
+          where: { isVerified: false },
+        }),
+        prisma.profile.count({
+          where: { isVerified: false },
+        }),
+        prisma.payment.aggregate({
+          where: { status: "COMPLETED" },
+          _sum: { amount: true },
+        }),
+      ]);
 
     // 병렬 쿼리 그룹 3: 최근 활동 (선택적 로딩)
-    const [
-      recentUsers,
-      recentCampaigns,
-      recentApplications,
-      recentPayments
-    ] = await Promise.all([
-      prisma.user.findMany({
-        take: 3,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          type: true,
-          createdAt: true
-        }
-      }),
-      prisma.campaign.findMany({
-        take: 3,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          createdAt: true,
-          business: {
-            select: {
-              name: true,
-              businessProfile: {
-                select: { companyName: true }
-              }
-            }
-          }
-        }
-      }),
-      prisma.campaignApplication.findMany({
-        take: 3,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          createdAt: true,
-          campaign: {
-            select: { title: true }
+    const [recentUsers, recentCampaigns, recentApplications, recentPayments] =
+      await Promise.all([
+        prisma.user.findMany({
+          take: 3,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            type: true,
+            createdAt: true,
           },
-          influencer: {
-            select: { name: true }
-          }
-        }
-      }),
-      prisma.payment.findMany({
-        take: 3,
-        orderBy: { createdAt: 'desc' },
-        where: { status: 'COMPLETED' },
-        select: {
-          id: true,
-          amount: true,
-          createdAt: true,
-          campaign: {
-            select: { title: true }
-          }
-        }
-      })
-    ]);
+        }),
+        prisma.campaign.findMany({
+          take: 3,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            createdAt: true,
+            business: {
+              select: {
+                name: true,
+                businessProfile: {
+                  select: { companyName: true },
+                },
+              },
+            },
+          },
+        }),
+        prisma.campaignApplication.findMany({
+          take: 3,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            createdAt: true,
+            campaign: {
+              select: { title: true },
+            },
+            influencer: {
+              select: { name: true },
+            },
+          },
+        }),
+        prisma.payment.findMany({
+          take: 3,
+          orderBy: { createdAt: "desc" },
+          where: { status: "COMPLETED" },
+          select: {
+            id: true,
+            amount: true,
+            createdAt: true,
+            campaign: {
+              select: { title: true },
+            },
+          },
+        }),
+      ]);
 
     // 성장률 계산
-    const growth = previousMonthUsers > 0 
-      ? ((totalUsers - previousMonthUsers) / previousMonthUsers * 100).toFixed(1)
-      : 0;
+    const growth =
+      previousMonthUsers > 0
+        ? (
+            ((totalUsers - previousMonthUsers) / previousMonthUsers) *
+            100
+          ).toFixed(1)
+        : 0;
 
     // 최근 활동 포맷팅 (간소화)
     const recentActivities = [
-      ...recentUsers.map(user => ({
+      ...recentUsers.map((user) => ({
         id: `user-${user.id}`,
-        type: 'user_registered',
-        title: '새 사용자 가입',
-        description: `${user.type === 'BUSINESS' ? '비즈니스' : '인플루언서'} "${user.name}"`,
+        type: "user_registered",
+        title: "새 사용자 가입",
+        description: `${user.type === "BUSINESS" ? "비즈니스" : "인플루언서"} "${user.name}"`,
         time: getRelativeTime(user.createdAt),
-        icon: '👤'
+        icon: "👤",
       })),
-      ...recentCampaigns.map(campaign => ({
+      ...recentCampaigns.map((campaign) => ({
         id: `campaign-${campaign.id}`,
-        type: 'campaign_created',
-        title: '새 캠페인',
+        type: "campaign_created",
+        title: "새 캠페인",
         description: `"${campaign.title}"`,
         time: getRelativeTime(campaign.createdAt),
-        icon: '📢'
+        icon: "📢",
       })),
-      ...recentApplications.map(app => ({
+      ...recentApplications.map((app) => ({
         id: `app-${app.id}`,
-        type: 'application_submitted',
-        title: '캠페인 지원',
+        type: "application_submitted",
+        title: "캠페인 지원",
         description: `${app.influencer.name} → "${app.campaign.title}"`,
         time: getRelativeTime(app.createdAt),
-        icon: '📝'
-      }))
+        icon: "📝",
+      })),
     ].slice(0, 5); // 5개만 표시
 
     // 시스템 알림
-    const pendingApprovals = pendingBusinessProfiles + pendingInfluencerProfiles;
-    const systemAlerts = pendingApprovals > 0 ? [{
-      id: 'pending-approvals',
-      type: 'warning' as const,
-      message: `${pendingApprovals}개의 프로필이 승인 대기 중입니다.`,
-      time: '지금'
-    }] : [];
+    const pendingApprovals =
+      pendingBusinessProfiles + pendingInfluencerProfiles;
+    const systemAlerts =
+      pendingApprovals > 0
+        ? [
+            {
+              id: "pending-approvals",
+              type: "warning" as const,
+              message: `${pendingApprovals}개의 프로필이 승인 대기 중입니다.`,
+              time: "지금",
+            },
+          ]
+        : [];
 
     // 응답 데이터
     const responseData = {
@@ -191,10 +194,10 @@ export async function GET(request: NextRequest) {
         revenue: totalPayments._sum.amount || 0,
         growth: Number(growth),
         newUsers: newUsersToday,
-        pendingApprovals
+        pendingApprovals,
       },
       recentActivities,
-      systemAlerts
+      systemAlerts,
     };
 
     // 캐시 저장
@@ -204,12 +207,14 @@ export async function GET(request: NextRequest) {
     logger.info(`Dashboard data loaded in ${queryTime}ms`);
 
     return NextResponse.json(responseData);
-
   } catch (error) {
-    logger.error('Dashboard API error:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      "Dashboard API error:",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return NextResponse.json(
-      { error: '대시보드 데이터를 불러오는데 실패했습니다.' },
-      { status: 500 }
+      { error: "대시보드 데이터를 불러오는데 실패했습니다." },
+      { status: 500 },
     );
   }
 }
@@ -218,15 +223,15 @@ export async function GET(request: NextRequest) {
 function getRelativeTime(date: Date): string {
   const diff = Date.now() - date.getTime();
   const minutes = Math.floor(diff / 60000);
-  
-  if (minutes < 1) return '방금 전';
+
+  if (minutes < 1) return "방금 전";
   if (minutes < 60) return `${minutes}분 전`;
-  
+
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}시간 전`;
-  
+
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}일 전`;
-  
-  return new Date(date).toLocaleDateString('ko-KR');
+
+  return new Date(date).toLocaleDateString("ko-KR");
 }

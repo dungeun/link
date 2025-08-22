@@ -15,7 +15,7 @@ export default function CareersPage() {
             인재풀 등록을 원하시면 support@linkpick.com로 이력서를 보내주세요.
           </p>
         </div>
-        <a 
+        <a
           href="/"
           className="inline-block mt-8 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >

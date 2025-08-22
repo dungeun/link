@@ -1,112 +1,112 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { X, Eye, Settings } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { X, Eye, Settings } from "lucide-react";
 
 interface Category {
-  id: string
-  name: string
-  slug: string
-  level: number
+  id: string;
+  name: string;
+  slug: string;
+  level: number;
 }
 
 interface CategoryPageModalProps {
-  category: Category
-  onClose: () => void
-  onSuccess: () => void
+  category: Category;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-export default function CategoryPageModal({ 
-  category, 
-  onClose, 
-  onSuccess 
+export default function CategoryPageModal({
+  category,
+  onClose,
+  onSuccess,
 }: CategoryPageModalProps) {
   const [formData, setFormData] = useState({
-    title: '',
+    title: "",
     content: {} as Record<string, unknown>,
-    layout: 'grid',
+    layout: "grid",
     heroSection: {} as Record<string, unknown>,
     featuredSection: {} as Record<string, unknown>,
     filterOptions: {} as Record<string, unknown>,
     customSections: {} as Record<string, unknown>,
     seoSettings: {} as Record<string, unknown>,
-    isPublished: false
-  })
-  const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+    isPublished: false,
+  });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     // 기본값 설정
     setFormData({
       title: `${category.name} 페이지`,
       content: {
-        sections: []
+        sections: [],
       },
-      layout: 'grid',
+      layout: "grid",
       heroSection: {
         enabled: true,
         title: category.name,
         subtitle: `${category.name} 관련 캠페인을 만나보세요`,
-        backgroundImage: '',
-        ctaText: '캠페인 보기'
+        backgroundImage: "",
+        ctaText: "캠페인 보기",
       },
       featuredSection: {
         enabled: false,
-        title: '추천 캠페인',
-        campaigns: []
+        title: "추천 캠페인",
+        campaigns: [],
       },
       filterOptions: {
         showSearch: true,
         showSort: true,
         showFilters: true,
-        availableFilters: ['platform', 'budget', 'followers']
+        availableFilters: ["platform", "budget", "followers"],
       },
       customSections: {
-        sections: []
+        sections: [],
       },
       seoSettings: {
         metaTitle: `${category.name} - 캠페인`,
         metaDescription: `${category.name} 관련 인플루언서 마케팅 캠페인을 확인하세요`,
-        keywords: [category.name, '캠페인', '인플루언서'],
-        ogImage: ''
+        keywords: [category.name, "캠페인", "인플루언서"],
+        ogImage: "",
       },
-      isPublished: false
-    })
-  }, [category])
+      isPublished: false,
+    });
+  }, [category]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setErrors({})
+    e.preventDefault();
+    setLoading(true);
+    setErrors({});
 
     try {
-      const response = await fetch('/api/admin/category-pages', {
-        method: 'POST',
+      const response = await fetch("/api/admin/category-pages", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
-          categoryId: category.id
-        })
-      })
+          categoryId: category.id,
+        }),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data.success) {
-        onSuccess()
+        onSuccess();
       } else {
         if (data.error) {
-          setErrors({ general: data.error })
+          setErrors({ general: data.error });
         }
       }
     } catch (error) {
-      console.error('Error creating category page:', error)
-      setErrors({ general: '생성 중 오류가 발생했습니다.' })
+      console.error("Error creating category page:", error);
+      setErrors({ general: "생성 중 오류가 발생했습니다." });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -138,7 +138,7 @@ export default function CategoryPageModal({
           {/* 기본 설정 */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="font-semibold text-gray-900 mb-4">기본 설정</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -147,7 +147,9 @@ export default function CategoryPageModal({
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, title: e.target.value }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
@@ -159,7 +161,9 @@ export default function CategoryPageModal({
                 </label>
                 <select
                   value={formData.layout}
-                  onChange={(e) => setFormData(prev => ({ ...prev, layout: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, layout: e.target.value }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="grid">그리드</option>
@@ -179,13 +183,21 @@ export default function CategoryPageModal({
                   type="checkbox"
                   id="heroEnabled"
                   checked={formData.heroSection.enabled as boolean}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    heroSection: { ...prev.heroSection, enabled: e.target.checked }
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      heroSection: {
+                        ...prev.heroSection,
+                        enabled: e.target.checked,
+                      },
+                    }))
+                  }
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="heroEnabled" className="ml-2 text-sm text-gray-700">
+                <label
+                  htmlFor="heroEnabled"
+                  className="ml-2 text-sm text-gray-700"
+                >
                   활성화
                 </label>
               </div>
@@ -200,10 +212,15 @@ export default function CategoryPageModal({
                   <input
                     type="text"
                     value={formData.heroSection.title as string}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      heroSection: { ...prev.heroSection, title: e.target.value }
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        heroSection: {
+                          ...prev.heroSection,
+                          title: e.target.value,
+                        },
+                      }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -215,10 +232,15 @@ export default function CategoryPageModal({
                   <input
                     type="text"
                     value={formData.heroSection.subtitle as string}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      heroSection: { ...prev.heroSection, subtitle: e.target.value }
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        heroSection: {
+                          ...prev.heroSection,
+                          subtitle: e.target.value,
+                        },
+                      }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -230,10 +252,15 @@ export default function CategoryPageModal({
                   <input
                     type="text"
                     value={formData.heroSection.ctaText as string}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      heroSection: { ...prev.heroSection, ctaText: e.target.value }
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        heroSection: {
+                          ...prev.heroSection,
+                          ctaText: e.target.value,
+                        },
+                      }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -244,20 +271,28 @@ export default function CategoryPageModal({
           {/* 필터 옵션 */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="font-semibold text-gray-900 mb-4">필터 옵션</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   id="showSearch"
                   checked={formData.filterOptions.showSearch as boolean}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    filterOptions: { ...prev.filterOptions, showSearch: e.target.checked }
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      filterOptions: {
+                        ...prev.filterOptions,
+                        showSearch: e.target.checked,
+                      },
+                    }))
+                  }
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="showSearch" className="ml-2 text-sm text-gray-700">
+                <label
+                  htmlFor="showSearch"
+                  className="ml-2 text-sm text-gray-700"
+                >
                   검색 기능
                 </label>
               </div>
@@ -267,13 +302,21 @@ export default function CategoryPageModal({
                   type="checkbox"
                   id="showSort"
                   checked={formData.filterOptions.showSort as boolean}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    filterOptions: { ...prev.filterOptions, showSort: e.target.checked }
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      filterOptions: {
+                        ...prev.filterOptions,
+                        showSort: e.target.checked,
+                      },
+                    }))
+                  }
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="showSort" className="ml-2 text-sm text-gray-700">
+                <label
+                  htmlFor="showSort"
+                  className="ml-2 text-sm text-gray-700"
+                >
                   정렬 기능
                 </label>
               </div>
@@ -283,13 +326,21 @@ export default function CategoryPageModal({
                   type="checkbox"
                   id="showFilters"
                   checked={formData.filterOptions.showFilters as boolean}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    filterOptions: { ...prev.filterOptions, showFilters: e.target.checked }
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      filterOptions: {
+                        ...prev.filterOptions,
+                        showFilters: e.target.checked,
+                      },
+                    }))
+                  }
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="showFilters" className="ml-2 text-sm text-gray-700">
+                <label
+                  htmlFor="showFilters"
+                  className="ml-2 text-sm text-gray-700"
+                >
                   필터 기능
                 </label>
               </div>
@@ -299,7 +350,7 @@ export default function CategoryPageModal({
           {/* SEO 설정 */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="font-semibold text-gray-900 mb-4">SEO 설정</h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -308,10 +359,15 @@ export default function CategoryPageModal({
                 <input
                   type="text"
                   value={formData.seoSettings.metaTitle as string}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    seoSettings: { ...prev.seoSettings, metaTitle: e.target.value }
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      seoSettings: {
+                        ...prev.seoSettings,
+                        metaTitle: e.target.value,
+                      },
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -322,10 +378,15 @@ export default function CategoryPageModal({
                 </label>
                 <textarea
                   value={formData.seoSettings.metaDescription as string}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    seoSettings: { ...prev.seoSettings, metaDescription: e.target.value }
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      seoSettings: {
+                        ...prev.seoSettings,
+                        metaDescription: e.target.value,
+                      },
+                    }))
+                  }
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -340,10 +401,18 @@ export default function CategoryPageModal({
                 type="checkbox"
                 id="isPublished"
                 checked={formData.isPublished as boolean}
-                onChange={(e) => setFormData(prev => ({ ...prev, isPublished: e.target.checked }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    isPublished: e.target.checked,
+                  }))
+                }
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
-              <label htmlFor="isPublished" className="ml-2 text-sm text-gray-700">
+              <label
+                htmlFor="isPublished"
+                className="ml-2 text-sm text-gray-700"
+              >
                 즉시 게시
               </label>
             </div>
@@ -364,11 +433,11 @@ export default function CategoryPageModal({
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               disabled={loading}
             >
-              {loading ? '생성 중...' : '페이지 생성'}
+              {loading ? "생성 중..." : "페이지 생성"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }

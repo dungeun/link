@@ -30,7 +30,7 @@ export interface AuthResponse {
     id: string;
     email: string;
     name: string;
-    type: 'ADMIN' | 'BUSINESS' | 'INFLUENCER';
+    type: "ADMIN" | "BUSINESS" | "INFLUENCER";
     verified?: boolean;
     profile?: Record<string, unknown>;
   };
@@ -59,7 +59,7 @@ export interface Campaign {
   detailImages?: string[];
   productImages?: string[];
   youtubeUrl?: string;
-  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  status: "DRAFT" | "ACTIVE" | "COMPLETED" | "CANCELLED";
   isPaid: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -79,8 +79,8 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  type: 'ADMIN' | 'BUSINESS' | 'INFLUENCER';
-  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  type: "ADMIN" | "BUSINESS" | "INFLUENCER";
+  status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
   verified: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -116,7 +116,7 @@ export interface Application {
   id: string;
   campaignId: string;
   userId: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
+  status: "PENDING" | "APPROVED" | "REJECTED" | "COMPLETED";
   appliedAt: Date;
   approvedAt?: Date;
   rejectedAt?: Date;
@@ -133,35 +133,35 @@ export interface Payment {
   campaignId?: string;
   userId: string;
   amount: number;
-  type: 'CAMPAIGN_FEE' | 'SUBSCRIPTION' | 'COMMISSION';
-  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
-  paymentMethod: 'CARD' | 'TRANSFER' | 'VIRTUAL_ACCOUNT' | 'MOBILE_PHONE';
+  type: "CAMPAIGN_FEE" | "SUBSCRIPTION" | "COMMISSION";
+  status: "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
+  paymentMethod: "CARD" | "TRANSFER" | "VIRTUAL_ACCOUNT" | "MOBILE_PHONE";
   approvedAt?: Date;
   metadata?: Record<string, unknown>;
   createdAt: Date;
 }
 
 // 에러 코드 타입
-export type ErrorCode = 
-  | 'UNAUTHORIZED'
-  | 'FORBIDDEN' 
-  | 'INVALID_TOKEN'
-  | 'TOKEN_EXPIRED'
-  | 'BAD_REQUEST'
-  | 'VALIDATION_ERROR'
-  | 'MISSING_REQUIRED_FIELDS'
-  | 'NOT_FOUND'
-  | 'ALREADY_EXISTS'
-  | 'INTERNAL_ERROR'
-  | 'DATABASE_ERROR'
-  | 'EXTERNAL_SERVICE_ERROR';
+export type ErrorCode =
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "INVALID_TOKEN"
+  | "TOKEN_EXPIRED"
+  | "BAD_REQUEST"
+  | "VALIDATION_ERROR"
+  | "MISSING_REQUIRED_FIELDS"
+  | "NOT_FOUND"
+  | "ALREADY_EXISTS"
+  | "INTERNAL_ERROR"
+  | "DATABASE_ERROR"
+  | "EXTERNAL_SERVICE_ERROR";
 
 // 필터링 및 정렬 옵션
 export interface ListOptions {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   search?: string;
   filters?: Record<string, unknown>;
 }
@@ -174,13 +174,14 @@ export interface StatusUpdateRequest {
 }
 
 // 파일 업로드 응답
-export interface FileUploadResponse extends ApiResponse<{
-  filename: string;
-  originalName: string;
-  size: number;
-  mimetype: string;
-  url: string;
-}> {}
+export interface FileUploadResponse
+  extends ApiResponse<{
+    filename: string;
+    originalName: string;
+    size: number;
+    mimetype: string;
+    url: string;
+  }> {}
 
 // 통계 데이터 타입
 export interface Statistics {

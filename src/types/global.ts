@@ -15,12 +15,12 @@ export type ID = string;
 export type Timestamp = string | Date;
 
 // JSON 값을 위한 안전한 타입
-export type JsonValue = 
-  | string 
-  | number 
-  | boolean 
-  | null 
-  | JsonObject 
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonObject
   | JsonArray;
 
 export interface JsonObject {
@@ -33,8 +33,8 @@ export interface JsonArray extends Array<JsonValue> {}
 // 사용자 관련 타입
 // ===============================
 
-export type UserType = 'INFLUENCER' | 'BUSINESS' | 'ADMIN';
-export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'BANNED';
+export type UserType = "INFLUENCER" | "BUSINESS" | "ADMIN";
+export type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED" | "BANNED";
 
 export interface BaseUser {
   id: ID;
@@ -70,30 +70,30 @@ export interface SocialAccount {
   lastUpdated: Timestamp;
 }
 
-export type SocialPlatform = 
-  | 'instagram' 
-  | 'youtube' 
-  | 'tiktok' 
-  | 'facebook' 
-  | 'twitter' 
-  | 'naverBlog';
+export type SocialPlatform =
+  | "instagram"
+  | "youtube"
+  | "tiktok"
+  | "facebook"
+  | "twitter"
+  | "naverBlog";
 
 // ===============================
 // 캠페인 관련 타입
 // ===============================
 
-export type CampaignStatus = 
-  | 'DRAFT' 
-  | 'PUBLISHED' 
-  | 'ACTIVE' 
-  | 'COMPLETED' 
-  | 'CANCELLED';
+export type CampaignStatus =
+  | "DRAFT"
+  | "PUBLISHED"
+  | "ACTIVE"
+  | "COMPLETED"
+  | "CANCELLED";
 
-export type ApplicationStatus = 
-  | 'PENDING' 
-  | 'APPROVED' 
-  | 'REJECTED' 
-  | 'COMPLETED';
+export type ApplicationStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED"
+  | "COMPLETED";
 
 export interface BaseCampaign {
   id: ID;
@@ -136,7 +136,7 @@ export interface CampaignCategory {
 // UI 관련 타입
 // ===============================
 
-export type LanguageCode = 'ko' | 'en' | 'jp';
+export type LanguageCode = "ko" | "en" | "jp";
 
 export interface LanguagePack {
   id: ID;
@@ -160,14 +160,14 @@ export interface UISection {
   order: number;
 }
 
-export type UISectionType = 
-  | 'hero' 
-  | 'category' 
-  | 'quicklinks' 
-  | 'promo' 
-  | 'recommended' 
-  | 'ranking'
-  | 'activeCampaigns';
+export type UISectionType =
+  | "hero"
+  | "category"
+  | "quicklinks"
+  | "promo"
+  | "recommended"
+  | "ranking"
+  | "activeCampaigns";
 
 export interface UISectionContent {
   [key: string]: JsonValue;
@@ -238,7 +238,7 @@ export interface FileUpload {
   file: File;
   url?: string;
   progress: number;
-  status: 'pending' | 'uploading' | 'success' | 'error';
+  status: "pending" | "uploading" | "success" | "error";
   error?: string;
 }
 
@@ -253,7 +253,9 @@ export interface BaseEvent<T = JsonObject> {
   userId?: ID;
 }
 
-export type EventHandler<T = JsonObject> = (event: BaseEvent<T>) => void | Promise<void>;
+export type EventHandler<T = JsonObject> = (
+  event: BaseEvent<T>,
+) => void | Promise<void>;
 
 export interface ActionResult<T = JsonValue> {
   success: boolean;
@@ -282,7 +284,7 @@ export interface CacheEntry<T = JsonValue> {
 }
 
 export interface LogEntry {
-  level: 'debug' | 'info' | 'warn' | 'error';
+  level: "debug" | "info" | "warn" | "error";
   message: string;
   timestamp: Timestamp;
   context?: JsonObject;
@@ -295,7 +297,7 @@ export interface LogEntry {
 // ===============================
 
 export function isJsonObject(value: unknown): value is JsonObject {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function isJsonArray(value: unknown): value is JsonArray {
@@ -304,9 +306,9 @@ export function isJsonArray(value: unknown): value is JsonArray {
 
 export function isJsonValue(value: unknown): value is JsonValue {
   return (
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean" ||
     value === null ||
     isJsonObject(value) ||
     isJsonArray(value)
@@ -314,13 +316,20 @@ export function isJsonValue(value: unknown): value is JsonValue {
 }
 
 export function isUserType(value: string): value is UserType {
-  return ['INFLUENCER', 'BUSINESS', 'ADMIN'].includes(value);
+  return ["INFLUENCER", "BUSINESS", "ADMIN"].includes(value);
 }
 
 export function isLanguageCode(value: string): value is LanguageCode {
-  return ['ko', 'en', 'jp'].includes(value);
+  return ["ko", "en", "jp"].includes(value);
 }
 
 export function isSocialPlatform(value: string): value is SocialPlatform {
-  return ['instagram', 'youtube', 'tiktok', 'facebook', 'twitter', 'naverBlog'].includes(value);
+  return [
+    "instagram",
+    "youtube",
+    "tiktok",
+    "facebook",
+    "twitter",
+    "naverBlog",
+  ].includes(value);
 }

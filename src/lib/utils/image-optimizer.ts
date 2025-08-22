@@ -7,7 +7,7 @@ interface ImageOptimizeOptions {
   width?: number;
   height?: number;
   quality?: number;
-  format?: 'webp' | 'avif' | 'jpeg' | 'png';
+  format?: "webp" | "avif" | "jpeg" | "png";
 }
 
 /**
@@ -18,26 +18,26 @@ interface ImageOptimizeOptions {
  */
 export function getOptimizedImageUrl(
   imageUrl: string | null | undefined,
-  options: ImageOptimizeOptions = {}
+  options: ImageOptimizeOptions = {},
 ): string {
   // 유효하지 않은 URL 처리
-  if (!imageUrl || imageUrl === 'null' || imageUrl === 'undefined') {
-    return '/placeholder-image.jpg';
+  if (!imageUrl || imageUrl === "null" || imageUrl === "undefined") {
+    return "/placeholder-image.jpg";
   }
 
   // 이미 WebP 형식인 경우 그대로 반환
-  if (imageUrl.includes('.webp')) {
+  if (imageUrl.includes(".webp")) {
     return imageUrl;
   }
 
   // 외부 URL인 경우 프록시 사용
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
     const params = new URLSearchParams({
       url: imageUrl,
-      format: options.format || 'webp',
+      format: options.format || "webp",
       quality: (options.quality || 85).toString(),
       ...(options.width && { width: options.width.toString() }),
-      ...(options.height && { height: options.height.toString() })
+      ...(options.height && { height: options.height.toString() }),
     });
 
     return `/api/image-proxy?${params.toString()}`;
@@ -59,7 +59,7 @@ export function normalizeImageArray(images: any): string[] {
 
   try {
     // 문자열인 경우 JSON 파싱 시도
-    if (typeof images === 'string') {
+    if (typeof images === "string") {
       try {
         const parsed = JSON.parse(images);
         imageArray = Array.isArray(parsed) ? parsed : [parsed];
@@ -69,29 +69,31 @@ export function normalizeImageArray(images: any): string[] {
       }
     } else if (Array.isArray(images)) {
       imageArray = images;
-    } else if (images && typeof images === 'object') {
+    } else if (images && typeof images === "object") {
       imageArray = [images];
     }
   } catch (error) {
-    console.error('Error normalizing image array:', error);
+    console.error("Error normalizing image array:", error);
     return [];
   }
 
   // URL 추출 및 필터링
   return imageArray
     .map((img: any) => {
-      if (typeof img === 'string') return img;
-      if (img && typeof img === 'object') {
+      if (typeof img === "string") return img;
+      if (img && typeof img === "object") {
         return img.url || img.imageUrl || img.src;
       }
       return null;
     })
     .filter((url: any): url is string => {
-      return url && 
-             typeof url === 'string' && 
-             url.trim() !== '' &&
-             url !== 'null' &&
-             url !== 'undefined';
+      return (
+        url &&
+        typeof url === "string" &&
+        url.trim() !== "" &&
+        url !== "null" &&
+        url !== "undefined"
+      );
     });
 }
 
@@ -104,19 +106,20 @@ export function normalizeImageArray(images: any): string[] {
 export function filterImagesByType(images: any[], type: string): string[] {
   return images
     .filter((img: any) => {
-      if (typeof img === 'object' && img.type === type) {
+      if (typeof img === "object" && img.type === type) {
         return true;
       }
       return false;
     })
     .map((img: any) => img.url || img.imageUrl || img.src)
-    .filter((url: string) => url && url.trim() !== '');
+    .filter((url: string) => url && url.trim() !== "");
 }
 
 /**
  * 이미지 지연 로딩을 위한 블러 데이터 URL 생성
  */
-export const BLUR_DATA_URL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAbEAADAAMBAQAAAAAAAAAAAAABAgMABAURUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAFxEAAwEAAAAAAAAAAAAAAAAAAAECEf/aAAwDAQACEQMRAD8Anz9voy1dCI2mectSE5ioFCqia+KCwJ8HzGMZPqJb1oPEf//Z';
+export const BLUR_DATA_URL =
+  "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAbEAADAAMBAQAAAAAAAAAAAAABAgMABAURUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAFxEAAwEAAAAAAAAAAAAAAAAAAAECEf/aAAwDAQACEQMRAD8Anz9voy1dCI2mectSE5ioFCqia+KCwJ8HzGMZPqJb1oPEf//Z";
 
 /**
  * 썸네일 생성 URL
@@ -125,17 +128,17 @@ export const BLUR_DATA_URL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD
  */
 export function getThumbnailUrl(
   imageUrl: string,
-  size: 'small' | 'medium' | 'large' = 'medium'
+  size: "small" | "medium" | "large" = "medium",
 ): string {
   const sizeMap = {
     small: { width: 150, height: 150 },
     medium: { width: 300, height: 300 },
-    large: { width: 600, height: 600 }
+    large: { width: 600, height: 600 },
   };
 
   return getOptimizedImageUrl(imageUrl, {
     ...sizeMap[size],
-    format: 'webp',
-    quality: 80
+    format: "webp",
+    quality: 80,
   });
 }

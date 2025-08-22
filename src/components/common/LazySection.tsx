@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { memo, Suspense } from 'react'
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
+import { memo, Suspense } from "react";
+import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 interface LazySectionProps {
-  children: React.ReactNode
-  fallback?: React.ReactNode
-  className?: string
-  threshold?: number
-  rootMargin?: string
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  className?: string;
+  threshold?: number;
+  rootMargin?: string;
 }
 
 /**
@@ -22,27 +22,25 @@ function LazySection({
       <div className="text-gray-500">로딩 중...</div>
     </div>
   ),
-  className = '',
+  className = "",
   threshold = 0.1,
-  rootMargin = '100px'
+  rootMargin = "100px",
 }: LazySectionProps) {
   const { ref, isIntersecting } = useIntersectionObserver({
     threshold,
     rootMargin,
-    triggerOnce: true
-  })
+    triggerOnce: true,
+  });
 
   return (
     <div ref={ref} className={className}>
       {isIntersecting ? (
-        <Suspense fallback={fallback}>
-          {children}
-        </Suspense>
+        <Suspense fallback={fallback}>{children}</Suspense>
       ) : (
         fallback
       )}
     </div>
-  )
+  );
 }
 
-export default memo(LazySection)
+export default memo(LazySection);

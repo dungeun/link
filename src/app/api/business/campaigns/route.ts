@@ -1,20 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { prisma } from '@/lib/db/prisma';
+export const dynamic = "force-dynamic";
+import { prisma } from "@/lib/db/prisma";
 
 // Dynamic route configuration
-import { withAuth } from '@/lib/auth/middleware';
+import { withAuth } from "@/lib/auth/middleware";
 
-import { createErrorResponse, createSuccessResponse, createApiError, handleApiError } from '@/lib/utils/api-error';
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  createApiError,
+  handleApiError,
+} from "@/lib/utils/api-error";
 
 // POST /api/business/campaigns - 새 캠페인 생성
 export async function POST(request: NextRequest) {
   let user: { id: string; email: string; type: string } | null = null;
   try {
-    const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
-    if ('error' in authResult) {
+    const authResult = await withAuth(request, ["BUSINESS", "ADMIN"]);
+    if ("error" in authResult) {
       return authResult.error;
     }
     user = authResult.user;
@@ -25,9 +30,9 @@ export async function POST(request: NextRequest) {
       description,
       platform,
       platforms,
-      budget,  // budget 필드 추가
-      budgetType,  // budgetType 필드 추가
-      categoryId,  // 카테고리 ID 추가
+      budget, // budget 필드 추가
+      budgetType, // budgetType 필드 추가
+      categoryId, // 카테고리 ID 추가
       maxApplicants,
       rewardAmount,
       startDate,
@@ -51,26 +56,27 @@ export async function POST(request: NextRequest) {
       provisionDetails,
       campaignMission,
       keywords,
-      additionalNotes
+      additionalNotes,
     } = body;
 
     // 유효성 검사 - 누락된 필드 구체적으로 알려주기
     const missingFields: string[] = [];
-    
-    if (!title) missingFields.push('제목(title)');
-    if (!description) missingFields.push('설명(description)');
-    if (!categoryId) missingFields.push('카테고리(categoryId)');
-    if (!platform && (!platforms || platforms.length === 0)) missingFields.push('플랫폼(platform)');
+
+    if (!title) missingFields.push("제목(title)");
+    if (!description) missingFields.push("설명(description)");
+    if (!categoryId) missingFields.push("카테고리(categoryId)");
+    if (!platform && (!platforms || platforms.length === 0))
+      missingFields.push("플랫폼(platform)");
     // budget, targetFollowers, maxApplicants, rewardAmount는 모두 선택적으로 처리
-    if (!startDate) missingFields.push('시작일(startDate)');
-    if (!endDate) missingFields.push('종료일(endDate)');
-    
+    if (!startDate) missingFields.push("시작일(startDate)");
+    if (!endDate) missingFields.push("종료일(endDate)");
+
     if (missingFields.length > 0) {
       return createErrorResponse(
         createApiError.validation(
-          `다음 필드를 입력해주세요: ${missingFields.join(', ')}`,
-          { missingFields }
-        )
+          `다음 필드를 입력해주세요: ${missingFields.join(", ")}`,
+          { missingFields },
+        ),
       );
     }
 
@@ -82,13 +88,13 @@ export async function POST(request: NextRequest) {
 
     if (startDateObj < today) {
       return createErrorResponse(
-        createApiError.validation('시작일은 오늘 날짜 이후여야 합니다.')
+        createApiError.validation("시작일은 오늘 날짜 이후여야 합니다."),
       );
     }
 
     if (endDateObj <= startDateObj) {
       return createErrorResponse(
-        createApiError.validation('종료일은 시작일 이후여야 합니다.')
+        createApiError.validation("종료일은 시작일 이후여야 합니다."),
       );
     }
 
@@ -97,50 +103,60 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         description,
-        platform: platform || (platforms && platforms[0]) || 'INSTAGRAM',
+        platform: platform || (platforms && platforms[0]) || "INSTAGRAM",
         platforms: platforms ? JSON.stringify(platforms) : undefined,
-        budget: budget !== undefined ? budget : 0,  // budget 필드 추가
-        budgetType: budgetType || 'FREE',  // budgetType 필드 추가
+        budget: budget !== undefined ? budget : 0, // budget 필드 추가
+        budgetType: budgetType || "FREE", // budgetType 필드 추가
         maxApplicants: maxApplicants || 100,
         rewardAmount: rewardAmount || 0,
         startDate: startDateObj,
         endDate: endDateObj,
         announcementDate: announcementDate ? new Date(announcementDate) : null,
-        requirements: requirements || '',
-        hashtags: hashtags ? JSON.stringify(hashtags) : '[]',
-        imageUrl: thumbnailImageUrl || imageUrl || null,  // 썸네일 우선, 없으면 기존 필드
+        requirements: requirements || "",
+        hashtags: hashtags ? JSON.stringify(hashtags) : "[]",
+        imageUrl: thumbnailImageUrl || imageUrl || null, // 썸네일 우선, 없으면 기존 필드
         headerImageUrl: headerImageUrl || null,
         thumbnailImageUrl: thumbnailImageUrl || null,
         detailImages: detailImages ? JSON.stringify(detailImages) : undefined,
-        productImages: productImages ? JSON.stringify(productImages) : undefined,
-        questions: questions ? questions : undefined,  // JSON 타입이므로 직접 저장
+        productImages: productImages
+          ? JSON.stringify(productImages)
+          : undefined,
+        questions: questions ? questions : undefined, // JSON 타입이므로 직접 저장
         // 새로운 필드들
-        applicationStartDate: applicationStartDate ? new Date(applicationStartDate) : null,
-        applicationEndDate: applicationEndDate ? new Date(applicationEndDate) : null,
+        applicationStartDate: applicationStartDate
+          ? new Date(applicationStartDate)
+          : null,
+        applicationEndDate: applicationEndDate
+          ? new Date(applicationEndDate)
+          : null,
         contentStartDate: contentStartDate ? new Date(contentStartDate) : null,
         contentEndDate: contentEndDate ? new Date(contentEndDate) : null,
-        resultAnnouncementDate: resultAnnouncementDate ? new Date(resultAnnouncementDate) : null,
+        resultAnnouncementDate: resultAnnouncementDate
+          ? new Date(resultAnnouncementDate)
+          : null,
         provisionDetails: provisionDetails || null,
         campaignMission: campaignMission || null,
         keywords: keywords || null,
         additionalNotes: additionalNotes || null,
-        status: 'DRAFT', // 결제 전에는 DRAFT 상태
+        status: "DRAFT", // 결제 전에는 DRAFT 상태
         isPaid: false,
         businessId: user.id,
         // 카테고리 연결 (다대다 관계)
-        categories: categoryId ? {
-          create: {
-            categoryId: categoryId,
-            isPrimary: true
-          }
-        } : undefined
-      }
+        categories: categoryId
+          ? {
+              create: {
+                categoryId: categoryId,
+                isPrimary: true,
+              },
+            }
+          : undefined,
+      },
     });
 
     return createSuccessResponse(
       campaign,
-      '캠페인이 성공적으로 생성되었습니다.',
-      201
+      "캠페인이 성공적으로 생성되었습니다.",
+      201,
     );
   } catch (error) {
     return handleApiError(error, { userId: user?.id });
@@ -151,55 +167,59 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   let user: { id: string; email: string; type: string } | null = null;
   try {
-    const authResult = await withAuth(request, ['BUSINESS', 'ADMIN']);
-    if ('error' in authResult) {
+    const authResult = await withAuth(request, ["BUSINESS", "ADMIN"]);
+    if ("error" in authResult) {
       return authResult.error;
     }
     user = authResult.user;
 
-    console.log('=== GET /api/business/campaigns ===');
-    console.log('User ID:', user.id);
-    console.log('User Type:', user.type);
-    console.log('User Email:', user.email);
+    console.log("=== GET /api/business/campaigns ===");
+    console.log("User ID:", user.id);
+    console.log("User Type:", user.type);
+    console.log("User Email:", user.email);
 
     // 비즈니스 계정의 캠페인 목록 조회
     const campaigns = await prisma.campaign.findMany({
       where: {
         businessId: user.id,
-        deletedAt: null  // 삭제되지 않은 캠페인만
+        deletedAt: null, // 삭제되지 않은 캠페인만
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: "desc",
       },
       include: {
         _count: {
           select: {
             applications: {
               where: {
-                deletedAt: null  // 삭제되지 않은 지원만 카운트
-              }
-            }
-          }
-        }
-      }
+                deletedAt: null, // 삭제되지 않은 지원만 카운트
+              },
+            },
+          },
+        },
+      },
     });
 
-    console.log('=== Campaign Query Result ===');
-    console.log('Found campaigns:', campaigns.length);
-    console.log('Query conditions: businessId =', user.id);
-    campaigns.forEach(c => {
-      console.log(`- ${c.title} (ID: ${c.id}, Business: ${c.businessId}, Status: ${c.status})`);
+    console.log("=== Campaign Query Result ===");
+    console.log("Found campaigns:", campaigns.length);
+    console.log("Query conditions: businessId =", user.id);
+    campaigns.forEach((c) => {
+      console.log(
+        `- ${c.title} (ID: ${c.id}, Business: ${c.businessId}, Status: ${c.status})`,
+      );
     });
 
     // 캠페인 데이터 형식 변환
-    const formattedCampaigns = campaigns.map(campaign => ({
+    const formattedCampaigns = campaigns.map((campaign) => ({
       id: campaign.id,
       title: campaign.title,
       description: campaign.description,
       platform: campaign.platform,
-      platforms: campaign.platforms ? JSON.parse(campaign.platforms as string) : [campaign.platform],
+      platforms: campaign.platforms
+        ? JSON.parse(campaign.platforms as string)
+        : [campaign.platform],
       budget: campaign.budget || 0, // budget 필드 추가
-      budgetType: campaign.budgetType || 'FREE', // budgetType 필드 추가
+      budgetType: campaign.budgetType || "FREE", // budgetType 필드 추가
       maxApplications: campaign.maxApplicants,
       rewardAmount: campaign.rewardAmount,
       startDate: campaign.startDate,
@@ -209,9 +229,9 @@ export async function GET(request: NextRequest) {
       isPaid: campaign.isPaid,
       applications: campaign._count.applications,
       viewCount: 0, // 조회수는 추후 구현
-      category: 'business', // 기본 카테고리
+      category: "business", // 기본 카테고리
       imageUrl: campaign.thumbnailImageUrl || campaign.imageUrl,
-      createdAt: campaign.createdAt
+      createdAt: campaign.createdAt,
     }));
 
     return createSuccessResponse({ campaigns: formattedCampaigns });

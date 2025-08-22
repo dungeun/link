@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import { useState, useCallback, memo } from 'react'
-import { useDebouncedCallback } from '@/hooks/useDebounce'
+import { useState, useCallback, memo } from "react";
+import { useDebouncedCallback } from "@/hooks/useDebounce";
 
 interface ClickHandlerProps {
-  onClick: () => void | Promise<void>
-  disabled?: boolean
-  debounceMs?: number
-  children: React.ReactNode
-  className?: string
-  type?: 'button' | 'submit' | 'reset'
-  showLoading?: boolean
+  onClick: () => void | Promise<void>;
+  disabled?: boolean;
+  debounceMs?: number;
+  children: React.ReactNode;
+  className?: string;
+  type?: "button" | "submit" | "reset";
+  showLoading?: boolean;
 }
 
 /**
@@ -24,40 +24,40 @@ function ClickHandler({
   disabled = false,
   debounceMs = 300,
   children,
-  className = '',
-  type = 'button',
-  showLoading = true
+  className = "",
+  type = "button",
+  showLoading = true,
 }: ClickHandlerProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [lastClick, setLastClick] = useState(0)
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastClick, setLastClick] = useState(0);
 
   const handleClick = useCallback(async () => {
-    const now = Date.now()
-    
+    const now = Date.now();
+
     // 더블클릭 방지 (500ms)
     if (now - lastClick < 500) {
-      return
+      return;
     }
-    
-    setLastClick(now)
-    
+
+    setLastClick(now);
+
     if (disabled || isLoading) {
-      return
+      return;
     }
 
     try {
-      setIsLoading(true)
-      await onClick()
+      setIsLoading(true);
+      await onClick();
     } catch (error) {
-      console.error('Click handler error:', error)
+      console.error("Click handler error:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [onClick, disabled, isLoading, lastClick])
+  }, [onClick, disabled, isLoading, lastClick]);
 
-  const debouncedClick = useDebouncedCallback(handleClick, debounceMs)
+  const debouncedClick = useDebouncedCallback(handleClick, debounceMs);
 
-  const isDisabled = disabled || isLoading
+  const isDisabled = disabled || isLoading;
 
   return (
     <button
@@ -66,7 +66,7 @@ function ClickHandler({
       disabled={isDisabled}
       className={`
         ${className}
-        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
         transition-all duration-200
         active:scale-95
         hover:shadow-md
@@ -82,7 +82,7 @@ function ClickHandler({
         children
       )}
     </button>
-  )
+  );
 }
 
-export default memo(ClickHandler)
+export default memo(ClickHandler);

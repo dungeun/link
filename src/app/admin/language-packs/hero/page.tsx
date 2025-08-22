@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import AdminLayout from '@/components/admin/AdminLayout'
-import { 
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import {
   ArrowLeft,
   Save,
   Globe,
@@ -15,177 +15,187 @@ import {
   Filter,
   Download,
   Upload,
-  RefreshCw
-} from 'lucide-react'
-import { toast } from '@/hooks/use-toast'
+  RefreshCw,
+} from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface LanguagePack {
-  id: string
-  key: string
-  ko: string
-  en: string
-  jp: string
-  description?: string
-  category: string
+  id: string;
+  key: string;
+  ko: string;
+  en: string;
+  jp: string;
+  description?: string;
+  category: string;
 }
 
 export default function HeroLanguagePacksPage() {
-  const router = useRouter()
-  const [packs, setPacks] = useState<LanguagePack[]>([])
-  const [filteredPacks, setFilteredPacks] = useState<LanguagePack[]>([])
-  const [editingPack, setEditingPack] = useState<string | null>(null)
-  const [editedValues, setEditedValues] = useState<Record<string, LanguagePack>>({})
-  const [searchTerm, setSearchTerm] = useState('')
-  const [activeTab, setActiveTab] = useState<'all' | 'ko' | 'en' | 'jp'>('all')
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const [packs, setPacks] = useState<LanguagePack[]>([]);
+  const [filteredPacks, setFilteredPacks] = useState<LanguagePack[]>([]);
+  const [editingPack, setEditingPack] = useState<string | null>(null);
+  const [editedValues, setEditedValues] = useState<
+    Record<string, LanguagePack>
+  >({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "ko" | "en" | "jp">("all");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadLanguagePacks()
-  }, [])
+    loadLanguagePacks();
+  }, []);
 
   useEffect(() => {
-    filterPacks()
-  }, [packs, searchTerm])
+    filterPacks();
+  }, [packs, searchTerm]);
 
   const loadLanguagePacks = async () => {
     try {
-      const response = await fetch('/api/admin/language-packs?category=hero')
+      const response = await fetch("/api/admin/language-packs?category=hero");
       if (response.ok) {
-        const data = await response.json()
-        setPacks(data)
-        setFilteredPacks(data)
+        const data = await response.json();
+        setPacks(data);
+        setFilteredPacks(data);
       }
     } catch (error) {
-      console.error('Failed to load language packs:', error)
+      console.error("Failed to load language packs:", error);
       toast({
-        title: '오류',
-        description: '언어팩을 불러오는데 실패했습니다.',
-        variant: 'destructive'
-      })
+        title: "오류",
+        description: "언어팩을 불러오는데 실패했습니다.",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const filterPacks = () => {
-    let filtered = packs
+    let filtered = packs;
 
     if (searchTerm) {
-      filtered = filtered.filter(pack =>
-        pack.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pack.ko.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pack.en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pack.jp.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      filtered = filtered.filter(
+        (pack) =>
+          pack.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          pack.ko.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          pack.en.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          pack.jp.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
     }
 
-    setFilteredPacks(filtered)
-  }
+    setFilteredPacks(filtered);
+  };
 
   const handleEdit = (packId: string) => {
-    const pack = packs.find(p => p.id === packId)
+    const pack = packs.find((p) => p.id === packId);
     if (pack) {
-      setEditingPack(packId)
-      setEditedValues({ ...editedValues, [packId]: { ...pack } })
+      setEditingPack(packId);
+      setEditedValues({ ...editedValues, [packId]: { ...pack } });
     }
-  }
+  };
 
   const handleSave = async (packId: string) => {
-    const editedPack = editedValues[packId]
-    if (!editedPack) return
+    const editedPack = editedValues[packId];
+    if (!editedPack) return;
 
     try {
-      const response = await fetch(`/api/admin/language-packs/${editedPack.key}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ko: editedPack.ko,
-          en: editedPack.en,
-          jp: editedPack.jp,
-          description: editedPack.description
-        })
-      })
+      const response = await fetch(
+        `/api/admin/language-packs/${editedPack.key}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ko: editedPack.ko,
+            en: editedPack.en,
+            jp: editedPack.jp,
+            description: editedPack.description,
+          }),
+        },
+      );
 
       if (response.ok) {
-        setPacks(packs.map(p => p.id === packId ? editedPack : p))
-        setEditingPack(null)
+        setPacks(packs.map((p) => (p.id === packId ? editedPack : p)));
+        setEditingPack(null);
         toast({
-          title: '성공',
-          description: '언어팩이 저장되었습니다.'
-        })
+          title: "성공",
+          description: "언어팩이 저장되었습니다.",
+        });
       }
     } catch (error) {
-      console.error('Failed to save language pack:', error)
+      console.error("Failed to save language pack:", error);
       toast({
-        title: '오류',
-        description: '저장에 실패했습니다.',
-        variant: 'destructive'
-      })
+        title: "오류",
+        description: "저장에 실패했습니다.",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const handleAutoTranslate = async (packId: string) => {
-    const pack = packs.find(p => p.id === packId)
-    if (!pack) return
+    const pack = packs.find((p) => p.id === packId);
+    if (!pack) return;
 
     try {
-      const response = await fetch('/api/admin/language-packs/auto-translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/language-packs/auto-translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: [{ key: pack.key, text: pack.ko }],
-          targetLanguages: ['en', 'jp']
-        })
-      })
+          targetLanguages: ["en", "jp"],
+        }),
+      });
 
       if (response.ok) {
-        const result = await response.json()
+        const result = await response.json();
         if (result.translated && result.translated.length > 0) {
-          const translated = result.translated[0]
+          const translated = result.translated[0];
           const updatedPack = {
             ...pack,
             en: translated.translations.en || pack.en,
-            jp: translated.translations.jp || pack.jp
-          }
-          
-          setPacks(packs.map(p => p.id === packId ? updatedPack : p))
+            jp: translated.translations.jp || pack.jp,
+          };
+
+          setPacks(packs.map((p) => (p.id === packId ? updatedPack : p)));
           if (editingPack === packId) {
-            setEditedValues({ ...editedValues, [packId]: updatedPack })
+            setEditedValues({ ...editedValues, [packId]: updatedPack });
           }
-          
+
           toast({
-            title: '성공',
-            description: '자동 번역이 완료되었습니다.'
-          })
+            title: "성공",
+            description: "자동 번역이 완료되었습니다.",
+          });
         }
       }
     } catch (error) {
-      console.error('Failed to auto translate:', error)
+      console.error("Failed to auto translate:", error);
       toast({
-        title: '오류',
-        description: '자동 번역에 실패했습니다.',
-        variant: 'destructive'
-      })
+        title: "오류",
+        description: "자동 번역에 실패했습니다.",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
-  const handleValueChange = (packId: string, field: keyof LanguagePack, value: string) => {
+  const handleValueChange = (
+    packId: string,
+    field: keyof LanguagePack,
+    value: string,
+  ) => {
     setEditedValues({
       ...editedValues,
       [packId]: {
         ...editedValues[packId],
-        [field]: value
-      }
-    })
-  }
+        [field]: value,
+      },
+    });
+  };
 
   const heroSections = [
-    { key: 'hero.slide1', label: '슬라이드 1' },
-    { key: 'hero.slide2', label: '슬라이드 2' },
-    { key: 'hero.slide3', label: '슬라이드 3' },
-    { key: 'hero.slide4', label: '슬라이드 4' },
-    { key: 'hero.slide5', label: '슬라이드 5' }
-  ]
+    { key: "hero.slide1", label: "슬라이드 1" },
+    { key: "hero.slide2", label: "슬라이드 2" },
+    { key: "hero.slide3", label: "슬라이드 3" },
+    { key: "hero.slide4", label: "슬라이드 4" },
+    { key: "hero.slide5", label: "슬라이드 5" },
+  ];
 
   if (loading) {
     return (
@@ -194,7 +204,7 @@ export default function HeroLanguagePacksPage() {
           <div className="text-gray-500">로딩 중...</div>
         </div>
       </AdminLayout>
-    )
+    );
   }
 
   return (
@@ -211,7 +221,9 @@ export default function HeroLanguagePacksPage() {
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">히어로 배너 언어팩</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  히어로 배너 언어팩
+                </h1>
                 <p className="text-sm text-gray-600 mt-1">
                   메인 페이지 히어로 섹션의 텍스트를 관리합니다
                 </p>
@@ -232,19 +244,25 @@ export default function HeroLanguagePacksPage() {
           {/* 탭 & 검색 */}
           <div className="flex items-center justify-between">
             <div className="flex gap-2">
-              {['all', 'ko', 'en', 'jp'].map((tab) => (
+              {["all", "ko", "en", "jp"].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab as 'all' | 'ko' | 'en' | 'jp')}
+                  onClick={() =>
+                    setActiveTab(tab as "all" | "ko" | "en" | "jp")
+                  }
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     activeTab === tab
-                      ? 'bg-blue-100 text-blue-600'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? "bg-blue-100 text-blue-600"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
                 >
-                  {tab === 'all' ? '전체 보기' : 
-                   tab === 'ko' ? '한국어' : 
-                   tab === 'en' ? 'English' : '日本語'}
+                  {tab === "all"
+                    ? "전체 보기"
+                    : tab === "ko"
+                      ? "한국어"
+                      : tab === "en"
+                        ? "English"
+                        : "日本語"}
                 </button>
               ))}
             </div>
@@ -263,14 +281,16 @@ export default function HeroLanguagePacksPage() {
 
         {/* 슬라이드별 섹션 */}
         {heroSections.map((section) => {
-          const sectionPacks = filteredPacks.filter(pack => pack.key.startsWith(section.key))
-          
+          const sectionPacks = filteredPacks.filter((pack) =>
+            pack.key.startsWith(section.key),
+          );
+
           return (
             <div key={section.key} className="bg-white rounded-xl shadow-sm">
               <div className="p-4 border-b bg-gray-50">
                 <h3 className="font-semibold text-gray-900">{section.label}</h3>
               </div>
-              
+
               <div className="divide-y">
                 {sectionPacks.map((pack) => (
                   <div key={pack.id} className="p-4">
@@ -281,11 +301,13 @@ export default function HeroLanguagePacksPage() {
                             {pack.key}
                           </code>
                           {pack.description && (
-                            <span className="text-xs text-gray-500">{pack.description}</span>
+                            <span className="text-xs text-gray-500">
+                              {pack.description}
+                            </span>
                           )}
                         </div>
 
-                        {activeTab === 'all' || activeTab === 'ko' ? (
+                        {activeTab === "all" || activeTab === "ko" ? (
                           <div className="mb-3">
                             <label className="block text-xs font-medium text-gray-700 mb-1">
                               한국어
@@ -294,7 +316,13 @@ export default function HeroLanguagePacksPage() {
                               <input
                                 type="text"
                                 value={editedValues[pack.id]?.ko || pack.ko}
-                                onChange={(e) => handleValueChange(pack.id, 'ko', e.target.value)}
+                                onChange={(e) =>
+                                  handleValueChange(
+                                    pack.id,
+                                    "ko",
+                                    e.target.value,
+                                  )
+                                }
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                               />
                             ) : (
@@ -303,7 +331,7 @@ export default function HeroLanguagePacksPage() {
                           </div>
                         ) : null}
 
-                        {activeTab === 'all' || activeTab === 'en' ? (
+                        {activeTab === "all" || activeTab === "en" ? (
                           <div className="mb-3">
                             <label className="block text-xs font-medium text-gray-700 mb-1">
                               English
@@ -312,16 +340,24 @@ export default function HeroLanguagePacksPage() {
                               <input
                                 type="text"
                                 value={editedValues[pack.id]?.en || pack.en}
-                                onChange={(e) => handleValueChange(pack.id, 'en', e.target.value)}
+                                onChange={(e) =>
+                                  handleValueChange(
+                                    pack.id,
+                                    "en",
+                                    e.target.value,
+                                  )
+                                }
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                               />
                             ) : (
-                              <p className="text-sm text-gray-900">{pack.en || '(번역 필요)'}</p>
+                              <p className="text-sm text-gray-900">
+                                {pack.en || "(번역 필요)"}
+                              </p>
                             )}
                           </div>
                         ) : null}
 
-                        {activeTab === 'all' || activeTab === 'jp' ? (
+                        {activeTab === "all" || activeTab === "jp" ? (
                           <div className="mb-3">
                             <label className="block text-xs font-medium text-gray-700 mb-1">
                               日本語
@@ -330,11 +366,19 @@ export default function HeroLanguagePacksPage() {
                               <input
                                 type="text"
                                 value={editedValues[pack.id]?.jp || pack.jp}
-                                onChange={(e) => handleValueChange(pack.id, 'jp', e.target.value)}
+                                onChange={(e) =>
+                                  handleValueChange(
+                                    pack.id,
+                                    "jp",
+                                    e.target.value,
+                                  )
+                                }
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                               />
                             ) : (
-                              <p className="text-sm text-gray-900">{pack.jp || '(번역 필요)'}</p>
+                              <p className="text-sm text-gray-900">
+                                {pack.jp || "(번역 필요)"}
+                              </p>
                             )}
                           </div>
                         ) : null}
@@ -381,9 +425,9 @@ export default function HeroLanguagePacksPage() {
                 ))}
               </div>
             </div>
-          )
+          );
         })}
       </div>
     </AdminLayout>
-  )
+  );
 }

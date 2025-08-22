@@ -1,10 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { SortableMenuItemImproved } from './SortableMenuItemImproved';
-import { useLanguage } from '@/hooks/useLanguage';
+import { useState, useEffect } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { SortableMenuItemImproved } from "./SortableMenuItemImproved";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface MenuItem {
   id: string;
@@ -20,46 +33,48 @@ export function HeaderConfigDB() {
   const [menus, setMenus] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingMenu, setIsAddingMenu] = useState(false);
-  const [newMenuName, setNewMenuName] = useState('');
-  const [newMenuUrl, setNewMenuUrl] = useState('/');
-  const [newMenuIcon, setNewMenuIcon] = useState('');
+  const [newMenuName, setNewMenuName] = useState("");
+  const [newMenuUrl, setNewMenuUrl] = useState("/");
+  const [newMenuIcon, setNewMenuIcon] = useState("");
   const { t } = useLanguage();
-  
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   // 메뉴 목록 로드
   const loadMenus = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
-      const response = await fetch('/api/admin/ui-menus?type=header', {
+      const token =
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("auth-token");
+      const response = await fetch("/api/admin/ui-menus?type=header", {
         headers: {
-          'Authorization': token ? `Bearer ${token}` : ''
-        }
+          Authorization: token ? `Bearer ${token}` : "",
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const formattedMenus = data.menus.map((menu: any) => ({
           id: menu.id,
           label: menu.content?.label || menu.sectionId,
-          name: menu.content?.name || '',
-          href: menu.content?.href || '/',
+          name: menu.content?.name || "",
+          href: menu.content?.href || "/",
           icon: menu.content?.icon || undefined,
           visible: menu.visible,
-          order: menu.order
+          order: menu.order,
         }));
         // Admin UI에서도 order 필드로 정렬하여 UI Config API와 일치시킴
         formattedMenus.sort((a: any, b: any) => a.order - b.order);
         setMenus(formattedMenus);
       }
     } catch (error) {
-      console.error('Failed to load menus:', error);
+      console.error("Failed to load menus:", error);
     } finally {
       setLoading(false);
     }
@@ -75,26 +90,28 @@ export function HeaderConfigDB() {
     if (over && active.id !== over.id) {
       const oldIndex = menus.findIndex((item) => item.id === String(active.id));
       const newIndex = menus.findIndex((item) => item.id === String(over.id));
-      
-      const newMenus = arrayMove(menus, oldIndex, newIndex).map((item, index) => ({
-        ...item,
-        order: index + 1,
-      }));
-      
+
+      const newMenus = arrayMove(menus, oldIndex, newIndex).map(
+        (item, index) => ({
+          ...item,
+          order: index + 1,
+        }),
+      );
+
       setMenus(newMenus);
 
       // 순서 업데이트 API 호출
       for (const menu of newMenus) {
-        await fetch('/api/admin/ui-menus', {
-          method: 'PUT',
+        await fetch("/api/admin/ui-menus", {
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
           },
           body: JSON.stringify({
             id: menu.id,
-            order: menu.order
-          })
+            order: menu.order,
+          }),
         });
       }
     }
@@ -102,97 +119,97 @@ export function HeaderConfigDB() {
 
   const handleMenuUpdate = async (id: string, updates: Partial<MenuItem>) => {
     try {
-      const response = await fetch('/api/admin/ui-menus', {
-        method: 'PUT',
+      const response = await fetch("/api/admin/ui-menus", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
         },
         body: JSON.stringify({
           id,
           ...updates,
-          autoTranslate: true
-        })
+          autoTranslate: true,
+        }),
       });
 
       if (response.ok) {
         const newMenus = menus.map((item) =>
-          item.id === id ? { ...item, ...updates } : item
+          item.id === id ? { ...item, ...updates } : item,
         );
         setMenus(newMenus);
       }
     } catch (error) {
-      console.error('Failed to update menu:', error);
-      alert('메뉴 업데이트 실패');
+      console.error("Failed to update menu:", error);
+      alert("메뉴 업데이트 실패");
     }
   };
 
   const handleAddMenu = async () => {
     if (!newMenuName.trim()) {
-      alert('메뉴 이름을 입력해주세요.');
+      alert("메뉴 이름을 입력해주세요.");
       return;
     }
 
     try {
-      const response = await fetch('/api/admin/ui-menus', {
-        method: 'POST',
+      const response = await fetch("/api/admin/ui-menus", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
         },
         body: JSON.stringify({
-          type: 'header',
+          type: "header",
           name: newMenuName,
-          href: newMenuUrl || '/',
+          href: newMenuUrl || "/",
           icon: newMenuIcon || null,
-          autoTranslate: true
-        })
+          autoTranslate: true,
+        }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // 메뉴 목록 새로고침
         await loadMenus();
-        
+
         // 입력 필드 초기화
-        setNewMenuName('');
-        setNewMenuUrl('/');
-        setNewMenuIcon('');
+        setNewMenuName("");
+        setNewMenuUrl("/");
+        setNewMenuIcon("");
         setIsAddingMenu(false);
-        
-        alert('메뉴가 추가되고 자동 번역되었습니다.');
+
+        alert("메뉴가 추가되고 자동 번역되었습니다.");
       } else {
-        throw new Error('메뉴 추가 실패');
+        throw new Error("메뉴 추가 실패");
       }
     } catch (error) {
-      console.error('Failed to add menu:', error);
-      alert('메뉴 추가 중 오류가 발생했습니다.');
+      console.error("Failed to add menu:", error);
+      alert("메뉴 추가 중 오류가 발생했습니다.");
     }
   };
 
   const handleDeleteMenu = async (id: string) => {
-    if (!confirm('이 메뉴를 삭제하시겠습니까?')) {
+    if (!confirm("이 메뉴를 삭제하시겠습니까?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/admin/ui-menus?id=${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
+        },
       });
 
       if (response.ok) {
         setMenus(menus.filter((item) => item.id !== id));
-        alert('메뉴가 삭제되었습니다.');
+        alert("메뉴가 삭제되었습니다.");
       } else {
-        throw new Error('메뉴 삭제 실패');
+        throw new Error("메뉴 삭제 실패");
       }
     } catch (error) {
-      console.error('Failed to delete menu:', error);
-      alert('메뉴 삭제 중 오류가 발생했습니다.');
+      console.error("Failed to delete menu:", error);
+      alert("메뉴 삭제 중 오류가 발생했습니다.");
     }
   };
 
@@ -270,9 +287,9 @@ export function HeaderConfigDB() {
                 <button
                   onClick={() => {
                     setIsAddingMenu(false);
-                    setNewMenuName('');
-                    setNewMenuUrl('/');
-                    setNewMenuIcon('');
+                    setNewMenuName("");
+                    setNewMenuUrl("/");
+                    setNewMenuIcon("");
                   }}
                   className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
                 >
@@ -295,9 +312,16 @@ export function HeaderConfigDB() {
             <div className="col-span-3">링크 URL</div>
             <div className="col-span-2 text-center">작업</div>
           </div>
-          
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={menus} strategy={verticalListSortingStrategy}>
+
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={menus}
+              strategy={verticalListSortingStrategy}
+            >
               <div className="space-y-2">
                 {menus.map((menu) => (
                   <SortableMenuItemImproved
@@ -314,7 +338,8 @@ export function HeaderConfigDB() {
 
         {menus.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            메뉴가 없습니다. 위의 &quot;메뉴 추가&quot; 버튼을 클릭하여 메뉴를 추가하세요.
+            메뉴가 없습니다. 위의 &quot;메뉴 추가&quot; 버튼을 클릭하여 메뉴를
+            추가하세요.
           </div>
         )}
       </div>

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useUIConfigStore } from '@/lib/stores/ui-config.store';
-import { HeaderConfigDB } from '@/components/admin/ui-config/HeaderConfigDB';
-import { FooterConfigDB } from '@/components/admin/ui-config/FooterConfigDB';
-import { SectionsConfigTab } from '@/components/admin/ui-config/SectionsConfigTab';
-import { SectionOrderTab } from '@/components/admin/ui-config/SectionOrderTab';
-import { useLanguage } from '@/hooks/useLanguage';
-import { useAuth } from '@/hooks/useAuth';
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useUIConfigStore } from "@/lib/stores/ui-config.store";
+import { HeaderConfigDB } from "@/components/admin/ui-config/HeaderConfigDB";
+import { FooterConfigDB } from "@/components/admin/ui-config/FooterConfigDB";
+import { SectionsConfigTab } from "@/components/admin/ui-config/SectionsConfigTab";
+import { SectionOrderTab } from "@/components/admin/ui-config/SectionOrderTab";
+import { useLanguage } from "@/hooks/useLanguage";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function UIConfigPage() {
   const { config, resetToDefault } = useUIConfigStore();
@@ -16,19 +16,23 @@ export default function UIConfigPage() {
   const searchParams = useSearchParams();
   const { t } = useLanguage();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  
+
   // URL 파라미터에서 탭 읽기
-  const tabParam = searchParams.get('tab');
-  const initialTab = (tabParam as 'header' | 'footer' | 'sections' | 'section-order') || 'header';
-  const [activeTab, setActiveTab] = useState<'header' | 'footer' | 'sections' | 'section-order'>(initialTab);
+  const tabParam = searchParams.get("tab");
+  const initialTab =
+    (tabParam as "header" | "footer" | "sections" | "section-order") ||
+    "header";
+  const [activeTab, setActiveTab] = useState<
+    "header" | "footer" | "sections" | "section-order"
+  >(initialTab);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState('');
+  const [saveMessage, setSaveMessage] = useState("");
 
   // 인증 및 권한 확인
   useEffect(() => {
     if (!authLoading) {
-      if (!isAuthenticated || user?.type !== 'ADMIN') {
-        router.push('/login');
+      if (!isAuthenticated || user?.type !== "ADMIN") {
+        router.push("/login");
         return;
       }
     }
@@ -36,13 +40,18 @@ export default function UIConfigPage() {
 
   // URL 파라미터 변경 시 탭 업데이트
   useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab && ['header', 'footer', 'sections', 'section-order'].includes(tab)) {
-      setActiveTab(tab as 'header' | 'footer' | 'sections' | 'section-order');
+    const tab = searchParams.get("tab");
+    if (
+      tab &&
+      ["header", "footer", "sections", "section-order"].includes(tab)
+    ) {
+      setActiveTab(tab as "header" | "footer" | "sections" | "section-order");
     }
   }, [searchParams]);
 
-  const handleTabChange = (tab: 'header' | 'footer' | 'sections' | 'section-order') => {
+  const handleTabChange = (
+    tab: "header" | "footer" | "sections" | "section-order",
+  ) => {
     setActiveTab(tab);
     router.push(`/admin/ui-config?tab=${tab}`);
   };
@@ -60,71 +69,82 @@ export default function UIConfigPage() {
   }
 
   // 권한 없음
-  if (!isAuthenticated || user?.type !== 'ADMIN') {
+  if (!isAuthenticated || user?.type !== "ADMIN") {
     return null;
   }
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">{t('admin.ui.title', 'UI 설정 관리')}</h1>
-        <p className="text-gray-600 mt-2">{t('admin.ui.description', '헤더, 푸터 및 홈페이지 섹션을 관리합니다.')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {t("admin.ui.title", "UI 설정 관리")}
+        </h1>
+        <p className="text-gray-600 mt-2">
+          {t(
+            "admin.ui.description",
+            "헤더, 푸터 및 홈페이지 섹션을 관리합니다.",
+          )}
+        </p>
       </div>
 
       {/* 탭 메뉴 */}
       <div className="flex space-x-1 mb-8">
         <button
-          onClick={() => handleTabChange('header')}
+          onClick={() => handleTabChange("header")}
           className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            activeTab === 'header'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
+            activeTab === "header"
+              ? "bg-blue-600 text-white"
+              : "bg-white text-gray-700 hover:bg-gray-100"
           }`}
         >
-          {t('admin.ui.tab.header', '헤더 설정')}
+          {t("admin.ui.tab.header", "헤더 설정")}
         </button>
         <button
-          onClick={() => handleTabChange('footer')}
+          onClick={() => handleTabChange("footer")}
           className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            activeTab === 'footer'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
+            activeTab === "footer"
+              ? "bg-blue-600 text-white"
+              : "bg-white text-gray-700 hover:bg-gray-100"
           }`}
         >
-          {t('admin.ui.tab.footer', '푸터 설정')}
+          {t("admin.ui.tab.footer", "푸터 설정")}
         </button>
         <button
-          onClick={() => handleTabChange('sections')}
+          onClick={() => handleTabChange("sections")}
           className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            activeTab === 'sections'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
+            activeTab === "sections"
+              ? "bg-blue-600 text-white"
+              : "bg-white text-gray-700 hover:bg-gray-100"
           }`}
         >
-          {t('admin.ui.tab.sections', '섹션 관리')}
+          {t("admin.ui.tab.sections", "섹션 관리")}
         </button>
         <button
-          onClick={() => handleTabChange('section-order')}
+          onClick={() => handleTabChange("section-order")}
           className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            activeTab === 'section-order'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
+            activeTab === "section-order"
+              ? "bg-blue-600 text-white"
+              : "bg-white text-gray-700 hover:bg-gray-100"
           }`}
         >
-          {t('admin.ui.tab.sectionOrder', '섹션 순서')}
+          {t("admin.ui.tab.sectionOrder", "섹션 순서")}
         </button>
       </div>
 
-      {activeTab === 'header' && <HeaderConfigDB />}
-      {activeTab === 'footer' && <FooterConfigDB />}
-      {activeTab === 'sections' && <SectionsConfigTab />}
-      {activeTab === 'section-order' && <SectionOrderTab />}
+      {activeTab === "header" && <HeaderConfigDB />}
+      {activeTab === "footer" && <FooterConfigDB />}
+      {activeTab === "sections" && <SectionsConfigTab />}
+      {activeTab === "section-order" && <SectionOrderTab />}
 
       {/* DB 연동 안내 */}
-      {activeTab !== 'section-order' && (
+      {activeTab !== "section-order" && (
         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-700">
-            ✅ {t('admin.ui.dbConnected', '이 페이지는 데이터베이스와 완전히 연동되어 있습니다. 모든 변경사항이 실시간으로 저장되며, 자동 번역 기능이 포함되어 있습니다.')}
+            ✅{" "}
+            {t(
+              "admin.ui.dbConnected",
+              "이 페이지는 데이터베이스와 완전히 연동되어 있습니다. 모든 변경사항이 실시간으로 저장되며, 자동 번역 기능이 포함되어 있습니다.",
+            )}
           </p>
         </div>
       )}

@@ -1,169 +1,187 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Eye, Settings, ChevronRight, Folder, FolderOpen } from 'lucide-react'
-import AdminLayout from '@/components/admin/AdminLayout'
-import CategoryFormModal from '@/components/admin/CategoryFormModal'
-import CategoryPageModal from '@/components/admin/CategoryPageModal'
+import { useState, useEffect } from "react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Settings,
+  ChevronRight,
+  Folder,
+  FolderOpen,
+} from "lucide-react";
+import AdminLayout from "@/components/admin/AdminLayout";
+import CategoryFormModal from "@/components/admin/CategoryFormModal";
+import CategoryPageModal from "@/components/admin/CategoryPageModal";
 
 interface Category {
-  id: string
-  name: string
-  slug: string
-  level: number
-  description?: string
-  icon?: string
-  color?: string
-  isActive: boolean
-  showInMenu: boolean
-  menuOrder?: number
-  parentId?: string
-  parent?: { id: string; name: string; level: number }
-  children: Category[]
-  categoryPage?: { id: string; isPublished: boolean }
-  campaignCount: number
+  id: string;
+  name: string;
+  slug: string;
+  level: number;
+  description?: string;
+  icon?: string;
+  color?: string;
+  isActive: boolean;
+  showInMenu: boolean;
+  menuOrder?: number;
+  parentId?: string;
+  parent?: { id: string; name: string; level: number };
+  children: Category[];
+  categoryPage?: { id: string; isPublished: boolean };
+  campaignCount: number;
 }
 
 function CategoriesPageContent() {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showCategoryModal, setShowCategoryModal] = useState(false)
-  const [showPageModal, setShowPageModal] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showPageModal, setShowPageModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
-    fetchCategories()
-  }, [])
+    fetchCategories();
+  }, []);
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/admin/categories')
-      const data = await response.json()
+      const response = await fetch("/api/admin/categories");
+      const data = await response.json();
       if (data.success) {
-        setCategories(data.categories)
+        setCategories(data.categories);
         // 모든 카테고리를 기본적으로 확장 (중분류가 보이도록)
         const allCategoriesWithChildren = data.categories
           .filter((cat: Category) => cat.children && cat.children.length > 0)
-          .map((cat: Category) => cat.id)
-        setExpandedCategories(new Set(allCategoriesWithChildren))
+          .map((cat: Category) => cat.id);
+        setExpandedCategories(new Set(allCategoriesWithChildren));
       }
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error("Error fetching categories:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleEdit = (category: Category) => {
-    setSelectedCategory(category)
-    setShowCategoryModal(true)
-  }
+    setSelectedCategory(category);
+    setShowCategoryModal(true);
+  };
 
   const handleDelete = async (category: Category) => {
     // 대분류는 삭제 불가능
     if (category.level === 1) {
-      alert('대분류는 삭제할 수 없습니다. 중분류와 소분류만 삭제 가능합니다.')
-      return
+      alert("대분류는 삭제할 수 없습니다. 중분류와 소분류만 삭제 가능합니다.");
+      return;
     }
 
     // 하위 카테고리가 있는지 확인
     if (category.children && category.children.length > 0) {
-      alert('하위 카테고리가 있는 카테고리는 삭제할 수 없습니다. 먼저 하위 카테고리를 삭제해주세요.')
-      return
+      alert(
+        "하위 카테고리가 있는 카테고리는 삭제할 수 없습니다. 먼저 하위 카테고리를 삭제해주세요.",
+      );
+      return;
     }
 
     if (!confirm(`"${category.name}" 카테고리를 삭제하시겠습니까?`)) {
-      return
+      return;
     }
 
     try {
       const response = await fetch(`/api/admin/categories/${category.id}`, {
-        method: 'DELETE'
-      })
-      
+        method: "DELETE",
+      });
+
       if (response.ok) {
-        fetchCategories()
+        fetchCategories();
       } else {
-        const data = await response.json()
-        alert(data.error || '삭제에 실패했습니다.')
+        const data = await response.json();
+        alert(data.error || "삭제에 실패했습니다.");
       }
     } catch (error) {
-      console.error('Error deleting category:', error)
-      alert('삭제 중 오류가 발생했습니다.')
+      console.error("Error deleting category:", error);
+      alert("삭제 중 오류가 발생했습니다.");
     }
-  }
+  };
 
   const handleCreatePage = (category: Category) => {
-    setSelectedCategory(category)
-    setShowPageModal(true)
-  }
+    setSelectedCategory(category);
+    setShowPageModal(true);
+  };
 
   const toggleExpanded = (categoryId: string) => {
-    const newExpanded = new Set(expandedCategories)
+    const newExpanded = new Set(expandedCategories);
     if (newExpanded.has(categoryId)) {
-      newExpanded.delete(categoryId)
+      newExpanded.delete(categoryId);
     } else {
-      newExpanded.add(categoryId)
+      newExpanded.add(categoryId);
     }
-    setExpandedCategories(newExpanded)
-  }
+    setExpandedCategories(newExpanded);
+  };
 
   const expandAll = () => {
     const allParentIds = categories
-      .filter(cat => cat.children && cat.children.length > 0)
-      .map(cat => cat.id)
-    setExpandedCategories(new Set(allParentIds))
-  }
+      .filter((cat) => cat.children && cat.children.length > 0)
+      .map((cat) => cat.id);
+    setExpandedCategories(new Set(allParentIds));
+  };
 
   const collapseAll = () => {
-    setExpandedCategories(new Set())
-  }
+    setExpandedCategories(new Set());
+  };
 
   // 계층 구조로 정리
   const organizeCategoriesByHierarchy = (categories: Category[]) => {
-    const categoryMap = new Map<string, Category & { children: Category[] }>()
-    const rootCategories: (Category & { children: Category[] })[] = []
+    const categoryMap = new Map<string, Category & { children: Category[] }>();
+    const rootCategories: (Category & { children: Category[] })[] = [];
 
     // 카테고리 맵 생성
-    categories.forEach(cat => {
-      categoryMap.set(cat.id, { ...cat, children: [] })
-    })
+    categories.forEach((cat) => {
+      categoryMap.set(cat.id, { ...cat, children: [] });
+    });
 
     // 계층 구조 구성
-    categories.forEach(cat => {
-      const category = categoryMap.get(cat.id)!
+    categories.forEach((cat) => {
+      const category = categoryMap.get(cat.id)!;
       if (cat.parentId && categoryMap.has(cat.parentId)) {
-        const parent = categoryMap.get(cat.parentId)!
-        parent.children.push(category)
+        const parent = categoryMap.get(cat.parentId)!;
+        parent.children.push(category);
       } else {
-        rootCategories.push(category)
+        rootCategories.push(category);
       }
-    })
+    });
 
-    return rootCategories
-  }
+    return rootCategories;
+  };
 
   const handleAddSubcategory = (parentCategory: Category) => {
     setSelectedCategory({
       ...parentCategory,
       id: null, // 새 카테고리를 만들기 위해 id를 null로 설정
       parentId: parentCategory.id,
-      level: parentCategory.level + 1
-    } as any)
-    setShowCategoryModal(true)
-  }
+      level: parentCategory.level + 1,
+    } as any);
+    setShowCategoryModal(true);
+  };
 
-  const renderCategoryItem = (category: Category & { children: Category[] }, depth = 0) => {
-    const hasChildren = category.children.length > 0
-    const isExpanded = expandedCategories.has(category.id)
-    const paddingLeft = depth * 32 + 16
+  const renderCategoryItem = (
+    category: Category & { children: Category[] },
+    depth = 0,
+  ) => {
+    const hasChildren = category.children.length > 0;
+    const isExpanded = expandedCategories.has(category.id);
+    const paddingLeft = depth * 32 + 16;
 
     return (
       <div key={category.id}>
-        <div 
+        <div
           className={`flex items-center justify-between p-4 border-b hover:bg-gray-50 ${
-            depth === 0 ? 'bg-white' : depth === 1 ? 'bg-gray-25' : 'bg-gray-50'
+            depth === 0 ? "bg-white" : depth === 1 ? "bg-gray-25" : "bg-gray-50"
           }`}
           style={{ paddingLeft: `${paddingLeft}px` }}
         >
@@ -173,10 +191,10 @@ function CategoriesPageContent() {
                 onClick={() => toggleExpanded(category.id)}
                 className="p-1 hover:bg-gray-200 rounded flex items-center justify-center w-6 h-6"
               >
-                <ChevronRight 
+                <ChevronRight
                   className={`w-4 h-4 text-gray-500 transition-transform ${
-                    isExpanded ? 'rotate-90' : ''
-                  }`} 
+                    isExpanded ? "rotate-90" : ""
+                  }`}
                 />
               </button>
             ) : (
@@ -184,23 +202,29 @@ function CategoriesPageContent() {
                 <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
               </div>
             )}
-            
+
             <div className="flex items-center gap-3">
               {category.icon && (
                 <span className="text-xl">{category.icon}</span>
               )}
-              
+
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-medium text-gray-900">{category.name}</h3>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    category.level === 1 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : category.level === 2 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-purple-100 text-purple-700'
-                  }`}>
-                    {category.level === 1 ? '대분류' : category.level === 2 ? '중분류' : '소분류'}
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      category.level === 1
+                        ? "bg-blue-100 text-blue-700"
+                        : category.level === 2
+                          ? "bg-green-100 text-green-700"
+                          : "bg-purple-100 text-purple-700"
+                    }`}
+                  >
+                    {category.level === 1
+                      ? "대분류"
+                      : category.level === 2
+                        ? "중분류"
+                        : "소분류"}
                   </span>
                   {!category.isActive && (
                     <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-600">
@@ -213,17 +237,20 @@ function CategoriesPageContent() {
                     </span>
                   )}
                 </div>
-                
+
                 <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                   <span>슬러그: {category.slug}</span>
                   <span>캠페인: {category.campaignCount}개</span>
                   {category.categoryPage && (
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      category.categoryPage.isPublished 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      페이지 {category.categoryPage.isPublished ? '게시됨' : '미게시'}
+                    <span
+                      className={`px-2 py-1 text-xs rounded ${
+                        category.categoryPage.isPublished
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      페이지{" "}
+                      {category.categoryPage.isPublished ? "게시됨" : "미게시"}
                     </span>
                   )}
                 </div>
@@ -243,7 +270,7 @@ function CategoriesPageContent() {
                 {category.level === 1 ? "중분류" : "소분류"}
               </button>
             )}
-            
+
             {!category.categoryPage && (
               <button
                 onClick={() => handleCreatePage(category)}
@@ -253,7 +280,7 @@ function CategoriesPageContent() {
                 <Plus className="w-4 h-4" />
               </button>
             )}
-            
+
             <button
               onClick={() => handleEdit(category)}
               className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
@@ -261,7 +288,7 @@ function CategoriesPageContent() {
             >
               <Edit className="w-4 h-4" />
             </button>
-            
+
             {/* 대분류가 아닌 경우에만 삭제 버튼 표시 */}
             {category.level !== 1 && (
               <button
@@ -280,22 +307,21 @@ function CategoriesPageContent() {
           <div>
             {category.children
               .sort((a, b) => a.name.localeCompare(b.name))
-              .map(child => renderCategoryItem(child, depth + 1))
-            }
+              .map((child) => renderCategoryItem(child, depth + 1))}
           </div>
         )}
       </div>
-    )
-  }
+    );
+  };
 
-  const hierarchicalCategories = organizeCategoriesByHierarchy(categories)
+  const hierarchicalCategories = organizeCategoriesByHierarchy(categories);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-gray-500">로딩 중...</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -303,42 +329,45 @@ function CategoriesPageContent() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">카테고리 관리</h1>
-          <p className="text-gray-600 mt-1">캠페인 카테고리 계층 구조를 관리합니다.</p>
+          <p className="text-gray-600 mt-1">
+            캠페인 카테고리 계층 구조를 관리합니다.
+          </p>
         </div>
-        
+
         <button
           onClick={() => {
-            setSelectedCategory(null)
-            setShowCategoryModal(true)
+            setSelectedCategory(null);
+            setShowCategoryModal(true);
           }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          <Plus className="w-4 h-4" />
-          새 카테고리
+          <Plus className="w-4 h-4" />새 카테고리
         </button>
       </div>
 
       {/* 통계 */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg border">
-          <div className="text-2xl font-bold text-blue-600">{categories.length}</div>
+          <div className="text-2xl font-bold text-blue-600">
+            {categories.length}
+          </div>
           <div className="text-sm text-gray-600">전체 카테고리</div>
         </div>
         <div className="bg-white p-4 rounded-lg border">
           <div className="text-2xl font-bold text-green-600">
-            {categories.filter(cat => cat.level === 1).length}
+            {categories.filter((cat) => cat.level === 1).length}
           </div>
           <div className="text-sm text-gray-600">대분류</div>
         </div>
         <div className="bg-white p-4 rounded-lg border">
           <div className="text-2xl font-bold text-yellow-600">
-            {categories.filter(cat => cat.level === 2).length}
+            {categories.filter((cat) => cat.level === 2).length}
           </div>
           <div className="text-sm text-gray-600">중분류</div>
         </div>
         <div className="bg-white p-4 rounded-lg border">
           <div className="text-2xl font-bold text-purple-600">
-            {categories.filter(cat => cat.level === 3).length}
+            {categories.filter((cat) => cat.level === 3).length}
           </div>
           <div className="text-sm text-gray-600">소분류</div>
         </div>
@@ -363,13 +392,12 @@ function CategoriesPageContent() {
             </button>
           </div>
         </div>
-        
+
         {hierarchicalCategories.length > 0 ? (
           <div>
             {hierarchicalCategories
               .sort((a, b) => (a.menuOrder || 0) - (b.menuOrder || 0))
-              .map(category => renderCategoryItem(category))
-            }
+              .map((category) => renderCategoryItem(category))}
           </div>
         ) : (
           <div className="p-8 text-center text-gray-500">
@@ -383,13 +411,13 @@ function CategoriesPageContent() {
         <CategoryFormModal
           category={selectedCategory}
           onClose={() => {
-            setShowCategoryModal(false)
-            setSelectedCategory(null)
+            setShowCategoryModal(false);
+            setSelectedCategory(null);
           }}
           onSuccess={() => {
-            fetchCategories()
-            setShowCategoryModal(false)
-            setSelectedCategory(null)
+            fetchCategories();
+            setShowCategoryModal(false);
+            setSelectedCategory(null);
           }}
           categories={categories}
         />
@@ -399,18 +427,18 @@ function CategoriesPageContent() {
         <CategoryPageModal
           category={selectedCategory}
           onClose={() => {
-            setShowPageModal(false)
-            setSelectedCategory(null)
+            setShowPageModal(false);
+            setSelectedCategory(null);
           }}
           onSuccess={() => {
-            fetchCategories()
-            setShowPageModal(false)
-            setSelectedCategory(null)
+            fetchCategories();
+            setShowPageModal(false);
+            setSelectedCategory(null);
           }}
         />
       )}
     </div>
-  )
+  );
 }
 
 export default function CategoriesPage() {
@@ -418,5 +446,5 @@ export default function CategoriesPage() {
     <AdminLayout>
       <CategoriesPageContent />
     </AdminLayout>
-  )
+  );
 }

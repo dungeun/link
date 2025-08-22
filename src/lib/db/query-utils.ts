@@ -3,9 +3,9 @@
  * N+1 문제 해결 및 성능 최적화를 위한 헬퍼 함수
  */
 
-import { Prisma, PrismaClient } from '@prisma/client';
-import { prisma } from '@/lib/db/prisma';
-import { logger } from '@/lib/logger/production';
+import { Prisma, PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/db/prisma";
+import { logger } from "@/lib/logger/production";
 
 /**
  * 캠페인 조회 시 기본 include 옵션
@@ -78,22 +78,22 @@ export function getCampaignWithRelations(includeApplications: boolean = false) {
         companyName: true,
         businessName: true,
         category: true,
-      }
+      },
     },
     ...(includeApplications && {
       applications: {
         select: {
           id: true,
           status: true,
-          influencerId: true
-        }
-      }
+          influencerId: true,
+        },
+      },
     }),
     _count: {
       select: {
-        applications: true
-      }
-    }
+        applications: true,
+      },
+    },
   };
 }
 
@@ -107,7 +107,7 @@ export async function fetchCampaignsPaginated(
     orderBy?: Prisma.CampaignOrderByWithRelationInput;
     page: number;
     limit: number;
-  }
+  },
 ) {
   const { where, orderBy, page, limit } = options;
   const offset = (page - 1) * limit;
@@ -116,12 +116,12 @@ export async function fetchCampaignsPaginated(
   const [campaigns, total] = await prisma.$transaction([
     prisma.campaign.findMany({
       where,
-      orderBy: orderBy || { createdAt: 'desc' },
+      orderBy: orderBy || { createdAt: "desc" },
       skip: offset,
       take: limit,
-      include: getCampaignWithRelations()
+      include: getCampaignWithRelations(),
     }),
-    prisma.campaign.count({ where })
+    prisma.campaign.count({ where }),
   ]);
 
   return {
@@ -129,7 +129,7 @@ export async function fetchCampaignsPaginated(
     total,
     page,
     limit,
-    totalPages: Math.ceil(total / limit)
+    totalPages: Math.ceil(total / limit),
   };
 }
 
@@ -144,9 +144,9 @@ export function getUserWithProfile() {
       select: {
         campaigns: true,
         applications: true,
-        posts: true
-      }
-    }
+        posts: true,
+      },
+    },
   };
 }
 
@@ -156,13 +156,13 @@ export function getUserWithProfile() {
 export async function batchUpdate<T>(
   prisma: PrismaClient,
   model: string,
-  updates: Array<{ id: string; data: Record<string, unknown> }>
+  updates: Array<{ id: string; data: Record<string, unknown> }>,
 ) {
-  const operations = updates.map(update =>
+  const operations = updates.map((update) =>
     (prisma as unknown as Record<string, { update: Function }>)[model].update({
       where: { id: update.id },
-      data: update.data
-    })
+      data: update.data,
+    }),
   );
 
   return prisma.$transaction(operations);
@@ -175,28 +175,30 @@ export async function softDelete(
   prisma: PrismaClient,
   model: string,
   id: string,
-  cascadeModels?: string[]
+  cascadeModels?: string[],
 ) {
   const operations = [
     (prisma as unknown as Record<string, { update: Function }>)[model].update({
       where: { id },
       data: {
-        status: 'DELETED',
-        deletedAt: new Date()
-      }
-    })
+        status: "DELETED",
+        deletedAt: new Date(),
+      },
+    }),
   ];
 
   if (cascadeModels) {
-    cascadeModels.forEach(cascadeModel => {
+    cascadeModels.forEach((cascadeModel) => {
       operations.push(
-        (prisma as unknown as Record<string, { updateMany: Function }>)[cascadeModel].updateMany({
+        (prisma as unknown as Record<string, { updateMany: Function }>)[
+          cascadeModel
+        ].updateMany({
           where: { [`${model}Id`]: id },
           data: {
-            status: 'DELETED',
-            deletedAt: new Date()
-          }
-        })
+            status: "DELETED",
+            deletedAt: new Date(),
+          },
+        }),
       );
     });
   }
@@ -209,59 +211,55 @@ export async function softDelete(
  */
 export async function getAggregatedStats(
   prisma: PrismaClient,
-  dateRange: { start: Date; end: Date }
+  dateRange: { start: Date; end: Date },
 ) {
-  const [
-    campaignStats,
-    userStats,
-    revenueStats
-  ] = await prisma.$transaction([
+  const [campaignStats, userStats, revenueStats] = await prisma.$transaction([
     // Campaign statistics
     prisma.campaign.aggregate({
       where: {
         createdAt: {
           gte: dateRange.start,
-          lte: dateRange.end
-        }
+          lte: dateRange.end,
+        },
       },
       _count: true,
       _sum: {
         budget: true,
-        rewardAmount: true
-      }
+        rewardAmount: true,
+      },
     }),
     // User statistics
     prisma.user.groupBy({
-      by: ['type'],
+      by: ["type"],
       where: {
         createdAt: {
           gte: dateRange.start,
-          lte: dateRange.end
-        }
+          lte: dateRange.end,
+        },
       },
       _count: true,
       orderBy: {
-        type: 'asc'
-      }
+        type: "asc",
+      },
     }),
     // Revenue statistics
     prisma.revenue.aggregate({
       where: {
         date: {
           gte: dateRange.start,
-          lte: dateRange.end
-        }
+          lte: dateRange.end,
+        },
       },
       _sum: {
-        amount: true
-      }
-    })
+        amount: true,
+      },
+    }),
   ]);
 
   return {
     campaigns: campaignStats,
     users: userStats,
-    revenue: revenueStats
+    revenue: revenueStats,
   };
 }
 
@@ -270,14 +268,15 @@ export async function getAggregatedStats(
  */
 export function createOptimizedPrismaClient() {
   return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' 
-      ? ['query', 'error', 'warn'] 
-      : ['error'],
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["query", "error", "warn"]
+        : ["error"],
     datasources: {
       db: {
-        url: process.env.DATABASE_URL
-      }
-    }
+        url: process.env.DATABASE_URL,
+      },
+    },
   });
 }
 
@@ -286,24 +285,28 @@ export function createOptimizedPrismaClient() {
  */
 export async function withQueryMetrics<T>(
   queryName: string,
-  queryFn: () => Promise<T>
+  queryFn: () => Promise<T>,
 ): Promise<T> {
   const startTime = Date.now();
-  
+
   try {
     const result = await queryFn();
     const duration = Date.now() - startTime;
-    
+
     if (duration > 1000) {
       logger.warn(`Slow query detected: ${queryName}`, { duration });
     } else {
       logger.debug(`Query executed: ${queryName}`, { duration });
     }
-    
+
     return result;
   } catch (error) {
     const duration = Date.now() - startTime;
-    logger.error(`Query failed: ${queryName}`, error instanceof Error ? error : new Error(String(error)), { duration });
+    logger.error(
+      `Query failed: ${queryName}`,
+      error instanceof Error ? error : new Error(String(error)),
+      { duration },
+    );
     throw error;
   }
 }

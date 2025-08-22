@@ -3,7 +3,7 @@
  * 쇼핑몰 스타일 커서 기반 페이징 지원
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from "react";
 
 interface UseInfiniteScrollOptions {
   onLoadMore: () => void;
@@ -16,21 +16,24 @@ export function useInfiniteScroll({
   onLoadMore,
   hasMore,
   loading,
-  threshold = 100
+  threshold = 100,
 }: UseInfiniteScrollOptions) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Intersection Observer 콜백
-  const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
-    const [entry] = entries;
-    
-    // 센티널이 뷰포트에 들어오고, 더 로드할 데이터가 있고, 로딩 중이 아닐 때
-    if (entry.isIntersecting && hasMore && !loading) {
-      console.log('Loading more items...');
-      onLoadMore();
-    }
-  }, [hasMore, loading, onLoadMore]);
+  const handleIntersection = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [entry] = entries;
+
+      // 센티널이 뷰포트에 들어오고, 더 로드할 데이터가 있고, 로딩 중이 아닐 때
+      if (entry.isIntersecting && hasMore && !loading) {
+        console.log("Loading more items...");
+        onLoadMore();
+      }
+    },
+    [hasMore, loading, onLoadMore],
+  );
 
   // Observer 초기화
   useEffect(() => {
@@ -43,7 +46,7 @@ export function useInfiniteScroll({
     observerRef.current = new IntersectionObserver(handleIntersection, {
       root: null,
       rootMargin: `${threshold}px`,
-      threshold: 0.1
+      threshold: 0.1,
     });
 
     // 센티널 요소 관찰 시작
@@ -78,7 +81,7 @@ export function useInfiniteScroll({
   return {
     sentinelRef: setSentinelRef,
     isLoading: loading,
-    hasMore
+    hasMore,
   };
 }
 
@@ -90,7 +93,7 @@ export function useVirtualScroll<T>({
   items,
   itemHeight,
   containerHeight,
-  buffer = 5
+  buffer = 5,
 }: {
   items: T[];
   itemHeight: number;
@@ -98,25 +101,31 @@ export function useVirtualScroll<T>({
   buffer?: number;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  
-  const calculateVisibleItems = useCallback((scrollTop: number) => {
-    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - buffer);
-    const endIndex = Math.min(
-      items.length,
-      Math.ceil((scrollTop + containerHeight) / itemHeight) + buffer
-    );
-    
-    return {
-      startIndex,
-      endIndex,
-      visibleItems: items.slice(startIndex, endIndex),
-      offsetY: startIndex * itemHeight
-    };
-  }, [items, itemHeight, containerHeight, buffer]);
+
+  const calculateVisibleItems = useCallback(
+    (scrollTop: number) => {
+      const startIndex = Math.max(
+        0,
+        Math.floor(scrollTop / itemHeight) - buffer,
+      );
+      const endIndex = Math.min(
+        items.length,
+        Math.ceil((scrollTop + containerHeight) / itemHeight) + buffer,
+      );
+
+      return {
+        startIndex,
+        endIndex,
+        visibleItems: items.slice(startIndex, endIndex),
+        offsetY: startIndex * itemHeight,
+      };
+    },
+    [items, itemHeight, containerHeight, buffer],
+  );
 
   return {
     scrollRef,
     calculateVisibleItems,
-    totalHeight: items.length * itemHeight
+    totalHeight: items.length * itemHeight,
   };
 }

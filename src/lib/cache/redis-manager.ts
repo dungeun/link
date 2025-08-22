@@ -3,16 +3,16 @@
  * Multi-layer caching, Circuit Breaker, Cache Warming 구현
  */
 
-import Redis from 'ioredis';
-import { logger } from '@/lib/utils/logger';
-import { EventEmitter } from 'events';
+import Redis from "ioredis";
+import { logger } from "@/lib/utils/logger";
+import { EventEmitter } from "events";
 
 // 캐시 전략 타입
 export enum CacheStrategy {
-  CACHE_ASIDE = 'cache-aside',
-  WRITE_THROUGH = 'write-through',
-  WRITE_BEHIND = 'write-behind',
-  REFRESH_AHEAD = 'refresh-ahead'
+  CACHE_ASIDE = "cache-aside",
+  WRITE_THROUGH = "write-through",
+  WRITE_BEHIND = "write-behind",
+  REFRESH_AHEAD = "refresh-ahead",
 }
 
 // 캐시 통계
@@ -35,9 +35,9 @@ interface CacheOptions {
 
 // Circuit Breaker 상태
 enum CircuitState {
-  CLOSED = 'closed',
-  OPEN = 'open',
-  HALF_OPEN = 'half-open'
+  CLOSED = "closed",
+  OPEN = "open",
+  HALF_OPEN = "half-open",
 }
 
 /**
@@ -52,7 +52,7 @@ class CircuitBreaker {
   constructor(
     private readonly threshold: number = 5,
     private readonly timeout: number = 60000, // 60초
-    private readonly halfOpenRequests: number = 3
+    private readonly halfOpenRequests: number = 3,
   ) {}
 
   async execute<T>(fn: () => Promise<T>): Promise<T | null> {
@@ -61,7 +61,7 @@ class CircuitBreaker {
         this.state = CircuitState.HALF_OPEN;
         this.successCount = 0;
       } else {
-        logger.warn('Circuit breaker is OPEN, rejecting request');
+        logger.warn("Circuit breaker is OPEN, rejecting request");
         return null;
       }
     }
@@ -78,12 +78,12 @@ class CircuitBreaker {
 
   private onSuccess(): void {
     this.failureCount = 0;
-    
+
     if (this.state === CircuitState.HALF_OPEN) {
       this.successCount++;
       if (this.successCount >= this.halfOpenRequests) {
         this.state = CircuitState.CLOSED;
-        logger.info('Circuit breaker recovered to CLOSED state');
+        logger.info("Circuit breaker recovered to CLOSED state");
       }
     }
   }
@@ -94,7 +94,9 @@ class CircuitBreaker {
 
     if (this.failureCount >= this.threshold) {
       this.state = CircuitState.OPEN;
-      logger.error(`Circuit breaker opened after ${this.failureCount} failures`);
+      logger.error(
+        `Circuit breaker opened after ${this.failureCount} failures`,
+      );
     }
   }
 
@@ -122,47 +124,47 @@ export class RedisCacheManager extends EventEmitter {
     misses: 0,
     errors: 0,
     evictions: 0,
-    hitRate: 0
+    hitRate: 0,
   };
   private circuitBreaker: CircuitBreaker;
   private warmupQueue: Set<string> = new Set();
 
   private constructor() {
     super();
-    
+
     // Redis 클라이언트 초기화
     this.redis = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
+      host: process.env.REDIS_HOST || "localhost",
+      port: parseInt(process.env.REDIS_PORT || "6379"),
       password: process.env.REDIS_PASSWORD,
-      db: parseInt(process.env.REDIS_DB || '0'),
+      db: parseInt(process.env.REDIS_DB || "0"),
       retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
       enableOfflineQueue: true,
       maxRetriesPerRequest: 3,
-      lazyConnect: true
+      lazyConnect: true,
     });
 
     // Circuit Breaker 초기화
     this.circuitBreaker = new CircuitBreaker();
 
     // Redis 이벤트 핸들러
-    this.redis.on('connect', () => {
-      logger.info('Redis connected successfully');
-      this.emit('connected');
+    this.redis.on("connect", () => {
+      logger.info("Redis connected successfully");
+      this.emit("connected");
     });
 
-    this.redis.on('error', (error) => {
-      logger.error({ error }, 'Redis connection error');
+    this.redis.on("error", (error) => {
+      logger.error({ error }, "Redis connection error");
       this.stats.errors++;
-      this.emit('error', error);
+      this.emit("error", error);
     });
 
-    this.redis.on('close', () => {
-      logger.warn('Redis connection closed');
-      this.emit('disconnected');
+    this.redis.on("close", () => {
+      logger.warn("Redis connection closed");
+      this.emit("disconnected");
     });
 
     // 로컬 캐시 정리 (1분마다)
@@ -192,37 +194,37 @@ export class RedisCacheManager extends EventEmitter {
       if (localData !== null) {
         this.stats.hits++;
         this.updateHitRate();
-        logger.debug({ key }, 'L1 cache hit');
+        logger.debug({ key }, "L1 cache hit");
         return localData;
       }
 
       // L2 캐시 (Redis) 확인
       const result = await this.circuitBreaker.execute(async () => {
         const data = await this.redis.get(key);
-        
+
         if (data) {
           const parsed = this.deserialize<T>(data);
-          
+
           // L1 캐시에 저장
           this.setLocalCache(key, parsed, 60000); // 1분 TTL
-          
+
           // Refresh-Ahead 전략 확인
           if (options?.strategy === CacheStrategy.REFRESH_AHEAD) {
             const ttl = await this.redis.ttl(key);
             const refreshThreshold = options.refreshAhead || 0.2; // 기본 20%
-            
+
             if (ttl > 0 && ttl < (options.ttl || 300) * refreshThreshold) {
               this.warmupQueue.add(key);
-              logger.debug({ key, ttl }, 'Scheduled for refresh-ahead');
+              logger.debug({ key, ttl }, "Scheduled for refresh-ahead");
             }
           }
-          
+
           this.stats.hits++;
           this.updateHitRate();
-          logger.debug({ key }, 'L2 cache hit');
+          logger.debug({ key }, "L2 cache hit");
           return parsed;
         }
-        
+
         return null;
       });
 
@@ -233,7 +235,7 @@ export class RedisCacheManager extends EventEmitter {
 
       return result;
     } catch (error) {
-      logger.error({ error, key }, 'Cache get error');
+      logger.error({ error, key }, "Cache get error");
       this.stats.errors++;
       return null;
     }
@@ -245,10 +247,14 @@ export class RedisCacheManager extends EventEmitter {
   async set<T>(
     key: string,
     value: T,
-    options: CacheOptions = {}
+    options: CacheOptions = {},
   ): Promise<boolean> {
     try {
-      const { ttl = 300, strategy = CacheStrategy.CACHE_ASIDE, tags = [] } = options;
+      const {
+        ttl = 300,
+        strategy = CacheStrategy.CACHE_ASIDE,
+        tags = [],
+      } = options;
       const serialized = this.serialize(value);
 
       // Write-Through 전략
@@ -260,7 +266,7 @@ export class RedisCacheManager extends EventEmitter {
       const result = await this.circuitBreaker.execute(async () => {
         // Redis에 저장
         await this.redis.setex(key, ttl, serialized);
-        
+
         // 태그 처리
         if (tags.length > 0) {
           await this.addTags(key, tags);
@@ -268,7 +274,7 @@ export class RedisCacheManager extends EventEmitter {
 
         // L1 캐시에도 저장
         this.setLocalCache(key, value, Math.min(ttl * 1000, 60000));
-        
+
         return true;
       });
 
@@ -278,10 +284,10 @@ export class RedisCacheManager extends EventEmitter {
         // this.scheduleWriteBehind(key, value);
       }
 
-      logger.debug({ key, ttl, strategy }, 'Cache set');
+      logger.debug({ key, ttl, strategy }, "Cache set");
       return result !== null;
     } catch (error) {
-      logger.error({ error, key }, 'Cache set error');
+      logger.error({ error, key }, "Cache set error");
       this.stats.errors++;
       return false;
     }
@@ -294,21 +300,21 @@ export class RedisCacheManager extends EventEmitter {
     try {
       // 패턴 매칭으로 키 찾기
       const keys = await this.redis.keys(pattern);
-      
+
       if (keys.length === 0) {
         return 0;
       }
 
       // Redis에서 삭제
       const deleted = await this.redis.del(...keys);
-      
+
       // L1 캐시에서도 삭제
-      keys.forEach(key => this.localCache.delete(key));
-      
-      logger.info({ pattern, deleted }, 'Cache deleted');
+      keys.forEach((key) => this.localCache.delete(key));
+
+      logger.info({ pattern, deleted }, "Cache deleted");
       return deleted;
     } catch (error) {
-      logger.error({ error, pattern }, 'Cache delete error');
+      logger.error({ error, pattern }, "Cache delete error");
       return 0;
     }
   }
@@ -319,42 +325,49 @@ export class RedisCacheManager extends EventEmitter {
   async invalidateByTags(tags: string[]): Promise<void> {
     try {
       const keys = new Set<string>();
-      
+
       // 각 태그와 연관된 키 찾기
       for (const tag of tags) {
         const taggedKeys = await this.redis.smembers(`tag:${tag}`);
-        taggedKeys.forEach(key => keys.add(key));
+        taggedKeys.forEach((key) => keys.add(key));
       }
-      
+
       // 찾은 키들 삭제
       if (keys.size > 0) {
         await this.redis.del(...Array.from(keys));
-        keys.forEach(key => this.localCache.delete(key));
-        
+        keys.forEach((key) => this.localCache.delete(key));
+
         // 태그 정리
         for (const tag of tags) {
           await this.redis.del(`tag:${tag}`);
         }
       }
-      
-      logger.info({ tags, invalidated: keys.size }, 'Cache invalidated by tags');
+
+      logger.info(
+        { tags, invalidated: keys.size },
+        "Cache invalidated by tags",
+      );
     } catch (error) {
-      logger.error({ error, tags }, 'Tag invalidation error');
+      logger.error({ error, tags }, "Tag invalidation error");
     }
   }
 
   /**
    * Cache Warming
    */
-  async warmup(key: string, loader: () => Promise<any>, options?: CacheOptions): Promise<void> {
+  async warmup(
+    key: string,
+    loader: () => Promise<any>,
+    options?: CacheOptions,
+  ): Promise<void> {
     try {
       const data = await loader();
       if (data) {
         await this.set(key, data, options);
-        logger.info({ key }, 'Cache warmed up');
+        logger.info({ key }, "Cache warmed up");
       }
     } catch (error) {
-      logger.error({ error, key }, 'Cache warmup error');
+      logger.error({ error, key }, "Cache warmup error");
     }
   }
 
@@ -363,11 +376,11 @@ export class RedisCacheManager extends EventEmitter {
    */
   async mget<T>(keys: string[]): Promise<Map<string, T | null>> {
     const result = new Map<string, T | null>();
-    
+
     try {
       // Redis에서 batch 조회
       const values = await this.redis.mget(...keys);
-      
+
       keys.forEach((key, index) => {
         const value = values[index];
         if (value) {
@@ -380,36 +393,39 @@ export class RedisCacheManager extends EventEmitter {
           this.stats.misses++;
         }
       });
-      
+
       this.updateHitRate();
     } catch (error) {
-      logger.error({ error, keys }, 'Batch get error');
-      keys.forEach(key => result.set(key, null));
+      logger.error({ error, keys }, "Batch get error");
+      keys.forEach((key) => result.set(key, null));
     }
-    
+
     return result;
   }
 
   /**
    * Batch 저장
    */
-  async mset<T>(entries: Map<string, T>, options?: CacheOptions): Promise<boolean> {
+  async mset<T>(
+    entries: Map<string, T>,
+    options?: CacheOptions,
+  ): Promise<boolean> {
     try {
       const pipeline = this.redis.pipeline();
       const ttl = options?.ttl || 300;
-      
+
       entries.forEach((value, key) => {
         const serialized = this.serialize(value);
         pipeline.setex(key, ttl, serialized);
         this.setLocalCache(key, value, Math.min(ttl * 1000, 60000));
       });
-      
+
       await pipeline.exec();
-      
-      logger.debug({ count: entries.size }, 'Batch cache set');
+
+      logger.debug({ count: entries.size }, "Batch cache set");
       return true;
     } catch (error) {
-      logger.error({ error }, 'Batch set error');
+      logger.error({ error }, "Batch set error");
       return false;
     }
   }
@@ -419,14 +435,14 @@ export class RedisCacheManager extends EventEmitter {
    */
   private getFromLocalCache(key: string): any | null {
     const cached = this.localCache.get(key);
-    
+
     if (cached) {
       if (cached.expiry > Date.now()) {
         return cached.value;
       }
       this.localCache.delete(key);
     }
-    
+
     return null;
   }
 
@@ -442,10 +458,10 @@ export class RedisCacheManager extends EventEmitter {
       }
       this.stats.evictions++;
     }
-    
+
     this.localCache.set(key, {
       value,
-      expiry: Date.now() + ttlMs
+      expiry: Date.now() + ttlMs,
     });
   }
 
@@ -455,16 +471,16 @@ export class RedisCacheManager extends EventEmitter {
   private cleanupLocalCache(): void {
     const now = Date.now();
     let cleaned = 0;
-    
+
     for (const [key, cached] of this.localCache.entries()) {
       if (cached.expiry <= now) {
         this.localCache.delete(key);
         cleaned++;
       }
     }
-    
+
     if (cleaned > 0) {
-      logger.debug({ cleaned }, 'Local cache cleaned up');
+      logger.debug({ cleaned }, "Local cache cleaned up");
     }
   }
 
@@ -473,12 +489,12 @@ export class RedisCacheManager extends EventEmitter {
    */
   private async addTags(key: string, tags: string[]): Promise<void> {
     const pipeline = this.redis.pipeline();
-    
+
     for (const tag of tags) {
       pipeline.sadd(`tag:${tag}`, key);
       pipeline.expire(`tag:${tag}`, 86400); // 24시간
     }
-    
+
     await pipeline.exec();
   }
 
@@ -487,12 +503,12 @@ export class RedisCacheManager extends EventEmitter {
    */
   private async processWarmupQueue(): Promise<void> {
     if (this.warmupQueue.size === 0) return;
-    
+
     const keys = Array.from(this.warmupQueue);
     this.warmupQueue.clear();
-    
-    logger.info({ count: keys.length }, 'Processing cache warmup queue');
-    
+
+    logger.info({ count: keys.length }, "Processing cache warmup queue");
+
     // 실제 구현에서는 각 키에 대한 데이터 로더를 호출
     // for (const key of keys) {
     //   await this.warmup(key, () => loadDataForKey(key));
@@ -504,15 +520,18 @@ export class RedisCacheManager extends EventEmitter {
    */
   private reportStats(): void {
     const total = this.stats.hits + this.stats.misses;
-    
-    logger.info({
-      stats: {
-        ...this.stats,
-        total,
-        localCacheSize: this.localCache.size,
-        circuitBreakerState: this.circuitBreaker.getState()
-      }
-    }, 'Cache statistics');
+
+    logger.info(
+      {
+        stats: {
+          ...this.stats,
+          total,
+          localCacheSize: this.localCache.size,
+          circuitBreakerState: this.circuitBreaker.getState(),
+        },
+      },
+      "Cache statistics",
+    );
   }
 
   /**
@@ -543,7 +562,7 @@ export class RedisCacheManager extends EventEmitter {
   async ping(): Promise<boolean> {
     try {
       const result = await this.redis.ping();
-      return result === 'PONG';
+      return result === "PONG";
     } catch {
       return false;
     }
@@ -560,13 +579,13 @@ export class RedisCacheManager extends EventEmitter {
    * 캐시 전체 삭제 (위험!)
    */
   async flush(): Promise<void> {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Cannot flush cache in production');
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Cannot flush cache in production");
     }
-    
+
     await this.redis.flushdb();
     this.localCache.clear();
-    logger.warn('Cache flushed');
+    logger.warn("Cache flushed");
   }
 
   /**
@@ -575,7 +594,7 @@ export class RedisCacheManager extends EventEmitter {
   async disconnect(): Promise<void> {
     await this.redis.quit();
     this.localCache.clear();
-    logger.info('Redis disconnected');
+    logger.info("Redis disconnected");
   }
 }
 

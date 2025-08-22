@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from "react";
 
 export function useWebWorker(workerScript: string) {
   const workerRef = useRef<Worker | null>(null);
@@ -6,7 +6,7 @@ export function useWebWorker(workerScript: string) {
 
   useEffect(() => {
     // Check if Web Workers are supported
-    if (typeof Worker !== 'undefined') {
+    if (typeof Worker !== "undefined") {
       try {
         const worker = new Worker(workerScript);
         workerRef.current = worker;
@@ -20,41 +20,50 @@ export function useWebWorker(workerScript: string) {
         };
 
         worker.onerror = (error) => {
-          console.error('Worker error:', error);
+          console.error("Worker error:", error);
         };
 
         return () => {
           worker.terminate();
         };
       } catch (error) {
-        console.warn('Failed to create worker:', error);
+        console.warn("Failed to create worker:", error);
       }
     }
   }, [workerScript]);
 
-  const postMessage = useCallback((type: string, data: any, callback?: (data: any) => void) => {
-    if (workerRef.current) {
-      if (callback) {
-        callbacksRef.current.set(type.replace('_REQUEST', '_RESPONSE'), callback);
+  const postMessage = useCallback(
+    (type: string, data: any, callback?: (data: any) => void) => {
+      if (workerRef.current) {
+        if (callback) {
+          callbacksRef.current.set(
+            type.replace("_REQUEST", "_RESPONSE"),
+            callback,
+          );
+        }
+        workerRef.current.postMessage({ type, data });
+      } else {
+        // Fallback for environments without Web Worker support
+        console.warn("Web Worker not available, running on main thread");
+        if (callback) {
+          // Simulate async processing
+          setTimeout(() => callback(data), 0);
+        }
       }
-      workerRef.current.postMessage({ type, data });
-    } else {
-      // Fallback for environments without Web Worker support
-      console.warn('Web Worker not available, running on main thread');
-      if (callback) {
-        // Simulate async processing
-        setTimeout(() => callback(data), 0);
-      }
-    }
-  }, []);
+    },
+    [],
+  );
 
-  const subscribe = useCallback((type: string, callback: (data: any) => void) => {
-    callbacksRef.current.set(type, callback);
-    
-    return () => {
-      callbacksRef.current.delete(type);
-    };
-  }, []);
+  const subscribe = useCallback(
+    (type: string, callback: (data: any) => void) => {
+      callbacksRef.current.set(type, callback);
+
+      return () => {
+        callbacksRef.current.delete(type);
+      };
+    },
+    [],
+  );
 
   return { postMessage, subscribe };
 }

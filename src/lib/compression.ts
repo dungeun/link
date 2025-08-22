@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 /**
  * API 응답 압축 및 최적화 유틸리티
@@ -9,20 +9,23 @@ export class ResponseCompression {
    */
   static addCompressionHeaders(response: NextResponse): void {
     // Gzip 압축 활성화
-    response.headers.set('Content-Encoding', 'gzip');
-    
+    response.headers.set("Content-Encoding", "gzip");
+
     // 압축 가능한 컨텐츠 타입 지정
-    response.headers.set('Vary', 'Accept-Encoding');
-    
+    response.headers.set("Vary", "Accept-Encoding");
+
     // 캐시 최적화
-    response.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    response.headers.set(
+      "Cache-Control",
+      "public, max-age=300, stale-while-revalidate=86400",
+    );
   }
 
   /**
    * JSON 응답 최적화
    */
   static optimizeJsonResponse(data: any): any {
-    if (typeof data === 'object' && data !== null) {
+    if (typeof data === "object" && data !== null) {
       // null 값 제거
       return this.removeNullValues(data);
     }
@@ -34,8 +37,10 @@ export class ResponseCompression {
    */
   private static removeNullValues(obj: any): any {
     if (Array.isArray(obj)) {
-      return obj.map(item => this.removeNullValues(item)).filter(item => item !== null && item !== undefined);
-    } else if (typeof obj === 'object' && obj !== null) {
+      return obj
+        .map((item) => this.removeNullValues(item))
+        .filter((item) => item !== null && item !== undefined);
+    } else if (typeof obj === "object" && obj !== null) {
       const result: any = {};
       for (const [key, value] of Object.entries(obj)) {
         if (value !== null && value !== undefined) {
@@ -52,25 +57,28 @@ export class ResponseCompression {
    */
   static minimizeResponse(data: any): any {
     const optimized = this.optimizeJsonResponse(data);
-    
+
     // 문자열 압축 (중복 제거)
-    if (typeof optimized === 'object') {
+    if (typeof optimized === "object") {
       return this.deduplicateStrings(optimized);
     }
-    
+
     return optimized;
   }
 
   /**
    * 문자열 중복 제거
    */
-  private static deduplicateStrings(obj: any, stringMap: Map<string, string> = new Map()): any {
+  private static deduplicateStrings(
+    obj: any,
+    stringMap: Map<string, string> = new Map(),
+  ): any {
     if (Array.isArray(obj)) {
-      return obj.map(item => this.deduplicateStrings(item, stringMap));
-    } else if (typeof obj === 'object' && obj !== null) {
+      return obj.map((item) => this.deduplicateStrings(item, stringMap));
+    } else if (typeof obj === "object" && obj !== null) {
       const result: any = {};
       for (const [key, value] of Object.entries(obj)) {
-        if (typeof value === 'string' && value.length > 10) {
+        if (typeof value === "string" && value.length > 10) {
           // 긴 문자열 중복 체크
           if (stringMap.has(value)) {
             result[key] = stringMap.get(value);
@@ -92,21 +100,21 @@ export class ResponseCompression {
  * API 응답 래퍼 - 자동 압축 적용
  */
 export function createCompressedResponse(
-  data: any, 
+  data: any,
   status: number = 200,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ): NextResponse {
   const optimizedData = ResponseCompression.minimizeResponse(data);
-  
-  const response = NextResponse.json(optimizedData, { 
+
+  const response = NextResponse.json(optimizedData, {
     status,
     headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      ...headers
-    }
+      "Content-Type": "application/json; charset=utf-8",
+      ...headers,
+    },
   });
-  
+
   ResponseCompression.addCompressionHeaders(response);
-  
+
   return response;
 }

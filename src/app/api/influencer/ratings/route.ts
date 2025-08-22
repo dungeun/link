@@ -1,21 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { withAuth } from '@/lib/auth/middleware'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import { withAuth } from "@/lib/auth/middleware";
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 // GET /api/influencer/ratings - 인플루언서 평가 조회
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const influencerId = searchParams.get('influencerId')
-    
+    const { searchParams } = new URL(request.url);
+    const influencerId = searchParams.get("influencerId");
+
     if (!influencerId) {
       return NextResponse.json(
-        { success: false, error: '인플루언서 ID가 필요합니다' },
-        { status: 400 }
-      )
+        { success: false, error: "인플루언서 ID가 필요합니다" },
+        { status: 400 },
+      );
     }
 
     // 평가 요약 조회
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         AVG(creativity_score) as avg_creativity
       FROM influencer_ratings
       WHERE influencer_id = ${influencerId}
-    `
+    `;
 
     // 최근 평가 목록
     const recentRatings = await prisma.$queryRaw`
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       WHERE ir.influencer_id = ${influencerId}
       ORDER BY ir.created_at DESC
       LIMIT 10
-    `
+    `;
 
     return NextResponse.json({
       success: true,
@@ -55,38 +55,38 @@ export async function GET(request: NextRequest) {
         avg_quality: 0,
         avg_timeliness: 0,
         avg_professionalism: 0,
-        avg_creativity: 0
+        avg_creativity: 0,
       },
-      recentRatings
-    })
+      recentRatings,
+    });
   } catch (error) {
-    console.error('Failed to get ratings:', error)
+    console.error("Failed to get ratings:", error);
     return NextResponse.json(
-      { success: false, error: '평가 정보를 불러오는 중 오류가 발생했습니다' },
-      { status: 500 }
-    )
+      { success: false, error: "평가 정보를 불러오는 중 오류가 발생했습니다" },
+      { status: 500 },
+    );
   }
 }
 
 // POST /api/influencer/ratings - 인플루언서 평가 등록
 export async function POST(request: NextRequest) {
   try {
-    const authResult = await withAuth(request)
-    if ('error' in authResult) {
-      return authResult.error
-    }
-    
-    const { user } = authResult
-    
-    // 비즈니스 계정만 평가 가능
-    if (user.type !== 'BUSINESS') {
-      return NextResponse.json(
-        { success: false, error: '비즈니스 계정만 평가를 등록할 수 있습니다' },
-        { status: 403 }
-      )
+    const authResult = await withAuth(request);
+    if ("error" in authResult) {
+      return authResult.error;
     }
 
-    const body = await request.json()
+    const { user } = authResult;
+
+    // 비즈니스 계정만 평가 가능
+    if (user.type !== "BUSINESS") {
+      return NextResponse.json(
+        { success: false, error: "비즈니스 계정만 평가를 등록할 수 있습니다" },
+        { status: 403 },
+      );
+    }
+
+    const body = await request.json();
     const {
       influencerId,
       campaignId,
@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
       timelinessScore,
       professionalismScore,
       creativityScore,
-      reviewText
-    } = body
+      reviewText,
+    } = body;
 
     // 중복 평가 확인
     const existingRating = await prisma.$queryRaw`
@@ -104,13 +104,13 @@ export async function POST(request: NextRequest) {
       WHERE influencer_id = ${influencerId}
         AND business_id = ${user.id}
         AND campaign_id = ${campaignId}
-    `
+    `;
 
     if ((existingRating as any).length > 0) {
       return NextResponse.json(
-        { success: false, error: '이미 평가를 등록하셨습니다' },
-        { status: 400 }
-      )
+        { success: false, error: "이미 평가를 등록하셨습니다" },
+        { status: 400 },
+      );
     }
 
     // 평가 등록
@@ -142,28 +142,28 @@ export async function POST(request: NextRequest) {
         NOW(),
         NOW()
       )
-    `
+    `;
 
     // 알림 생성
     await prisma.notification.create({
       data: {
         userId: influencerId,
-        type: 'RATING_RECEIVED',
-        title: '새로운 평가를 받았습니다',
+        type: "RATING_RECEIVED",
+        title: "새로운 평가를 받았습니다",
         message: `캠페인에 대한 평가가 등록되었습니다`,
-        metadata: JSON.stringify({ campaignId })
-      }
-    })
+        metadata: JSON.stringify({ campaignId }),
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      message: '평가가 성공적으로 등록되었습니다'
-    })
+      message: "평가가 성공적으로 등록되었습니다",
+    });
   } catch (error) {
-    console.error('Failed to create rating:', error)
+    console.error("Failed to create rating:", error);
     return NextResponse.json(
-      { success: false, error: '평가 등록 중 오류가 발생했습니다' },
-      { status: 500 }
-    )
+      { success: false, error: "평가 등록 중 오류가 발생했습니다" },
+      { status: 500 },
+    );
   }
 }

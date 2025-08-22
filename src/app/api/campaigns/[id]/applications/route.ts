@@ -1,21 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
-import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 // API 라우트를 동적으로 설정 (정적 생성 방지)
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 // 인증 미들웨어
 async function authenticate(request: NextRequest) {
   const JWT_SECRET = process.env.JWT_SECRET;
   if (!JWT_SECRET) {
-    console.error('JWT_SECRET is not configured');
+    console.error("JWT_SECRET is not configured");
     return null;
   }
   const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value;
+  const token = cookieStore.get("auth-token")?.value;
 
   if (!token) {
     return null;
@@ -32,14 +32,14 @@ async function authenticate(request: NextRequest) {
 // GET /api/campaigns/[id]/applications - 캠페인 지원자 목록 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const user = await authenticate(request);
     if (!user) {
       return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
+        { error: "인증이 필요합니다." },
+        { status: 401 },
       );
     }
 
@@ -48,30 +48,30 @@ export async function GET(
       where: { id: params.id },
       select: {
         id: true,
-        businessId: true
-      }
+        businessId: true,
+      },
     });
 
     if (!campaign) {
       return NextResponse.json(
-        { error: '캠페인을 찾을 수 없습니다.' },
-        { status: 404 }
+        { error: "캠페인을 찾을 수 없습니다." },
+        { status: 404 },
       );
     }
 
     // 권한 확인 (캠페인 소유자이거나 관리자만 볼 수 있음)
     const userType = user.type?.toLowerCase();
-    if (campaign.businessId !== (user.userId || user.id) && userType !== 'admin') {
-      return NextResponse.json(
-        { error: '권한이 없습니다.' },
-        { status: 403 }
-      );
+    if (
+      campaign.businessId !== (user.userId || user.id) &&
+      userType !== "admin"
+    ) {
+      return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
     }
 
     // 지원자 목록 조회
     const applications = await prisma.campaignApplication.findMany({
       where: {
-        campaignId: params.id
+        campaignId: params.id,
       },
       include: {
         influencer: {
@@ -79,19 +79,19 @@ export async function GET(
             profile: true,
             _count: {
               select: {
-                applications: true
-              }
-            }
-          }
-        }
+                applications: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: "desc",
+      },
     });
 
     return NextResponse.json({
-      applications: applications.map(app => ({
+      applications: applications.map((app) => ({
         id: app.id,
         campaignId: app.campaignId,
         influencerId: app.influencerId,
@@ -105,15 +105,15 @@ export async function GET(
           name: app.influencer.name,
           email: app.influencer.email,
           profile: app.influencer.profile,
-          _count: app.influencer._count
-        }
-      }))
+          _count: app.influencer._count,
+        },
+      })),
     });
   } catch (error) {
-    console.error('지원자 목록 조회 오류:', error);
+    console.error("지원자 목록 조회 오류:", error);
     return NextResponse.json(
-      { error: '지원자 목록 조회에 실패했습니다.' },
-      { status: 500 }
+      { error: "지원자 목록 조회에 실패했습니다." },
+      { status: 500 },
     );
   }
 }

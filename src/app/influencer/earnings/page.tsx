@@ -1,169 +1,181 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { DollarSign, CreditCard, Clock, CheckCircle, ArrowUpRight, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import {
+  DollarSign,
+  CreditCard,
+  Clock,
+  CheckCircle,
+  ArrowUpRight,
+  AlertCircle,
+} from "lucide-react";
 
 interface Settlement {
-  id: string
-  totalAmount: number
-  status: string
-  createdAt: string
-  processedAt?: string
-  items: SettlementItem[]
+  id: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+  processedAt?: string;
+  items: SettlementItem[];
 }
 
 interface SettlementItem {
-  id: string
-  campaignTitle: string
-  amount: number
-  createdAt: string
+  id: string;
+  campaignTitle: string;
+  amount: number;
+  createdAt: string;
 }
 
 interface BankAccount {
-  bank: string
-  accountNumber: string
-  accountHolder: string
+  bank: string;
+  accountNumber: string;
+  accountHolder: string;
 }
 
 export default function InfluencerEarningsPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(true)
-  const [settlements, setSettlements] = useState<Settlement[]>([])
-  const [pendingAmount, setPendingAmount] = useState(0)
-  const [completedAmount, setCompletedAmount] = useState(0)
-  const [availableAmount, setAvailableAmount] = useState(0)
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false)
-  const [withdrawAmount, setWithdrawAmount] = useState('')
+  const router = useRouter();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [settlements, setSettlements] = useState<Settlement[]>([]);
+  const [pendingAmount, setPendingAmount] = useState(0);
+  const [completedAmount, setCompletedAmount] = useState(0);
+  const [availableAmount, setAvailableAmount] = useState(0);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
   const [bankAccount, setBankAccount] = useState<BankAccount>({
-    bank: '',
-    accountNumber: '',
-    accountHolder: ''
-  })
+    bank: "",
+    accountNumber: "",
+    accountHolder: "",
+  });
 
   useEffect(() => {
-    fetchSettlements()
-  }, [])
+    fetchSettlements();
+  }, []);
 
   const fetchSettlements = async () => {
     try {
-      const response = await fetch('/api/influencer/settlements', {
+      const response = await fetch("/api/influencer/settlements", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      })
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
 
       if (!response.ok) {
-        throw new Error('정산 정보를 불러오는데 실패했습니다.')
+        throw new Error("정산 정보를 불러오는데 실패했습니다.");
       }
 
-      const data = await response.json()
-      setSettlements(data.settlements || [])
-      
+      const data = await response.json();
+      setSettlements(data.settlements || []);
+
       // 금액 계산
-      let pending = 0
-      let completed = 0
-      let available = 0
+      let pending = 0;
+      let completed = 0;
+      let available = 0;
 
       data.settlements?.forEach((settlement: Settlement) => {
-        if (settlement.status === 'PENDING') {
-          available += settlement.totalAmount
-        } else if (settlement.status === 'REQUESTED') {
-          pending += settlement.totalAmount
-        } else if (settlement.status === 'COMPLETED') {
-          completed += settlement.totalAmount
+        if (settlement.status === "PENDING") {
+          available += settlement.totalAmount;
+        } else if (settlement.status === "REQUESTED") {
+          pending += settlement.totalAmount;
+        } else if (settlement.status === "COMPLETED") {
+          completed += settlement.totalAmount;
         }
-      })
+      });
 
-      setPendingAmount(pending)
-      setCompletedAmount(completed)
-      setAvailableAmount(available)
+      setPendingAmount(pending);
+      setCompletedAmount(completed);
+      setAvailableAmount(available);
     } catch (error) {
       toast({
-        title: '오류',
-        description: '정산 정보를 불러오는데 실패했습니다.',
-        variant: 'destructive'
-      })
+        title: "오류",
+        description: "정산 정보를 불러오는데 실패했습니다.",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleWithdrawRequest = async () => {
-    const amount = parseInt(withdrawAmount)
-    
+    const amount = parseInt(withdrawAmount);
+
     if (!amount || amount <= 0) {
       toast({
-        title: '오류',
-        description: '올바른 금액을 입력해주세요.',
-        variant: 'destructive'
-      })
-      return
+        title: "오류",
+        description: "올바른 금액을 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
     }
 
     if (amount > availableAmount) {
       toast({
-        title: '오류',
-        description: '출금 가능 금액을 초과했습니다.',
-        variant: 'destructive'
-      })
-      return
+        title: "오류",
+        description: "출금 가능 금액을 초과했습니다.",
+        variant: "destructive",
+      });
+      return;
     }
 
-    if (!bankAccount.bank || !bankAccount.accountNumber || !bankAccount.accountHolder) {
+    if (
+      !bankAccount.bank ||
+      !bankAccount.accountNumber ||
+      !bankAccount.accountHolder
+    ) {
       toast({
-        title: '오류',
-        description: '계좌 정보를 모두 입력해주세요.',
-        variant: 'destructive'
-      })
-      return
+        title: "오류",
+        description: "계좌 정보를 모두 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
     }
 
     try {
-      const response = await fetch('/api/influencer/withdrawals', {
-        method: 'POST',
+      const response = await fetch("/api/influencer/withdrawals", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
         body: JSON.stringify({
           amount,
-          bankAccount
-        })
-      })
+          bankAccount,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('출금 신청에 실패했습니다.')
+        throw new Error("출금 신청에 실패했습니다.");
       }
 
       toast({
-        title: '성공',
-        description: '출금 신청이 완료되었습니다. 영업일 기준 2-3일 내에 입금됩니다.'
-      })
+        title: "성공",
+        description:
+          "출금 신청이 완료되었습니다. 영업일 기준 2-3일 내에 입금됩니다.",
+      });
 
-      setShowWithdrawModal(false)
-      fetchSettlements()
+      setShowWithdrawModal(false);
+      fetchSettlements();
     } catch (error) {
       toast({
-        title: '오류',
-        description: '출금 신청에 실패했습니다.',
-        variant: 'destructive'
-      })
+        title: "오류",
+        description: "출금 신청에 실패했습니다.",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -172,7 +184,9 @@ export default function InfluencerEarningsPage() {
         {/* 헤더 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">수익 관리</h1>
-          <p className="text-gray-600 mt-1">캠페인 수익과 정산 내역을 확인하세요</p>
+          <p className="text-gray-600 mt-1">
+            캠페인 수익과 정산 내역을 확인하세요
+          </p>
         </div>
 
         {/* 수익 요약 카드 */}
@@ -184,7 +198,9 @@ export default function InfluencerEarningsPage() {
               </div>
               <span className="text-sm text-gray-500">출금 가능</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">₩{availableAmount.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              ₩{availableAmount.toLocaleString()}
+            </p>
             <Button
               size="sm"
               className="mt-4 w-full"
@@ -202,7 +218,9 @@ export default function InfluencerEarningsPage() {
               </div>
               <span className="text-sm text-gray-500">처리 중</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">₩{pendingAmount.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              ₩{pendingAmount.toLocaleString()}
+            </p>
             <p className="text-sm text-gray-500 mt-4">영업일 2-3일 소요</p>
           </div>
 
@@ -213,8 +231,13 @@ export default function InfluencerEarningsPage() {
               </div>
               <span className="text-sm text-gray-500">누적 수익</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">₩{completedAmount.toLocaleString()}</p>
-            <Link href="/influencer/earnings/history" className="text-sm text-blue-600 hover:underline mt-4 inline-block">
+            <p className="text-2xl font-bold text-gray-900">
+              ₩{completedAmount.toLocaleString()}
+            </p>
+            <Link
+              href="/influencer/earnings/history"
+              className="text-sm text-blue-600 hover:underline mt-4 inline-block"
+            >
               상세 내역 보기
             </Link>
           </div>
@@ -223,9 +246,11 @@ export default function InfluencerEarningsPage() {
         {/* 최근 정산 항목 */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">최근 정산 항목</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              최근 정산 항목
+            </h2>
           </div>
-          
+
           <div className="divide-y">
             {settlements.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
@@ -240,12 +265,14 @@ export default function InfluencerEarningsPage() {
                         정산 #{settlement.id.slice(-6)}
                       </h3>
                       <p className="text-sm text-gray-500 mt-1">
-                        {new Date(settlement.createdAt).toLocaleDateString()} 신청
+                        {new Date(settlement.createdAt).toLocaleDateString()}{" "}
+                        신청
                       </p>
                       <div className="mt-2">
                         {settlement.items.map((item, index) => (
                           <p key={index} className="text-sm text-gray-600">
-                            • {item.campaignTitle}: ₩{item.amount.toLocaleString()}
+                            • {item.campaignTitle}: ₩
+                            {item.amount.toLocaleString()}
                           </p>
                         ))}
                       </div>
@@ -254,15 +281,20 @@ export default function InfluencerEarningsPage() {
                       <p className="text-lg font-semibold text-gray-900">
                         ₩{settlement.totalAmount.toLocaleString()}
                       </p>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        settlement.status === 'COMPLETED' 
-                          ? 'bg-green-100 text-green-800'
-                          : settlement.status === 'REQUESTED'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {settlement.status === 'COMPLETED' ? '완료' : 
-                         settlement.status === 'REQUESTED' ? '처리중' : '대기중'}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          settlement.status === "COMPLETED"
+                            ? "bg-green-100 text-green-800"
+                            : settlement.status === "REQUESTED"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {settlement.status === "COMPLETED"
+                          ? "완료"
+                          : settlement.status === "REQUESTED"
+                            ? "처리중"
+                            : "대기중"}
                       </span>
                     </div>
                   </div>
@@ -276,13 +308,17 @@ export default function InfluencerEarningsPage() {
         {showWithdrawModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">출금 신청</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                출금 신청
+              </h2>
+
               <div className="space-y-4">
                 <div>
                   <Label>출금 금액</Label>
                   <div className="relative mt-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₩</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                      ₩
+                    </span>
                     <Input
                       type="number"
                       value={withdrawAmount}
@@ -301,7 +337,9 @@ export default function InfluencerEarningsPage() {
                   <Label>은행</Label>
                   <select
                     value={bankAccount.bank}
-                    onChange={(e) => setBankAccount({...bankAccount, bank: e.target.value})}
+                    onChange={(e) =>
+                      setBankAccount({ ...bankAccount, bank: e.target.value })
+                    }
                     className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                     required
                   >
@@ -322,7 +360,12 @@ export default function InfluencerEarningsPage() {
                   <Input
                     type="text"
                     value={bankAccount.accountNumber}
-                    onChange={(e) => setBankAccount({...bankAccount, accountNumber: e.target.value})}
+                    onChange={(e) =>
+                      setBankAccount({
+                        ...bankAccount,
+                        accountNumber: e.target.value,
+                      })
+                    }
                     placeholder="계좌번호 입력"
                     className="mt-1"
                   />
@@ -333,7 +376,12 @@ export default function InfluencerEarningsPage() {
                   <Input
                     type="text"
                     value={bankAccount.accountHolder}
-                    onChange={(e) => setBankAccount({...bankAccount, accountHolder: e.target.value})}
+                    onChange={(e) =>
+                      setBankAccount({
+                        ...bankAccount,
+                        accountHolder: e.target.value,
+                      })
+                    }
                     placeholder="예금주명 입력"
                     className="mt-1"
                   />
@@ -373,5 +421,5 @@ export default function InfluencerEarningsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

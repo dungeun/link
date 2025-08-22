@@ -1,13 +1,33 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
-  User, Camera, Mail, Phone, MapPin, Globe, Calendar,
-  Instagram, Youtube, Twitter, Facebook, Linkedin,
-  Shield, Bell, CreditCard, Key, Save, ArrowLeft,
-  CheckCircle, AlertCircle, Upload, X, Link as LinkIcon, Plus
-} from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  User,
+  Camera,
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+  Calendar,
+  Instagram,
+  Youtube,
+  Twitter,
+  Facebook,
+  Linkedin,
+  Shield,
+  Bell,
+  CreditCard,
+  Key,
+  Save,
+  ArrowLeft,
+  CheckCircle,
+  AlertCircle,
+  Upload,
+  X,
+  Link as LinkIcon,
+  Plus,
+} from "lucide-react";
 
 interface ProfileData {
   // 기본 정보
@@ -15,15 +35,15 @@ interface ProfileData {
   email: string;
   phone: string;
   birthDate: string;
-  gender: 'male' | 'female' | 'other' | '';
+  gender: "male" | "female" | "other" | "";
   bio: string;
   avatar: string;
-  
+
   // 인플루언서 정보
   categories: string[];
   location: string;
   languages: string[];
-  
+
   // 소셜 미디어
   socialMedia: {
     instagram?: string;
@@ -33,7 +53,7 @@ interface ProfileData {
     twitter?: string;
     facebook?: string;
   };
-  
+
   // 계정 설정
   notifications: {
     email: boolean;
@@ -41,7 +61,7 @@ interface ProfileData {
     push: boolean;
     marketing: boolean;
   };
-  
+
   privacy: {
     profilePublic: boolean;
     showEmail: boolean;
@@ -59,73 +79,87 @@ interface BankAccount {
 
 export default function ProfileEditPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'payment' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "account" | "payment" | "security"
+  >("profile");
   const [saving, setSaving] = useState(false);
   const [avatar, setProfileImage] = useState<File | null>(null);
-  const [avatarPreview, setProfileImagePreview] = useState<string>('');
-  
+  const [avatarPreview, setProfileImagePreview] = useState<string>("");
+
   const [profileData, setProfileData] = useState<ProfileData>({
-    name: '김인플루언서',
-    email: 'influencer@example.com',
-    phone: '010-1234-5678',
-    birthDate: '1995-05-15',
-    gender: 'female',
-    bio: '뷰티와 라이프스타일을 사랑하는 인플루언서입니다. 진정성 있는 리뷰로 여러분과 소통하고 싶어요!',
-    avatar: '/images/profile-default.jpg',
-    categories: ['beauty', 'lifestyle', 'fashion'],
-    location: '서울특별시',
-    languages: ['한국어', '영어'],
+    name: "김인플루언서",
+    email: "influencer@example.com",
+    phone: "010-1234-5678",
+    birthDate: "1995-05-15",
+    gender: "female",
+    bio: "뷰티와 라이프스타일을 사랑하는 인플루언서입니다. 진정성 있는 리뷰로 여러분과 소통하고 싶어요!",
+    avatar: "/images/profile-default.jpg",
+    categories: ["beauty", "lifestyle", "fashion"],
+    location: "서울특별시",
+    languages: ["한국어", "영어"],
     socialMedia: {
-      instagram: 'beauty_influencer',
-      youtube: 'BeautyChannel',
-      blog: 'blog.naver.com/beauty',
+      instagram: "beauty_influencer",
+      youtube: "BeautyChannel",
+      blog: "blog.naver.com/beauty",
     },
     notifications: {
       email: true,
       sms: true,
       push: true,
-      marketing: false
+      marketing: false,
     },
     privacy: {
       profilePublic: true,
       showEmail: false,
-      showPhone: false
-    }
+      showPhone: false,
+    },
   });
 
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([
     {
-      id: '1',
-      bankName: '국민은행',
-      accountNumber: '****-****-****-1234',
-      accountHolder: '김인플루언서',
-      isDefault: true
-    }
+      id: "1",
+      bankName: "국민은행",
+      accountNumber: "****-****-****-1234",
+      accountHolder: "김인플루언서",
+      isDefault: true,
+    },
   ]);
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const categories = [
-    { value: 'beauty', label: '뷰티' },
-    { value: 'fashion', label: '패션' },
-    { value: 'food', label: '음식' },
-    { value: 'travel', label: '여행' },
-    { value: 'tech', label: '테크' },
-    { value: 'lifestyle', label: '라이프스타일' },
-    { value: 'sports', label: '스포츠' },
-    { value: 'entertainment', label: '엔터테인먼트' }
+    { value: "beauty", label: "뷰티" },
+    { value: "fashion", label: "패션" },
+    { value: "food", label: "음식" },
+    { value: "travel", label: "여행" },
+    { value: "tech", label: "테크" },
+    { value: "lifestyle", label: "라이프스타일" },
+    { value: "sports", label: "스포츠" },
+    { value: "entertainment", label: "엔터테인먼트" },
   ];
 
   const languages = [
-    '한국어', '영어', '중국어', '일본어', '스페인어', '프랑스어'
+    "한국어",
+    "영어",
+    "중국어",
+    "일본어",
+    "스페인어",
+    "프랑스어",
   ];
 
   const banks = [
-    '국민은행', '신한은행', '우리은행', '하나은행', 'SC제일은행',
-    '농협은행', '기업은행', '카카오뱅크', '토스뱅크'
+    "국민은행",
+    "신한은행",
+    "우리은행",
+    "하나은행",
+    "SC제일은행",
+    "농협은행",
+    "기업은행",
+    "카카오뱅크",
+    "토스뱅크",
   ];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,12 +178,12 @@ export default function ProfileEditPage() {
     setSaving(true);
     try {
       // API 호출 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // 성공 메시지 표시
-      alert('프로필이 성공적으로 업데이트되었습니다.');
+      alert("프로필이 성공적으로 업데이트되었습니다.");
     } catch (error) {
-      console.error('프로필 저장 실패:', error);
+      console.error("프로필 저장 실패:", error);
     } finally {
       setSaving(false);
     }
@@ -158,27 +192,27 @@ export default function ProfileEditPage() {
   const handlePasswordChange = async () => {
     // 비밀번호 유효성 검사
     if (newPassword.length < 8) {
-      setPasswordError('비밀번호는 최소 8자 이상이어야 합니다.');
+      setPasswordError("비밀번호는 최소 8자 이상이어야 합니다.");
       return;
     }
-    
+
     if (newPassword !== confirmPassword) {
-      setPasswordError('새 비밀번호가 일치하지 않습니다.');
+      setPasswordError("새 비밀번호가 일치하지 않습니다.");
       return;
     }
 
     setSaving(true);
     try {
       // API 호출 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      alert('비밀번호가 성공적으로 변경되었습니다.');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setPasswordError('');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      alert("비밀번호가 성공적으로 변경되었습니다.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordError("");
     } catch (error) {
-      setPasswordError('비밀번호 변경에 실패했습니다.');
+      setPasswordError("비밀번호 변경에 실패했습니다.");
     } finally {
       setSaving(false);
     }
@@ -187,29 +221,37 @@ export default function ProfileEditPage() {
   const addBankAccount = () => {
     const newAccount: BankAccount = {
       id: Date.now().toString(),
-      bankName: '',
-      accountNumber: '',
+      bankName: "",
+      accountNumber: "",
       accountHolder: profileData.name,
-      isDefault: bankAccounts.length === 0
+      isDefault: bankAccounts.length === 0,
     };
     setBankAccounts([...bankAccounts, newAccount]);
   };
 
   const removeBankAccount = (id: string) => {
-    setBankAccounts(bankAccounts.filter(account => account.id !== id));
+    setBankAccounts(bankAccounts.filter((account) => account.id !== id));
   };
 
-  const updateBankAccount = (id: string, field: keyof BankAccount, value: string | boolean) => {
-    setBankAccounts(bankAccounts.map(account => 
-      account.id === id ? { ...account, [field]: value } : account
-    ));
+  const updateBankAccount = (
+    id: string,
+    field: keyof BankAccount,
+    value: string | boolean,
+  ) => {
+    setBankAccounts(
+      bankAccounts.map((account) =>
+        account.id === id ? { ...account, [field]: value } : account,
+      ),
+    );
   };
 
   const setDefaultAccount = (id: string) => {
-    setBankAccounts(bankAccounts.map(account => ({
-      ...account,
-      isDefault: account.id === id
-    })));
+    setBankAccounts(
+      bankAccounts.map((account) => ({
+        ...account,
+        isDefault: account.id === id,
+      })),
+    );
   };
 
   useEffect(() => {
@@ -229,7 +271,9 @@ export default function ProfileEditPage() {
               >
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
-              <h1 className="text-xl font-semibold text-gray-900">프로필 설정</h1>
+              <h1 className="text-xl font-semibold text-gray-900">
+                프로필 설정
+              </h1>
             </div>
             <button
               onClick={handleSave}
@@ -237,7 +281,7 @@ export default function ProfileEditPage() {
               className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="h-5 w-5" />
-              {saving ? '저장 중...' : '저장'}
+              {saving ? "저장 중..." : "저장"}
             </button>
           </div>
         </div>
@@ -250,44 +294,44 @@ export default function ProfileEditPage() {
             <div className="border-b">
               <nav className="flex -mb-px">
                 <button
-                  onClick={() => setActiveTab('profile')}
+                  onClick={() => setActiveTab("profile")}
                   className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'profile'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                    activeTab === "profile"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   <User className="h-4 w-4 inline-block mr-2" />
                   프로필 정보
                 </button>
                 <button
-                  onClick={() => setActiveTab('account')}
+                  onClick={() => setActiveTab("account")}
                   className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'account'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                    activeTab === "account"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   <Shield className="h-4 w-4 inline-block mr-2" />
                   계정 설정
                 </button>
                 <button
-                  onClick={() => setActiveTab('payment')}
+                  onClick={() => setActiveTab("payment")}
                   className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'payment'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                    activeTab === "payment"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   <CreditCard className="h-4 w-4 inline-block mr-2" />
                   정산 정보
                 </button>
                 <button
-                  onClick={() => setActiveTab('security')}
+                  onClick={() => setActiveTab("security")}
                   className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'security'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                    activeTab === "security"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   <Key className="h-4 w-4 inline-block mr-2" />
@@ -298,11 +342,13 @@ export default function ProfileEditPage() {
           </div>
 
           {/* 프로필 정보 탭 */}
-          {activeTab === 'profile' && (
+          {activeTab === "profile" && (
             <div className="bg-white rounded-lg shadow-sm p-6">
               {/* 프로필 이미지 */}
               <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-700 mb-4">프로필 사진</label>
+                <label className="block text-sm font-medium text-gray-700 mb-4">
+                  프로필 사진
+                </label>
                 <div className="flex items-center gap-6">
                   <div className="relative">
                     <img
@@ -310,7 +356,7 @@ export default function ProfileEditPage() {
                       alt="Profile"
                       className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
                       onError={(e) => {
-                        e.currentTarget.src = '/images/profile-placeholder.jpg';
+                        e.currentTarget.src = "/images/profile-placeholder.jpg";
                       }}
                     />
                     <label className="absolute bottom-0 right-0 p-1 bg-blue-600 rounded-full text-white cursor-pointer hover:bg-blue-700">
@@ -339,7 +385,9 @@ export default function ProfileEditPage() {
                   <input
                     type="text"
                     value={profileData.name}
-                    onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, name: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -353,43 +401,73 @@ export default function ProfileEditPage() {
                     <input
                       type="email"
                       value={profileData.email}
-                      onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          email: e.target.value,
+                        })
+                      }
                       className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">전화번호</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    전화번호
+                  </label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="tel"
                       value={profileData.phone}
-                      onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          phone: e.target.value,
+                        })
+                      }
                       className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">생년월일</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    생년월일
+                  </label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="date"
                       value={profileData.birthDate}
-                      onChange={(e) => setProfileData({ ...profileData, birthDate: e.target.value })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          birthDate: e.target.value,
+                        })
+                      }
                       className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">성별</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    성별
+                  </label>
                   <select
                     value={profileData.gender}
-                    onChange={(e) => setProfileData({ ...profileData, gender: e.target.value as 'male' | 'female' | 'other' | '' })}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        gender: e.target.value as
+                          | "male"
+                          | "female"
+                          | "other"
+                          | "",
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">선택하지 않음</option>
@@ -400,13 +478,20 @@ export default function ProfileEditPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">활동 지역</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    활동 지역
+                  </label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="text"
                       value={profileData.location}
-                      onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          location: e.target.value,
+                        })
+                      }
                       className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -415,42 +500,62 @@ export default function ProfileEditPage() {
 
               {/* 소개 */}
               <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-700 mb-2">소개</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  소개
+                </label>
                 <textarea
                   value={profileData.bio}
-                  onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, bio: e.target.value })
+                  }
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="자신을 소개해주세요"
                 />
-                <p className="mt-1 text-sm text-gray-500">{profileData.bio.length}/500</p>
+                <p className="mt-1 text-sm text-gray-500">
+                  {profileData.bio.length}/500
+                </p>
               </div>
 
               {/* 카테고리 */}
               <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-700 mb-2">활동 카테고리</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  활동 카테고리
+                </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {categories.map(category => (
-                    <label key={category.value} className="flex items-center gap-2 cursor-pointer">
+                  {categories.map((category) => (
+                    <label
+                      key={category.value}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
                       <input
                         type="checkbox"
-                        checked={profileData.categories.includes(category.value)}
+                        checked={profileData.categories.includes(
+                          category.value,
+                        )}
                         onChange={(e) => {
                           if (e.target.checked) {
                             setProfileData({
                               ...profileData,
-                              categories: [...profileData.categories, category.value]
+                              categories: [
+                                ...profileData.categories,
+                                category.value,
+                              ],
                             });
                           } else {
                             setProfileData({
                               ...profileData,
-                              categories: profileData.categories.filter(c => c !== category.value)
+                              categories: profileData.categories.filter(
+                                (c) => c !== category.value,
+                              ),
                             });
                           }
                         }}
                         className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                       />
-                      <span className="text-sm text-gray-700">{category.label}</span>
+                      <span className="text-sm text-gray-700">
+                        {category.label}
+                      </span>
                     </label>
                   ))}
                 </div>
@@ -458,9 +563,11 @@ export default function ProfileEditPage() {
 
               {/* 사용 언어 */}
               <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-700 mb-2">사용 가능 언어</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  사용 가능 언어
+                </label>
                 <div className="flex flex-wrap gap-2">
-                  {languages.map(language => (
+                  {languages.map((language) => (
                     <button
                       key={language}
                       type="button"
@@ -468,19 +575,21 @@ export default function ProfileEditPage() {
                         if (profileData.languages.includes(language)) {
                           setProfileData({
                             ...profileData,
-                            languages: profileData.languages.filter(l => l !== language)
+                            languages: profileData.languages.filter(
+                              (l) => l !== language,
+                            ),
                           });
                         } else {
                           setProfileData({
                             ...profileData,
-                            languages: [...profileData.languages, language]
+                            languages: [...profileData.languages, language],
                           });
                         }
                       }}
                       className={`px-3 py-1 rounded-full text-sm transition-colors ${
                         profileData.languages.includes(language)
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       {language}
@@ -491,17 +600,24 @@ export default function ProfileEditPage() {
 
               {/* 소셜 미디어 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4">소셜 미디어 계정</label>
+                <label className="block text-sm font-medium text-gray-700 mb-4">
+                  소셜 미디어 계정
+                </label>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <Instagram className="h-5 w-5 text-gray-600" />
                     <input
                       type="text"
-                      value={profileData.socialMedia.instagram || ''}
-                      onChange={(e) => setProfileData({
-                        ...profileData,
-                        socialMedia: { ...profileData.socialMedia, instagram: e.target.value }
-                      })}
+                      value={profileData.socialMedia.instagram || ""}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          socialMedia: {
+                            ...profileData.socialMedia,
+                            instagram: e.target.value,
+                          },
+                        })
+                      }
                       placeholder="인스타그램 아이디"
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -511,11 +627,16 @@ export default function ProfileEditPage() {
                     <Youtube className="h-5 w-5 text-gray-600" />
                     <input
                       type="text"
-                      value={profileData.socialMedia.youtube || ''}
-                      onChange={(e) => setProfileData({
-                        ...profileData,
-                        socialMedia: { ...profileData.socialMedia, youtube: e.target.value }
-                      })}
+                      value={profileData.socialMedia.youtube || ""}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          socialMedia: {
+                            ...profileData.socialMedia,
+                            youtube: e.target.value,
+                          },
+                        })
+                      }
                       placeholder="유튜브 채널명"
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -525,11 +646,16 @@ export default function ProfileEditPage() {
                     <Globe className="h-5 w-5 text-gray-600" />
                     <input
                       type="text"
-                      value={profileData.socialMedia.blog || ''}
-                      onChange={(e) => setProfileData({
-                        ...profileData,
-                        socialMedia: { ...profileData.socialMedia, blog: e.target.value }
-                      })}
+                      value={profileData.socialMedia.blog || ""}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          socialMedia: {
+                            ...profileData.socialMedia,
+                            blog: e.target.value,
+                          },
+                        })
+                      }
                       placeholder="블로그 주소"
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -540,7 +666,7 @@ export default function ProfileEditPage() {
           )}
 
           {/* 계정 설정 탭 */}
-          {activeTab === 'account' && (
+          {activeTab === "account" && (
             <div className="bg-white rounded-lg shadow-sm p-6">
               {/* 알림 설정 */}
               <div className="mb-8">
@@ -552,15 +678,22 @@ export default function ProfileEditPage() {
                   <label className="flex items-center justify-between cursor-pointer">
                     <div>
                       <p className="font-medium text-gray-900">이메일 알림</p>
-                      <p className="text-sm text-gray-600">캠페인 초대, 승인 등 중요한 알림을 이메일로 받습니다</p>
+                      <p className="text-sm text-gray-600">
+                        캠페인 초대, 승인 등 중요한 알림을 이메일로 받습니다
+                      </p>
                     </div>
                     <input
                       type="checkbox"
                       checked={profileData.notifications.email}
-                      onChange={(e) => setProfileData({
-                        ...profileData,
-                        notifications: { ...profileData.notifications, email: e.target.checked }
-                      })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          notifications: {
+                            ...profileData.notifications,
+                            email: e.target.checked,
+                          },
+                        })
+                      }
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
                   </label>
@@ -568,15 +701,22 @@ export default function ProfileEditPage() {
                   <label className="flex items-center justify-between cursor-pointer">
                     <div>
                       <p className="font-medium text-gray-900">SMS 알림</p>
-                      <p className="text-sm text-gray-600">긴급한 알림을 문자 메시지로 받습니다</p>
+                      <p className="text-sm text-gray-600">
+                        긴급한 알림을 문자 메시지로 받습니다
+                      </p>
                     </div>
                     <input
                       type="checkbox"
                       checked={profileData.notifications.sms}
-                      onChange={(e) => setProfileData({
-                        ...profileData,
-                        notifications: { ...profileData.notifications, sms: e.target.checked }
-                      })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          notifications: {
+                            ...profileData.notifications,
+                            sms: e.target.checked,
+                          },
+                        })
+                      }
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
                   </label>
@@ -584,31 +724,47 @@ export default function ProfileEditPage() {
                   <label className="flex items-center justify-between cursor-pointer">
                     <div>
                       <p className="font-medium text-gray-900">푸시 알림</p>
-                      <p className="text-sm text-gray-600">앱 푸시 알림을 받습니다</p>
+                      <p className="text-sm text-gray-600">
+                        앱 푸시 알림을 받습니다
+                      </p>
                     </div>
                     <input
                       type="checkbox"
                       checked={profileData.notifications.push}
-                      onChange={(e) => setProfileData({
-                        ...profileData,
-                        notifications: { ...profileData.notifications, push: e.target.checked }
-                      })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          notifications: {
+                            ...profileData.notifications,
+                            push: e.target.checked,
+                          },
+                        })
+                      }
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
                   </label>
 
                   <label className="flex items-center justify-between cursor-pointer">
                     <div>
-                      <p className="font-medium text-gray-900">마케팅 정보 수신</p>
-                      <p className="text-sm text-gray-600">이벤트, 프로모션 등 마케팅 정보를 받습니다</p>
+                      <p className="font-medium text-gray-900">
+                        마케팅 정보 수신
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        이벤트, 프로모션 등 마케팅 정보를 받습니다
+                      </p>
                     </div>
                     <input
                       type="checkbox"
                       checked={profileData.notifications.marketing}
-                      onChange={(e) => setProfileData({
-                        ...profileData,
-                        notifications: { ...profileData.notifications, marketing: e.target.checked }
-                      })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          notifications: {
+                            ...profileData.notifications,
+                            marketing: e.target.checked,
+                          },
+                        })
+                      }
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
                   </label>
@@ -625,15 +781,22 @@ export default function ProfileEditPage() {
                   <label className="flex items-center justify-between cursor-pointer">
                     <div>
                       <p className="font-medium text-gray-900">프로필 공개</p>
-                      <p className="text-sm text-gray-600">다른 사용자가 내 프로필을 볼 수 있습니다</p>
+                      <p className="text-sm text-gray-600">
+                        다른 사용자가 내 프로필을 볼 수 있습니다
+                      </p>
                     </div>
                     <input
                       type="checkbox"
                       checked={profileData.privacy.profilePublic}
-                      onChange={(e) => setProfileData({
-                        ...profileData,
-                        privacy: { ...profileData.privacy, profilePublic: e.target.checked }
-                      })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          privacy: {
+                            ...profileData.privacy,
+                            profilePublic: e.target.checked,
+                          },
+                        })
+                      }
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
                   </label>
@@ -641,15 +804,22 @@ export default function ProfileEditPage() {
                   <label className="flex items-center justify-between cursor-pointer">
                     <div>
                       <p className="font-medium text-gray-900">이메일 공개</p>
-                      <p className="text-sm text-gray-600">프로필에 이메일 주소를 표시합니다</p>
+                      <p className="text-sm text-gray-600">
+                        프로필에 이메일 주소를 표시합니다
+                      </p>
                     </div>
                     <input
                       type="checkbox"
                       checked={profileData.privacy.showEmail}
-                      onChange={(e) => setProfileData({
-                        ...profileData,
-                        privacy: { ...profileData.privacy, showEmail: e.target.checked }
-                      })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          privacy: {
+                            ...profileData.privacy,
+                            showEmail: e.target.checked,
+                          },
+                        })
+                      }
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
                   </label>
@@ -657,15 +827,22 @@ export default function ProfileEditPage() {
                   <label className="flex items-center justify-between cursor-pointer">
                     <div>
                       <p className="font-medium text-gray-900">전화번호 공개</p>
-                      <p className="text-sm text-gray-600">프로필에 전화번호를 표시합니다</p>
+                      <p className="text-sm text-gray-600">
+                        프로필에 전화번호를 표시합니다
+                      </p>
                     </div>
                     <input
                       type="checkbox"
                       checked={profileData.privacy.showPhone}
-                      onChange={(e) => setProfileData({
-                        ...profileData,
-                        privacy: { ...profileData.privacy, showPhone: e.target.checked }
-                      })}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          privacy: {
+                            ...profileData.privacy,
+                            showPhone: e.target.checked,
+                          },
+                        })
+                      }
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
                   </label>
@@ -675,22 +852,33 @@ export default function ProfileEditPage() {
           )}
 
           {/* 정산 정보 탭 */}
-          {activeTab === 'payment' && (
+          {activeTab === "payment" && (
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">정산 계좌 관리</h3>
-                <p className="text-sm text-gray-600">캠페인 수익금을 받을 계좌를 등록하세요</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  정산 계좌 관리
+                </h3>
+                <p className="text-sm text-gray-600">
+                  캠페인 수익금을 받을 계좌를 등록하세요
+                </p>
               </div>
 
               <div className="space-y-4 mb-6">
                 {bankAccounts.map((account, index) => (
-                  <div key={account.id} className={`border rounded-lg p-4 ${account.isDefault ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}>
+                  <div
+                    key={account.id}
+                    className={`border rounded-lg p-4 ${account.isDefault ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
+                  >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <CreditCard className="h-5 w-5 text-gray-600" />
-                        <h4 className="font-medium text-gray-900">계좌 {index + 1}</h4>
+                        <h4 className="font-medium text-gray-900">
+                          계좌 {index + 1}
+                        </h4>
                         {account.isDefault && (
-                          <span className="px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded">기본</span>
+                          <span className="px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded">
+                            기본
+                          </span>
                         )}
                       </div>
                       {bankAccounts.length > 1 && (
@@ -705,36 +893,62 @@ export default function ProfileEditPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">은행</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          은행
+                        </label>
                         <select
                           value={account.bankName}
-                          onChange={(e) => updateBankAccount(account.id, 'bankName', e.target.value)}
+                          onChange={(e) =>
+                            updateBankAccount(
+                              account.id,
+                              "bankName",
+                              e.target.value,
+                            )
+                          }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">은행 선택</option>
-                          {banks.map(bank => (
-                            <option key={bank} value={bank}>{bank}</option>
+                          {banks.map((bank) => (
+                            <option key={bank} value={bank}>
+                              {bank}
+                            </option>
                           ))}
                         </select>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">계좌번호</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          계좌번호
+                        </label>
                         <input
                           type="text"
                           value={account.accountNumber}
-                          onChange={(e) => updateBankAccount(account.id, 'accountNumber', e.target.value)}
+                          onChange={(e) =>
+                            updateBankAccount(
+                              account.id,
+                              "accountNumber",
+                              e.target.value,
+                            )
+                          }
                           placeholder="계좌번호 입력"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">예금주</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          예금주
+                        </label>
                         <input
                           type="text"
                           value={account.accountHolder}
-                          onChange={(e) => updateBankAccount(account.id, 'accountHolder', e.target.value)}
+                          onChange={(e) =>
+                            updateBankAccount(
+                              account.id,
+                              "accountHolder",
+                              e.target.value,
+                            )
+                          }
                           placeholder="예금주명"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
@@ -767,7 +981,9 @@ export default function ProfileEditPage() {
                   <div className="text-sm text-yellow-800">
                     <p className="font-medium mb-1">정산 안내</p>
                     <ul className="list-disc list-inside space-y-1 text-yellow-700">
-                      <li>정산은 캠페인 완료 후 영업일 기준 7일 이내에 진행됩니다</li>
+                      <li>
+                        정산은 캠페인 완료 후 영업일 기준 7일 이내에 진행됩니다
+                      </li>
                       <li>사업소득세 3.3%가 원천징수됩니다</li>
                       <li>계좌 정보 변경 시 본인 인증이 필요할 수 있습니다</li>
                     </ul>
@@ -778,14 +994,14 @@ export default function ProfileEditPage() {
           )}
 
           {/* 보안 탭 */}
-          {activeTab === 'security' && (
+          {activeTab === "security" && (
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Key className="h-5 w-5" />
                   비밀번호 변경
                 </h3>
-                
+
                 {passwordError && (
                   <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
                     <AlertCircle className="h-4 w-4" />
@@ -795,7 +1011,9 @@ export default function ProfileEditPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">현재 비밀번호</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      현재 비밀번호
+                    </label>
                     <input
                       type="password"
                       value={currentPassword}
@@ -805,18 +1023,24 @@ export default function ProfileEditPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">새 비밀번호</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      새 비밀번호
+                    </label>
                     <input
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
-                    <p className="mt-1 text-xs text-gray-500">최소 8자 이상, 영문/숫자/특수문자 조합</p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      최소 8자 이상, 영문/숫자/특수문자 조합
+                    </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">새 비밀번호 확인</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      새 비밀번호 확인
+                    </label>
                     <input
                       type="password"
                       value={confirmPassword}
@@ -828,7 +1052,12 @@ export default function ProfileEditPage() {
 
                 <button
                   onClick={handlePasswordChange}
-                  disabled={!currentPassword || !newPassword || !confirmPassword || saving}
+                  disabled={
+                    !currentPassword ||
+                    !newPassword ||
+                    !confirmPassword ||
+                    saving
+                  }
                   className="mt-6 px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   비밀번호 변경
@@ -836,29 +1065,44 @@ export default function ProfileEditPage() {
               </div>
 
               <div className="border-t pt-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">로그인 활동</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  로그인 활동
+                </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p className="font-medium text-gray-900">현재 세션</p>
-                      <p className="text-sm text-gray-600">Chrome · Seoul, Korea · 2분 전</p>
+                      <p className="text-sm text-gray-600">
+                        Chrome · Seoul, Korea · 2분 전
+                      </p>
                     </div>
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">활성</span>
+                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
+                      활성
+                    </span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-gray-900">Safari · iPhone</p>
-                      <p className="text-sm text-gray-600">Seoul, Korea · 2일 전</p>
+                      <p className="font-medium text-gray-900">
+                        Safari · iPhone
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Seoul, Korea · 2일 전
+                      </p>
                     </div>
-                    <button className="text-sm text-red-600 hover:text-red-700">로그아웃</button>
+                    <button className="text-sm text-red-600 hover:text-red-700">
+                      로그아웃
+                    </button>
                   </div>
                 </div>
               </div>
 
               <div className="border-t pt-8 mt-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">계정 삭제</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  계정 삭제
+                </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
+                  계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수
+                  없습니다.
                 </p>
                 <button className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50">
                   계정 삭제

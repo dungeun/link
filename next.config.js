@@ -1,22 +1,186 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  swcMinify: true, // SWC로 minification
+  compress: true, // gzip 압축 활성화
   
-  // 이미지 도메인 설정
+  // 프로덕션 최적화
+  productionBrowserSourceMaps: false, // 소스맵 비활성화로 번들 크기 감소
+  
+  // 이미지 최적화
   images: {
-    domains: [
-      'localhost',
-      'images.unsplash.com',
-      'res.cloudinary.com',
-      'lh3.googleusercontent.com',
-      'i3otdokfzvapv5df.public.blob.vercel-storage.com',
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'revu-platform.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i3otdokfzvapv5df.public.blob.vercel-storage.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i3otdokfzvapv5df.public.blob.vercel-storage.com',
+        port: '',
+        pathname: '/campaigns/**',
+      }
+    ],
+    formats: ['image/avif', 'image/webp'], // 현대적 포맷 우선
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30일 캐싱
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+
+  // 실험적 최적화 기능
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: [
+      'recharts',
+      'lodash',
+      '@tanstack/react-query',
+      '@radix-ui',
+      'lucide-react'
     ],
   },
 
-  // Webpack 설정 (메모리 최적화 포함)
-  webpack: (config, { isServer, dev }) => {
-    // Node.js 모듈 폴리필 설정
+  // Webpack 설정
+  webpack: (config, { dev, isServer, webpack }) => {
+    // 프로덕션 빌드 최적화
+    if (!dev && !isServer) {
+      // 코드 스플리팅 최적화
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: 'deterministic',
+        runtimeChunk: 'single',
+        splitChunks: {
+          chunks: 'all',
+          maxInitialRequests: 25,
+          minSize: 20000,
+          maxSize: 244000, // 244KB 이상 청크 분할
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            
+            // 프레임워크 코드
+            framework: {
+              name: 'framework',
+              test: /[\\/]node_modules[\\/](react|react-dom|next)[\\/]/,
+              priority: 40,
+              enforce: true,
+            },
+            
+            // 라이브러리 코드
+            lib: {
+              test: /[\\/]node_modules[\\/]/,
+              name(module) {
+                const packageName = module.context.match(
+                  /[\\/]node_modules[\\/](.*?)([\\/]|$)/
+                )?.[1];
+                return `npm.${packageName?.replace('@', '')}`;
+              },
+              priority: 30,
+              minChunks: 1,
+              reuseExistingChunk: true,
+            },
+            
+            // 차트 라이브러리
+            charts: {
+              name: 'charts',
+              test: /[\\/]node_modules[\\/](recharts|d3)[\\/]/,
+              priority: 35,
+              reuseExistingChunk: true,
+            },
+            
+            // UI 컴포넌트
+            ui: {
+              name: 'ui',
+              test: /[\\/]components[\\/]/,
+              priority: 20,
+              minChunks: 2,
+              reuseExistingChunk: true,
+            },
+            
+            // 번역 데이터
+            translations: {
+              name: 'translations',
+              test: /[\\/]translations[\\/]/,
+              priority: 25,
+              enforce: true,
+            },
+            
+            // 공통 청크
+            commons: {
+              name: 'commons',
+              minChunks: 2,
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      }
+
+      // Terser 플러그인 설정 (더 나은 압축)
+      config.optimization.minimizer = config.optimization.minimizer.map(
+        (minimizer) => {
+          if (minimizer.constructor.name === 'TerserPlugin') {
+            minimizer.options.terserOptions = {
+              ...minimizer.options.terserOptions,
+              compress: {
+                drop_console: true, // console.log 제거
+                drop_debugger: true,
+                pure_funcs: ['console.log', 'console.info', 'console.debug'],
+                passes: 2,
+              },
+              mangle: {
+                safari10: true,
+              },
+              format: {
+                comments: false,
+              },
+            }
+          }
+          return minimizer
+        }
+      )
+
+      // Bundle Analyzer (분석 시에만)
+      if (process.env.ANALYZE === 'true') {
+        const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+        config.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            reportFilename: './analyze.html',
+            openAnalyzer: true,
+          })
+        )
+      }
+    }
+
+    // 불필요한 모듈 제외
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/locale$/,
+        contextRegExp: /moment$/,
+      })
+    )
+
+    // Node.js 폴리필 제거 (클라이언트 번들 크기 감소)
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -25,83 +189,91 @@ const nextConfig = {
         tls: false,
         dns: false,
         child_process: false,
-      };
+        crypto: false,
+        stream: false,
+        path: false,
+      }
     }
-    
-    // 개발 환경 메모리 최적화
-    if (dev) {
-      config.watchOptions = {
-        poll: 1000,
-        aggregateTimeout: 300,
-        ignored: ['**/node_modules', '**/.git', '**/.next'],
-      };
-      
-      // 소스맵 최적화 (메모리 사용량 감소)
-      config.devtool = 'cheap-module-source-map';
-    }
-    
-    // 캐시 설정으로 메모리 최적화
-    config.cache = {
-      type: 'filesystem',
-      buildDependencies: {
-        config: [__filename],
-      },
-    };
-    
-    return config;
+
+    return config
   },
 
-  // 실험적 기능 (메모리 최적화 추가)
-  experimental: {
-    // Server Components 최적화
-    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
-    // 메모리 사용량 감소를 위한 설정
-    optimizeCss: true,
-    scrollRestoration: true,
-  },
-
-  // 환경 변수
-  env: {
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-  },
-
-  // Enhanced Security Headers
+  // 헤더 설정 (캐싱 최적화)
   async headers() {
     return [
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
       {
         source: '/:path*',
         headers: [
           {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on'
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains; preload'
-          },
-          {
             key: 'X-Content-Type-Options',
-            value: 'nosniff'
+            value: 'nosniff',
           },
           {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
+            key: 'X-Frame-Options',
+            value: 'DENY',
           },
           {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
           },
-          {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://t1.daumcdn.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.github.com https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
-          }
-        ]
-      }
+        ],
+      },
     ]
   },
 
-  // Page Extensions
-  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  // 리다이렉트 설정
+  async redirects() {
+    return [
+      {
+        source: '/images/campaigns/:path*',
+        destination: '/images/campaigns-webp/:path*',
+        permanent: true,
+      },
+    ]
+  },
+
+  // 출력 설정
+  output: 'standalone',
+  
+  // 파워팩 (성능 향상)
+  poweredByHeader: false,
+  
+  // TypeScript 설정
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  
+  // ESLint 설정
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
 }
 
 module.exports = nextConfig

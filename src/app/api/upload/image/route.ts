@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { saveImageLocally } from '@/lib/utils/image-upload';
+export const dynamic = "force-dynamic";
+import { saveImageLocally } from "@/lib/utils/image-upload";
 
 // Dynamic route configuration
-import { authenticateRequest } from '@/lib/auth/middleware';
+import { authenticateRequest } from "@/lib/auth/middleware";
 
-import { prisma } from '@/lib/db/prisma';
+import { prisma } from "@/lib/db/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,62 +15,59 @@ export async function POST(request: NextRequest) {
     const authResult = await authenticateRequest(request);
     if (!authResult.user) {
       return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
+        { error: "인증이 필요합니다." },
+        { status: 401 },
       );
     }
-    
+
     const user = authResult.user;
 
     const formData = await request.formData();
-    const file = formData.get('file') as File;
-    const category = (formData.get('category') as string) || 'temp';
+    const file = formData.get("file") as File;
+    const category = (formData.get("category") as string) || "temp";
 
     if (!file) {
       return NextResponse.json(
-        { error: '파일이 제공되지 않았습니다.' },
-        { status: 400 }
+        { error: "파일이 제공되지 않았습니다." },
+        { status: 400 },
       );
     }
 
     // 카테고리 검증
-    const allowedCategories = ['campaigns', 'users', 'profiles', 'temp'];
+    const allowedCategories = ["campaigns", "users", "profiles", "temp"];
     if (!allowedCategories.includes(category)) {
       return NextResponse.json(
-        { error: '유효하지 않은 카테고리입니다.' },
-        { status: 400 }
+        { error: "유효하지 않은 카테고리입니다." },
+        { status: 400 },
       );
     }
 
     const result = await saveImageLocally(
-      file, 
-      category as 'campaigns' | 'users' | 'profiles' | 'temp'
+      file,
+      category as "campaigns" | "users" | "profiles" | "temp",
     );
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
     // DB에 파일 정보 저장
     const fileRecord = await prisma.file.create({
       data: {
         userId: user.userId || user.id,
-        filename: result.filePath?.split('/').pop() || file.name,
+        filename: result.filePath?.split("/").pop() || file.name,
         originalName: file.name,
         mimetype: file.type,
         size: file.size,
-        path: result.filePath || '',
-        url: result.publicUrl || '',
+        path: result.filePath || "",
+        url: result.publicUrl || "",
         type: category,
         metadata: JSON.stringify({
           uploadedAt: new Date(),
           category,
-          userAgent: request.headers.get('user-agent')
-        })
-      }
+          userAgent: request.headers.get("user-agent"),
+        }),
+      },
     });
 
     return NextResponse.json({
@@ -78,14 +75,13 @@ export async function POST(request: NextRequest) {
       imageUrl: result.publicUrl,
       fileName: file.name,
       size: file.size,
-      fileId: fileRecord.id
+      fileId: fileRecord.id,
     });
-
   } catch (error) {
-    console.error('Image upload API error:', error);
+    console.error("Image upload API error:", error);
     return NextResponse.json(
-      { error: '이미지 업로드 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { error: "이미지 업로드 중 오류가 발생했습니다." },
+      { status: 500 },
     );
   }
 }

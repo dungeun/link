@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { getJWTSecret } from '@/lib/auth/constants';
+import { NextRequest } from "next/server";
+import { getJWTSecret } from "@/lib/auth/constants";
 
 /**
  * Edge Runtime에서 사용 가능한 JWT 검증 함수
@@ -10,8 +10,8 @@ import { getJWTSecret } from '@/lib/auth/constants';
  * 헤더에서 JWT 토큰 추출
  */
 export function getTokenFromHeader(request: NextRequest): string | null {
-  const authHeader = request.headers.get('authorization');
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
     return authHeader.substring(7);
   }
   return null;
@@ -20,17 +20,19 @@ export function getTokenFromHeader(request: NextRequest): string | null {
 /**
  * Edge Runtime에서 JWT 검증
  */
-export async function verifyJWTEdge<T = unknown>(token: string): Promise<T | null> {
+export async function verifyJWTEdge<T = unknown>(
+  token: string,
+): Promise<T | null> {
   try {
     // Edge Runtime에서는 jose 라이브러리 사용
-    const { jwtVerify } = await import('jose');
+    const { jwtVerify } = await import("jose");
     const secret = new TextEncoder().encode(getJWTSecret());
 
     const { payload } = await jwtVerify(token, secret);
     return payload as T;
   } catch (error) {
-    const { logger } = await import('@/lib/utils/logger');
-    logger.error('[JWT Edge] Verification failed:', error);
+    const { logger } = await import("@/lib/utils/logger");
+    logger.error("[JWT Edge] Verification failed:", error);
     return null;
   }
 }

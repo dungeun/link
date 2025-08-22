@@ -3,17 +3,17 @@
  * Console 로그를 대체하는 구조화된 로깅 시스템
  */
 
-import pino from 'pino';
-import { config } from '@/lib/config';
+import pino from "pino";
+import { config } from "@/lib/config";
 
 // 로그 레벨 정의
 export enum LogLevel {
-  FATAL = 'fatal',
-  ERROR = 'error',
-  WARN = 'warn',
-  INFO = 'info',
-  DEBUG = 'debug',
-  TRACE = 'trace',
+  FATAL = "fatal",
+  ERROR = "error",
+  WARN = "warn",
+  INFO = "info",
+  DEBUG = "debug",
+  TRACE = "trace",
 }
 
 // 로그 컨텍스트 타입
@@ -23,7 +23,14 @@ interface LogContext {
   requestId?: string;
   ip?: string;
   userAgent?: string;
-  [key: string]: string | number | boolean | undefined | null | Record<string, unknown> | unknown[];
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | undefined
+    | null
+    | Record<string, unknown>
+    | unknown[];
 }
 
 // Request 타입 정의
@@ -45,15 +52,15 @@ interface LogResponse {
 
 // Pino 설정
 const pinoConfig = {
-  level: config.isDevelopment ? 'debug' : 'info',
+  level: config.isDevelopment ? "debug" : "info",
   transport: config.isDevelopment
     ? {
-        target: 'pino-pretty',
+        target: "pino-pretty",
         options: {
           colorize: true,
           levelFirst: true,
-          translateTime: 'yyyy-mm-dd HH:MM:ss',
-          ignore: 'pid,hostname',
+          translateTime: "yyyy-mm-dd HH:MM:ss",
+          ignore: "pid,hostname",
         },
       }
     : undefined,
@@ -74,8 +81,8 @@ const pinoConfig = {
       query: req.query,
       params: req.params,
       headers: {
-        'user-agent': req.headers?.['user-agent'],
-        'content-type': req.headers?.['content-type'],
+        "user-agent": req.headers?.["user-agent"],
+        "content-type": req.headers?.["content-type"],
       },
     }),
     res: (res: LogResponse) => ({
@@ -86,22 +93,22 @@ const pinoConfig = {
   // 민감한 정보 필터링
   redact: {
     paths: [
-      'password',
-      'token',
-      'accessToken',
-      'refreshToken',
-      'authorization',
-      'cookie',
-      'jwt',
-      'secret',
-      'apiKey',
-      'creditCard',
-      'ssn',
-      '*.password',
-      '*.token',
-      '*.secret',
-      'headers.authorization',
-      'headers.cookie',
+      "password",
+      "token",
+      "accessToken",
+      "refreshToken",
+      "authorization",
+      "cookie",
+      "jwt",
+      "secret",
+      "apiKey",
+      "creditCard",
+      "ssn",
+      "*.password",
+      "*.token",
+      "*.secret",
+      "headers.authorization",
+      "headers.cookie",
     ],
     remove: true,
   },
@@ -147,7 +154,11 @@ class Logger {
     this.log(LogLevel.FATAL, message, data);
   }
 
-  public error(message: string, error?: Error | Record<string, unknown>, data?: Record<string, unknown>): void {
+  public error(
+    message: string,
+    error?: Error | Record<string, unknown>,
+    data?: Record<string, unknown>,
+  ): void {
     if (error instanceof Error) {
       this.pinoLogger.error({ ...this.context, ...data, error }, message);
     } else {
@@ -182,25 +193,28 @@ class Logger {
 
   // API 요청/응답 로깅
   public api(req: LogRequest, res: LogResponse, duration: number): void {
-    const level = res.statusCode && res.statusCode >= 500 ? LogLevel.ERROR 
-                : res.statusCode && res.statusCode >= 400 ? LogLevel.WARN 
-                : LogLevel.INFO;
-    
+    const level =
+      res.statusCode && res.statusCode >= 500
+        ? LogLevel.ERROR
+        : res.statusCode && res.statusCode >= 400
+          ? LogLevel.WARN
+          : LogLevel.INFO;
+
     this.log(level, `${req.method} ${req.url}`, {
       req,
       res,
       duration,
-      type: 'api',
+      type: "api",
     });
   }
 
   // 데이터베이스 쿼리 로깅
   public query(query: string, params?: unknown[], duration?: number): void {
-    this.debug('Database query', {
+    this.debug("Database query", {
       query: config.isDevelopment ? query : query.substring(0, 100),
       params: config.isDevelopment ? params : undefined,
       duration,
-      type: 'database',
+      type: "database",
     });
   }
 
@@ -208,15 +222,19 @@ class Logger {
   public event(eventName: string, data?: Record<string, unknown>): void {
     this.info(`Event: ${eventName}`, {
       ...data,
-      type: 'event',
+      type: "event",
       eventName,
     });
   }
 
   // Private 메소드
-  private log(level: LogLevel, message: string, data?: Record<string, unknown>): void {
+  private log(
+    level: LogLevel,
+    message: string,
+    data?: Record<string, unknown>,
+  ): void {
     const logData = { ...this.context, ...data };
-    
+
     switch (level) {
       case LogLevel.FATAL:
         this.pinoLogger.fatal(logData, message);
@@ -249,27 +267,31 @@ if (config.isProduction) {
   const noop = () => {};
   console.log = noop;
   console.error = (message: unknown, ...args: unknown[]) => {
-    logger.error('Console error called', { message, args });
+    logger.error("Console error called", { message, args });
   };
   console.warn = (message: unknown, ...args: unknown[]) => {
-    logger.warn('Console warn called', { message, args });
+    logger.warn("Console warn called", { message, args });
   };
   console.info = noop;
   console.debug = noop;
 }
 
 // Express/Next.js 미들웨어
-export const loggerMiddleware = (req: LogRequest & { headers: Record<string, string | string[] | undefined> }, res: LogResponse & { send: (data: unknown) => void }, next: () => void) => {
+export const loggerMiddleware = (
+  req: LogRequest & { headers: Record<string, string | string[] | undefined> },
+  res: LogResponse & { send: (data: unknown) => void },
+  next: () => void,
+) => {
   const start = Date.now();
   const requestId = Math.random().toString(36).substring(7);
-  
+
   // Request 로깅
   logger.setContext({
     requestId,
     ip: req.ip,
-    userAgent: req.headers['user-agent'] as string | undefined,
+    userAgent: req.headers["user-agent"] as string | undefined,
   });
-  
+
   // Response 로깅
   const originalSend = res.send;
   res.send = function (data: unknown) {
@@ -278,7 +300,7 @@ export const loggerMiddleware = (req: LogRequest & { headers: Record<string, str
     logger.clearContext();
     originalSend.call(this, data);
   };
-  
+
   next();
 };
 

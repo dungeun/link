@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { prisma } from '@/lib/db/prisma';
+export const dynamic = "force-dynamic";
+import { prisma } from "@/lib/db/prisma";
 
 // Dynamic route configuration
-import { withAuth } from '@/lib/auth/middleware';
+import { withAuth } from "@/lib/auth/middleware";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
 
@@ -13,7 +13,7 @@ const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
 export async function POST(request: NextRequest) {
   try {
     const authResult = await withAuth(request);
-    if ('error' in authResult) {
+    if ("error" in authResult) {
       return authResult.error;
     }
     const { user } = authResult;
@@ -26,14 +26,14 @@ export async function POST(request: NextRequest) {
       customerName,
       customerEmail,
       campaignId,
-      method = 'CARD' // CARD, TRANSFER, VIRTUAL_ACCOUNT, MOBILE_PHONE
+      method = "CARD", // CARD, TRANSFER, VIRTUAL_ACCOUNT, MOBILE_PHONE
     } = body;
 
     // 필수 필드 검증
     if (!orderId || !amount || !orderName) {
       return NextResponse.json(
-        { error: '필수 결제 정보가 누락되었습니다.' },
-        { status: 400 }
+        { error: "필수 결제 정보가 누락되었습니다." },
+        { status: 400 },
       );
     }
 
@@ -44,16 +44,16 @@ export async function POST(request: NextRequest) {
         campaignId,
         userId: user.id,
         amount,
-        type: 'CAMPAIGN_FEE',
-        status: 'PENDING',
+        type: "CAMPAIGN_FEE",
+        status: "PENDING",
         paymentMethod: method,
         metadata: JSON.stringify({
           orderName,
           customerName,
           customerEmail,
-          tossPayment: true
-        })
-      }
+          tossPayment: true,
+        }),
+      },
     });
 
     // 토스페이먼츠 결제창 정보 생성
@@ -61,47 +61,47 @@ export async function POST(request: NextRequest) {
       amount,
       orderId,
       orderName,
-      customerName: customerName || (user as any).name || '고객',
-      customerEmail: customerEmail || (user as any).email || '',
+      customerName: customerName || (user as any).name || "고객",
+      customerEmail: customerEmail || (user as any).email || "",
       successUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/payments/callback/success`,
       failUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/payments/callback/fail`,
       clientKey: TOSS_CLIENT_KEY,
       // 결제 방법별 설정
-      ...(method === 'CARD' && {
+      ...(method === "CARD" && {
         card: {
           useEscrow: false,
-          flowMode: 'DEFAULT',
+          flowMode: "DEFAULT",
           useCardPoint: false,
-          useAppCardOnly: false
-        }
+          useAppCardOnly: false,
+        },
       }),
-      ...(method === 'TRANSFER' && {
+      ...(method === "TRANSFER" && {
         transfer: {
           cashReceipt: {
-            type: '소득공제'
-          }
-        }
+            type: "소득공제",
+          },
+        },
       }),
-      ...(method === 'MOBILE_PHONE' && {
+      ...(method === "MOBILE_PHONE" && {
         mobilePhone: {
           cashReceipt: {
-            type: '소득공제'
-          }
-        }
-      })
+            type: "소득공제",
+          },
+        },
+      }),
     };
 
     return NextResponse.json({
-      message: '결제 준비가 완료되었습니다.',
+      message: "결제 준비가 완료되었습니다.",
       paymentData,
-      paymentId: payment.id
+      paymentId: payment.id,
     });
   } catch (error) {
-    const { logError } = await import('@/lib/utils/logger');
-    logError(error, '결제 준비 오류');
+    const { logError } = await import("@/lib/utils/logger");
+    logError(error, "결제 준비 오류");
     return NextResponse.json(
-      { error: '결제 준비에 실패했습니다.' },
-      { status: 500 }
+      { error: "결제 준비에 실패했습니다." },
+      { status: 500 },
     );
   }
 }

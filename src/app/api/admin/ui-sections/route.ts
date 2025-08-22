@@ -1,31 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { prisma } from '@/lib/db/prisma';
+export const dynamic = "force-dynamic";
+import { prisma } from "@/lib/db/prisma";
 
 // Dynamic route configuration
-import { translateText } from '@/lib/services/translation.service';
-import { staticBackupManager } from '@/lib/cache/json-backup-manager';
-import { logger } from '@/lib/logger';
+import { translateText } from "@/lib/services/translation.service";
+import { staticBackupManager } from "@/lib/cache/json-backup-manager";
+import { logger } from "@/lib/logger";
 
 // GET: 모든 UI 섹션 가져오기
 export async function GET(request: NextRequest) {
   try {
     const sections = await prisma.uISection.findMany({
-      orderBy: { order: 'asc' }
+      orderBy: { order: "asc" },
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       sections,
-      success: true 
+      success: true,
     });
   } catch (error) {
-    console.error('Error fetching UI sections:', error);
-    return NextResponse.json({ 
-      error: 'Failed to fetch sections',
-      success: false 
-    }, { status: 500 });
+    console.error("Error fetching UI sections:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to fetch sections",
+        success: false,
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -36,27 +39,40 @@ export async function POST(request: NextRequest) {
     const { sectionId, type, title, subtitle, content, order, visible } = body;
 
     // 번역 처리 (한글이 기본)
-    let translations: Record<string, { title?: string; subtitle?: string; content?: Record<string, unknown> }> = {};
-    
+    let translations: Record<
+      string,
+      { title?: string; subtitle?: string; content?: Record<string, unknown> }
+    > = {};
+
     if (title || subtitle || content) {
       // 영어 번역
       const enTranslations: Record<string, unknown> = {};
-      if (title) enTranslations.title = await translateText(title, 'en');
-      if (subtitle) enTranslations.subtitle = await translateText(subtitle, 'en');
-      
+      if (title) enTranslations.title = await translateText(title, "en");
+      if (subtitle)
+        enTranslations.subtitle = await translateText(subtitle, "en");
+
       // content 내부의 텍스트들도 번역
       if (content) {
-        enTranslations.content = await translateContentTexts(content, 'ko', 'en');
+        enTranslations.content = await translateContentTexts(
+          content,
+          "ko",
+          "en",
+        );
       }
       translations.en = enTranslations;
 
       // 일본어 번역
       const jpTranslations: Record<string, unknown> = {};
-      if (title) jpTranslations.title = await translateText(title, 'ja');
-      if (subtitle) jpTranslations.subtitle = await translateText(subtitle, 'ja');
-      
+      if (title) jpTranslations.title = await translateText(title, "ja");
+      if (subtitle)
+        jpTranslations.subtitle = await translateText(subtitle, "ja");
+
       if (content) {
-        jpTranslations.content = await translateContentTexts(content, 'ko', 'ja');
+        jpTranslations.content = await translateContentTexts(
+          content,
+          "ko",
+          "ja",
+        );
       }
       translations.jp = jpTranslations;
     }
@@ -70,37 +86,46 @@ export async function POST(request: NextRequest) {
         content,
         order: order || 0,
         visible: visible !== false,
-        translations: translations as any
-      }
+        translations: translations as any,
+      },
     });
 
     // JSON 백업 생성
     try {
       const allSections = await prisma.uISection.findMany({
-        orderBy: { order: 'asc' }
+        orderBy: { order: "asc" },
       });
-      
+
       const uiSectionsData = {
         sections: allSections,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
-      
-      await staticBackupManager.saveWithBackup('ui-sections.json', uiSectionsData, 'ui-sections');
+
+      await staticBackupManager.saveWithBackup(
+        "ui-sections.json",
+        uiSectionsData,
+        "ui-sections",
+      );
       logger.info(`UI sections backed up after creating section: ${sectionId}`);
     } catch (backupError) {
-      logger.error(`Failed to backup UI sections after create: ${backupError instanceof Error ? backupError.message : String(backupError)}`);
+      logger.error(
+        `Failed to backup UI sections after create: ${backupError instanceof Error ? backupError.message : String(backupError)}`,
+      );
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       section,
-      success: true 
+      success: true,
     });
   } catch (error) {
-    console.error('Error creating UI section:', error);
-    return NextResponse.json({ 
-      error: 'Failed to create section',
-      success: false 
-    }, { status: 500 });
+    console.error("Error creating UI section:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to create section",
+        success: false,
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -108,46 +133,75 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, sectionId, title, subtitle, content, order, visible, autoTranslate } = body;
+    const {
+      id,
+      sectionId,
+      title,
+      subtitle,
+      content,
+      order,
+      visible,
+      autoTranslate,
+    } = body;
 
     if (!id && !sectionId) {
-      return NextResponse.json({ 
-        error: 'Section ID is required',
-        success: false 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Section ID is required",
+          success: false,
+        },
+        { status: 400 },
+      );
     }
 
     // 기존 섹션 조회
     const existingSection = await prisma.uISection.findFirst({
-      where: id ? { id } : { sectionId }
+      where: id ? { id } : { sectionId },
     });
 
     if (!existingSection) {
-      return NextResponse.json({ 
-        error: 'Section not found',
-        success: false 
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: "Section not found",
+          success: false,
+        },
+        { status: 404 },
+      );
     }
 
     // 자동 번역 처리
-    let translations = (existingSection.translations as Record<string, { title?: string; subtitle?: string; content?: Record<string, unknown> }>) || {};
-    
+    let translations =
+      (existingSection.translations as Record<
+        string,
+        { title?: string; subtitle?: string; content?: Record<string, unknown> }
+      >) || {};
+
     if (autoTranslate && (title || subtitle || content)) {
       // 영어 번역
       if (!translations.en) translations.en = {};
-      if (title) translations.en.title = await translateText(title, 'en');
-      if (subtitle) translations.en.subtitle = await translateText(subtitle, 'en');
+      if (title) translations.en.title = await translateText(title, "en");
+      if (subtitle)
+        translations.en.subtitle = await translateText(subtitle, "en");
       if (content) {
-        const translatedContent = await translateContentTexts(content, 'ko', 'en');
+        const translatedContent = await translateContentTexts(
+          content,
+          "ko",
+          "en",
+        );
         translations.en = { ...translations.en, ...translatedContent };
       }
 
       // 일본어 번역
       if (!translations.jp) translations.jp = {};
-      if (title) translations.jp.title = await translateText(title, 'ja');
-      if (subtitle) translations.jp.subtitle = await translateText(subtitle, 'ja');
+      if (title) translations.jp.title = await translateText(title, "ja");
+      if (subtitle)
+        translations.jp.subtitle = await translateText(subtitle, "ja");
       if (content) {
-        const translatedContent = await translateContentTexts(content, 'ko', 'ja');
+        const translatedContent = await translateContentTexts(
+          content,
+          "ko",
+          "ja",
+        );
         translations.jp = { ...translations.jp, ...translatedContent };
       }
     }
@@ -160,37 +214,48 @@ export async function PUT(request: NextRequest) {
         ...(content !== undefined && { content }),
         ...(order !== undefined && { order }),
         ...(visible !== undefined && { visible }),
-        translations: translations as any
-      }
+        translations: translations as any,
+      },
     });
 
     // JSON 백업 생성
     try {
       const allSections = await prisma.uISection.findMany({
-        orderBy: { order: 'asc' }
+        orderBy: { order: "asc" },
       });
-      
+
       const uiSectionsData = {
         sections: allSections,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
-      
-      await staticBackupManager.saveWithBackup('ui-sections.json', uiSectionsData, 'ui-sections');
-      logger.info(`UI sections backed up after updating section: ${id || sectionId}`);
+
+      await staticBackupManager.saveWithBackup(
+        "ui-sections.json",
+        uiSectionsData,
+        "ui-sections",
+      );
+      logger.info(
+        `UI sections backed up after updating section: ${id || sectionId}`,
+      );
     } catch (backupError) {
-      logger.error(`Failed to backup UI sections after update: ${backupError instanceof Error ? backupError.message : String(backupError)}`);
+      logger.error(
+        `Failed to backup UI sections after update: ${backupError instanceof Error ? backupError.message : String(backupError)}`,
+      );
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       section,
-      success: true 
+      success: true,
     });
   } catch (error) {
-    console.error('Error updating UI section:', error);
-    return NextResponse.json({ 
-      error: 'Failed to update section',
-      success: false 
-    }, { status: 500 });
+    console.error("Error updating UI section:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to update section",
+        success: false,
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -198,121 +263,155 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    const sectionId = searchParams.get('sectionId');
+    const id = searchParams.get("id");
+    const sectionId = searchParams.get("sectionId");
 
     if (!id && !sectionId) {
-      return NextResponse.json({ 
-        error: 'Section ID is required',
-        success: false 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Section ID is required",
+          success: false,
+        },
+        { status: 400 },
+      );
     }
 
     await prisma.uISection.delete({
-      where: id ? { id } : { sectionId: sectionId! }
+      where: id ? { id } : { sectionId: sectionId! },
     });
 
     // JSON 백업 생성
     try {
       const allSections = await prisma.uISection.findMany({
-        orderBy: { order: 'asc' }
+        orderBy: { order: "asc" },
       });
-      
+
       const uiSectionsData = {
         sections: allSections,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
-      
-      await staticBackupManager.saveWithBackup('ui-sections.json', uiSectionsData, 'ui-sections');
-      logger.info(`UI sections backed up after deleting section: ${id || sectionId}`);
+
+      await staticBackupManager.saveWithBackup(
+        "ui-sections.json",
+        uiSectionsData,
+        "ui-sections",
+      );
+      logger.info(
+        `UI sections backed up after deleting section: ${id || sectionId}`,
+      );
     } catch (backupError) {
-      logger.error(`Failed to backup UI sections after delete: ${backupError instanceof Error ? backupError.message : String(backupError)}`);
+      logger.error(
+        `Failed to backup UI sections after delete: ${backupError instanceof Error ? backupError.message : String(backupError)}`,
+      );
     }
 
-    return NextResponse.json({ 
-      success: true 
+    return NextResponse.json({
+      success: true,
     });
   } catch (error) {
-    console.error('Error deleting UI section:', error);
-    return NextResponse.json({ 
-      error: 'Failed to delete section',
-      success: false 
-    }, { status: 500 });
+    console.error("Error deleting UI section:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to delete section",
+        success: false,
+      },
+      { status: 500 },
+    );
   }
 }
 
 // content 내부의 텍스트 번역 헬퍼 함수
-async function translateContentTexts(content: Record<string, unknown>, from: string, to: string): Promise<Record<string, unknown>> {
+async function translateContentTexts(
+  content: Record<string, unknown>,
+  from: string,
+  to: string,
+): Promise<Record<string, unknown>> {
   if (!content) return {};
 
   const result: Record<string, unknown> = {};
 
   // 히어로 슬라이드 번역
   if (content.slides && Array.isArray(content.slides)) {
-    result.slides = await Promise.all(content.slides.map(async (slide: Record<string, unknown>) => {
-      const translatedSlide: Record<string, unknown> = {
-        ...slide
-      };
-      
-      if (slide.title && typeof slide.title === 'string') {
-        translatedSlide.title = await translateText(slide.title, to);
-      }
-      if (slide.subtitle && typeof slide.subtitle === 'string') {
-        translatedSlide.subtitle = await translateText(slide.subtitle, to);
-      }
-      if (slide.tag && typeof slide.tag === 'string') {
-        // 이모지는 제외하고 텍스트만 번역 (ES5 호환)
-        const textOnly = slide.tag.replace(/[\u2600-\u26FF]|[\u2700-\u27BF]|[\uD83C-\uD83E][\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim();
-        if (textOnly) {
-          const translated = await translateText(textOnly, to);
-          translatedSlide.tag = slide.tag.replace(textOnly, translated);
-        } else {
-          translatedSlide.tag = slide.tag;
+    result.slides = await Promise.all(
+      content.slides.map(async (slide: Record<string, unknown>) => {
+        const translatedSlide: Record<string, unknown> = {
+          ...slide,
+        };
+
+        if (slide.title && typeof slide.title === "string") {
+          translatedSlide.title = await translateText(slide.title, to);
         }
-      }
-      
-      return translatedSlide;
-    }));
+        if (slide.subtitle && typeof slide.subtitle === "string") {
+          translatedSlide.subtitle = await translateText(slide.subtitle, to);
+        }
+        if (slide.tag && typeof slide.tag === "string") {
+          // 이모지는 제외하고 텍스트만 번역 (ES5 호환)
+          const textOnly = slide.tag
+            .replace(
+              /[\u2600-\u26FF]|[\u2700-\u27BF]|[\uD83C-\uD83E][\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]/g,
+              "",
+            )
+            .trim();
+          if (textOnly) {
+            const translated = await translateText(textOnly, to);
+            translatedSlide.tag = slide.tag.replace(textOnly, translated);
+          } else {
+            translatedSlide.tag = slide.tag;
+          }
+        }
+
+        return translatedSlide;
+      }),
+    );
   }
 
   // 카테고리 번역
   if (content.categories && Array.isArray(content.categories)) {
-    result.categories = await Promise.all(content.categories.map(async (cat: Record<string, unknown>) => {
-      const translatedCat: Record<string, unknown> = {
-        ...cat
-      };
-      
-      if (cat.name && typeof cat.name === 'string') {
-        translatedCat.name = await translateText(cat.name, to);
-      }
-      if (cat.badge && typeof cat.badge === 'string') {
-        translatedCat.badge = await translateText(cat.badge, to);
-      }
-      
-      return translatedCat;
-    }));
+    result.categories = await Promise.all(
+      content.categories.map(async (cat: Record<string, unknown>) => {
+        const translatedCat: Record<string, unknown> = {
+          ...cat,
+        };
+
+        if (cat.name && typeof cat.name === "string") {
+          translatedCat.name = await translateText(cat.name, to);
+        }
+        if (cat.badge && typeof cat.badge === "string") {
+          translatedCat.badge = await translateText(cat.badge, to);
+        }
+
+        return translatedCat;
+      }),
+    );
   }
 
   // 링크 번역
   if (content.links && Array.isArray(content.links)) {
-    result.links = await Promise.all(content.links.map(async (link: Record<string, unknown>) => {
-      const translatedLink: Record<string, unknown> = {
-        ...link
-      };
-      
-      if (link.title && typeof link.title === 'string') {
-        // 이모지는 제외하고 텍스트만 번역 (ES5 호환)
-        const textOnly = link.title.replace(/[\u2600-\u26FF]|[\u2700-\u27BF]|[\uD83C-\uD83E][\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim();
-        if (textOnly) {
-          const translated = await translateText(textOnly, to);
-          translatedLink.title = link.title.replace(textOnly, translated);
-        } else {
-          translatedLink.title = link.title;
+    result.links = await Promise.all(
+      content.links.map(async (link: Record<string, unknown>) => {
+        const translatedLink: Record<string, unknown> = {
+          ...link,
+        };
+
+        if (link.title && typeof link.title === "string") {
+          // 이모지는 제외하고 텍스트만 번역 (ES5 호환)
+          const textOnly = link.title
+            .replace(
+              /[\u2600-\u26FF]|[\u2700-\u27BF]|[\uD83C-\uD83E][\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]/g,
+              "",
+            )
+            .trim();
+          if (textOnly) {
+            const translated = await translateText(textOnly, to);
+            translatedLink.title = link.title.replace(textOnly, translated);
+          } else {
+            translatedLink.title = link.title;
+          }
         }
-      }
-      
-      return translatedLink;
-    }));
+
+        return translatedLink;
+      }),
+    );
   }
 
   // 기타 콘텐츠

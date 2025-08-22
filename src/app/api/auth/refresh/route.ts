@@ -1,23 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { authService } from '@/lib/auth/services'
+export const dynamic = "force-dynamic";
+import { authService } from "@/lib/auth/services";
 
 // Dynamic route configuration
 export async function POST(request: NextRequest) {
   try {
-    const refreshToken = request.cookies.get('refreshToken')?.value
+    const refreshToken = request.cookies.get("refreshToken")?.value;
 
     if (!refreshToken) {
       return NextResponse.json(
-        { error: 'Refresh token not found' },
-        { status: 401 }
-      )
+        { error: "Refresh token not found" },
+        { status: 401 },
+      );
     }
 
     // Refresh session
-    const session = await authService.refreshSession(refreshToken)
+    const session = await authService.refreshSession(refreshToken);
 
     // Create response
     const response = NextResponse.json({
@@ -25,30 +25,32 @@ export async function POST(request: NextRequest) {
         accessToken: session.accessToken,
         refreshToken: session.refreshToken,
         expiresIn: 3600, // 1 hour in seconds
-      }
-    })
+      },
+    });
 
     // Update cookies
-    response.cookies.set('accessToken', session.accessToken, {
+    response.cookies.set("accessToken", session.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 60 * 60, // 1 hour
-    })
+    });
 
-    response.cookies.set('refreshToken', session.refreshToken, {
+    response.cookies.set("refreshToken", session.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
-    })
+    });
 
-    return response
+    return response;
   } catch (error) {
-    console.error('Token refresh error:', error)
+    console.error("Token refresh error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Token refresh failed' },
-      { status: 401 }
-    )
+      {
+        error: error instanceof Error ? error.message : "Token refresh failed",
+      },
+      { status: 401 },
+    );
   }
 }

@@ -3,8 +3,8 @@
  * JSON 필드들을 정규화된 테이블로 관리하는 서비스
  */
 
-import { prisma } from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
+import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 export interface NormalizedCampaignData {
   id: string;
@@ -12,7 +12,7 @@ export interface NormalizedCampaignData {
   platforms: { platform: string; isPrimary: boolean }[];
   images: {
     url: string;
-    type: 'MAIN' | 'HEADER' | 'THUMBNAIL' | 'DETAIL' | 'PRODUCT';
+    type: "MAIN" | "HEADER" | "THUMBNAIL" | "DETAIL" | "PRODUCT";
     order: number;
     alt?: string;
     caption?: string;
@@ -20,7 +20,7 @@ export interface NormalizedCampaignData {
   keywords: { keyword: string; weight: number }[];
   questions: {
     question: string;
-    type: 'TEXT' | 'MULTIPLE_CHOICE' | 'BOOLEAN' | 'NUMBER';
+    type: "TEXT" | "MULTIPLE_CHOICE" | "BOOLEAN" | "NUMBER";
     required: boolean;
     options?: any;
     order: number;
@@ -31,55 +31,57 @@ export class CampaignNormalizedService {
   /**
    * 캠페인과 함께 정규화된 데이터를 조회
    */
-  static async getCampaignWithNormalizedData(campaignId: string): Promise<NormalizedCampaignData | null> {
+  static async getCampaignWithNormalizedData(
+    campaignId: string,
+  ): Promise<NormalizedCampaignData | null> {
     const result = await prisma.campaign.findUnique({
       where: { id: campaignId },
       include: {
         campaignHashtags: {
-          orderBy: { order: 'asc' }
+          orderBy: { order: "asc" },
         },
         campaignPlatforms: {
-          orderBy: { isPrimary: 'desc' }
+          orderBy: { isPrimary: "desc" },
         },
         campaignImages: {
-          orderBy: { order: 'asc' }
+          orderBy: { order: "asc" },
         },
         campaignKeywords: {
-          orderBy: { weight: 'desc' }
+          orderBy: { weight: "desc" },
         },
         campaignQuestions: {
-          orderBy: { order: 'asc' }
-        }
-      }
+          orderBy: { order: "asc" },
+        },
+      },
     });
 
     if (!result) return null;
 
     return {
       id: result.id,
-      hashtags: result.campaignHashtags.map(h => h.hashtag),
-      platforms: result.campaignPlatforms.map(p => ({
+      hashtags: result.campaignHashtags.map((h) => h.hashtag),
+      platforms: result.campaignPlatforms.map((p) => ({
         platform: p.platform,
-        isPrimary: p.isPrimary
+        isPrimary: p.isPrimary,
       })),
-      images: result.campaignImages.map(img => ({
+      images: result.campaignImages.map((img) => ({
         url: img.imageUrl,
         type: img.type as any,
         order: img.order || 0,
         alt: img.alt || undefined,
-        caption: img.caption || undefined
+        caption: img.caption || undefined,
       })),
-      keywords: result.campaignKeywords.map(k => ({
+      keywords: result.campaignKeywords.map((k) => ({
         keyword: k.keyword,
-        weight: k.weight || 0
+        weight: k.weight || 0,
       })),
-      questions: result.campaignQuestions.map(q => ({
+      questions: result.campaignQuestions.map((q) => ({
         question: q.question,
         type: q.type as any,
         required: q.required,
         options: q.options,
-        order: q.order || 0
-      }))
+        order: q.order || 0,
+      })),
     };
   }
 
@@ -90,7 +92,7 @@ export class CampaignNormalizedService {
     return await prisma.$transaction(async (tx) => {
       // 기존 해시태그 삭제
       await tx.campaignHashtag.deleteMany({
-        where: { campaignId }
+        where: { campaignId },
       });
 
       // 새 해시태그 추가
@@ -98,9 +100,9 @@ export class CampaignNormalizedService {
         await tx.campaignHashtag.createMany({
           data: hashtags.map((hashtag, index) => ({
             campaignId,
-            hashtag: hashtag.replace('#', ''),
-            order: index
-          }))
+            hashtag: hashtag.replace("#", ""),
+            order: index,
+          })),
         });
       }
     });
@@ -110,23 +112,23 @@ export class CampaignNormalizedService {
    * 캠페인 플랫폼 업데이트
    */
   static async updateCampaignPlatforms(
-    campaignId: string, 
-    platforms: { platform: string; isPrimary: boolean }[]
+    campaignId: string,
+    platforms: { platform: string; isPrimary: boolean }[],
   ) {
     return await prisma.$transaction(async (tx) => {
       // 기존 플랫폼 삭제
       await tx.campaignPlatform.deleteMany({
-        where: { campaignId }
+        where: { campaignId },
       });
 
       // 새 플랫폼 추가
       if (platforms.length > 0) {
         await tx.campaignPlatform.createMany({
-          data: platforms.map(p => ({
+          data: platforms.map((p) => ({
             campaignId,
             platform: p.platform,
-            isPrimary: p.isPrimary
-          }))
+            isPrimary: p.isPrimary,
+          })),
         });
       }
     });
@@ -139,29 +141,29 @@ export class CampaignNormalizedService {
     campaignId: string,
     images: {
       url: string;
-      type: 'MAIN' | 'HEADER' | 'THUMBNAIL' | 'DETAIL' | 'PRODUCT';
+      type: "MAIN" | "HEADER" | "THUMBNAIL" | "DETAIL" | "PRODUCT";
       order: number | null;
       alt?: string;
       caption?: string;
-    }[]
+    }[],
   ) {
     return await prisma.$transaction(async (tx) => {
       // 기존 이미지 삭제
       await tx.campaignImage.deleteMany({
-        where: { campaignId }
+        where: { campaignId },
       });
 
       // 새 이미지 추가
       if (images.length > 0) {
         await tx.campaignImage.createMany({
-          data: images.map(img => ({
+          data: images.map((img) => ({
             campaignId,
             imageUrl: img.url,
             type: img.type,
             order: img.order || 0,
             alt: img.alt,
-            caption: img.caption
-          }))
+            caption: img.caption,
+          })),
         });
       }
     });
@@ -172,22 +174,22 @@ export class CampaignNormalizedService {
    */
   static async updateCampaignKeywords(
     campaignId: string,
-    keywords: { keyword: string; weight: number }[]
+    keywords: { keyword: string; weight: number }[],
   ) {
     return await prisma.$transaction(async (tx) => {
       // 기존 키워드 삭제
       await tx.campaignKeyword.deleteMany({
-        where: { campaignId }
+        where: { campaignId },
       });
 
       // 새 키워드 추가
       if (keywords.length > 0) {
         await tx.campaignKeyword.createMany({
-          data: keywords.map(k => ({
+          data: keywords.map((k) => ({
             campaignId,
             keyword: k.keyword,
-            weight: k.weight
-          }))
+            weight: k.weight,
+          })),
         });
       }
     });
@@ -200,29 +202,29 @@ export class CampaignNormalizedService {
     campaignId: string,
     questions: {
       question: string;
-      type: 'TEXT' | 'MULTIPLE_CHOICE' | 'BOOLEAN' | 'NUMBER';
+      type: "TEXT" | "MULTIPLE_CHOICE" | "BOOLEAN" | "NUMBER";
       required: boolean;
       options?: any;
       order: number;
-    }[]
+    }[],
   ) {
     return await prisma.$transaction(async (tx) => {
       // 기존 질문 삭제
       await tx.campaignQuestion.deleteMany({
-        where: { campaignId }
+        where: { campaignId },
       });
 
       // 새 질문 추가
       if (questions.length > 0) {
         await tx.campaignQuestion.createMany({
-          data: questions.map(q => ({
+          data: questions.map((q) => ({
             campaignId,
             question: q.question,
             type: q.type,
             required: q.required,
             options: q.options,
-            order: q.order
-          }))
+            order: q.order,
+          })),
         });
       }
     });
@@ -233,24 +235,27 @@ export class CampaignNormalizedService {
    */
   static async migrateFromJsonToNormalized(campaignId: string) {
     const campaign = await prisma.campaign.findUnique({
-      where: { id: campaignId }
+      where: { id: campaignId },
     });
 
-    if (!campaign) throw new Error('Campaign not found');
+    if (!campaign) throw new Error("Campaign not found");
 
     await prisma.$transaction(async (tx) => {
       // 해시태그 마이그레이션
       if (campaign.hashtags) {
         try {
-          const hashtags = Array.isArray(campaign.hashtags) 
-            ? campaign.hashtags as string[]
+          const hashtags = Array.isArray(campaign.hashtags)
+            ? (campaign.hashtags as string[])
             : JSON.parse(campaign.hashtags as string);
-          
+
           if (Array.isArray(hashtags)) {
             await this.updateCampaignHashtags(campaignId, hashtags);
           }
         } catch (error) {
-          console.warn(`Failed to migrate hashtags for campaign ${campaignId}:`, error);
+          console.warn(
+            `Failed to migrate hashtags for campaign ${campaignId}:`,
+            error,
+          );
         }
       }
 
@@ -258,44 +263,47 @@ export class CampaignNormalizedService {
       if (campaign.platforms) {
         try {
           const platforms = Array.isArray(campaign.platforms)
-            ? campaign.platforms as string[]
+            ? (campaign.platforms as string[])
             : JSON.parse(campaign.platforms as string);
-          
+
           if (Array.isArray(platforms)) {
-            const platformData = platforms.map(p => ({
+            const platformData = platforms.map((p) => ({
               platform: p,
-              isPrimary: p === campaign.platform
+              isPrimary: p === campaign.platform,
             }));
             await this.updateCampaignPlatforms(campaignId, platformData);
           }
         } catch (error) {
-          console.warn(`Failed to migrate platforms for campaign ${campaignId}:`, error);
+          console.warn(
+            `Failed to migrate platforms for campaign ${campaignId}:`,
+            error,
+          );
         }
       }
 
       // 이미지 마이그레이션
       const images: any[] = [];
-      
+
       // 기본 이미지들
       if (campaign.imageUrl) {
         images.push({
           url: campaign.imageUrl,
-          type: 'MAIN',
-          order: 0
+          type: "MAIN",
+          order: 0,
         });
       }
       if (campaign.headerImageUrl) {
         images.push({
           url: campaign.headerImageUrl,
-          type: 'HEADER',
-          order: 1
+          type: "HEADER",
+          order: 1,
         });
       }
       if (campaign.thumbnailImageUrl) {
         images.push({
           url: campaign.thumbnailImageUrl,
-          type: 'THUMBNAIL',
-          order: 2
+          type: "THUMBNAIL",
+          order: 2,
         });
       }
 
@@ -305,18 +313,21 @@ export class CampaignNormalizedService {
           const detailImages = Array.isArray(campaign.detailImages)
             ? campaign.detailImages
             : JSON.parse(campaign.detailImages as string);
-          
+
           detailImages.forEach((img: any, index: number) => {
             if (img.url) {
               images.push({
                 url: img.url,
-                type: 'DETAIL',
-                order: images.length + index
+                type: "DETAIL",
+                order: images.length + index,
               });
             }
           });
         } catch (error) {
-          console.warn(`Failed to migrate detail images for campaign ${campaignId}:`, error);
+          console.warn(
+            `Failed to migrate detail images for campaign ${campaignId}:`,
+            error,
+          );
         }
       }
 
@@ -325,18 +336,21 @@ export class CampaignNormalizedService {
           const productImages = Array.isArray(campaign.productImages)
             ? campaign.productImages
             : JSON.parse(campaign.productImages as string);
-          
+
           productImages.forEach((img: any, index: number) => {
             if (img.url) {
               images.push({
                 url: img.url,
-                type: 'PRODUCT',
-                order: images.length + index
+                type: "PRODUCT",
+                order: images.length + index,
               });
             }
           });
         } catch (error) {
-          console.warn(`Failed to migrate product images for campaign ${campaignId}:`, error);
+          console.warn(
+            `Failed to migrate product images for campaign ${campaignId}:`,
+            error,
+          );
         }
       }
 
@@ -346,9 +360,9 @@ export class CampaignNormalizedService {
 
       // 키워드 마이그레이션
       if (campaign.keywords) {
-        const keywords = campaign.keywords.split(',').map((k, index) => ({
+        const keywords = campaign.keywords.split(",").map((k, index) => ({
           keyword: k.trim(),
-          weight: index + 1
+          weight: index + 1,
         }));
         await this.updateCampaignKeywords(campaignId, keywords);
       }
@@ -359,19 +373,22 @@ export class CampaignNormalizedService {
           const questions = Array.isArray(campaign.questions)
             ? campaign.questions
             : JSON.parse(campaign.questions as string);
-          
+
           if (Array.isArray(questions)) {
             const questionData = questions.map((q: any, index: number) => ({
               question: q.question || q,
-              type: q.type || 'TEXT',
+              type: q.type || "TEXT",
               required: q.required || false,
               options: q.options,
-              order: index
+              order: index,
             }));
             await this.updateCampaignQuestions(campaignId, questionData);
           }
         } catch (error) {
-          console.warn(`Failed to migrate questions for campaign ${campaignId}:`, error);
+          console.warn(
+            `Failed to migrate questions for campaign ${campaignId}:`,
+            error,
+          );
         }
       }
     });
@@ -386,11 +403,11 @@ export class CampaignNormalizedService {
         campaignHashtags: {
           some: {
             hashtag: {
-              in: hashtags
-            }
-          }
+              in: hashtags,
+            },
+          },
         },
-        deletedAt: null
+        deletedAt: null,
       },
       include: {
         campaignHashtags: true,
@@ -399,12 +416,12 @@ export class CampaignNormalizedService {
             name: true,
             businessProfile: {
               select: {
-                companyName: true
-              }
-            }
-          }
-        }
-      }
+                companyName: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -417,11 +434,11 @@ export class CampaignNormalizedService {
         campaignPlatforms: {
           some: {
             platform: {
-              in: platforms
-            }
-          }
+              in: platforms,
+            },
+          },
         },
-        deletedAt: null
+        deletedAt: null,
       },
       include: {
         campaignPlatforms: true,
@@ -430,12 +447,12 @@ export class CampaignNormalizedService {
             name: true,
             businessProfile: {
               select: {
-                companyName: true
-              }
-            }
-          }
-        }
-      }
+                companyName: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 }

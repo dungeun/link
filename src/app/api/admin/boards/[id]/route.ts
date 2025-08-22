@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { verifyAuth } from '@/lib/auth-utils'
+export const dynamic = "force-dynamic";
+import { verifyAuth } from "@/lib/auth-utils";
 
 // Dynamic route configuration
 // Note: Board model is not currently defined in the Prisma schema
@@ -10,48 +10,48 @@ import { verifyAuth } from '@/lib/auth-utils'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    const auth = await verifyAuth(request)
-    if (!auth || !auth.user || auth.user.type !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = await verifyAuth(request);
+    if (!auth || !auth.user || auth.user.type !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Board model not implemented
     return NextResponse.json(
-      { error: 'Board functionality not implemented' },
-      { status: 501 }
-    )
+      { error: "Board functionality not implemented" },
+      { status: 501 },
+    );
   } catch (error) {
-    console.error('Error in board DELETE:', error)
+    console.error("Error in board DELETE:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    const auth = await verifyAuth(request)
-    if (!auth || !auth.user || auth.user.type !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = await verifyAuth(request);
+    if (!auth || !auth.user || auth.user.type !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Board model not implemented
     return NextResponse.json(
-      { error: 'Board functionality not implemented' },
-      { status: 501 }
-    )
+      { error: "Board functionality not implemented" },
+      { status: 501 },
+    );
   } catch (error) {
-    console.error('Error in board PUT:', error)
+    console.error("Error in board PUT:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

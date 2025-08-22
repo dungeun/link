@@ -25,13 +25,13 @@ class MemoryCache {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      ttl: ttl || this.defaultTtl
+      ttl: ttl || this.defaultTtl,
     });
   }
 
   get<T>(key: string): T | null {
     const item = this.cache.get(key);
-    
+
     if (!item) {
       return null;
     }
@@ -55,7 +55,7 @@ class MemoryCache {
 
   // 패턴으로 키 삭제
   deletePattern(pattern: string): void {
-    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    const regex = new RegExp(pattern.replace(/\*/g, ".*"));
     for (const key of this.cache.keys()) {
       if (regex.test(key)) {
         this.cache.delete(key);
@@ -78,7 +78,7 @@ class MemoryCache {
     return {
       size: this.cache.size,
       maxSize: this.maxSize,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
     };
   }
 }
@@ -87,22 +87,26 @@ class MemoryCache {
 const memoryCache = new MemoryCache();
 
 // 정기적으로 만료된 항목 정리 (5분마다)
-if (typeof window === 'undefined') { // 서버사이드에서만
-  setInterval(() => {
-    memoryCache.cleanup();
-  }, 5 * 60 * 1000);
+if (typeof window === "undefined") {
+  // 서버사이드에서만
+  setInterval(
+    () => {
+      memoryCache.cleanup();
+    },
+    5 * 60 * 1000,
+  );
 }
 
 /**
  * 캠페인 전용 캐시 헬퍼
  */
 export class CampaignCache {
-  private static readonly CACHE_PREFIX = 'campaigns:';
+  private static readonly CACHE_PREFIX = "campaigns:";
   private static readonly TTL = 1 * 60 * 1000; // 1분으로 단축 (더 빠른 데이터 갱신)
 
   static generateKey(filters: any, pagination: any): string {
     const key = `${this.CACHE_PREFIX}${JSON.stringify({ filters, pagination })}`;
-    return Buffer.from(key).toString('base64'); // 안전한 키 생성
+    return Buffer.from(key).toString("base64"); // 안전한 키 생성
   }
 
   static async get(filters: any, pagination: any) {
@@ -129,7 +133,7 @@ export class CampaignCache {
  * 카테고리 통계 캐시
  */
 export class CategoryStatsCache {
-  private static readonly CACHE_KEY = 'category_stats';
+  private static readonly CACHE_KEY = "category_stats";
   private static readonly TTL = 10 * 60 * 1000; // 10분
 
   static async get() {
@@ -152,7 +156,7 @@ export class QueryCache {
   static async wrap<T>(
     key: string,
     queryFn: () => Promise<T>,
-    ttl: number = 5 * 60 * 1000
+    ttl: number = 5 * 60 * 1000,
   ): Promise<T> {
     // 캐시된 데이터 확인
     const cached = memoryCache.get<T>(key);
@@ -162,10 +166,10 @@ export class QueryCache {
 
     // 쿼리 실행
     const result = await queryFn();
-    
+
     // 캐시에 저장
     memoryCache.set(key, result, ttl);
-    
+
     return result;
   }
 

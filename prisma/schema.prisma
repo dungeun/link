@@ -873,3 +873,30 @@ enum PaymentStatus {
   PARTIAL_REFUNDED
   REFUNDED
 }
+
+// Event Sourcing 관련 모델
+model EventStore {
+  id           String   @id @default(cuid())
+  eventId      String   @unique
+  aggregateId  String
+  eventType    String
+  eventVersion Int
+  payload      Json
+  metadata     Json
+  createdAt    DateTime @default(now())
+
+  @@index([aggregateId, eventVersion])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model Snapshot {
+  id          String   @id @default(cuid())
+  aggregateId String
+  state       Json
+  version     Int
+  createdAt   DateTime @default(now())
+
+  @@unique([aggregateId, version])
+  @@index([aggregateId])
+}

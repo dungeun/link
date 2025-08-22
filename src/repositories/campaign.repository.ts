@@ -3,8 +3,8 @@
  * 데이터 접근 계층 - 세계 1% 수준의 Repository 패턴 구현
  */
 
-import { prisma } from '@/lib/db/prisma';
-import { Prisma } from '@prisma/client';
+import { prisma } from "@/lib/db/prisma";
+import { Prisma } from "@prisma/client";
 import {
   CampaignFilters,
   PaginationParams,
@@ -17,10 +17,10 @@ import {
   PrismaQueryOptions,
   SortOption,
   CampaignStatus,
-  Platform
-} from '@/types/campaign.types';
-import { QueryPerformance } from '@/lib/utils/performance';
-import { logger } from '@/lib/utils/logger';
+  Platform,
+} from "@/types/campaign.types";
+import { QueryPerformance } from "@/lib/utils/performance";
+import { logger } from "@/lib/utils/logger";
 
 export class CampaignRepository {
   private static instance: CampaignRepository;
@@ -42,21 +42,26 @@ export class CampaignRepository {
     total: number;
   }> {
     const { filters, pagination, sort, includeRelations } = params;
-    
-    const queryOptions = this.buildQueryOptions(filters, pagination, sort, includeRelations);
-    
+
+    const queryOptions = this.buildQueryOptions(
+      filters,
+      pagination,
+      sort,
+      includeRelations,
+    );
+
     // 병렬 쿼리 실행으로 성능 최적화
     const [data, total] = await Promise.all([
       QueryPerformance.measure(
-        'campaign.repository.findMany',
+        "campaign.repository.findMany",
         () => prisma.campaign.findMany(queryOptions),
-        { filters, pagination }
+        { filters, pagination },
       ),
       QueryPerformance.measure(
-        'campaign.repository.count',
+        "campaign.repository.count",
         () => prisma.campaign.count({ where: queryOptions.where }),
-        { filters }
-      )
+        { filters },
+      ),
     ]);
 
     return { data, total };
@@ -67,12 +72,13 @@ export class CampaignRepository {
    */
   async findById(id: string, includeRelations?: boolean): Promise<any> {
     const campaign = await QueryPerformance.measure(
-      'campaign.repository.findById',
-      () => prisma.campaign.findUnique({
-        where: { id },
-        include: includeRelations ? this.getDefaultIncludes() : undefined
-      }),
-      { id }
+      "campaign.repository.findById",
+      () =>
+        prisma.campaign.findUnique({
+          where: { id },
+          include: includeRelations ? this.getDefaultIncludes() : undefined,
+        }),
+      { id },
     );
 
     if (!campaign) {
@@ -87,71 +93,72 @@ export class CampaignRepository {
    */
   async create(data: CreateCampaignDTO, businessId: string): Promise<any> {
     return await QueryPerformance.measure(
-      'campaign.repository.create',
-      () => prisma.$transaction(async (tx) => {
-        // 1. 캠페인 생성
-        const campaign = await tx.campaign.create({
-          data: {
-            businessId,
-            title: data.title,
-            description: data.description,
-            platform: data.platform,
-            budget: data.budget.amount,
-            targetFollowers: data.targetFollowers,
-            startDate: data.startDate,
-            endDate: data.endDate,
-            requirements: data.requirements,
-            maxApplicants: data.maxApplicants,
-            rewardAmount: data.rewardAmount.amount,
-            location: data.location || '전국',
-            status: CampaignStatus.DRAFT,
-            isPaid: false
+      "campaign.repository.create",
+      () =>
+        prisma.$transaction(async (tx) => {
+          // 1. 캠페인 생성
+          const campaign = await tx.campaign.create({
+            data: {
+              businessId,
+              title: data.title,
+              description: data.description,
+              platform: data.platform,
+              budget: data.budget.amount,
+              targetFollowers: data.targetFollowers,
+              startDate: data.startDate,
+              endDate: data.endDate,
+              requirements: data.requirements,
+              maxApplicants: data.maxApplicants,
+              rewardAmount: data.rewardAmount.amount,
+              location: data.location || "전국",
+              status: CampaignStatus.DRAFT,
+              isPaid: false,
+            },
+          });
+
+          // 2. 카테고리 연결
+          if (data.categoryIds && data.categoryIds.length > 0) {
+            await tx.campaignCategory.createMany({
+              data: data.categoryIds.map((categoryId, index) => ({
+                campaignId: campaign.id,
+                categoryId,
+                isPrimary: index === 0,
+              })),
+            });
           }
-        });
 
-        // 2. 카테고리 연결
-        if (data.categoryIds && data.categoryIds.length > 0) {
-          await tx.campaignCategory.createMany({
-            data: data.categoryIds.map((categoryId, index) => ({
-              campaignId: campaign.id,
-              categoryId,
-              isPrimary: index === 0
-            }))
+          // 3. 해시태그 생성
+          if (data.hashtags && data.hashtags.length > 0) {
+            await tx.campaignHashtag.createMany({
+              data: data.hashtags.map((hashtag, index) => ({
+                campaignId: campaign.id,
+                hashtag,
+                order: index,
+              })),
+            });
+          }
+
+          // 4. 이미지 생성
+          if (data.images && data.images.length > 0) {
+            await tx.campaignImage.createMany({
+              data: data.images.map((image, index) => ({
+                campaignId: campaign.id,
+                imageUrl: image.url,
+                type: image.type,
+                alt: image.alt,
+                caption: image.caption,
+                order: image.order || index,
+              })),
+            });
+          }
+
+          // 5. 완성된 캠페인 반환
+          return await tx.campaign.findUnique({
+            where: { id: campaign.id },
+            include: this.getDefaultIncludes(),
           });
-        }
-
-        // 3. 해시태그 생성
-        if (data.hashtags && data.hashtags.length > 0) {
-          await tx.campaignHashtag.createMany({
-            data: data.hashtags.map((hashtag, index) => ({
-              campaignId: campaign.id,
-              hashtag,
-              order: index
-            }))
-          });
-        }
-
-        // 4. 이미지 생성
-        if (data.images && data.images.length > 0) {
-          await tx.campaignImage.createMany({
-            data: data.images.map((image, index) => ({
-              campaignId: campaign.id,
-              imageUrl: image.url,
-              type: image.type,
-              alt: image.alt,
-              caption: image.caption,
-              order: image.order || index
-            }))
-          });
-        }
-
-        // 5. 완성된 캠페인 반환
-        return await tx.campaign.findUnique({
-          where: { id: campaign.id },
-          include: this.getDefaultIncludes()
-        });
-      }),
-      { businessId }
+        }),
+      { businessId },
     );
   }
 
@@ -160,63 +167,66 @@ export class CampaignRepository {
    */
   async update(id: string, data: Partial<UpdateCampaignDTO>): Promise<any> {
     return await QueryPerformance.measure(
-      'campaign.repository.update',
-      () => prisma.$transaction(async (tx) => {
-        // 캠페인 존재 확인
-        const existing = await tx.campaign.findUnique({ where: { id } });
-        if (!existing) {
-          throw new CampaignNotFoundError(id);
-        }
+      "campaign.repository.update",
+      () =>
+        prisma.$transaction(async (tx) => {
+          // 캠페인 존재 확인
+          const existing = await tx.campaign.findUnique({ where: { id } });
+          if (!existing) {
+            throw new CampaignNotFoundError(id);
+          }
 
-        // 기본 정보 업데이트
-        const updateData: any = {};
-        if (data.title) updateData.title = data.title;
-        if (data.description) updateData.description = data.description;
-        if (data.platform) updateData.platform = data.platform;
-        if (data.budget) updateData.budget = data.budget.amount;
-        if (data.targetFollowers) updateData.targetFollowers = data.targetFollowers;
-        if (data.startDate) updateData.startDate = data.startDate;
-        if (data.endDate) updateData.endDate = data.endDate;
-        if (data.requirements) updateData.requirements = data.requirements;
-        if (data.maxApplicants) updateData.maxApplicants = data.maxApplicants;
-        if (data.rewardAmount) updateData.rewardAmount = data.rewardAmount.amount;
-        if (data.location) updateData.location = data.location;
+          // 기본 정보 업데이트
+          const updateData: any = {};
+          if (data.title) updateData.title = data.title;
+          if (data.description) updateData.description = data.description;
+          if (data.platform) updateData.platform = data.platform;
+          if (data.budget) updateData.budget = data.budget.amount;
+          if (data.targetFollowers)
+            updateData.targetFollowers = data.targetFollowers;
+          if (data.startDate) updateData.startDate = data.startDate;
+          if (data.endDate) updateData.endDate = data.endDate;
+          if (data.requirements) updateData.requirements = data.requirements;
+          if (data.maxApplicants) updateData.maxApplicants = data.maxApplicants;
+          if (data.rewardAmount)
+            updateData.rewardAmount = data.rewardAmount.amount;
+          if (data.location) updateData.location = data.location;
 
-        const campaign = await tx.campaign.update({
-          where: { id },
-          data: updateData
-        });
-
-        // 카테고리 업데이트
-        if (data.categoryIds) {
-          await tx.campaignCategory.deleteMany({ where: { campaignId: id } });
-          await tx.campaignCategory.createMany({
-            data: data.categoryIds.map((categoryId, index) => ({
-              campaignId: id,
-              categoryId,
-              isPrimary: index === 0
-            }))
+          const campaign = await tx.campaign.update({
+            where: { id },
+            data: updateData,
           });
-        }
 
-        // 해시태그 업데이트
-        if (data.hashtags) {
-          await tx.campaignHashtag.deleteMany({ where: { campaignId: id } });
-          await tx.campaignHashtag.createMany({
-            data: data.hashtags.map((hashtag, index) => ({
-              campaignId: id,
-              hashtag,
-              order: index
-            }))
+          // 카테고리 업데이트
+          if (data.categoryIds) {
+            await tx.campaignCategory.deleteMany({ where: { campaignId: id } });
+            await tx.campaignCategory.createMany({
+              data: data.categoryIds.map((categoryId, index) => ({
+                campaignId: id,
+                categoryId,
+                isPrimary: index === 0,
+              })),
+            });
+          }
+
+          // 해시태그 업데이트
+          if (data.hashtags) {
+            await tx.campaignHashtag.deleteMany({ where: { campaignId: id } });
+            await tx.campaignHashtag.createMany({
+              data: data.hashtags.map((hashtag, index) => ({
+                campaignId: id,
+                hashtag,
+                order: index,
+              })),
+            });
+          }
+
+          return await tx.campaign.findUnique({
+            where: { id },
+            include: this.getDefaultIncludes(),
           });
-        }
-
-        return await tx.campaign.findUnique({
-          where: { id },
-          include: this.getDefaultIncludes()
-        });
-      }),
-      { id }
+        }),
+      { id },
     );
   }
 
@@ -225,12 +235,13 @@ export class CampaignRepository {
    */
   async delete(id: string): Promise<void> {
     await QueryPerformance.measure(
-      'campaign.repository.delete',
-      () => prisma.campaign.update({
-        where: { id },
-        data: { deletedAt: new Date() }
-      }),
-      { id }
+      "campaign.repository.delete",
+      () =>
+        prisma.campaign.update({
+          where: { id },
+          data: { deletedAt: new Date() },
+        }),
+      { id },
     );
   }
 
@@ -239,12 +250,14 @@ export class CampaignRepository {
    */
   async getCategoryStats(): Promise<Record<string, number>> {
     const stats = await QueryPerformance.measure(
-      'campaign.repository.categoryStats',
-      () => prisma.$queryRaw<Array<{
-        categoryId: string;
-        slug: string;
-        count: bigint;
-      }>>`
+      "campaign.repository.categoryStats",
+      () => prisma.$queryRaw<
+        Array<{
+          categoryId: string;
+          slug: string;
+          count: bigint;
+        }>
+      >`
         SELECT 
           c.id as "categoryId",
           c.slug,
@@ -258,11 +271,11 @@ export class CampaignRepository {
         HAVING COUNT(cc."campaignId") > 0
         ORDER BY count DESC
       `,
-      {}
+      {},
     );
 
     const result: Record<string, number> = {};
-    stats.forEach(stat => {
+    stats.forEach((stat) => {
       result[stat.slug] = Number(stat.count);
     });
 
@@ -274,7 +287,7 @@ export class CampaignRepository {
    */
   async findTrending(limit: number = 10): Promise<any[]> {
     return await QueryPerformance.measure(
-      'campaign.repository.findTrending',
+      "campaign.repository.findTrending",
       () => prisma.$queryRaw`
         SELECT 
           c.*,
@@ -293,7 +306,7 @@ export class CampaignRepository {
         ORDER BY popularity_score DESC
         LIMIT ${limit}
       `,
-      { limit }
+      { limit },
     );
   }
 
@@ -304,24 +317,24 @@ export class CampaignRepository {
     filters: CampaignFilters,
     pagination: PaginationParams,
     sort?: SortParams,
-    includeRelations?: any
+    includeRelations?: any,
   ): PrismaQueryOptions {
     const where: Prisma.CampaignWhereInput = {
-      deletedAt: null
+      deletedAt: null,
     };
 
     // 필터 적용
     if (filters.status) where.status = filters.status;
     if (filters.businessId) where.businessId = filters.businessId;
     if (filters.platform) where.platform = filters.platform;
-    
+
     if (filters.category) {
       where.categories = {
         some: {
           category: {
-            slug: filters.category
-          }
-        }
+            slug: filters.category,
+          },
+        },
       };
     }
 
@@ -339,8 +352,8 @@ export class CampaignRepository {
 
     if (filters.keyword) {
       where.OR = [
-        { title: { contains: filters.keyword, mode: 'insensitive' } },
-        { description: { contains: filters.keyword, mode: 'insensitive' } }
+        { title: { contains: filters.keyword, mode: "insensitive" } },
+        { description: { contains: filters.keyword, mode: "insensitive" } },
       ];
     }
 
@@ -361,10 +374,10 @@ export class CampaignRepository {
           orderBy = [{ viewCount: sort.order }];
           break;
         default:
-          orderBy = [{ createdAt: 'desc' }];
+          orderBy = [{ createdAt: "desc" }];
       }
     } else {
-      orderBy = [{ createdAt: 'desc' }];
+      orderBy = [{ createdAt: "desc" }];
     }
 
     return {
@@ -372,7 +385,7 @@ export class CampaignRepository {
       orderBy,
       skip: pagination.offset || (pagination.page - 1) * pagination.limit,
       take: pagination.limit,
-      include: includeRelations || this.getDefaultIncludes()
+      include: includeRelations || this.getDefaultIncludes(),
     };
   }
 
@@ -388,10 +401,10 @@ export class CampaignRepository {
           businessProfile: {
             select: {
               companyName: true,
-              businessCategory: true
-            }
-          }
-        }
+              businessCategory: true,
+            },
+          },
+        },
       },
       categories: {
         select: {
@@ -399,18 +412,18 @@ export class CampaignRepository {
             select: {
               id: true,
               name: true,
-              slug: true
-            }
+              slug: true,
+            },
           },
-          isPrimary: true
-        }
+          isPrimary: true,
+        },
       },
       _count: {
         select: {
           applications: true,
-          campaignLikes: true
-        }
-      }
+          campaignLikes: true,
+        },
+      },
     };
   }
 }

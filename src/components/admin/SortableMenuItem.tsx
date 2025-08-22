@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import type { MenuItem } from '@/lib/stores/ui-config.store';
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import type { MenuItem } from "@/lib/stores/ui-config.store";
 
 interface SortableMenuItemProps {
   menu: MenuItem;
@@ -10,7 +10,11 @@ interface SortableMenuItemProps {
   onDelete: (id: string) => void;
 }
 
-export function SortableMenuItem({ menu, onUpdate, onDelete }: SortableMenuItemProps) {
+export function SortableMenuItem({
+  menu,
+  onUpdate,
+  onDelete,
+}: SortableMenuItemProps) {
   const {
     attributes,
     listeners,
@@ -30,7 +34,7 @@ export function SortableMenuItem({ menu, onUpdate, onDelete }: SortableMenuItemP
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-gray-50 rounded-lg p-4 ${isDragging ? 'shadow-lg' : ''}`}
+      className={`bg-gray-50 rounded-lg p-4 ${isDragging ? "shadow-lg" : ""}`}
     >
       <div className="flex items-center space-x-4">
         {/* 드래그 핸들 */}
@@ -39,8 +43,18 @@ export function SortableMenuItem({ menu, onUpdate, onDelete }: SortableMenuItemP
           {...listeners}
           className="cursor-move text-gray-400 hover:text-gray-600"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           </svg>
         </div>
 
@@ -65,7 +79,9 @@ export function SortableMenuItem({ menu, onUpdate, onDelete }: SortableMenuItemP
               <input
                 type="checkbox"
                 checked={menu.visible}
-                onChange={(e) => onUpdate(menu.id, { visible: e.target.checked })}
+                onChange={(e) =>
+                  onUpdate(menu.id, { visible: e.target.checked })
+                }
                 className="mr-2"
               />
               <span className="text-sm">표시</span>
@@ -74,8 +90,18 @@ export function SortableMenuItem({ menu, onUpdate, onDelete }: SortableMenuItemP
               onClick={() => onDelete(menu.id)}
               className="text-red-500 hover:text-red-700"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
               </svg>
             </button>
           </div>

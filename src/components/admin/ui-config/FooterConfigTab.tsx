@@ -1,33 +1,54 @@
-'use client';
+"use client";
 
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, horizontalListSortingStrategy } from '@dnd-kit/sortable';
-import { SortableFooterColumn } from '@/components/admin/SortableFooterColumn';
-import { useUIConfigStore } from '@/lib/stores/ui-config.store';
-import type { FooterColumn, FooterLink } from '@/lib/stores/ui-config.store';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { SortableFooterColumn } from "@/components/admin/SortableFooterColumn";
+import { useUIConfigStore } from "@/lib/stores/ui-config.store";
+import type { FooterColumn, FooterLink } from "@/lib/stores/ui-config.store";
 
 export function FooterConfigTab() {
   const { config, updateFooterColumns, updateCopyright } = useUIConfigStore();
-  
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleFooterDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = config.footer.columns.findIndex((item) => item.id === String(active.id));
-      const newIndex = config.footer.columns.findIndex((item) => item.id === String(over.id));
-      
-      const newColumns = arrayMove(config.footer.columns, oldIndex, newIndex).map((item, index) => ({
+      const oldIndex = config.footer.columns.findIndex(
+        (item) => item.id === String(active.id),
+      );
+      const newIndex = config.footer.columns.findIndex(
+        (item) => item.id === String(over.id),
+      );
+
+      const newColumns = arrayMove(
+        config.footer.columns,
+        oldIndex,
+        newIndex,
+      ).map((item, index) => ({
         ...item,
         order: index + 1,
       }));
-      
+
       updateFooterColumns(newColumns);
     }
   };
@@ -35,43 +56,48 @@ export function FooterConfigTab() {
   const handleAddFooterColumn = () => {
     const newColumn: FooterColumn = {
       id: `column-${Date.now()}`,
-      title: '새 컬럼',
+      title: "새 컬럼",
       order: config.footer.columns.length + 1,
-      links: []
+      links: [],
     };
     updateFooterColumns([...config.footer.columns, newColumn]);
   };
 
-  const handleFooterColumnUpdate = (columnId: string, updates: Partial<FooterColumn>) => {
+  const handleFooterColumnUpdate = (
+    columnId: string,
+    updates: Partial<FooterColumn>,
+  ) => {
     const newColumns = config.footer.columns.map((col) =>
-      col.id === columnId ? { ...col, ...updates } : col
+      col.id === columnId ? { ...col, ...updates } : col,
     );
     updateFooterColumns(newColumns);
   };
 
   const handleDeleteFooterColumn = (columnId: string) => {
-    updateFooterColumns(config.footer.columns.filter((col) => col.id !== columnId));
+    updateFooterColumns(
+      config.footer.columns.filter((col) => col.id !== columnId),
+    );
   };
 
   const handleAddFooterLink = (columnId: string) => {
     const newLink: FooterLink = {
       id: `link-${Date.now()}`,
-      label: '새 링크',
-      href: '#',
+      label: "새 링크",
+      href: "#",
       order: 1,
-      visible: true
+      visible: true,
     };
-    
+
     const newColumns = config.footer.columns.map((col) => {
       if (col.id === columnId) {
         return {
           ...col,
-          links: [...col.links, { ...newLink, order: col.links.length + 1 }]
+          links: [...col.links, { ...newLink, order: col.links.length + 1 }],
         };
       }
       return col;
     });
-    
+
     updateFooterColumns(newColumns);
   };
 
@@ -88,9 +114,16 @@ export function FooterConfigTab() {
             컬럼 추가
           </button>
         </div>
-        
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFooterDragEnd}>
-          <SortableContext items={config.footer.columns} strategy={horizontalListSortingStrategy}>
+
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleFooterDragEnd}
+        >
+          <SortableContext
+            items={config.footer.columns}
+            strategy={horizontalListSortingStrategy}
+          >
             <div className="grid md:grid-cols-3 gap-6">
               {config.footer.columns
                 .sort((a, b) => a.order - b.order)

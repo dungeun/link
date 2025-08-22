@@ -1,243 +1,264 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { requireAdminAuth } from '@/lib/admin-auth'
-import { googleTranslateService } from '@/lib/services/google-translate.service'
-import { i18nBackupManager } from '@/lib/cache/json-backup-manager'
-import { logger } from '@/lib/logger'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import { requireAdminAuth } from "@/lib/admin-auth";
+import { googleTranslateService } from "@/lib/services/google-translate.service";
+import { i18nBackupManager } from "@/lib/cache/json-backup-manager";
+import { logger } from "@/lib/logger";
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 // POST /api/admin/translations/batch - 타입별 일괄 자동 번역
 export async function POST(request: NextRequest) {
   try {
-    const authResult = await requireAdminAuth(request)
+    const authResult = await requireAdminAuth(request);
     if (authResult.error) {
-      return authResult.error
+      return authResult.error;
     }
 
-    const body = await request.json()
-    const { type, targetLanguages = ['en', 'jp'], sourceLanguage = 'ko' } = body
+    const body = await request.json();
+    const {
+      type,
+      targetLanguages = ["en", "jp"],
+      sourceLanguage = "ko",
+    } = body;
 
-    if (!type || !['campaign', 'post', 'menu', 'main-sections'].includes(type)) {
+    if (
+      !type ||
+      !["campaign", "post", "menu", "main-sections"].includes(type)
+    ) {
       return NextResponse.json(
-        { error: '유효한 타입을 선택해주세요. (campaign, post, menu, main-sections)' },
-        { status: 400 }
-      )
+        {
+          error:
+            "유효한 타입을 선택해주세요. (campaign, post, menu, main-sections)",
+        },
+        { status: 400 },
+      );
     }
 
     // API 키 유효성 검사
-    const isApiKeyValid = await googleTranslateService.validateApiKey()
+    const isApiKeyValid = await googleTranslateService.validateApiKey();
     if (!isApiKeyValid) {
       return NextResponse.json(
-        { error: 'Google Translate API 키가 설정되지 않았거나 유효하지 않습니다.' },
-        { status: 500 }
-      )
+        {
+          error:
+            "Google Translate API 키가 설정되지 않았거나 유효하지 않습니다.",
+        },
+        { status: 500 },
+      );
     }
 
-    let translatedCount = 0
-    let errorCount = 0
-    const errors: string[] = []
+    let translatedCount = 0;
+    let errorCount = 0;
+    const errors: string[] = [];
 
-    if (type === 'campaign') {
+    if (type === "campaign") {
       // 캠페인 번역되지 않은 항목들 조회
       const campaigns = await prisma.campaign.findMany({
         include: {
-          campaignTranslations: true
+          campaignTranslations: true,
         },
-        take: 100 // 한 번에 최대 100개
-      })
+        take: 100, // 한 번에 최대 100개
+      });
 
       for (const campaign of campaigns) {
-        if (!campaign.title?.trim()) continue
+        if (!campaign.title?.trim()) continue;
 
         for (const targetLang of targetLanguages) {
           // jp 언어 코드를 ja로 매핑하여 올바른 데이터베이스 언어 코드 사용
-          const dbLang = targetLang === 'jp' ? 'ja' : targetLang
-          
+          const dbLang = targetLang === "jp" ? "ja" : targetLang;
+
           const existingTranslation = campaign.campaignTranslations.find(
-            t => t.language === dbLang
-          )
+            (t) => t.language === dbLang,
+          );
 
           // 이미 번역이 있으면 스킵
           if (existingTranslation && existingTranslation.title) {
-            continue
+            continue;
           }
 
           try {
             const result = await googleTranslateService.translateText(
               campaign.title,
               targetLang,
-              sourceLanguage
-            )
+              sourceLanguage,
+            );
 
             if (result) {
-              
               await prisma.campaignTranslation.upsert({
                 where: {
                   campaignId_language: {
                     campaignId: campaign.id,
-                    language: dbLang // 데이터베이스에는 ja로 저장
-                  }
+                    language: dbLang, // 데이터베이스에는 ja로 저장
+                  },
                 },
                 update: {
                   title: result.text,
                   isAutoTranslated: true,
                   lastEditedBy: authResult.user.id,
-                  editedAt: new Date()
+                  editedAt: new Date(),
                 },
                 create: {
                   campaignId: campaign.id,
                   language: dbLang, // 데이터베이스 언어 코드 사용 (jp -> ja)
                   title: result.text,
-                  description: '',
+                  description: "",
                   hashtags: [],
                   isAutoTranslated: true,
                   lastEditedBy: authResult.user.id,
-                  editedAt: new Date()
-                }
-              })
-              translatedCount++
+                  editedAt: new Date(),
+                },
+              });
+              translatedCount++;
             }
           } catch (error) {
-            console.error(`캠페인 번역 실패 (${campaign.id} -> ${targetLang}):`, error)
-            errorCount++
-            errors.push(`캠페인 "${campaign.title}" ${targetLang} 번역 실패`)
+            console.error(
+              `캠페인 번역 실패 (${campaign.id} -> ${targetLang}):`,
+              error,
+            );
+            errorCount++;
+            errors.push(`캠페인 "${campaign.title}" ${targetLang} 번역 실패`);
           }
         }
       }
-    } else if (type === 'post') {
+    } else if (type === "post") {
       // 게시물 번역되지 않은 항목들 조회
       const posts = await prisma.post.findMany({
         include: {
-          postTranslations: true
+          postTranslations: true,
         },
-        take: 100 // 한 번에 최대 100개
-      })
+        take: 100, // 한 번에 최대 100개
+      });
 
       for (const post of posts) {
-        if (!post.title?.trim()) continue
+        if (!post.title?.trim()) continue;
 
         for (const targetLang of targetLanguages) {
           // jp 언어 코드를 ja로 매핑하여 올바른 데이터베이스 언어 코드 사용
-          const dbLang = targetLang === 'jp' ? 'ja' : targetLang
-          
+          const dbLang = targetLang === "jp" ? "ja" : targetLang;
+
           const existingTranslation = post.postTranslations.find(
-            t => t.language === dbLang
-          )
+            (t) => t.language === dbLang,
+          );
 
           // 이미 번역이 있으면 스킵
           if (existingTranslation && existingTranslation.title) {
-            continue
+            continue;
           }
 
           try {
             const result = await googleTranslateService.translateText(
               post.title,
               targetLang,
-              sourceLanguage
-            )
+              sourceLanguage,
+            );
 
             if (result) {
-              
               await prisma.postTranslation.upsert({
                 where: {
                   postId_language: {
                     postId: post.id,
-                    language: dbLang // 데이터베이스에는 ja로 저장
-                  }
+                    language: dbLang, // 데이터베이스에는 ja로 저장
+                  },
                 },
                 update: {
                   title: result.text,
                   isAutoTranslated: true,
                   lastEditedBy: authResult.user.id,
-                  editedAt: new Date()
+                  editedAt: new Date(),
                 },
                 create: {
                   postId: post.id,
                   language: dbLang, // 데이터베이스 언어 코드 사용 (jp -> ja)
                   title: result.text,
-                  content: '',
+                  content: "",
                   isAutoTranslated: true,
                   lastEditedBy: authResult.user.id,
-                  editedAt: new Date()
-                }
-              })
-              translatedCount++
+                  editedAt: new Date(),
+                },
+              });
+              translatedCount++;
             }
           } catch (error) {
-            console.error(`게시물 번역 실패 (${post.id} -> ${targetLang}):`, error)
-            errorCount++
-            errors.push(`게시물 "${post.title}" ${targetLang} 번역 실패`)
+            console.error(
+              `게시물 번역 실패 (${post.id} -> ${targetLang}):`,
+              error,
+            );
+            errorCount++;
+            errors.push(`게시물 "${post.title}" ${targetLang} 번역 실패`);
           }
         }
       }
-    } else if (type === 'menu' || type === 'main-sections') {
+    } else if (type === "menu" || type === "main-sections") {
       // LanguagePack 번역되지 않은 항목들 조회
-      let whereClause = {}
-      
-      if (type === 'menu') {
+      let whereClause = {};
+
+      if (type === "menu") {
         // 메뉴 관련 카테고리
         whereClause = {
           OR: [
-            { category: 'ui_menu' },
-            { category: 'ui_action' },
-            { category: 'ui_notification' }
-          ]
-        }
+            { category: "ui_menu" },
+            { category: "ui_action" },
+            { category: "ui_notification" },
+          ],
+        };
       } else {
         // 메인 섹션 관련 카테고리
         whereClause = {
           OR: [
-            { category: 'ui_hero' },
-            { category: 'ui_category' },
-            { category: 'ui_quicklink' },
-            { category: 'ui_promo' },
-            { category: 'ui_ranking' },
-            { category: 'ui_footer' }
-          ]
-        }
+            { category: "ui_hero" },
+            { category: "ui_category" },
+            { category: "ui_quicklink" },
+            { category: "ui_promo" },
+            { category: "ui_ranking" },
+            { category: "ui_footer" },
+          ],
+        };
       }
-      
+
       const languagePacks = await prisma.languagePack.findMany({
-        where: whereClause
-      })
+        where: whereClause,
+      });
 
       for (const pack of languagePacks) {
-        if (!pack.ko?.trim()) continue
+        if (!pack.ko?.trim()) continue;
 
         for (const targetLang of targetLanguages) {
           // jp 언어 코드를 ja로 매핑하여 올바른 필드 확인
-          const mappedLang = targetLang === 'jp' ? 'ja' : targetLang
-          const currentValue = mappedLang === 'en' ? pack.en : pack.jp
+          const mappedLang = targetLang === "jp" ? "ja" : targetLang;
+          const currentValue = mappedLang === "en" ? pack.en : pack.jp;
 
           // 이미 번역이 있으면 스킵
           if (currentValue) {
-            continue
+            continue;
           }
 
           try {
             const result = await googleTranslateService.translateText(
               pack.ko,
               targetLang,
-              sourceLanguage
-            )
+              sourceLanguage,
+            );
 
             if (result) {
-              const updateData = mappedLang === 'en' 
-                ? { en: result.text }
-                : { jp: result.text } // jp 필드로 저장 (LanguagePack은 jp 필드 사용)
+              const updateData =
+                mappedLang === "en" ? { en: result.text } : { jp: result.text }; // jp 필드로 저장 (LanguagePack은 jp 필드 사용)
 
               await prisma.languagePack.update({
                 where: { id: pack.id },
-                data: updateData
-              })
-              translatedCount++
+                data: updateData,
+              });
+              translatedCount++;
             }
           } catch (error) {
-            console.error(`${type === 'menu' ? '메뉴' : '메인 섹션'} 번역 실패 (${pack.id} -> ${targetLang}):`, error)
-            errorCount++
-            errors.push(`${type === 'menu' ? '메뉴' : '메인 섹션'} "${pack.ko}" ${targetLang} 번역 실패`)
+            console.error(
+              `${type === "menu" ? "메뉴" : "메인 섹션"} 번역 실패 (${pack.id} -> ${targetLang}):`,
+              error,
+            );
+            errorCount++;
+            errors.push(
+              `${type === "menu" ? "메뉴" : "메인 섹션"} "${pack.ko}" ${targetLang} 번역 실패`,
+            );
           }
         }
       }
@@ -245,13 +266,10 @@ export async function POST(request: NextRequest) {
 
     // 일괄 번역 완료 후 JSON 백업 생성
     try {
-      if (type === 'menu' || type === 'main-sections') {
+      if (type === "menu" || type === "main-sections") {
         // LanguagePack 전체 데이터 백업
         const allLanguagePacks = await prisma.languagePack.findMany({
-          orderBy: [
-            { category: 'asc' },
-            { key: 'asc' }
-          ]
+          orderBy: [{ category: "asc" }, { key: "asc" }],
         });
 
         const languagePackData = {
@@ -261,12 +279,18 @@ export async function POST(request: NextRequest) {
           batchTranslation: {
             translatedCount,
             errorCount,
-            targetLanguages
-          }
+            targetLanguages,
+          },
         };
 
-        await i18nBackupManager.saveWithBackup(`${type}-language-packs.json`, languagePackData, 'language-packs');
-        logger.info(`Language packs backed up after batch translation: ${type} (${translatedCount} items)`);
+        await i18nBackupManager.saveWithBackup(
+          `${type}-language-packs.json`,
+          languagePackData,
+          "language-packs",
+        );
+        logger.info(
+          `Language packs backed up after batch translation: ${type} (${translatedCount} items)`,
+        );
       } else {
         // 캠페인/포스트 번역 데이터 백업
         const batchResult = {
@@ -275,15 +299,23 @@ export async function POST(request: NextRequest) {
             translatedCount,
             errorCount,
             targetLanguages,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         };
 
-        await i18nBackupManager.saveWithBackup(`${type}-batch-translations.json`, batchResult, 'batch-translations');
-        logger.info(`Batch translation data backed up: ${type} (${translatedCount} items)`);
+        await i18nBackupManager.saveWithBackup(
+          `${type}-batch-translations.json`,
+          batchResult,
+          "batch-translations",
+        );
+        logger.info(
+          `Batch translation data backed up: ${type} (${translatedCount} items)`,
+        );
       }
     } catch (backupError) {
-      logger.error(`Failed to backup batch translation data: ${backupError instanceof Error ? backupError.message : String(backupError)}`);
+      logger.error(
+        `Failed to backup batch translation data: ${backupError instanceof Error ? backupError.message : String(backupError)}`,
+      );
     }
 
     return NextResponse.json({
@@ -292,14 +324,13 @@ export async function POST(request: NextRequest) {
       errors: errorCount,
       errorMessages: errors.slice(0, 10), // 최대 10개의 에러 메시지만 반환
       type,
-      timestamp: new Date().toISOString()
-    })
-
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    console.error('일괄 번역 처리 오류:', error)
+    console.error("일괄 번역 처리 오류:", error);
     return NextResponse.json(
-      { error: '일괄 번역 처리 중 오류가 발생했습니다.' },
-      { status: 500 }
-    )
+      { error: "일괄 번역 처리 중 오류가 발생했습니다." },
+      { status: 500 },
+    );
   }
 }

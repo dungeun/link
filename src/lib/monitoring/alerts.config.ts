@@ -8,11 +8,11 @@ export interface AlertRule {
   name: string;
   description: string;
   metric: string;
-  condition: 'above' | 'below' | 'equals' | 'not_equals';
+  condition: "above" | "below" | "equals" | "not_equals";
   threshold: number;
   duration: number; // seconds
-  severity: 'info' | 'warning' | 'critical';
-  channels: ('slack' | 'email' | 'pagerduty' | 'webhook')[];
+  severity: "info" | "warning" | "critical";
+  channels: ("slack" | "email" | "pagerduty" | "webhook")[];
   cooldown: number; // seconds before re-alerting
   enabled: boolean;
   metadata?: Record<string, any>;
@@ -23,83 +23,83 @@ export interface AlertRule {
  */
 export const performanceAlerts: AlertRule[] = [
   {
-    id: 'high_response_time',
-    name: 'High API Response Time',
-    description: 'API response time exceeds acceptable threshold',
-    metric: 'api.latency.p95',
-    condition: 'above',
+    id: "high_response_time",
+    name: "High API Response Time",
+    description: "API response time exceeds acceptable threshold",
+    metric: "api.latency.p95",
+    condition: "above",
     threshold: 1000, // 1 second
     duration: 300, // 5 minutes
-    severity: 'warning',
-    channels: ['slack'],
+    severity: "warning",
+    channels: ["slack"],
     cooldown: 1800, // 30 minutes
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'critical_response_time',
-    name: 'Critical API Response Time',
-    description: 'API response time critically high',
-    metric: 'api.latency.p99',
-    condition: 'above',
+    id: "critical_response_time",
+    name: "Critical API Response Time",
+    description: "API response time critically high",
+    metric: "api.latency.p99",
+    condition: "above",
     threshold: 3000, // 3 seconds
     duration: 60, // 1 minute
-    severity: 'critical',
-    channels: ['slack', 'pagerduty'],
+    severity: "critical",
+    channels: ["slack", "pagerduty"],
     cooldown: 900, // 15 minutes
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'low_cache_hit_rate',
-    name: 'Low Cache Hit Rate',
-    description: 'Cache hit rate below optimal threshold',
-    metric: 'cache.hit_rate',
-    condition: 'below',
+    id: "low_cache_hit_rate",
+    name: "Low Cache Hit Rate",
+    description: "Cache hit rate below optimal threshold",
+    metric: "cache.hit_rate",
+    condition: "below",
     threshold: 0.8, // 80%
     duration: 600, // 10 minutes
-    severity: 'warning',
-    channels: ['slack'],
+    severity: "warning",
+    channels: ["slack"],
     cooldown: 3600, // 1 hour
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'database_slow_queries',
-    name: 'Database Slow Queries',
-    description: 'Database queries taking too long',
-    metric: 'database.query.p95',
-    condition: 'above',
+    id: "database_slow_queries",
+    name: "Database Slow Queries",
+    description: "Database queries taking too long",
+    metric: "database.query.p95",
+    condition: "above",
     threshold: 500, // 500ms
     duration: 300, // 5 minutes
-    severity: 'warning',
-    channels: ['slack'],
+    severity: "warning",
+    channels: ["slack"],
     cooldown: 1800,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'memory_usage_high',
-    name: 'High Memory Usage',
-    description: 'Application memory usage exceeds threshold',
-    metric: 'system.memory.usage',
-    condition: 'above',
+    id: "memory_usage_high",
+    name: "High Memory Usage",
+    description: "Application memory usage exceeds threshold",
+    metric: "system.memory.usage",
+    condition: "above",
     threshold: 0.85, // 85%
     duration: 300,
-    severity: 'warning',
-    channels: ['slack'],
+    severity: "warning",
+    channels: ["slack"],
     cooldown: 1800,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'cpu_usage_critical',
-    name: 'Critical CPU Usage',
-    description: 'CPU usage at critical levels',
-    metric: 'system.cpu.usage',
-    condition: 'above',
+    id: "cpu_usage_critical",
+    name: "Critical CPU Usage",
+    description: "CPU usage at critical levels",
+    metric: "system.cpu.usage",
+    condition: "above",
     threshold: 0.9, // 90%
     duration: 120,
-    severity: 'critical',
-    channels: ['slack', 'pagerduty'],
+    severity: "critical",
+    channels: ["slack", "pagerduty"],
     cooldown: 900,
-    enabled: true
-  }
+    enabled: true,
+  },
 ];
 
 /**
@@ -107,70 +107,70 @@ export const performanceAlerts: AlertRule[] = [
  */
 export const availabilityAlerts: AlertRule[] = [
   {
-    id: 'high_error_rate',
-    name: 'High Error Rate',
-    description: 'Application error rate exceeds threshold',
-    metric: 'http.response.5xx_rate',
-    condition: 'above',
+    id: "high_error_rate",
+    name: "High Error Rate",
+    description: "Application error rate exceeds threshold",
+    metric: "http.response.5xx_rate",
+    condition: "above",
     threshold: 0.01, // 1%
     duration: 300,
-    severity: 'warning',
-    channels: ['slack'],
+    severity: "warning",
+    channels: ["slack"],
     cooldown: 1800,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'critical_error_rate',
-    name: 'Critical Error Rate',
-    description: 'Application error rate critically high',
-    metric: 'http.response.5xx_rate',
-    condition: 'above',
+    id: "critical_error_rate",
+    name: "Critical Error Rate",
+    description: "Application error rate critically high",
+    metric: "http.response.5xx_rate",
+    condition: "above",
     threshold: 0.05, // 5%
     duration: 60,
-    severity: 'critical',
-    channels: ['slack', 'pagerduty'],
+    severity: "critical",
+    channels: ["slack", "pagerduty"],
     cooldown: 900,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'service_down',
-    name: 'Service Down',
-    description: 'Service health check failing',
-    metric: 'health.check.success_rate',
-    condition: 'below',
+    id: "service_down",
+    name: "Service Down",
+    description: "Service health check failing",
+    metric: "health.check.success_rate",
+    condition: "below",
     threshold: 0.5, // 50%
     duration: 60,
-    severity: 'critical',
-    channels: ['slack', 'pagerduty', 'email'],
+    severity: "critical",
+    channels: ["slack", "pagerduty", "email"],
     cooldown: 300,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'database_connection_pool',
-    name: 'Database Connection Pool Exhausted',
-    description: 'Database connection pool near exhaustion',
-    metric: 'database.connections.available',
-    condition: 'below',
+    id: "database_connection_pool",
+    name: "Database Connection Pool Exhausted",
+    description: "Database connection pool near exhaustion",
+    metric: "database.connections.available",
+    condition: "below",
     threshold: 5,
     duration: 120,
-    severity: 'warning',
-    channels: ['slack'],
+    severity: "warning",
+    channels: ["slack"],
     cooldown: 900,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'redis_connection_failed',
-    name: 'Redis Connection Failed',
-    description: 'Redis cache connection failure',
-    metric: 'redis.connection.success',
-    condition: 'equals',
+    id: "redis_connection_failed",
+    name: "Redis Connection Failed",
+    description: "Redis cache connection failure",
+    metric: "redis.connection.success",
+    condition: "equals",
     threshold: 0,
     duration: 30,
-    severity: 'critical',
-    channels: ['slack', 'pagerduty'],
+    severity: "critical",
+    channels: ["slack", "pagerduty"],
     cooldown: 300,
-    enabled: true
-  }
+    enabled: true,
+  },
 ];
 
 /**
@@ -178,70 +178,70 @@ export const availabilityAlerts: AlertRule[] = [
  */
 export const businessAlerts: AlertRule[] = [
   {
-    id: 'low_conversion_rate',
-    name: 'Low Campaign Conversion Rate',
-    description: 'Campaign conversion rate below target',
-    metric: 'business.campaigns.conversion_rate',
-    condition: 'below',
+    id: "low_conversion_rate",
+    name: "Low Campaign Conversion Rate",
+    description: "Campaign conversion rate below target",
+    metric: "business.campaigns.conversion_rate",
+    condition: "below",
     threshold: 0.5, // 50%
     duration: 3600, // 1 hour
-    severity: 'info',
-    channels: ['slack'],
+    severity: "info",
+    channels: ["slack"],
     cooldown: 7200, // 2 hours
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'high_churn_rate',
-    name: 'High User Churn Rate',
-    description: 'User churn rate above acceptable level',
-    metric: 'business.users.churn_rate',
-    condition: 'above',
+    id: "high_churn_rate",
+    name: "High User Churn Rate",
+    description: "User churn rate above acceptable level",
+    metric: "business.users.churn_rate",
+    condition: "above",
     threshold: 0.1, // 10%
     duration: 86400, // 24 hours
-    severity: 'warning',
-    channels: ['slack', 'email'],
+    severity: "warning",
+    channels: ["slack", "email"],
     cooldown: 86400,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'payment_failure_spike',
-    name: 'Payment Failure Spike',
-    description: 'Sudden increase in payment failures',
-    metric: 'payment.failure_rate',
-    condition: 'above',
+    id: "payment_failure_spike",
+    name: "Payment Failure Spike",
+    description: "Sudden increase in payment failures",
+    metric: "payment.failure_rate",
+    condition: "above",
     threshold: 0.05, // 5%
     duration: 600,
-    severity: 'critical',
-    channels: ['slack', 'pagerduty'],
+    severity: "critical",
+    channels: ["slack", "pagerduty"],
     cooldown: 1800,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'low_daily_active_users',
-    name: 'Low Daily Active Users',
-    description: 'Daily active users below expected',
-    metric: 'business.users.dau',
-    condition: 'below',
+    id: "low_daily_active_users",
+    name: "Low Daily Active Users",
+    description: "Daily active users below expected",
+    metric: "business.users.dau",
+    condition: "below",
     threshold: 1000,
     duration: 3600,
-    severity: 'info',
-    channels: ['slack'],
+    severity: "info",
+    channels: ["slack"],
     cooldown: 86400,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'campaign_budget_overrun',
-    name: 'Campaign Budget Overrun',
-    description: 'Campaign spending exceeds budget',
-    metric: 'campaign.budget.overrun_count',
-    condition: 'above',
+    id: "campaign_budget_overrun",
+    name: "Campaign Budget Overrun",
+    description: "Campaign spending exceeds budget",
+    metric: "campaign.budget.overrun_count",
+    condition: "above",
     threshold: 0,
     duration: 60,
-    severity: 'warning',
-    channels: ['slack', 'email'],
+    severity: "warning",
+    channels: ["slack", "email"],
     cooldown: 3600,
-    enabled: true
-  }
+    enabled: true,
+  },
 ];
 
 /**
@@ -249,70 +249,70 @@ export const businessAlerts: AlertRule[] = [
  */
 export const securityAlerts: AlertRule[] = [
   {
-    id: 'suspicious_login_attempts',
-    name: 'Suspicious Login Attempts',
-    description: 'Multiple failed login attempts detected',
-    metric: 'security.login.failed_rate',
-    condition: 'above',
+    id: "suspicious_login_attempts",
+    name: "Suspicious Login Attempts",
+    description: "Multiple failed login attempts detected",
+    metric: "security.login.failed_rate",
+    condition: "above",
     threshold: 0.2, // 20%
     duration: 300,
-    severity: 'warning',
-    channels: ['slack', 'email'],
+    severity: "warning",
+    channels: ["slack", "email"],
     cooldown: 1800,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'rate_limit_abuse',
-    name: 'Rate Limit Abuse',
-    description: 'Excessive rate limit violations',
-    metric: 'security.rate_limit.violations',
-    condition: 'above',
+    id: "rate_limit_abuse",
+    name: "Rate Limit Abuse",
+    description: "Excessive rate limit violations",
+    metric: "security.rate_limit.violations",
+    condition: "above",
     threshold: 100,
     duration: 60,
-    severity: 'warning',
-    channels: ['slack'],
+    severity: "warning",
+    channels: ["slack"],
     cooldown: 900,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'sql_injection_attempt',
-    name: 'SQL Injection Attempt',
-    description: 'Potential SQL injection detected',
-    metric: 'security.sql_injection.attempts',
-    condition: 'above',
+    id: "sql_injection_attempt",
+    name: "SQL Injection Attempt",
+    description: "Potential SQL injection detected",
+    metric: "security.sql_injection.attempts",
+    condition: "above",
     threshold: 0,
     duration: 1,
-    severity: 'critical',
-    channels: ['slack', 'pagerduty', 'email'],
+    severity: "critical",
+    channels: ["slack", "pagerduty", "email"],
     cooldown: 0, // Always alert
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'unauthorized_access',
-    name: 'Unauthorized Access Attempt',
-    description: 'Unauthorized API access detected',
-    metric: 'security.unauthorized.attempts',
-    condition: 'above',
+    id: "unauthorized_access",
+    name: "Unauthorized Access Attempt",
+    description: "Unauthorized API access detected",
+    metric: "security.unauthorized.attempts",
+    condition: "above",
     threshold: 10,
     duration: 300,
-    severity: 'warning',
-    channels: ['slack'],
+    severity: "warning",
+    channels: ["slack"],
     cooldown: 1800,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'data_breach_detection',
-    name: 'Potential Data Breach',
-    description: 'Unusual data access pattern detected',
-    metric: 'security.data_access.anomaly_score',
-    condition: 'above',
+    id: "data_breach_detection",
+    name: "Potential Data Breach",
+    description: "Unusual data access pattern detected",
+    metric: "security.data_access.anomaly_score",
+    condition: "above",
     threshold: 0.8,
     duration: 60,
-    severity: 'critical',
-    channels: ['slack', 'pagerduty', 'email'],
+    severity: "critical",
+    channels: ["slack", "pagerduty", "email"],
     cooldown: 0,
-    enabled: true
-  }
+    enabled: true,
+  },
 ];
 
 /**
@@ -320,70 +320,70 @@ export const securityAlerts: AlertRule[] = [
  */
 export const infrastructureAlerts: AlertRule[] = [
   {
-    id: 'disk_space_low',
-    name: 'Low Disk Space',
-    description: 'Server disk space running low',
-    metric: 'system.disk.usage',
-    condition: 'above',
+    id: "disk_space_low",
+    name: "Low Disk Space",
+    description: "Server disk space running low",
+    metric: "system.disk.usage",
+    condition: "above",
     threshold: 0.8, // 80%
     duration: 600,
-    severity: 'warning',
-    channels: ['slack'],
+    severity: "warning",
+    channels: ["slack"],
     cooldown: 3600,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'container_restart_loop',
-    name: 'Container Restart Loop',
-    description: 'Container continuously restarting',
-    metric: 'kubernetes.pod.restart_count',
-    condition: 'above',
+    id: "container_restart_loop",
+    name: "Container Restart Loop",
+    description: "Container continuously restarting",
+    metric: "kubernetes.pod.restart_count",
+    condition: "above",
     threshold: 5,
     duration: 600,
-    severity: 'critical',
-    channels: ['slack', 'pagerduty'],
+    severity: "critical",
+    channels: ["slack", "pagerduty"],
     cooldown: 1800,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'load_balancer_unhealthy',
-    name: 'Load Balancer Unhealthy Targets',
-    description: 'Load balancer has unhealthy targets',
-    metric: 'aws.alb.unhealthy_targets',
-    condition: 'above',
+    id: "load_balancer_unhealthy",
+    name: "Load Balancer Unhealthy Targets",
+    description: "Load balancer has unhealthy targets",
+    metric: "aws.alb.unhealthy_targets",
+    condition: "above",
     threshold: 0,
     duration: 120,
-    severity: 'warning',
-    channels: ['slack'],
+    severity: "warning",
+    channels: ["slack"],
     cooldown: 900,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'certificate_expiry',
-    name: 'SSL Certificate Expiring',
-    description: 'SSL certificate expiring soon',
-    metric: 'security.ssl.days_until_expiry',
-    condition: 'below',
+    id: "certificate_expiry",
+    name: "SSL Certificate Expiring",
+    description: "SSL certificate expiring soon",
+    metric: "security.ssl.days_until_expiry",
+    condition: "below",
     threshold: 30,
     duration: 3600,
-    severity: 'warning',
-    channels: ['slack', 'email'],
+    severity: "warning",
+    channels: ["slack", "email"],
     cooldown: 86400,
-    enabled: true
+    enabled: true,
   },
   {
-    id: 'backup_failure',
-    name: 'Backup Job Failed',
-    description: 'Database backup job failed',
-    metric: 'backup.success_rate',
-    condition: 'below',
+    id: "backup_failure",
+    name: "Backup Job Failed",
+    description: "Database backup job failed",
+    metric: "backup.success_rate",
+    condition: "below",
     threshold: 1,
     duration: 60,
-    severity: 'critical',
-    channels: ['slack', 'email'],
+    severity: "critical",
+    channels: ["slack", "email"],
     cooldown: 3600,
-    enabled: true
-  }
+    enabled: true,
+  },
 ];
 
 /**
@@ -394,7 +394,7 @@ export const allAlertRules: AlertRule[] = [
   ...availabilityAlerts,
   ...businessAlerts,
   ...securityAlerts,
-  ...infrastructureAlerts
+  ...infrastructureAlerts,
 ];
 
 /**
@@ -402,9 +402,9 @@ export const allAlertRules: AlertRule[] = [
  */
 export class AlertRuleManager {
   private static rules: Map<string, AlertRule> = new Map(
-    allAlertRules.map(rule => [rule.id, rule])
+    allAlertRules.map((rule) => [rule.id, rule]),
   );
-  
+
   private static lastAlertTime: Map<string, number> = new Map();
 
   static getRule(id: string): AlertRule | undefined {
@@ -416,18 +416,18 @@ export class AlertRuleManager {
   }
 
   static getEnabledRules(): AlertRule[] {
-    return Array.from(this.rules.values()).filter(rule => rule.enabled);
+    return Array.from(this.rules.values()).filter((rule) => rule.enabled);
   }
 
   static getRulesByMetric(metric: string): AlertRule[] {
     return Array.from(this.rules.values()).filter(
-      rule => rule.metric === metric
+      (rule) => rule.metric === metric,
     );
   }
 
   static getRulesBySeverity(severity: string): AlertRule[] {
     return Array.from(this.rules.values()).filter(
-      rule => rule.severity === severity
+      (rule) => rule.severity === severity,
     );
   }
 

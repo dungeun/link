@@ -1,52 +1,58 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useLanguage } from '@/hooks/useLanguage'
+import { useState, useEffect } from "react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface Category {
-  id: string
-  name: string
-  slug: string
-  icon?: string
-  color?: string
-  description?: string
-  showInMenu: boolean
-  menuOrder: number | null
-  isActive: boolean
-  level: number
-  parentId?: string | null
-  children?: Category[]
+  id: string;
+  name: string;
+  slug: string;
+  icon?: string;
+  color?: string;
+  description?: string;
+  showInMenu: boolean;
+  menuOrder: number | null;
+  isActive: boolean;
+  level: number;
+  parentId?: string | null;
+  children?: Category[];
 }
 
 interface EditModalProps {
-  category: Category | null
-  parentCategory?: Category
-  onClose: () => void
-  onSave: (data: Partial<Category>) => void
-  isNew?: boolean
+  category: Category | null;
+  parentCategory?: Category;
+  onClose: () => void;
+  onSave: (data: Partial<Category>) => void;
+  isNew?: boolean;
 }
 
-function EditModal({ category, parentCategory, onClose, onSave, isNew }: EditModalProps) {
+function EditModal({
+  category,
+  parentCategory,
+  onClose,
+  onSave,
+  isNew,
+}: EditModalProps) {
   const [formData, setFormData] = useState({
-    name: category?.name || '',
-    slug: category?.slug || '',
-    color: category?.color || '',
-    description: category?.description || ''
-  })
+    name: category?.name || "",
+    slug: category?.slug || "",
+    color: category?.color || "",
+    description: category?.description || "",
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(formData)
-  }
+    e.preventDefault();
+    onSave(formData);
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h3 className="text-lg font-semibold mb-4">
-          {isNew ? '중분류 추가' : '중분류 수정'}
+          {isNew ? "중분류 추가" : "중분류 수정"}
           {parentCategory && ` - ${parentCategory.name}`}
         </h3>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -56,7 +62,9 @@ function EditModal({ category, parentCategory, onClose, onSave, isNew }: EditMod
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className="w-full px-3 py-2 border rounded-md"
                 required
               />
@@ -69,13 +77,19 @@ function EditModal({ category, parentCategory, onClose, onSave, isNew }: EditMod
               <input
                 type="text"
                 value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    slug: e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9-]/g, "-"),
+                  })
+                }
                 className="w-full px-3 py-2 border rounded-md"
                 required
                 placeholder="예: fashion, beauty"
               />
             </div>
-
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -83,8 +97,10 @@ function EditModal({ category, parentCategory, onClose, onSave, isNew }: EditMod
               </label>
               <input
                 type="color"
-                value={formData.color || '#3B82F6'}
-                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                value={formData.color || "#3B82F6"}
+                onChange={(e) =>
+                  setFormData({ ...formData, color: e.target.value })
+                }
                 className="w-full h-10 px-2 py-1 border rounded-md cursor-pointer"
               />
             </div>
@@ -95,7 +111,9 @@ function EditModal({ category, parentCategory, onClose, onSave, isNew }: EditMod
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 className="w-full px-3 py-2 border rounded-md"
                 rows={3}
               />
@@ -114,96 +132,105 @@ function EditModal({ category, parentCategory, onClose, onSave, isNew }: EditMod
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              {isNew ? '추가' : '저장'}
+              {isNew ? "추가" : "저장"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }
 
-function MainCategoryItem({ category, onReload }: { category: Category; onReload: () => void }) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-  const [isAddingNew, setIsAddingNew] = useState(false)
+function MainCategoryItem({
+  category,
+  onReload,
+}: {
+  category: Category;
+  onReload: () => void;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
 
   const handleAddSubCategory = async (data: Partial<Category>) => {
     try {
-      const response = await fetch('/api/admin/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
           parentId: category.id,
           level: 2,
           showInMenu: false,
-          isActive: true
-        })
-      })
+          isActive: true,
+        }),
+      });
 
       if (response.ok) {
-        setIsAddingNew(false)
-        onReload()
+        setIsAddingNew(false);
+        onReload();
       }
     } catch (error) {
-      console.error('Error adding subcategory:', error)
+      console.error("Error adding subcategory:", error);
     }
-  }
+  };
 
-  const handleEditSubCategory = async (subCategory: Category, data: Partial<Category>) => {
+  const handleEditSubCategory = async (
+    subCategory: Category,
+    data: Partial<Category>,
+  ) => {
     try {
       const response = await fetch(`/api/admin/categories/${subCategory.id}`, {
-        method: 'PUT',  
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
       if (response.ok) {
-        setEditingCategory(null)
-        onReload()
+        setEditingCategory(null);
+        onReload();
       }
     } catch (error) {
-      console.error('Error updating subcategory:', error)
+      console.error("Error updating subcategory:", error);
     }
-  }
+  };
 
   const handleDeleteSubCategory = async (subCategory: Category) => {
     if (!confirm(`정말 "${subCategory.name}" 중분류를 삭제하시겠습니까?`)) {
-      return
+      return;
     }
 
     try {
       const response = await fetch(`/api/admin/categories/${subCategory.id}`, {
-        method: 'DELETE'
-      })
+        method: "DELETE",
+      });
 
       if (response.ok) {
-        onReload()
+        onReload();
       } else {
-        const error = await response.json()
-        alert(error.error || '삭제 실패')
+        const error = await response.json();
+        alert(error.error || "삭제 실패");
       }
     } catch (error) {
-      console.error('Error deleting subcategory:', error)
+      console.error("Error deleting subcategory:", error);
     }
-  }
+  };
 
   const handleToggleActive = async (subCategory: Category) => {
     try {
       const response = await fetch(`/api/admin/categories/${subCategory.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !subCategory.isActive })
-      })
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !subCategory.isActive }),
+      });
 
       if (response.ok) {
-        onReload()
+        onReload();
       }
     } catch (error) {
-      console.error('Error toggling active:', error)
+      console.error("Error toggling active:", error);
     }
-  }
+  };
 
   return (
     <div className="bg-white border rounded-lg mb-4">
@@ -214,16 +241,21 @@ function MainCategoryItem({ category, onReload }: { category: Category; onReload
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-1 hover:bg-gray-100 rounded"
           >
-            <svg 
-              className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
-          
+
           <div>
             <h3 className="font-semibold text-gray-900">{category.name}</h3>
             <p className="text-sm text-gray-500">/{category.slug}</p>
@@ -234,7 +266,7 @@ function MainCategoryItem({ category, onReload }: { category: Category; onReload
           <span className="text-sm text-gray-600">
             중분류: {category.children?.length || 0}개
           </span>
-          
+
           <button
             onClick={() => setIsAddingNew(true)}
             className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
@@ -249,15 +281,17 @@ function MainCategoryItem({ category, onReload }: { category: Category; onReload
         <div className="border-t">
           <div className="p-4 space-y-2">
             {category.children && category.children.length > 0 ? (
-              category.children.map(subCategory => (
-                <div 
-                  key={subCategory.id} 
+              category.children.map((subCategory) => (
+                <div
+                  key={subCategory.id}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
                     <div>
                       <span className="font-medium">{subCategory.name}</span>
-                      <span className="text-sm text-gray-500 ml-2">/{subCategory.slug}</span>
+                      <span className="text-sm text-gray-500 ml-2">
+                        /{subCategory.slug}
+                      </span>
                     </div>
                   </div>
 
@@ -278,7 +312,7 @@ function MainCategoryItem({ category, onReload }: { category: Category; onReload
                     >
                       수정
                     </button>
-                    
+
                     <button
                       onClick={() => handleDeleteSubCategory(subCategory)}
                       className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-sm"
@@ -290,7 +324,8 @@ function MainCategoryItem({ category, onReload }: { category: Category; onReload
               ))
             ) : (
               <p className="text-gray-500 text-sm text-center py-4">
-                중분류가 없습니다. 위의 &quot;중분류 추가&quot; 버튼을 클릭하여 추가하세요.
+                중분류가 없습니다. 위의 &quot;중분류 추가&quot; 버튼을 클릭하여
+                추가하세요.
               </p>
             )}
           </div>
@@ -318,46 +353,51 @@ function MainCategoryItem({ category, onReload }: { category: Category; onReload
         />
       )}
     </div>
-  )
+  );
 }
 
 export function CategoryConfigTab() {
-  const { t } = useLanguage()
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
+  const { t } = useLanguage();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/admin/categories')
-      const data = await response.json()
+      const response = await fetch("/api/admin/categories");
+      const data = await response.json();
       if (data.success) {
         // 대분류 카테고리만 필터링하고 children 포함
         const mainCategories = data.categories
           .filter((cat: Category) => cat.level === 1)
           .map((cat: Category) => ({
             ...cat,
-            children: data.categories.filter((child: Category) => child.parentId === cat.id)
+            children: data.categories.filter(
+              (child: Category) => child.parentId === cat.id,
+            ),
           }))
-          .sort((a: Category, b: Category) => (a.menuOrder || 999) - (b.menuOrder || 999))
-        setCategories(mainCategories)
+          .sort(
+            (a: Category, b: Category) =>
+              (a.menuOrder || 999) - (b.menuOrder || 999),
+          );
+        setCategories(mainCategories);
       }
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error("Error fetching categories:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchCategories()
-  }, [])
+    fetchCategories();
+  }, []);
 
   if (loading) {
     return (
       <div className="bg-white rounded-lg p-6">
         <div className="text-center text-gray-500">로딩 중...</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -365,28 +405,42 @@ export function CategoryConfigTab() {
       <div className="bg-white rounded-lg p-6">
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {t('admin.ui.categories.title', '카테고리 설정')}
+            {t("admin.ui.categories.title", "카테고리 설정")}
           </h2>
           <p className="text-sm text-gray-600">
-            {t('admin.ui.categories.description', '대분류 카테고리와 중분류를 관리합니다. 중분류는 자유롭게 추가/수정/삭제할 수 있습니다.')}
+            {t(
+              "admin.ui.categories.description",
+              "대분류 카테고리와 중분류를 관리합니다. 중분류는 자유롭게 추가/수정/삭제할 수 있습니다.",
+            )}
           </p>
         </div>
 
         {/* 대분류 추가 제한 안내 */}
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="w-5 h-5 text-yellow-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
             <span className="text-sm text-yellow-800">
-              대분류 카테고리 추가는 추가 비용이 발생합니다. 필요시 관리자에게 문의하세요.
+              대분류 카테고리 추가는 추가 비용이 발생합니다. 필요시 관리자에게
+              문의하세요.
             </span>
           </div>
         </div>
 
         {/* 카테고리 목록 */}
         <div className="space-y-4">
-          {categories.map(category => (
+          {categories.map((category) => (
             <MainCategoryItem
               key={category.id}
               category={category}
@@ -400,10 +454,17 @@ export function CategoryConfigTab() {
           <h3 className="font-medium text-gray-900 mb-2">카테고리 통계</h3>
           <ul className="text-sm text-gray-600 space-y-1">
             <li>• 대분류: {categories.length}개 (고정)</li>
-            <li>• 전체 중분류: {categories.reduce((acc, cat) => acc + (cat.children?.length || 0), 0)}개</li>
+            <li>
+              • 전체 중분류:{" "}
+              {categories.reduce(
+                (acc, cat) => acc + (cat.children?.length || 0),
+                0,
+              )}
+              개
+            </li>
           </ul>
         </div>
       </div>
     </div>
-  )
+  );
 }

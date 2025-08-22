@@ -18,7 +18,7 @@ class APICache {
   async fetch<T>(
     key: string,
     fetcher: () => Promise<T>,
-    ttl: number = 60000 // 기본 1분
+    ttl: number = 60000, // 기본 1분
   ): Promise<T> {
     // 캐시 확인
     const cached = this.cache.get(key);
@@ -34,12 +34,12 @@ class APICache {
 
     // 새 요청 시작
     const promise = fetcher()
-      .then(data => {
+      .then((data) => {
         // 캐시 저장
         this.cache.set(key, {
           data,
           timestamp: Date.now(),
-          expiresAt: Date.now() + ttl
+          expiresAt: Date.now() + ttl,
         });
         return data;
       })
@@ -96,10 +96,13 @@ class APICache {
 export const apiCache = new APICache();
 
 // 5분마다 자동 정리
-if (typeof window !== 'undefined') {
-  setInterval(() => {
-    apiCache.cleanup();
-  }, 5 * 60 * 1000);
+if (typeof window !== "undefined") {
+  setInterval(
+    () => {
+      apiCache.cleanup();
+    },
+    5 * 60 * 1000,
+  );
 }
 
 /**
@@ -108,46 +111,58 @@ if (typeof window !== 'undefined') {
 export async function cachedFetch<T>(
   url: string,
   options?: RequestInit,
-  ttl?: number
+  ttl?: number,
 ): Promise<T> {
   const cacheKey = `${url}:${JSON.stringify(options?.body || {})}`;
-  
-  return apiCache.fetch(cacheKey, async () => {
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    return response.json();
-  }, ttl);
+
+  return apiCache.fetch(
+    cacheKey,
+    async () => {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    ttl,
+  );
 }
 
 /**
  * auth/me 전용 캐싱 - 더 긴 TTL
  */
 export async function fetchAuthMe(token: string): Promise<any> {
-  return apiCache.fetch('auth:me', async () => {
-    const response = await fetch('/api/auth/me', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+  return apiCache.fetch(
+    "auth:me",
+    async () => {
+      const response = await fetch("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch user");
       }
-    });
-    if (!response.ok) {
-      throw new Error('Failed to fetch user');
-    }
-    return response.json();
-  }, 5 * 60 * 1000); // 5분 캐싱
+      return response.json();
+    },
+    5 * 60 * 1000,
+  ); // 5분 캐싱
 }
 
 /**
  * public/settings 전용 캐싱 - 매우 긴 TTL
  */
 export async function fetchPublicSettings(): Promise<any> {
-  return apiCache.fetch('public:settings', async () => {
-    const response = await fetch('/api/public/settings');
-    if (!response.ok) {
-      throw new Error('Failed to fetch settings');
-    }
-    return response.json();
-  }, 30 * 60 * 1000); // 30분 캐싱
+  return apiCache.fetch(
+    "public:settings",
+    async () => {
+      const response = await fetch("/api/public/settings");
+      if (!response.ok) {
+        throw new Error("Failed to fetch settings");
+      }
+      return response.json();
+    },
+    30 * 60 * 1000,
+  ); // 30분 캐싱
 }

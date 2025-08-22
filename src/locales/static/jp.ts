@@ -3,18 +3,21 @@
 
 export const translations = {
   "admin.ui.title": "UI設定管理",
-  "admin.ui.description": "ヘッダー、フッター、ホームページセクションを管理します。",
+  "admin.ui.description":
+    "ヘッダー、フッター、ホームページセクションを管理します。",
   "admin.ui.tab.header": "ヘッダー設定",
   "admin.ui.tab.footer": "フッター設定",
   "admin.ui.tab.sections": "セクション管理",
   "admin.ui.tab.sectionOrder": "セクション順序",
-  "admin.ui.dbConnected": "このページはデータベースと完全に連動しています。すべての変更はリアルタイムで保存され、自動翻訳機能が含まれています。",
+  "admin.ui.dbConnected":
+    "このページはデータベースと完全に連動しています。すべての変更はリアルタイムで保存され、自動翻訳機能が含まれています。",
   "admin.header.title": "ヘッダーメニュー設定",
   "admin.header.addMenu": "メニュー追加",
   "admin.header.menuName": "メニュー名",
   "admin.header.linkUrl": "リンクURL",
   "admin.header.icon": "アイコン",
-  "admin.header.autoTranslate": "メニュー名は自動的に英語と日本語に翻訳されます。",
+  "admin.header.autoTranslate":
+    "メニュー名は自動的に英語と日本語に翻訳されます。",
   "admin.footer.title": "フッターセクション設定",
   "admin.footer.addSection": "セクション追加",
   "admin.footer.sectionTitle": "セクションタイトル",
@@ -23,7 +26,8 @@ export const translations = {
   "admin.footer.visible": "表示",
   "admin.footer.hidden": "非表示",
   "admin.footer.delete": "削除",
-  "admin.footer.noSections": "フッターセクションがありません。上の「セクション追加」ボタンをクリックしてセクションを追加してください。",
+  "admin.footer.noSections":
+    "フッターセクションがありません。上の「セクション追加」ボタンをクリックしてセクションを追加してください。",
   "admin.footer.noLinks": "リンクがありません。",
   "header.notification": "お知らせ",
   "header.no_notifications": "お知らせがありません",
@@ -50,7 +54,8 @@ export const translations = {
   "status.loading": "読み込み中...",
   "status.no_data": "データがありません",
   "translation.title": "翻訳管理",
-  "translation.description": "キャンペーン、投稿、メニューの多言語翻訳を管理します。",
+  "translation.description":
+    "キャンペーン、投稿、メニューの多言語翻訳を管理します。",
   "translation.tab.campaign": "キャンペーン",
   "translation.tab.post": "投稿",
   "translation.tab.menu": "メニュー",
@@ -103,7 +108,7 @@ export const translations = {
   "category.review": "レビュー",
   "category.digital": "デジタル",
   "category.restaurant": "レストラン",
-  "category.restaurant_review": "レストランレビュー"
+  "category.restaurant_review": "レストランレビュー",
 } as const;
 
 export type TranslationKey = keyof typeof translations;

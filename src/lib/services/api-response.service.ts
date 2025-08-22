@@ -37,7 +37,7 @@ export interface PaginationMeta {
 
 export interface SortMeta {
   field: string;
-  order: 'asc' | 'desc';
+  order: "asc" | "desc";
 }
 
 export interface CacheMeta {
@@ -60,19 +60,19 @@ export interface StandardCampaignResponse {
   endDate: string;
   applicationEndDate?: string;
   maxApplicants: number;
-  
+
   // 정규화된 데이터
   hashtags: string[];
   platforms: { platform: string; isPrimary: boolean }[];
   images: {
     url: string;
-    type: 'MAIN' | 'HEADER' | 'THUMBNAIL' | 'DETAIL' | 'PRODUCT';
+    type: "MAIN" | "HEADER" | "THUMBNAIL" | "DETAIL" | "PRODUCT";
     order: number;
     alt?: string;
     caption?: string;
   }[];
   keywords: { keyword: string; weight: number }[];
-  
+
   // 비즈니스 정보
   business: {
     id: string;
@@ -81,7 +81,7 @@ export interface StandardCampaignResponse {
     category?: string;
     verified: boolean;
   };
-  
+
   // 카테고리 정보
   categories: {
     id: string;
@@ -89,14 +89,14 @@ export interface StandardCampaignResponse {
     slug: string;
     isPrimary: boolean;
   }[];
-  
+
   // 통계 정보
   stats: {
     applicationCount: number;
     approvedCount: number;
     viewCount: number;
   };
-  
+
   // 메타데이터
   createdAt: string;
   updatedAt: string;
@@ -110,10 +110,10 @@ export interface StandardUserResponse {
   id: string;
   name: string;
   email: string;
-  type: 'ADMIN' | 'BUSINESS' | 'INFLUENCER';
+  type: "ADMIN" | "BUSINESS" | "INFLUENCER";
   status: string;
   verified: boolean;
-  
+
   // 타입별 프로필 정보
   profile?: {
     // 인플루언서 프로필
@@ -126,7 +126,7 @@ export interface StandardUserResponse {
       verified: boolean;
     }[];
     categories?: string[];
-    
+
     // 비즈니스 프로필
     companyName?: string;
     businessNumber?: string;
@@ -134,7 +134,7 @@ export interface StandardUserResponse {
     businessCategory?: string;
     businessAddress?: string;
   };
-  
+
   createdAt: string;
   lastLogin?: string;
 }
@@ -148,7 +148,7 @@ export class ApiResponseService {
       success: true,
       data,
       meta,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -159,7 +159,7 @@ export class ApiResponseService {
     code: string,
     message: string,
     details?: any,
-    field?: string
+    field?: string,
   ): StandardApiResponse {
     return {
       success: false,
@@ -167,9 +167,9 @@ export class ApiResponseService {
         code,
         message,
         details,
-        field
+        field,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -182,10 +182,10 @@ export class ApiResponseService {
     limit: number,
     total: number,
     filters?: Record<string, any>,
-    sort?: SortMeta
+    sort?: SortMeta,
   ): StandardApiResponse<T[]> {
     const totalPages = Math.ceil(total / limit);
-    
+
     return this.success(data, {
       pagination: {
         page,
@@ -193,11 +193,11 @@ export class ApiResponseService {
         total,
         totalPages,
         hasNext: page < totalPages,
-        hasPrevious: page > 1
+        hasPrevious: page > 1,
       },
       total,
       filters,
-      sort
+      sort,
     });
   }
 
@@ -209,7 +209,7 @@ export class ApiResponseService {
     cacheKey: string,
     ttl: number,
     generatedAt?: string,
-    meta?: ResponseMeta
+    meta?: ResponseMeta,
   ): StandardApiResponse<T> {
     return this.success(data, {
       ...meta,
@@ -217,8 +217,8 @@ export class ApiResponseService {
         cached: true,
         cacheKey,
         ttl,
-        generatedAt
-      }
+        generatedAt,
+      },
     });
   }
 
@@ -238,50 +238,55 @@ export class ApiResponseService {
       endDate: campaign.endDate?.toISOString(),
       applicationEndDate: campaign.applicationEndDate?.toISOString(),
       maxApplicants: campaign.maxApplicants,
-      
+
       hashtags: campaign.campaignHashtags?.map((h: any) => h.hashtag) || [],
-      platforms: campaign.campaignPlatforms?.map((p: any) => ({
-        platform: p.platform,
-        isPrimary: p.isPrimary
-      })) || [],
-      images: campaign.campaignImages?.map((img: any) => ({
-        url: img.imageUrl,
-        type: img.type,
-        order: img.order,
-        alt: img.alt,
-        caption: img.caption
-      })) || [],
-      keywords: campaign.campaignKeywords?.map((k: any) => ({
-        keyword: k.keyword,
-        weight: k.weight
-      })) || [],
-      
+      platforms:
+        campaign.campaignPlatforms?.map((p: any) => ({
+          platform: p.platform,
+          isPrimary: p.isPrimary,
+        })) || [],
+      images:
+        campaign.campaignImages?.map((img: any) => ({
+          url: img.imageUrl,
+          type: img.type,
+          order: img.order,
+          alt: img.alt,
+          caption: img.caption,
+        })) || [],
+      keywords:
+        campaign.campaignKeywords?.map((k: any) => ({
+          keyword: k.keyword,
+          weight: k.weight,
+        })) || [],
+
       business: {
         id: campaign.business?.id || campaign.businessId,
-        name: campaign.business?.name || '',
+        name: campaign.business?.name || "",
         companyName: campaign.business?.businessProfile?.companyName,
         category: campaign.business?.businessProfile?.businessCategory,
-        verified: campaign.business?.businessProfile?.isVerified || false
+        verified: campaign.business?.businessProfile?.isVerified || false,
       },
-      
-      categories: campaign.categories?.map((cat: any) => ({
-        id: cat.category?.id || cat.categoryId,
-        name: cat.category?.name || '',
-        slug: cat.category?.slug || '',
-        isPrimary: cat.isPrimary
-      })) || [],
-      
+
+      categories:
+        campaign.categories?.map((cat: any) => ({
+          id: cat.category?.id || cat.categoryId,
+          name: cat.category?.name || "",
+          slug: cat.category?.slug || "",
+          isPrimary: cat.isPrimary,
+        })) || [],
+
       stats: {
-        applicationCount: campaign.application_count || campaign._count?.applications || 0,
+        applicationCount:
+          campaign.application_count || campaign._count?.applications || 0,
         approvedCount: campaign.approved_count || 0,
-        viewCount: campaign.viewCount || 0
+        viewCount: campaign.viewCount || 0,
       },
-      
+
       createdAt: campaign.createdAt?.toISOString(),
       updatedAt: campaign.updatedAt?.toISOString(),
       computedStatus: this.computeCampaignStatus(campaign),
       daysRemaining: this.calculateDaysRemaining(campaign.endDate),
-      effectiveBudget: campaign.budget || campaign.rewardAmount || 0
+      effectiveBudget: campaign.budget || campaign.rewardAmount || 0,
     };
   }
 
@@ -296,11 +301,11 @@ export class ApiResponseService {
       type: user.type,
       status: user.status,
       verified: this.getUserVerificationStatus(user),
-      
+
       profile: this.transformUserProfile(user),
-      
+
       createdAt: user.createdAt?.toISOString(),
-      lastLogin: user.lastLogin?.toISOString()
+      lastLogin: user.lastLogin?.toISOString(),
     };
   }
 
@@ -308,38 +313,46 @@ export class ApiResponseService {
    * 사용자 프로필 변환
    */
   private static transformUserProfile(user: any) {
-    if (user.type === 'INFLUENCER' && user.profile) {
+    if (user.type === "INFLUENCER" && user.profile) {
       return {
         bio: user.profile.bio,
         profileImage: user.profile.profileImage,
         socialAccounts: [
-          ...(user.profile.instagram ? [{
-            platform: 'INSTAGRAM',
-            username: user.profile.instagram,
-            followers: user.profile.instagramFollowers || 0,
-            verified: false
-          }] : []),
-          ...(user.profile.youtube ? [{
-            platform: 'YOUTUBE',
-            username: user.profile.youtube,
-            followers: user.profile.youtubeSubscribers || 0,
-            verified: false
-          }] : [])
+          ...(user.profile.instagram
+            ? [
+                {
+                  platform: "INSTAGRAM",
+                  username: user.profile.instagram,
+                  followers: user.profile.instagramFollowers || 0,
+                  verified: false,
+                },
+              ]
+            : []),
+          ...(user.profile.youtube
+            ? [
+                {
+                  platform: "YOUTUBE",
+                  username: user.profile.youtube,
+                  followers: user.profile.youtubeSubscribers || 0,
+                  verified: false,
+                },
+              ]
+            : []),
         ],
-        categories: user.profile.categories
+        categories: user.profile.categories,
       };
     }
-    
-    if (user.type === 'BUSINESS' && user.businessProfile) {
+
+    if (user.type === "BUSINESS" && user.businessProfile) {
       return {
         companyName: user.businessProfile.companyName,
         businessNumber: user.businessProfile.businessNumber,
         representativeName: user.businessProfile.representativeName,
         businessCategory: user.businessProfile.businessCategory,
-        businessAddress: user.businessProfile.businessAddress
+        businessAddress: user.businessProfile.businessAddress,
       };
     }
-    
+
     return undefined;
   }
 
@@ -347,10 +360,10 @@ export class ApiResponseService {
    * 사용자 검증 상태 확인
    */
   private static getUserVerificationStatus(user: any): boolean {
-    if (user.type === 'INFLUENCER') {
+    if (user.type === "INFLUENCER") {
       return user.profile?.isVerified || false;
     }
-    if (user.type === 'BUSINESS') {
+    if (user.type === "BUSINESS") {
       return user.businessProfile?.isVerified || false;
     }
     return true; // ADMIN은 기본적으로 검증됨
@@ -363,51 +376,53 @@ export class ApiResponseService {
     const now = new Date();
     const endDate = new Date(campaign.endDate);
     const startDate = new Date(campaign.startDate);
-    
-    if (endDate < now) return 'EXPIRED';
-    if (startDate > now) return 'UPCOMING';
+
+    if (endDate < now) return "EXPIRED";
+    if (startDate > now) return "UPCOMING";
     return campaign.status;
   }
 
   /**
    * 남은 일수 계산
    */
-  private static calculateDaysRemaining(endDate: Date | string): number | undefined {
+  private static calculateDaysRemaining(
+    endDate: Date | string,
+  ): number | undefined {
     if (!endDate) return undefined;
-    
+
     const end = new Date(endDate);
     const now = new Date();
     const diffTime = end.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays > 0 ? diffDays : 0;
   }
 
   /**
    * 일반적인 에러 응답들
    */
-  static notFound(resource: string = 'Resource'): StandardApiResponse {
-    return this.error('NOT_FOUND', `${resource} not found`);
+  static notFound(resource: string = "Resource"): StandardApiResponse {
+    return this.error("NOT_FOUND", `${resource} not found`);
   }
 
   static unauthorized(): StandardApiResponse {
-    return this.error('UNAUTHORIZED', 'Authentication required');
+    return this.error("UNAUTHORIZED", "Authentication required");
   }
 
   static forbidden(): StandardApiResponse {
-    return this.error('FORBIDDEN', 'Access denied');
+    return this.error("FORBIDDEN", "Access denied");
   }
 
-  static badRequest(message: string = 'Invalid request'): StandardApiResponse {
-    return this.error('BAD_REQUEST', message);
+  static badRequest(message: string = "Invalid request"): StandardApiResponse {
+    return this.error("BAD_REQUEST", message);
   }
 
   static validationError(field: string, message: string): StandardApiResponse {
-    return this.error('VALIDATION_ERROR', message, null, field);
+    return this.error("VALIDATION_ERROR", message, null, field);
   }
 
   static internalError(): StandardApiResponse {
-    return this.error('INTERNAL_ERROR', 'Internal server error');
+    return this.error("INTERNAL_ERROR", "Internal server error");
   }
 }
 
@@ -417,7 +432,9 @@ export class NextApiResponseHelper {
    * Next.js Response 객체에 표준 응답 전송
    */
   static send(res: any, response: StandardApiResponse, statusCode?: number) {
-    const status = statusCode || (response.success ? 200 : this.getErrorStatusCode(response.error?.code));
+    const status =
+      statusCode ||
+      (response.success ? 200 : this.getErrorStatusCode(response.error?.code));
     return res.status(status).json(response);
   }
 
@@ -426,13 +443,19 @@ export class NextApiResponseHelper {
    */
   private static getErrorStatusCode(errorCode?: string): number {
     switch (errorCode) {
-      case 'NOT_FOUND': return 404;
-      case 'UNAUTHORIZED': return 401;
-      case 'FORBIDDEN': return 403;
-      case 'BAD_REQUEST':
-      case 'VALIDATION_ERROR': return 400;
-      case 'INTERNAL_ERROR': return 500;
-      default: return 400;
+      case "NOT_FOUND":
+        return 404;
+      case "UNAUTHORIZED":
+        return 401;
+      case "FORBIDDEN":
+        return 403;
+      case "BAD_REQUEST":
+      case "VALIDATION_ERROR":
+        return 400;
+      case "INTERNAL_ERROR":
+        return 500;
+      default:
+        return 400;
     }
   }
 }

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { CampaignListOptimizer } from '@/lib/services/campaign-list-optimizer';
+import { NextRequest, NextResponse } from "next/server";
+import { CampaignListOptimizer } from "@/lib/services/campaign-list-optimizer";
 
 /**
  * 최적화된 캠페인 리스트 API
@@ -10,20 +10,20 @@ import { CampaignListOptimizer } from '@/lib/services/campaign-list-optimizer';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     // 파라미터 파싱
-    const cursor = searchParams.get('cursor') || undefined;
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const category = searchParams.get('category') || undefined;
-    const sort = searchParams.get('sort') || 'latest';
-    const search = searchParams.get('search') || undefined;
+    const cursor = searchParams.get("cursor") || undefined;
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const category = searchParams.get("category") || undefined;
+    const sort = searchParams.get("sort") || "latest";
+    const search = searchParams.get("search") || undefined;
 
     // 검색이 있는 경우
     if (search) {
       const results = await CampaignListOptimizer.searchOptimized(search, {
-        page: parseInt(searchParams.get('page') || '1'),
+        page: parseInt(searchParams.get("page") || "1"),
         limit,
-        category
+        category,
       });
       return NextResponse.json(results);
     }
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       cursor,
       limit,
       category,
-      sort
+      sort,
     });
 
     // 다음 페이지 프리페칭 (백그라운드)
@@ -41,20 +41,23 @@ export async function GET(request: NextRequest) {
       CampaignListOptimizer.prefetchNext(result.nextCursor, {
         limit,
         category,
-        sort
+        sort,
       });
     }
 
     // 응답 헤더에 캐시 제어 추가
     const response = NextResponse.json(result);
-    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=30');
-    
+    response.headers.set(
+      "Cache-Control",
+      "public, s-maxage=60, stale-while-revalidate=30",
+    );
+
     return response;
   } catch (error) {
-    console.error('Optimized campaigns API error:', error);
+    console.error("Optimized campaigns API error:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch campaigns' },
-      { status: 500 }
+      { error: "Failed to fetch campaigns" },
+      { status: 500 },
     );
   }
 }
@@ -64,16 +67,19 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const filters = await CampaignListOptimizer.getAvailableFilters(body);
-    
+
     const response = NextResponse.json(filters);
-    response.headers.set('Cache-Control', 'public, s-maxage=180, stale-while-revalidate=60');
-    
+    response.headers.set(
+      "Cache-Control",
+      "public, s-maxage=180, stale-while-revalidate=60",
+    );
+
     return response;
   } catch (error) {
-    console.error('Filters API error:', error);
+    console.error("Filters API error:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch filters' },
-      { status: 500 }
+      { error: "Failed to fetch filters" },
+      { status: 500 },
     );
   }
 }

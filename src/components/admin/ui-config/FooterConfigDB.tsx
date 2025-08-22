@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useLanguage } from '@/hooks/useLanguage';
+import { useState, useEffect } from "react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface FooterSection {
   id: string;
@@ -22,31 +22,39 @@ export function FooterConfigDB() {
   const [loading, setLoading] = useState(true);
   const [isAddingSection, setIsAddingSection] = useState(false);
   const [isAddingLink, setIsAddingLink] = useState<string | null>(null);
-  const [newSectionTitle, setNewSectionTitle] = useState('');
-  const [newLinkName, setNewLinkName] = useState('');
-  const [newLinkUrl, setNewLinkUrl] = useState('/');
+  const [newSectionTitle, setNewSectionTitle] = useState("");
+  const [newLinkName, setNewLinkName] = useState("");
+  const [newLinkUrl, setNewLinkUrl] = useState("/");
   const { t } = useLanguage();
 
   // 푸터 섹션 로드
   const loadSections = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/ui-menus?type=footer');
-      
+      const response = await fetch("/api/admin/ui-menus?type=footer");
+
       if (response.ok) {
         const data = await response.json();
-        const formattedSections = data.menus.map((menu: { id: string; content?: { title?: string; titleKey?: string; links?: unknown[] }; sectionId: string; order: number; visible: boolean }) => ({
-          id: menu.id,
-          title: menu.content?.title || '',
-          titleKey: menu.content?.titleKey || menu.sectionId,
-          links: menu.content?.links || [],
-          order: menu.order,
-          visible: menu.visible
-        }));
+        const formattedSections = data.menus.map(
+          (menu: {
+            id: string;
+            content?: { title?: string; titleKey?: string; links?: unknown[] };
+            sectionId: string;
+            order: number;
+            visible: boolean;
+          }) => ({
+            id: menu.id,
+            title: menu.content?.title || "",
+            titleKey: menu.content?.titleKey || menu.sectionId,
+            links: menu.content?.links || [],
+            order: menu.order,
+            visible: menu.visible,
+          }),
+        );
         setSections(formattedSections);
       }
     } catch (error) {
-      console.error('Failed to load footer sections:', error);
+      console.error("Failed to load footer sections:", error);
     } finally {
       setLoading(false);
     }
@@ -58,186 +66,186 @@ export function FooterConfigDB() {
 
   const handleAddSection = async () => {
     if (!newSectionTitle.trim()) {
-      alert('섹션 제목을 입력해주세요.');
+      alert("섹션 제목을 입력해주세요.");
       return;
     }
 
     try {
-      const sectionKey = `footer.section.${newSectionTitle.toLowerCase().replace(/\s+/g, '_')}`;
-      
-      const response = await fetch('/api/admin/ui-menus', {
-        method: 'POST',
+      const sectionKey = `footer.section.${newSectionTitle.toLowerCase().replace(/\s+/g, "_")}`;
+
+      const response = await fetch("/api/admin/ui-menus", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
         },
         body: JSON.stringify({
-          type: 'footer',
+          type: "footer",
           name: newSectionTitle,
-          href: '#',
+          href: "#",
           autoTranslate: true,
           content: {
             title: newSectionTitle,
             titleKey: sectionKey,
-            links: []
-          }
-        })
+            links: [],
+          },
+        }),
       });
 
       if (response.ok) {
         await loadSections();
-        setNewSectionTitle('');
+        setNewSectionTitle("");
         setIsAddingSection(false);
-        alert('섹션이 추가되고 자동 번역되었습니다.');
+        alert("섹션이 추가되고 자동 번역되었습니다.");
       }
     } catch (error) {
-      console.error('Failed to add section:', error);
-      alert('섹션 추가 중 오류가 발생했습니다.');
+      console.error("Failed to add section:", error);
+      alert("섹션 추가 중 오류가 발생했습니다.");
     }
   };
 
   const handleAddLink = async (sectionId: string) => {
     if (!newLinkName.trim()) {
-      alert('링크 이름을 입력해주세요.');
+      alert("링크 이름을 입력해주세요.");
       return;
     }
 
     try {
-      const section = sections.find(s => s.id === sectionId);
+      const section = sections.find((s) => s.id === sectionId);
       if (!section) return;
 
-      const linkKey = `footer.link.${newLinkName.toLowerCase().replace(/\s+/g, '_')}`;
+      const linkKey = `footer.link.${newLinkName.toLowerCase().replace(/\s+/g, "_")}`;
       const newLink = {
         id: `link-${Date.now()}`,
         label: newLinkName,
         labelKey: linkKey,
-        href: newLinkUrl || '/'
+        href: newLinkUrl || "/",
       };
 
       const updatedLinks = [...section.links, newLink];
 
       // 언어팩에 추가
-      await fetch('/api/admin/language-packs/auto-translate', {
-        method: 'POST',
+      await fetch("/api/admin/language-packs/auto-translate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
         },
         body: JSON.stringify({
           key: linkKey,
           ko: newLinkName,
-          category: 'footer',
-          autoTranslate: true
-        })
+          category: "footer",
+          autoTranslate: true,
+        }),
       });
 
       // 섹션 업데이트
-      const response = await fetch('/api/admin/ui-menus', {
-        method: 'PUT',
+      const response = await fetch("/api/admin/ui-menus", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
         },
         body: JSON.stringify({
           id: sectionId,
           content: {
             ...section,
-            links: updatedLinks
-          }
-        })
+            links: updatedLinks,
+          },
+        }),
       });
 
       if (response.ok) {
         await loadSections();
-        setNewLinkName('');
-        setNewLinkUrl('/');
+        setNewLinkName("");
+        setNewLinkUrl("/");
         setIsAddingLink(null);
-        alert('링크가 추가되고 자동 번역되었습니다.');
+        alert("링크가 추가되고 자동 번역되었습니다.");
       }
     } catch (error) {
-      console.error('Failed to add link:', error);
-      alert('링크 추가 중 오류가 발생했습니다.');
+      console.error("Failed to add link:", error);
+      alert("링크 추가 중 오류가 발생했습니다.");
     }
   };
 
   const handleDeleteSection = async (id: string) => {
-    if (!confirm('이 섹션을 삭제하시겠습니까?')) {
+    if (!confirm("이 섹션을 삭제하시겠습니까?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/admin/ui-menus?id=${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
+        },
       });
 
       if (response.ok) {
         await loadSections();
-        alert('섹션이 삭제되었습니다.');
+        alert("섹션이 삭제되었습니다.");
       }
     } catch (error) {
-      console.error('Failed to delete section:', error);
-      alert('섹션 삭제 중 오류가 발생했습니다.');
+      console.error("Failed to delete section:", error);
+      alert("섹션 삭제 중 오류가 발생했습니다.");
     }
   };
 
   const handleDeleteLink = async (sectionId: string, linkId: string) => {
-    if (!confirm('이 링크를 삭제하시겠습니까?')) {
+    if (!confirm("이 링크를 삭제하시겠습니까?")) {
       return;
     }
 
     try {
-      const section = sections.find(s => s.id === sectionId);
+      const section = sections.find((s) => s.id === sectionId);
       if (!section) return;
 
-      const updatedLinks = section.links.filter(link => link.id !== linkId);
+      const updatedLinks = section.links.filter((link) => link.id !== linkId);
 
-      const response = await fetch('/api/admin/ui-menus', {
-        method: 'PUT',
+      const response = await fetch("/api/admin/ui-menus", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
         },
         body: JSON.stringify({
           id: sectionId,
           content: {
             ...section,
-            links: updatedLinks
-          }
-        })
+            links: updatedLinks,
+          },
+        }),
       });
 
       if (response.ok) {
         await loadSections();
-        alert('링크가 삭제되었습니다.');
+        alert("링크가 삭제되었습니다.");
       }
     } catch (error) {
-      console.error('Failed to delete link:', error);
-      alert('링크 삭제 중 오류가 발생했습니다.');
+      console.error("Failed to delete link:", error);
+      alert("링크 삭제 중 오류가 발생했습니다.");
     }
   };
 
   const handleToggleVisibility = async (id: string, visible: boolean) => {
     try {
-      const response = await fetch('/api/admin/ui-menus', {
-        method: 'PUT',
+      const response = await fetch("/api/admin/ui-menus", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('auth-token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken") || localStorage.getItem("auth-token")}`,
         },
         body: JSON.stringify({
           id,
-          visible: !visible
-        })
+          visible: !visible,
+        }),
       });
 
       if (response.ok) {
         await loadSections();
       }
     } catch (error) {
-      console.error('Failed to toggle visibility:', error);
+      console.error("Failed to toggle visibility:", error);
     }
   };
 
@@ -287,7 +295,7 @@ export function FooterConfigDB() {
               <button
                 onClick={() => {
                   setIsAddingSection(false);
-                  setNewSectionTitle('');
+                  setNewSectionTitle("");
                 }}
                 className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
               >
@@ -307,18 +315,22 @@ export function FooterConfigDB() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <h3 className="font-semibold">{section.title}</h3>
-                  <span className="text-sm text-gray-500">({section.titleKey})</span>
+                  <span className="text-sm text-gray-500">
+                    ({section.titleKey})
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleToggleVisibility(section.id, section.visible)}
+                    onClick={() =>
+                      handleToggleVisibility(section.id, section.visible)
+                    }
                     className={`px-3 py-1 rounded text-sm ${
                       section.visible
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-700'
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-700"
                     }`}
                   >
-                    {section.visible ? '표시' : '숨김'}
+                    {section.visible ? "표시" : "숨김"}
                   </button>
                   <button
                     onClick={() => setIsAddingLink(section.id)}
@@ -363,8 +375,8 @@ export function FooterConfigDB() {
                       <button
                         onClick={() => {
                           setIsAddingLink(null);
-                          setNewLinkName('');
-                          setNewLinkUrl('/');
+                          setNewLinkName("");
+                          setNewLinkUrl("/");
                         }}
                         className="px-3 py-1 bg-gray-400 text-white rounded text-sm"
                       >
@@ -378,10 +390,15 @@ export function FooterConfigDB() {
               {/* 링크 목록 */}
               <div className="space-y-1">
                 {section.links.map((link) => (
-                  <div key={link.id} className="flex items-center justify-between py-1 px-2 hover:bg-gray-50 rounded">
+                  <div
+                    key={link.id}
+                    className="flex items-center justify-between py-1 px-2 hover:bg-gray-50 rounded"
+                  >
                     <div className="flex items-center gap-2">
                       <span className="text-sm">{link.label}</span>
-                      <span className="text-xs text-gray-500">({link.labelKey})</span>
+                      <span className="text-xs text-gray-500">
+                        ({link.labelKey})
+                      </span>
                       <span className="text-xs text-blue-600">{link.href}</span>
                     </div>
                     <button
@@ -402,7 +419,8 @@ export function FooterConfigDB() {
 
         {sections.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            푸터 섹션이 없습니다. 위의 &quot;섹션 추가&quot; 버튼을 클릭하여 섹션을 추가하세요.
+            푸터 섹션이 없습니다. 위의 &quot;섹션 추가&quot; 버튼을 클릭하여
+            섹션을 추가하세요.
           </div>
         )}
       </div>

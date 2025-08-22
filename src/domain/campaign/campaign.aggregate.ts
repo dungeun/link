@@ -3,18 +3,18 @@
  * Domain-Driven Design 원칙에 따른 캠페인 도메인 모델
  */
 
-import { 
-  CampaignStatus, 
-  Platform, 
+import {
+  CampaignStatus,
+  Platform,
   Money,
-  InvalidCampaignDataError 
-} from '@/types/campaign.types';
+  InvalidCampaignDataError,
+} from "@/types/campaign.types";
 
 // Value Objects
 export class CampaignId {
   constructor(public readonly value: string) {
     if (!value || value.length === 0) {
-      throw new Error('Campaign ID cannot be empty');
+      throw new Error("Campaign ID cannot be empty");
     }
   }
 
@@ -30,7 +30,9 @@ export class CampaignId {
 export class Title {
   constructor(public readonly value: string) {
     if (!value || value.length < 5 || value.length > 100) {
-      throw new InvalidCampaignDataError('Title must be between 5 and 100 characters');
+      throw new InvalidCampaignDataError(
+        "Title must be between 5 and 100 characters",
+      );
     }
   }
 }
@@ -38,7 +40,9 @@ export class Title {
 export class Description {
   constructor(public readonly value: string) {
     if (!value || value.length < 20 || value.length > 5000) {
-      throw new InvalidCampaignDataError('Description must be between 20 and 5000 characters');
+      throw new InvalidCampaignDataError(
+        "Description must be between 20 and 5000 characters",
+      );
     }
   }
 }
@@ -46,17 +50,17 @@ export class Description {
 export class DateRange {
   constructor(
     public readonly startDate: Date,
-    public readonly endDate: Date
+    public readonly endDate: Date,
   ) {
     if (endDate <= startDate) {
-      throw new InvalidCampaignDataError('End date must be after start date');
+      throw new InvalidCampaignDataError("End date must be after start date");
     }
-    
+
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    
+
     if (startDate < now) {
-      throw new InvalidCampaignDataError('Start date cannot be in the past');
+      throw new InvalidCampaignDataError("Start date cannot be in the past");
     }
   }
 
@@ -90,14 +94,18 @@ export class TargetAudience {
   constructor(
     public readonly minFollowers: number,
     public readonly platforms: Platform[],
-    public readonly location: string = '전국'
+    public readonly location: string = "전국",
   ) {
     if (minFollowers < 100) {
-      throw new InvalidCampaignDataError('Minimum followers must be at least 100');
+      throw new InvalidCampaignDataError(
+        "Minimum followers must be at least 100",
+      );
     }
-    
+
     if (platforms.length === 0) {
-      throw new InvalidCampaignDataError('At least one platform must be selected');
+      throw new InvalidCampaignDataError(
+        "At least one platform must be selected",
+      );
     }
   }
 }
@@ -105,7 +113,7 @@ export class TargetAudience {
 // Domain Events
 export abstract class DomainEvent {
   public readonly occurredOn: Date;
-  
+
   constructor() {
     this.occurredOn = new Date();
   }
@@ -115,7 +123,7 @@ export class CampaignCreatedEvent extends DomainEvent {
   constructor(
     public readonly campaignId: CampaignId,
     public readonly businessId: string,
-    public readonly title: Title
+    public readonly title: Title,
   ) {
     super();
   }
@@ -124,7 +132,7 @@ export class CampaignCreatedEvent extends DomainEvent {
 export class CampaignPublishedEvent extends DomainEvent {
   constructor(
     public readonly campaignId: CampaignId,
-    public readonly publishedBy: string
+    public readonly publishedBy: string,
   ) {
     super();
   }
@@ -133,7 +141,7 @@ export class CampaignPublishedEvent extends DomainEvent {
 export class CampaignCompletedEvent extends DomainEvent {
   constructor(
     public readonly campaignId: CampaignId,
-    public readonly completedApplications: number
+    public readonly completedApplications: number,
   ) {
     super();
   }
@@ -143,7 +151,7 @@ export class ApplicationReceivedEvent extends DomainEvent {
   constructor(
     public readonly campaignId: CampaignId,
     public readonly influencerId: string,
-    public readonly applicationId: string
+    public readonly applicationId: string,
   ) {
     super();
   }
@@ -167,7 +175,7 @@ export class CampaignAggregate {
     private readonly maxApplicants: number,
     private requirements?: string,
     private hashtags: string[] = [],
-    private categoryIds: string[] = []
+    private categoryIds: string[] = [],
   ) {
     this.validateInvariants();
   }
@@ -198,7 +206,7 @@ export class CampaignAggregate {
     const targetAudience = new TargetAudience(
       params.minFollowers,
       params.platforms,
-      params.location
+      params.location,
     );
 
     const campaign = new CampaignAggregate(
@@ -214,14 +222,12 @@ export class CampaignAggregate {
       params.maxApplicants,
       params.requirements,
       params.hashtags,
-      params.categoryIds
+      params.categoryIds,
     );
 
-    campaign.addEvent(new CampaignCreatedEvent(
-      campaignId,
-      params.businessId,
-      title
-    ));
+    campaign.addEvent(
+      new CampaignCreatedEvent(campaignId, params.businessId, title),
+    );
 
     return campaign;
   }
@@ -238,16 +244,12 @@ export class CampaignAggregate {
       new Money(data.budget),
       new Money(data.rewardAmount),
       new DateRange(data.startDate, data.endDate),
-      new TargetAudience(
-        data.targetFollowers,
-        [data.platform],
-        data.location
-      ),
+      new TargetAudience(data.targetFollowers, [data.platform], data.location),
       data.status,
       data.maxApplicants,
       data.requirements,
       data.hashtags,
-      data.categoryIds
+      data.categoryIds,
     );
   }
 
@@ -255,15 +257,17 @@ export class CampaignAggregate {
    * 캠페인 발행
    */
   publish(userId: string): void {
-    if (this.status !== CampaignStatus.DRAFT && 
-        this.status !== CampaignStatus.PENDING_REVIEW) {
+    if (
+      this.status !== CampaignStatus.DRAFT &&
+      this.status !== CampaignStatus.PENDING_REVIEW
+    ) {
       throw new InvalidCampaignDataError(
-        `Cannot publish campaign with status ${this.status}`
+        `Cannot publish campaign with status ${this.status}`,
       );
     }
 
     if (!this.isBusinessOwner(userId)) {
-      throw new InvalidCampaignDataError('Only campaign owner can publish');
+      throw new InvalidCampaignDataError("Only campaign owner can publish");
     }
 
     this.status = CampaignStatus.ACTIVE;
@@ -275,11 +279,11 @@ export class CampaignAggregate {
    */
   pause(userId: string): void {
     if (this.status !== CampaignStatus.ACTIVE) {
-      throw new InvalidCampaignDataError('Only active campaigns can be paused');
+      throw new InvalidCampaignDataError("Only active campaigns can be paused");
     }
 
     if (!this.isBusinessOwner(userId)) {
-      throw new InvalidCampaignDataError('Only campaign owner can pause');
+      throw new InvalidCampaignDataError("Only campaign owner can pause");
     }
 
     this.status = CampaignStatus.PAUSED;
@@ -290,15 +294,17 @@ export class CampaignAggregate {
    */
   resume(userId: string): void {
     if (this.status !== CampaignStatus.PAUSED) {
-      throw new InvalidCampaignDataError('Only paused campaigns can be resumed');
+      throw new InvalidCampaignDataError(
+        "Only paused campaigns can be resumed",
+      );
     }
 
     if (!this.isBusinessOwner(userId)) {
-      throw new InvalidCampaignDataError('Only campaign owner can resume');
+      throw new InvalidCampaignDataError("Only campaign owner can resume");
     }
 
     if (this.dateRange.hasEnded()) {
-      throw new InvalidCampaignDataError('Cannot resume ended campaign');
+      throw new InvalidCampaignDataError("Cannot resume ended campaign");
     }
 
     this.status = CampaignStatus.ACTIVE;
@@ -309,7 +315,9 @@ export class CampaignAggregate {
    */
   complete(): void {
     if (this.status !== CampaignStatus.ACTIVE) {
-      throw new InvalidCampaignDataError('Only active campaigns can be completed');
+      throw new InvalidCampaignDataError(
+        "Only active campaigns can be completed",
+      );
     }
 
     this.status = CampaignStatus.COMPLETED;
@@ -321,23 +329,23 @@ export class CampaignAggregate {
    */
   receiveApplication(influencerId: string, applicationId: string): void {
     if (this.status !== CampaignStatus.ACTIVE) {
-      throw new InvalidCampaignDataError('Campaign is not accepting applications');
+      throw new InvalidCampaignDataError(
+        "Campaign is not accepting applications",
+      );
     }
 
     if (this.dateRange.hasEnded()) {
-      throw new InvalidCampaignDataError('Campaign has ended');
+      throw new InvalidCampaignDataError("Campaign has ended");
     }
 
     if (this._applicationCount >= this.maxApplicants) {
-      throw new InvalidCampaignDataError('Maximum applicants reached');
+      throw new InvalidCampaignDataError("Maximum applicants reached");
     }
 
     this._applicationCount++;
-    this.addEvent(new ApplicationReceivedEvent(
-      this.id,
-      influencerId,
-      applicationId
-    ));
+    this.addEvent(
+      new ApplicationReceivedEvent(this.id, influencerId, applicationId),
+    );
   }
 
   /**
@@ -350,7 +358,7 @@ export class CampaignAggregate {
     hashtags?: string[];
   }): void {
     if (this.status === CampaignStatus.COMPLETED) {
-      throw new InvalidCampaignDataError('Cannot update completed campaign');
+      throw new InvalidCampaignDataError("Cannot update completed campaign");
     }
 
     if (params.title) {
@@ -379,21 +387,21 @@ export class CampaignAggregate {
     // 예산은 보상금액보다 크거나 같아야 함
     if (this.budget.amount < this.rewardAmount.amount) {
       throw new InvalidCampaignDataError(
-        'Budget must be greater than or equal to reward amount'
+        "Budget must be greater than or equal to reward amount",
       );
     }
 
     // 최대 신청자 수 검증
     if (this.maxApplicants < 1 || this.maxApplicants > 1000) {
       throw new InvalidCampaignDataError(
-        'Max applicants must be between 1 and 1000'
+        "Max applicants must be between 1 and 1000",
       );
     }
 
     // 카테고리는 최소 1개 이상
     if (this.categoryIds.length === 0) {
       throw new InvalidCampaignDataError(
-        'At least one category must be selected'
+        "At least one category must be selected",
       );
     }
   }
@@ -420,36 +428,66 @@ export class CampaignAggregate {
   }
 
   // Getters
-  getId(): CampaignId { return this.id; }
-  getBusinessId(): string { return this.businessId; }
-  getTitle(): string { return this.title.value; }
-  getDescription(): string { return this.description.value; }
-  getBudget(): Money { return this.budget; }
-  getRewardAmount(): Money { return this.rewardAmount; }
-  getStatus(): CampaignStatus { return this.status; }
-  getDateRange(): DateRange { return this.dateRange; }
-  getTargetAudience(): TargetAudience { return this.targetAudience; }
-  getRequirements(): string | undefined { return this.requirements; }
-  getHashtags(): string[] { return [...this.hashtags]; }
-  getCategoryIds(): string[] { return [...this.categoryIds]; }
-  getMaxApplicants(): number { return this.maxApplicants; }
-  getApplicationCount(): number { return this._applicationCount; }
-  getEvents(): DomainEvent[] { return [...this.events]; }
-  clearEvents(): void { this.events = []; }
+  getId(): CampaignId {
+    return this.id;
+  }
+  getBusinessId(): string {
+    return this.businessId;
+  }
+  getTitle(): string {
+    return this.title.value;
+  }
+  getDescription(): string {
+    return this.description.value;
+  }
+  getBudget(): Money {
+    return this.budget;
+  }
+  getRewardAmount(): Money {
+    return this.rewardAmount;
+  }
+  getStatus(): CampaignStatus {
+    return this.status;
+  }
+  getDateRange(): DateRange {
+    return this.dateRange;
+  }
+  getTargetAudience(): TargetAudience {
+    return this.targetAudience;
+  }
+  getRequirements(): string | undefined {
+    return this.requirements;
+  }
+  getHashtags(): string[] {
+    return [...this.hashtags];
+  }
+  getCategoryIds(): string[] {
+    return [...this.categoryIds];
+  }
+  getMaxApplicants(): number {
+    return this.maxApplicants;
+  }
+  getApplicationCount(): number {
+    return this._applicationCount;
+  }
+  getEvents(): DomainEvent[] {
+    return [...this.events];
+  }
+  clearEvents(): void {
+    this.events = [];
+  }
 
   /**
    * 캠페인 활성 여부
    */
   isActive(): boolean {
-    return this.status === CampaignStatus.ACTIVE && 
-           this.dateRange.isActive();
+    return this.status === CampaignStatus.ACTIVE && this.dateRange.isActive();
   }
 
   /**
    * 신청 가능 여부
    */
   canApply(): boolean {
-    return this.isActive() && 
-           this._applicationCount < this.maxApplicants;
+    return this.isActive() && this._applicationCount < this.maxApplicants;
   }
 }

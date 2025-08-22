@@ -3,49 +3,49 @@
  * 강타입 정의로 타입 안정성 보장
  */
 
-import { Prisma } from '@prisma/client';
+import { Prisma } from "@prisma/client";
 
 // Enum 타입 정의
 export enum CampaignStatus {
-  DRAFT = 'DRAFT',
-  PENDING_REVIEW = 'PENDING_REVIEW',
-  ACTIVE = 'ACTIVE',
-  PAUSED = 'PAUSED',
-  COMPLETED = 'COMPLETED',
-  REJECTED = 'REJECTED'
+  DRAFT = "DRAFT",
+  PENDING_REVIEW = "PENDING_REVIEW",
+  ACTIVE = "ACTIVE",
+  PAUSED = "PAUSED",
+  COMPLETED = "COMPLETED",
+  REJECTED = "REJECTED",
 }
 
 export enum Platform {
-  INSTAGRAM = 'INSTAGRAM',
-  YOUTUBE = 'YOUTUBE',
-  TIKTOK = 'TIKTOK',
-  FACEBOOK = 'FACEBOOK',
-  TWITTER = 'TWITTER',
-  NAVER_BLOG = 'NAVER_BLOG'
+  INSTAGRAM = "INSTAGRAM",
+  YOUTUBE = "YOUTUBE",
+  TIKTOK = "TIKTOK",
+  FACEBOOK = "FACEBOOK",
+  TWITTER = "TWITTER",
+  NAVER_BLOG = "NAVER_BLOG",
 }
 
 export enum SortOption {
-  LATEST = 'latest',
-  DEADLINE = 'deadline',
-  BUDGET = 'budget',
-  APPLICANTS = 'applicants',
-  TRENDING = 'trending'
+  LATEST = "latest",
+  DEADLINE = "deadline",
+  BUDGET = "budget",
+  APPLICANTS = "applicants",
+  TRENDING = "trending",
 }
 
 // Value Objects
 export class Money {
   constructor(
     public readonly amount: number,
-    public readonly currency: string = 'KRW'
+    public readonly currency: string = "KRW",
   ) {
     if (amount < 0) {
-      throw new Error('Amount cannot be negative');
+      throw new Error("Amount cannot be negative");
     }
   }
 
   add(other: Money): Money {
     if (this.currency !== other.currency) {
-      throw new Error('Cannot add different currencies');
+      throw new Error("Cannot add different currencies");
     }
     return new Money(this.amount + other.amount, this.currency);
   }
@@ -80,7 +80,7 @@ export interface PaginationParams {
 
 export interface SortParams {
   field: SortOption;
-  order: 'asc' | 'desc';
+  order: "asc" | "desc";
 }
 
 export interface CampaignQueryParams {
@@ -123,7 +123,7 @@ export interface UpdateCampaignDTO extends Partial<CreateCampaignDTO> {
 
 export interface CampaignImageDTO {
   url: string;
-  type: 'header' | 'thumbnail' | 'detail' | 'product';
+  type: "header" | "thumbnail" | "detail" | "product";
   alt?: string;
   caption?: string;
   order?: number;
@@ -180,7 +180,9 @@ export interface PrismaQueryOptions {
   where: Prisma.CampaignWhereInput;
   select?: Prisma.CampaignSelect;
   include?: Prisma.CampaignInclude;
-  orderBy?: Prisma.CampaignOrderByWithRelationInput | Prisma.CampaignOrderByWithRelationInput[];
+  orderBy?:
+    | Prisma.CampaignOrderByWithRelationInput
+    | Prisma.CampaignOrderByWithRelationInput[];
   skip?: number;
   take?: number;
 }
@@ -190,28 +192,28 @@ export class CampaignError extends Error {
   constructor(
     message: string,
     public readonly code: string,
-    public readonly statusCode: number = 400
+    public readonly statusCode: number = 400,
   ) {
     super(message);
-    this.name = 'CampaignError';
+    this.name = "CampaignError";
   }
 }
 
 export class CampaignNotFoundError extends CampaignError {
   constructor(id: string) {
-    super(`Campaign with id ${id} not found`, 'CAMPAIGN_NOT_FOUND', 404);
+    super(`Campaign with id ${id} not found`, "CAMPAIGN_NOT_FOUND", 404);
   }
 }
 
 export class InvalidCampaignDataError extends CampaignError {
   constructor(message: string) {
-    super(message, 'INVALID_CAMPAIGN_DATA', 400);
+    super(message, "INVALID_CAMPAIGN_DATA", 400);
   }
 }
 
 export class UnauthorizedCampaignAccessError extends CampaignError {
-  constructor(message: string = 'Unauthorized access to campaign') {
-    super(message, 'UNAUTHORIZED_CAMPAIGN_ACCESS', 403);
+  constructor(message: string = "Unauthorized access to campaign") {
+    super(message, "UNAUTHORIZED_CAMPAIGN_ACCESS", 403);
   }
 }
 
@@ -229,7 +231,7 @@ export function isSortOption(value: string): value is SortOption {
 }
 
 // Validation Schemas (Zod)
-import { z } from 'zod';
+import { z } from "zod";
 
 export const CampaignFilterSchema = z.object({
   status: z.nativeEnum(CampaignStatus).optional(),
@@ -240,26 +242,28 @@ export const CampaignFilterSchema = z.object({
   endDate: z.date().optional(),
   minBudget: z.number().min(0).optional(),
   maxBudget: z.number().min(0).optional(),
-  keyword: z.string().optional()
+  keyword: z.string().optional(),
 });
 
-export const CreateCampaignSchema = z.object({
-  title: z.string().min(5).max(100),
-  description: z.string().min(20).max(5000),
-  platform: z.nativeEnum(Platform),
-  budget: z.number().min(0),
-  targetFollowers: z.number().min(100),
-  startDate: z.date(),
-  endDate: z.date(),
-  requirements: z.string().optional(),
-  hashtags: z.array(z.string()).optional(),
-  categoryIds: z.array(z.string().cuid()),
-  maxApplicants: z.number().min(1).max(1000),
-  rewardAmount: z.number().min(0),
-  location: z.string().optional()
-}).refine(data => data.endDate > data.startDate, {
-  message: "End date must be after start date"
-});
+export const CreateCampaignSchema = z
+  .object({
+    title: z.string().min(5).max(100),
+    description: z.string().min(20).max(5000),
+    platform: z.nativeEnum(Platform),
+    budget: z.number().min(0),
+    targetFollowers: z.number().min(100),
+    startDate: z.date(),
+    endDate: z.date(),
+    requirements: z.string().optional(),
+    hashtags: z.array(z.string()).optional(),
+    categoryIds: z.array(z.string().cuid()),
+    maxApplicants: z.number().min(1).max(1000),
+    rewardAmount: z.number().min(0),
+    location: z.string().optional(),
+  })
+  .refine((data) => data.endDate > data.startDate, {
+    message: "End date must be after start date",
+  });
 
 export type ValidatedCampaignFilters = z.infer<typeof CampaignFilterSchema>;
 export type ValidatedCreateCampaign = z.infer<typeof CreateCampaignSchema>;

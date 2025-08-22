@@ -1,23 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
-  console.log('=== TEST LOGIN API ===')
-  
+  console.log("=== TEST LOGIN API ===");
+
   try {
-    const body = await request.json()
-    console.log('Body received:', body)
-    
+    const body = await request.json();
+    console.log("Body received:", body);
+
     return NextResponse.json({
       success: true,
-      received: body
-    })
+      received: body,
+    });
   } catch (error) {
-    console.error('Error:', error)
-    return NextResponse.json({
-      error: 'Failed to parse JSON',
-      details: error instanceof Error ? error.message : String(error)
-    }, { status: 400 })
+    console.error("Error:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to parse JSON",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 400 },
+    );
   }
 }

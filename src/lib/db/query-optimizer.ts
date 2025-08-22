@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Prisma } from "@prisma/client";
 
 /**
  * N+1 쿼리 문제를 해결하기 위한 최적화된 쿼리 빌더
@@ -8,7 +8,9 @@ export class QueryOptimizer {
    * 캠페인 목록 조회 최적화
    * include 대신 select를 사용하여 필요한 필드만 가져오기
    */
-  static getCampaignListQuery(filters?: Record<string, unknown>): Prisma.CampaignFindManyArgs {
+  static getCampaignListQuery(
+    filters?: Record<string, unknown>,
+  ): Prisma.CampaignFindManyArgs {
     return {
       where: filters,
       select: {
@@ -27,19 +29,19 @@ export class QueryOptimizer {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         // 지원자 수만 카운트
         _count: {
           select: {
-            applications: true
-          }
-        }
+            applications: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' },
-      take: 20 // 페이지네이션
-    }
+      orderBy: { createdAt: "desc" },
+      take: 20, // 페이지네이션
+    };
   }
 
   /**
@@ -64,10 +66,10 @@ export class QueryOptimizer {
             email: true,
             profile: {
               select: {
-                profileImage: true
-              }
-            }
-          }
+                profileImage: true,
+              },
+            },
+          },
         },
         // 댓글 - 페이지네이션 적용
         comments: {
@@ -81,24 +83,24 @@ export class QueryOptimizer {
                 name: true,
                 profile: {
                   select: {
-                    profileImage: true
-                  }
-                }
-              }
-            }
+                    profileImage: true,
+                  },
+                },
+              },
+            },
           },
-          orderBy: { createdAt: 'desc' },
-          take: 10 // 첫 10개 댓글만
+          orderBy: { createdAt: "desc" },
+          take: 10, // 첫 10개 댓글만
         },
         // 카운트만
         _count: {
           select: {
             comments: true,
-            postLikes: true
-          }
-        }
-      }
-    }
+            postLikes: true,
+          },
+        },
+      },
+    };
   }
 
   /**
@@ -124,25 +126,27 @@ export class QueryOptimizer {
             instagram: true,
             youtube: true,
             tiktok: true,
-            categories: true
-          }
+            categories: true,
+          },
         },
         // 통계만
         _count: {
           select: {
             campaigns: true,
             applications: true,
-            posts: true
-          }
-        }
-      }
-    }
+            posts: true,
+          },
+        },
+      },
+    };
   }
 
   /**
    * 캠페인 지원 목록 조회 최적화
    */
-  static getApplicationListQuery(campaignId: string): Prisma.CampaignApplicationFindManyArgs {
+  static getApplicationListQuery(
+    campaignId: string,
+  ): Prisma.CampaignApplicationFindManyArgs {
     return {
       where: { campaignId },
       select: {
@@ -162,14 +166,14 @@ export class QueryOptimizer {
                 instagram: true,
                 instagramFollowers: true,
                 youtube: true,
-                youtubeSubscribers: true
-              }
-            }
-          }
-        }
+                youtubeSubscribers: true,
+              },
+            },
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
-    }
+      orderBy: { createdAt: "desc" },
+    };
   }
 
   /**
@@ -178,24 +182,24 @@ export class QueryOptimizer {
   static async batchQuery<T>(
     model: any,
     ids: string[],
-    selectFields: Record<string, unknown>
+    selectFields: Record<string, unknown>,
   ): Promise<T[]> {
-    if (ids.length === 0) return []
-    
+    if (ids.length === 0) return [];
+
     // 중복 제거
-    const uniqueIds = [...new Set(ids)]
-    
+    const uniqueIds = [...new Set(ids)];
+
     // 한 번의 쿼리로 모든 데이터 조회
     const results = await (model as any).findMany({
       where: {
-        id: { in: uniqueIds }
+        id: { in: uniqueIds },
       },
-      select: selectFields
-    })
-    
+      select: selectFields,
+    });
+
     // ID 순서대로 정렬
-    const resultMap = new Map(results.map((r: { id: string }) => [r.id, r]))
-    return ids.map(id => resultMap.get(id)).filter(Boolean) as T[]
+    const resultMap = new Map(results.map((r: { id: string }) => [r.id, r]));
+    return ids.map((id) => resultMap.get(id)).filter(Boolean) as T[];
   }
 
   /**
@@ -203,41 +207,37 @@ export class QueryOptimizer {
    */
   static async getAggregatedStats(prisma: any, userId: string) {
     // 병렬로 여러 집계 쿼리 실행
-    const [
-      campaignCount,
-      applicationCount,
-      totalEarnings,
-      completedProjects
-    ] = await Promise.all([
-      prisma.campaign.count({
-        where: { businessId: userId }
-      }),
-      prisma.campaignApplication.count({
-        where: { influencerId: userId }
-      }),
-      prisma.payment.aggregate({
-        where: { 
-          userId,
-          status: 'COMPLETED'
-        },
-        _sum: {
-          amount: true
-        }
-      }),
-      prisma.campaignApplication.count({
-        where: {
-          influencerId: userId,
-          status: 'COMPLETED'
-        }
-      })
-    ])
-    
+    const [campaignCount, applicationCount, totalEarnings, completedProjects] =
+      await Promise.all([
+        prisma.campaign.count({
+          where: { businessId: userId },
+        }),
+        prisma.campaignApplication.count({
+          where: { influencerId: userId },
+        }),
+        prisma.payment.aggregate({
+          where: {
+            userId,
+            status: "COMPLETED",
+          },
+          _sum: {
+            amount: true,
+          },
+        }),
+        prisma.campaignApplication.count({
+          where: {
+            influencerId: userId,
+            status: "COMPLETED",
+          },
+        }),
+      ]);
+
     return {
       campaigns: campaignCount,
       applications: applicationCount,
       earnings: totalEarnings._sum.amount || 0,
-      completedProjects
-    }
+      completedProjects,
+    };
   }
 
   /**
@@ -245,18 +245,18 @@ export class QueryOptimizer {
    */
   static getCursorPaginationQuery(
     cursor?: string,
-    take: number = 20
+    take: number = 20,
   ): Prisma.CampaignFindManyArgs {
     const query: Prisma.CampaignFindManyArgs = {
       take,
-      orderBy: { createdAt: 'desc' }
-    }
-    
+      orderBy: { createdAt: "desc" },
+    };
+
     if (cursor) {
-      query.cursor = { id: cursor }
-      query.skip = 1 // 커서 자체는 건너뛰기
+      query.cursor = { id: cursor };
+      query.skip = 1; // 커서 자체는 건너뛰기
     }
-    
-    return query
+
+    return query;
   }
 }

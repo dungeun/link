@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "dev": "NODE_OPTIONS='--max-old-space-size=8192' PORT=$(node scripts/find-free-port.js) && echo \"🚀 Starting REVU Platform on port $PORT\" && next dev -p $PORT",
+    "build": "NODE_OPTIONS='--max-old-space-size=8192' prisma generate && npm run cache:generate && next build",
+    "build:analyze": "NODE_OPTIONS='--max-old-space-size=8192' prisma generate && ANALYZE=true next build"
+  }
+}

@@ -1,19 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
-import { getServerSession } from '@/lib/auth-server';
-import { getJWTSecret } from '@/lib/auth/constants';
+import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
+import { getServerSession } from "@/lib/auth-server";
+import { getJWTSecret } from "@/lib/auth/constants";
 
 export interface AuthUser {
   id: string;
   email: string;
   name: string;
-  type: 'ADMIN' | 'BUSINESS' | 'INFLUENCER';
+  type: "ADMIN" | "BUSINESS" | "INFLUENCER";
 }
 
-export async function authenticateJWT(request: NextRequest): Promise<AuthUser | null> {
+export async function authenticateJWT(
+  request: NextRequest,
+): Promise<AuthUser | null> {
   const cookieStore = cookies();
-  const token = cookieStore.get('auth-token')?.value;
+  const token = cookieStore.get("auth-token")?.value;
 
   if (!token) {
     return null;
@@ -25,13 +27,13 @@ export async function authenticateJWT(request: NextRequest): Promise<AuthUser | 
       id: string;
       email: string;
       name: string;
-      type: 'ADMIN' | 'BUSINESS' | 'INFLUENCER';
+      type: "ADMIN" | "BUSINESS" | "INFLUENCER";
     };
     return {
       id: decoded.id,
       email: decoded.email,
       name: decoded.name,
-      type: decoded.type
+      type: decoded.type,
     };
   } catch (error) {
     return null;
@@ -40,7 +42,7 @@ export async function authenticateJWT(request: NextRequest): Promise<AuthUser | 
 
 export async function authenticateSession(): Promise<AuthUser | null> {
   const session = await getServerSession();
-  
+
   if (!session || !session.user) {
     return null;
   }
@@ -49,32 +51,32 @@ export async function authenticateSession(): Promise<AuthUser | null> {
     id: session.user.id,
     email: session.user.email,
     name: session.user.name,
-    type: session.user.type as 'ADMIN' | 'BUSINESS' | 'INFLUENCER'
+    type: session.user.type as "ADMIN" | "BUSINESS" | "INFLUENCER",
   };
 }
 
 export async function requireAuth(
   request: NextRequest,
-  allowedTypes?: Array<'ADMIN' | 'BUSINESS' | 'INFLUENCER'>
+  allowedTypes?: Array<"ADMIN" | "BUSINESS" | "INFLUENCER">,
 ): Promise<AuthUser | NextResponse> {
   // Try session auth first, then JWT
   let user = await authenticateSession();
-  
+
   if (!user) {
     user = await authenticateJWT(request);
   }
 
   if (!user) {
     return NextResponse.json(
-      { error: 'Authentication required' },
-      { status: 401 }
+      { error: "Authentication required" },
+      { status: 401 },
     );
   }
 
   if (allowedTypes && !allowedTypes.includes(user.type)) {
     return NextResponse.json(
-      { error: 'Insufficient permissions' },
-      { status: 403 }
+      { error: "Insufficient permissions" },
+      { status: 403 },
     );
   }
 
@@ -83,7 +85,7 @@ export async function requireAuth(
 
 export function createAuthResponse<T>(
   data: T,
-  status: number = 200
+  status: number = 200,
 ): NextResponse {
   return NextResponse.json(data, { status });
 }
@@ -91,13 +93,13 @@ export function createAuthResponse<T>(
 export function createErrorResponse(
   message: string,
   status: number = 500,
-  details?: unknown
+  details?: unknown,
 ): NextResponse {
   return NextResponse.json(
     {
       error: message,
-      ...(details && typeof details === 'object' ? { details } : {})
+      ...(details && typeof details === "object" ? { details } : {}),
     },
-    { status }
+    { status },
   );
 }

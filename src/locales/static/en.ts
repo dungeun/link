@@ -8,13 +8,15 @@ export const translations = {
   "admin.ui.tab.footer": "Footer Settings",
   "admin.ui.tab.sections": "Section Management",
   "admin.ui.tab.sectionOrder": "Section Order",
-  "admin.ui.dbConnected": "This page is fully integrated with the database. All changes are saved in real-time and include automatic translation.",
+  "admin.ui.dbConnected":
+    "This page is fully integrated with the database. All changes are saved in real-time and include automatic translation.",
   "admin.header.title": "Header Menu Settings",
   "admin.header.addMenu": "Add Menu",
   "admin.header.menuName": "Menu Name",
   "admin.header.linkUrl": "Link URL",
   "admin.header.icon": "Icon",
-  "admin.header.autoTranslate": "Menu names will be automatically translated to English and Japanese.",
+  "admin.header.autoTranslate":
+    "Menu names will be automatically translated to English and Japanese.",
   "admin.footer.title": "Footer Section Settings",
   "admin.footer.addSection": "Add Section",
   "admin.footer.sectionTitle": "Section Title",
@@ -23,7 +25,8 @@ export const translations = {
   "admin.footer.visible": "Visible",
   "admin.footer.hidden": "Hidden",
   "admin.footer.delete": "Delete",
-  "admin.footer.noSections": "No footer sections. Click the \"Add Section\" button above to add a section.",
+  "admin.footer.noSections":
+    'No footer sections. Click the "Add Section" button above to add a section.',
   "admin.footer.noLinks": "No links.",
   "header.notification": "Notifications",
   "header.no_notifications": "No notifications",
@@ -50,7 +53,8 @@ export const translations = {
   "status.loading": "Loading...",
   "status.no_data": "No data available",
   "translation.title": "Translation Management",
-  "translation.description": "Manage multilingual translations for campaigns, posts, and menus.",
+  "translation.description":
+    "Manage multilingual translations for campaigns, posts, and menus.",
   "translation.tab.campaign": "Campaign",
   "translation.tab.post": "Post",
   "translation.tab.menu": "Menu",
@@ -103,7 +107,7 @@ export const translations = {
   "category.review": "Review",
   "category.digital": "Digital",
   "category.restaurant": "Restaurant",
-  "category.restaurant_review": "Restaurant Review"
+  "category.restaurant_review": "Restaurant Review",
 } as const;
 
 export type TranslationKey = keyof typeof translations;

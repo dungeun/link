@@ -1,8 +1,8 @@
-import { Metadata } from 'next'
-import { getFullSeoConfig } from '@/lib/seo-config'
+import { Metadata } from "next";
+import { getFullSeoConfig } from "@/lib/seo-config";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { seo, metadata } = await getFullSeoConfig()
+  const { seo, metadata } = await getFullSeoConfig();
 
   return {
     title: seo.title,
@@ -10,8 +10,8 @@ export async function generateMetadata(): Promise<Metadata> {
     keywords: seo.keywords,
     authors: [{ name: seo.author }],
     robots: seo.robots,
-    metadataBase: new URL(seo.canonical || 'https://linkpick.com'),
-    
+    metadataBase: new URL(seo.canonical || "https://linkpick.com"),
+
     // Open Graph
     openGraph: {
       title: metadata.ogTitle,
@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
         },
       ],
     },
-    
+
     // Twitter
     twitter: {
       card: metadata.twitterCard as any,
@@ -39,19 +39,19 @@ export async function generateMetadata(): Promise<Metadata> {
       description: metadata.ogDescription,
       images: [metadata.twitterImage],
     },
-    
+
     // Icons
     icons: {
       icon: metadata.favicon,
       apple: metadata.appleTouchIcon,
     },
-    
+
     // Theme
     themeColor: metadata.themeColor,
-    
+
     // Other
     other: {
-      'msapplication-TileColor': metadata.msapplicationTileColor,
+      "msapplication-TileColor": metadata.msapplicationTileColor,
     },
-  }
+  };
 }

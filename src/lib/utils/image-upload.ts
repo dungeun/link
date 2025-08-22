@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { randomUUID } from 'crypto';
+import fs from "fs";
+import path from "path";
+import { randomUUID } from "crypto";
 
 export interface UploadResult {
   success: boolean;
@@ -14,15 +14,15 @@ export interface UploadResult {
  */
 export async function saveImageLocally(
   file: File,
-  category: 'campaigns' | 'users' | 'profiles' | 'temp' = 'temp'
+  category: "campaigns" | "users" | "profiles" | "temp" = "temp",
 ): Promise<UploadResult> {
   try {
     // 파일 확장자 검증
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       return {
         success: false,
-        error: '지원하지 않는 파일 형식입니다. (JPG, PNG, WebP만 허용)'
+        error: "지원하지 않는 파일 형식입니다. (JPG, PNG, WebP만 허용)",
       };
     }
 
@@ -31,18 +31,18 @@ export async function saveImageLocally(
     if (file.size > maxSize) {
       return {
         success: false,
-        error: '파일 크기가 너무 큽니다. (최대 5MB)'
+        error: "파일 크기가 너무 큽니다. (최대 5MB)",
       };
     }
 
     // 고유한 파일명 생성
     const fileExtension = path.extname(file.name);
     const fileName = `${randomUUID()}${fileExtension}`;
-    
+
     // 저장 경로 설정
-    const uploadDir = path.join(process.cwd(), 'public', 'images', category);
+    const uploadDir = path.join(process.cwd(), "public", "images", category);
     const filePath = path.join(uploadDir, fileName);
-    
+
     // 디렉토리가 없으면 생성
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
@@ -51,7 +51,7 @@ export async function saveImageLocally(
     // 파일을 ArrayBuffer로 변환 후 저장
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    
+
     fs.writeFileSync(filePath, buffer);
 
     // 공개 URL 생성
@@ -60,14 +60,13 @@ export async function saveImageLocally(
     return {
       success: true,
       filePath,
-      publicUrl
+      publicUrl,
     };
-
   } catch (error) {
-    console.error('Image upload error:', error);
+    console.error("Image upload error:", error);
     return {
       success: false,
-      error: '이미지 업로드 중 오류가 발생했습니다.'
+      error: "이미지 업로드 중 오류가 발생했습니다.",
     };
   }
 }
@@ -77,14 +76,14 @@ export async function saveImageLocally(
  */
 export async function downloadImageFromUrl(
   imageUrl: string,
-  category: 'campaigns' | 'users' | 'profiles' | 'temp' = 'temp'
+  category: "campaigns" | "users" | "profiles" | "temp" = "temp",
 ): Promise<UploadResult> {
   try {
     // 이미 로컬 이미지인 경우 그대로 반환
-    if (imageUrl.startsWith('/images/')) {
+    if (imageUrl.startsWith("/images/")) {
       return {
         success: true,
-        publicUrl: imageUrl
+        publicUrl: imageUrl,
       };
     }
 
@@ -97,20 +96,20 @@ export async function downloadImageFromUrl(
     const buffer = Buffer.from(arrayBuffer);
 
     // Content-Type에서 확장자 추출
-    const contentType = response.headers.get('content-type') || '';
-    let fileExtension = '.jpg'; // 기본값
-    
-    if (contentType.includes('png')) fileExtension = '.png';
-    else if (contentType.includes('webp')) fileExtension = '.webp';
-    else if (contentType.includes('gif')) fileExtension = '.gif';
+    const contentType = response.headers.get("content-type") || "";
+    let fileExtension = ".jpg"; // 기본값
+
+    if (contentType.includes("png")) fileExtension = ".png";
+    else if (contentType.includes("webp")) fileExtension = ".webp";
+    else if (contentType.includes("gif")) fileExtension = ".gif";
 
     // 고유한 파일명 생성
     const fileName = `${randomUUID()}${fileExtension}`;
-    
+
     // 저장 경로 설정
-    const uploadDir = path.join(process.cwd(), 'public', 'images', category);
+    const uploadDir = path.join(process.cwd(), "public", "images", category);
     const filePath = path.join(uploadDir, fileName);
-    
+
     // 디렉토리가 없으면 생성
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
@@ -124,14 +123,13 @@ export async function downloadImageFromUrl(
     return {
       success: true,
       filePath,
-      publicUrl
+      publicUrl,
     };
-
   } catch (error) {
-    console.error('Image download error:', error);
+    console.error("Image download error:", error);
     return {
       success: false,
-      error: '이미지 다운로드 중 오류가 발생했습니다.'
+      error: "이미지 다운로드 중 오류가 발생했습니다.",
     };
   }
 }
@@ -141,20 +139,20 @@ export async function downloadImageFromUrl(
  */
 export function deleteLocalImage(publicUrl: string): boolean {
   try {
-    if (!publicUrl.startsWith('/images/')) {
+    if (!publicUrl.startsWith("/images/")) {
       return false; // 로컬 이미지가 아님
     }
 
-    const filePath = path.join(process.cwd(), 'public', publicUrl);
-    
+    const filePath = path.join(process.cwd(), "public", publicUrl);
+
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
       return true;
     }
-    
+
     return false;
   } catch (error) {
-    console.error('Image deletion error:', error);
+    console.error("Image deletion error:", error);
     return false;
   }
 }
@@ -164,14 +162,14 @@ export function deleteLocalImage(publicUrl: string): boolean {
  */
 export async function downloadMultipleImages(
   imageUrls: string[],
-  category: 'campaigns' | 'users' | 'profiles' | 'temp' = 'campaigns'
+  category: "campaigns" | "users" | "profiles" | "temp" = "campaigns",
 ): Promise<string[]> {
   const results = await Promise.all(
-    imageUrls.map(url => downloadImageFromUrl(url, category))
+    imageUrls.map((url) => downloadImageFromUrl(url, category)),
   );
 
   return results
-    .filter(result => result.success)
-    .map(result => result.publicUrl!)
+    .filter((result) => result.success)
+    .map((result) => result.publicUrl!)
     .filter(Boolean);
 }

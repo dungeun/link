@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
-import { requireAdminAuth } from '@/lib/admin-auth';
-import { translationService } from '@/lib/services/translation.service';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import { requireAdminAuth } from "@/lib/admin-auth";
+import { translationService } from "@/lib/services/translation.service";
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 // GET /api/admin/language-packs - 언어팩 목록 조회
 export async function GET(request: NextRequest) {
@@ -15,43 +15,40 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const category = searchParams.get('category');
-    const subcategory = searchParams.get('subcategory');
-    const search = searchParams.get('search');
+    const category = searchParams.get("category");
+    const subcategory = searchParams.get("subcategory");
+    const search = searchParams.get("search");
 
     const where: Record<string, unknown> = {};
-    
+
     if (category) {
       where.category = category;
     }
-    
+
     if (subcategory) {
       where.subcategory = subcategory;
     }
-    
+
     if (search) {
       where.OR = [
-        { key: { contains: search, mode: 'insensitive' } },
-        { ko: { contains: search, mode: 'insensitive' } },
-        { en: { contains: search, mode: 'insensitive' } },
-        { jp: { contains: search, mode: 'insensitive' } }
+        { key: { contains: search, mode: "insensitive" } },
+        { ko: { contains: search, mode: "insensitive" } },
+        { en: { contains: search, mode: "insensitive" } },
+        { jp: { contains: search, mode: "insensitive" } },
       ];
     }
 
     const languagePacks = await prisma.languagePack.findMany({
       where,
-      orderBy: [
-        { category: 'asc' },
-        { key: 'asc' }
-      ]
+      orderBy: [{ category: "asc" }, { key: "asc" }],
     });
 
     return NextResponse.json(languagePacks);
   } catch (error) {
-    console.error('언어팩 조회 오류:', error);
+    console.error("언어팩 조회 오류:", error);
     return NextResponse.json(
-      { error: '언어팩을 불러오는데 실패했습니다.' },
-      { status: 500 }
+      { error: "언어팩을 불러오는데 실패했습니다." },
+      { status: 500 },
     );
   } finally {
     await prisma.$disconnect();
@@ -72,20 +69,20 @@ export async function POST(request: NextRequest) {
     // 필수 필드 검증
     if (!key || !ko || !category) {
       return NextResponse.json(
-        { error: '필수 정보가 누락되었습니다.' },
-        { status: 400 }
+        { error: "필수 정보가 누락되었습니다." },
+        { status: 400 },
       );
     }
 
     // 중복 키 검사
     const existing = await prisma.languagePack.findUnique({
-      where: { key }
+      where: { key },
     });
 
     if (existing) {
       return NextResponse.json(
-        { error: '이미 존재하는 키입니다.' },
-        { status: 409 }
+        { error: "이미 존재하는 키입니다." },
+        { status: 409 },
       );
     }
 
@@ -96,15 +93,21 @@ export async function POST(request: NextRequest) {
     if (autoTranslate && process.env.GOOGLE_TRANSLATE_API_KEY) {
       try {
         if (!en) {
-          const enResult = await translationService.translateText(ko, { from: 'ko', to: 'en' });
+          const enResult = await translationService.translateText(ko, {
+            from: "ko",
+            to: "en",
+          });
           translatedEn = enResult.translatedText;
         }
         if (!ja) {
-          const jaResult = await translationService.translateText(ko, { from: 'ko', to: 'ja' });
+          const jaResult = await translationService.translateText(ko, {
+            from: "ko",
+            to: "ja",
+          });
           translatedJa = jaResult.translatedText;
         }
       } catch (error) {
-        console.error('자동 번역 실패:', error);
+        console.error("자동 번역 실패:", error);
       }
     }
 
@@ -116,16 +119,16 @@ export async function POST(request: NextRequest) {
         jp: translatedJa || ko, // 번역 실패 시 한국어 사용
         category,
         description,
-        isEditable: true
-      }
+        isEditable: true,
+      },
     });
 
     return NextResponse.json(languagePack);
   } catch (error) {
-    console.error('언어팩 생성 오류:', error);
+    console.error("언어팩 생성 오류:", error);
     return NextResponse.json(
-      { error: '언어팩 생성에 실패했습니다.' },
-      { status: 500 }
+      { error: "언어팩 생성에 실패했습니다." },
+      { status: 500 },
     );
   } finally {
     await prisma.$disconnect();
@@ -144,28 +147,25 @@ export async function PUT(request: NextRequest) {
     const { id, ko, en, jp: ja, description } = body;
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'ID가 필요합니다.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "ID가 필요합니다." }, { status: 400 });
     }
 
     // 수정 가능 여부 확인
     const existing = await prisma.languagePack.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!existing) {
       return NextResponse.json(
-        { error: '존재하지 않는 언어팩입니다.' },
-        { status: 404 }
+        { error: "존재하지 않는 언어팩입니다." },
+        { status: 404 },
       );
     }
 
     if (!existing.isEditable) {
       return NextResponse.json(
-        { error: '수정할 수 없는 언어팩입니다.' },
-        { status: 403 }
+        { error: "수정할 수 없는 언어팩입니다." },
+        { status: 403 },
       );
     }
 
@@ -175,16 +175,16 @@ export async function PUT(request: NextRequest) {
         ko,
         en,
         jp: ja,
-        description
-      }
+        description,
+      },
     });
 
     return NextResponse.json(languagePack);
   } catch (error) {
-    console.error('언어팩 수정 오류:', error);
+    console.error("언어팩 수정 오류:", error);
     return NextResponse.json(
-      { error: '언어팩 수정에 실패했습니다.' },
-      { status: 500 }
+      { error: "언어팩 수정에 실패했습니다." },
+      { status: 500 },
     );
   } finally {
     await prisma.$disconnect();
@@ -200,44 +200,41 @@ export async function DELETE(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'ID가 필요합니다.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "ID가 필요합니다." }, { status: 400 });
     }
 
     // 삭제 가능 여부 확인
     const existing = await prisma.languagePack.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!existing) {
       return NextResponse.json(
-        { error: '존재하지 않는 언어팩입니다.' },
-        { status: 404 }
+        { error: "존재하지 않는 언어팩입니다." },
+        { status: 404 },
       );
     }
 
     if (!existing.isEditable) {
       return NextResponse.json(
-        { error: '삭제할 수 없는 언어팩입니다.' },
-        { status: 403 }
+        { error: "삭제할 수 없는 언어팩입니다." },
+        { status: 403 },
       );
     }
 
     await prisma.languagePack.delete({
-      where: { id }
+      where: { id },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('언어팩 삭제 오류:', error);
+    console.error("언어팩 삭제 오류:", error);
     return NextResponse.json(
-      { error: '언어팩 삭제에 실패했습니다.' },
-      { status: 500 }
+      { error: "언어팩 삭제에 실패했습니다." },
+      { status: 500 },
     );
   } finally {
     await prisma.$disconnect();

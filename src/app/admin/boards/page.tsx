@@ -1,161 +1,177 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Search, Plus, Edit2, Trash2, Eye, EyeOff, Filter, ChevronDown } from 'lucide-react'
+import { useState, useEffect } from "react";
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  Eye,
+  EyeOff,
+  Filter,
+  ChevronDown,
+} from "lucide-react";
 
 interface Board {
-  id: string
-  name: string
-  description: string
-  category: string
-  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
-  postCount: number
-  visibility: 'PUBLIC' | 'PRIVATE' | 'MEMBERS_ONLY'
-  createdAt: string
-  updatedAt: string
-  lastPostAt: string | null
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
+  postCount: number;
+  visibility: "PUBLIC" | "PRIVATE" | "MEMBERS_ONLY";
+  createdAt: string;
+  updatedAt: string;
+  lastPostAt: string | null;
 }
 
 interface BoardPost {
-  id: string
-  boardId: string
-  title: string
-  author: string
-  status: 'PUBLISHED' | 'DRAFT' | 'HIDDEN'
-  viewCount: number
-  likeCount: number
-  commentCount: number
-  createdAt: string
+  id: string;
+  boardId: string;
+  title: string;
+  author: string;
+  status: "PUBLISHED" | "DRAFT" | "HIDDEN";
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  createdAt: string;
 }
 
 export default function AdminBoardsPage() {
-  const [boards, setBoards] = useState<Board[]>([])
-  const [selectedBoard, setSelectedBoard] = useState<Board | null>(null)
-  const [posts, setPosts] = useState<BoardPost[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterCategory, setFilterCategory] = useState('all')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [editingBoard, setEditingBoard] = useState<Board | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [boards, setBoards] = useState<Board[]>([]);
+  const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
+  const [posts, setPosts] = useState<BoardPost[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingBoard, setEditingBoard] = useState<Board | null>(null);
+  const [loading, setLoading] = useState(false);
 
   // 게시판 목록 로드
   useEffect(() => {
-    loadBoards()
-  }, [])
+    loadBoards();
+  }, []);
 
   const loadBoards = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch('/api/admin/boards')
+      const response = await fetch("/api/admin/boards");
       if (response.ok) {
-        const data = await response.json()
-        setBoards(data.boards)
+        const data = await response.json();
+        setBoards(data.boards);
       }
     } catch (error) {
-      console.error('Failed to load boards:', error)
+      console.error("Failed to load boards:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 게시판 선택 시 게시물 로드
   const selectBoard = async (board: Board) => {
-    setSelectedBoard(board)
+    setSelectedBoard(board);
     try {
-      const response = await fetch(`/api/admin/boards/${board.id}/posts`)
+      const response = await fetch(`/api/admin/boards/${board.id}/posts`);
       if (response.ok) {
-        const data = await response.json()
-        setPosts(data.posts)
+        const data = await response.json();
+        setPosts(data.posts);
       }
     } catch (error) {
-      console.error('Failed to load posts:', error)
+      console.error("Failed to load posts:", error);
     }
-  }
+  };
 
   // 게시판 상태 변경
   const toggleBoardStatus = async (boardId: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+    const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     try {
       const response = await fetch(`/api/admin/boards/${boardId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      })
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
       if (response.ok) {
-        loadBoards()
+        loadBoards();
       }
     } catch (error) {
-      console.error('Failed to update board status:', error)
+      console.error("Failed to update board status:", error);
     }
-  }
+  };
 
   // 게시물 상태 변경
   const togglePostStatus = async (postId: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'PUBLISHED' ? 'HIDDEN' : 'PUBLISHED'
+    const newStatus = currentStatus === "PUBLISHED" ? "HIDDEN" : "PUBLISHED";
     try {
       const response = await fetch(`/api/admin/posts/${postId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      })
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
       if (response.ok && selectedBoard) {
-        selectBoard(selectedBoard)
+        selectBoard(selectedBoard);
       }
     } catch (error) {
-      console.error('Failed to update post status:', error)
+      console.error("Failed to update post status:", error);
     }
-  }
+  };
 
   // 게시판 삭제
   const deleteBoard = async (boardId: string) => {
-    if (!confirm('정말 이 게시판을 삭제하시겠습니까? 모든 게시물도 함께 삭제됩니다.')) {
-      return
+    if (
+      !confirm(
+        "정말 이 게시판을 삭제하시겠습니까? 모든 게시물도 함께 삭제됩니다.",
+      )
+    ) {
+      return;
     }
-    
+
     try {
       const response = await fetch(`/api/admin/boards/${boardId}`, {
-        method: 'DELETE'
-      })
+        method: "DELETE",
+      });
       if (response.ok) {
-        loadBoards()
+        loadBoards();
         if (selectedBoard?.id === boardId) {
-          setSelectedBoard(null)
-          setPosts([])
+          setSelectedBoard(null);
+          setPosts([]);
         }
       }
     } catch (error) {
-      console.error('Failed to delete board:', error)
+      console.error("Failed to delete board:", error);
     }
-  }
+  };
 
   // 게시물 삭제
   const deletePost = async (postId: string) => {
-    if (!confirm('정말 이 게시물을 삭제하시겠습니까?')) {
-      return
+    if (!confirm("정말 이 게시물을 삭제하시겠습니까?")) {
+      return;
     }
-    
+
     try {
       const response = await fetch(`/api/admin/posts/${postId}`, {
-        method: 'DELETE'
-      })
+        method: "DELETE",
+      });
       if (response.ok && selectedBoard) {
-        selectBoard(selectedBoard)
+        selectBoard(selectedBoard);
       }
     } catch (error) {
-      console.error('Failed to delete post:', error)
+      console.error("Failed to delete post:", error);
     }
-  }
+  };
 
   // 필터된 게시판 목록
-  const filteredBoards = boards.filter(board => {
-    const matchesSearch = board.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          board.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = filterCategory === 'all' || board.category === filterCategory
-    const matchesStatus = filterStatus === 'all' || board.status === filterStatus
-    return matchesSearch && matchesCategory && matchesStatus
-  })
+  const filteredBoards = boards.filter((board) => {
+    const matchesSearch =
+      board.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      board.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      filterCategory === "all" || board.category === filterCategory;
+    const matchesStatus =
+      filterStatus === "all" || board.status === filterStatus;
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -225,22 +241,30 @@ export default function AdminBoardsPage() {
               {/* 게시판 리스트 */}
               <div className="max-h-[600px] overflow-y-auto">
                 {loading ? (
-                  <div className="p-4 text-center text-gray-500">로딩 중...</div>
+                  <div className="p-4 text-center text-gray-500">
+                    로딩 중...
+                  </div>
                 ) : filteredBoards.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500">게시판이 없습니다</div>
+                  <div className="p-4 text-center text-gray-500">
+                    게시판이 없습니다
+                  </div>
                 ) : (
-                  filteredBoards.map(board => (
+                  filteredBoards.map((board) => (
                     <div
                       key={board.id}
                       className={`p-4 border-b cursor-pointer hover:bg-gray-50 transition ${
-                        selectedBoard?.id === board.id ? 'bg-indigo-50' : ''
+                        selectedBoard?.id === board.id ? "bg-indigo-50" : ""
                       }`}
                       onClick={() => selectBoard(board)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{board.name}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{board.description}</p>
+                          <h3 className="font-medium text-gray-900">
+                            {board.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {board.description}
+                          </p>
                           <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
                             <span className="px-2 py-1 bg-gray-100 rounded">
                               {board.category}
@@ -248,27 +272,30 @@ export default function AdminBoardsPage() {
                             <span>{board.postCount}개 게시물</span>
                             <span
                               className={`px-2 py-1 rounded ${
-                                board.status === 'ACTIVE'
-                                  ? 'bg-green-100 text-green-700'
-                                  : board.status === 'INACTIVE'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : 'bg-gray-100 text-gray-700'
+                                board.status === "ACTIVE"
+                                  ? "bg-green-100 text-green-700"
+                                  : board.status === "INACTIVE"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : "bg-gray-100 text-gray-700"
                               }`}
                             >
-                              {board.status === 'ACTIVE' ? '활성' : 
-                               board.status === 'INACTIVE' ? '비활성' : '보관'}
+                              {board.status === "ACTIVE"
+                                ? "활성"
+                                : board.status === "INACTIVE"
+                                  ? "비활성"
+                                  : "보관"}
                             </span>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 ml-2">
                           <button
                             onClick={(e) => {
-                              e.stopPropagation()
-                              toggleBoardStatus(board.id, board.status)
+                              e.stopPropagation();
+                              toggleBoardStatus(board.id, board.status);
                             }}
                             className="p-1 text-gray-500 hover:text-indigo-600"
                           >
-                            {board.status === 'ACTIVE' ? (
+                            {board.status === "ACTIVE" ? (
                               <EyeOff className="w-4 h-4" />
                             ) : (
                               <Eye className="w-4 h-4" />
@@ -276,9 +303,9 @@ export default function AdminBoardsPage() {
                           </button>
                           <button
                             onClick={(e) => {
-                              e.stopPropagation()
-                              setEditingBoard(board)
-                              setShowEditModal(true)
+                              e.stopPropagation();
+                              setEditingBoard(board);
+                              setShowEditModal(true);
                             }}
                             className="p-1 text-gray-500 hover:text-indigo-600"
                           >
@@ -286,8 +313,8 @@ export default function AdminBoardsPage() {
                           </button>
                           <button
                             onClick={(e) => {
-                              e.stopPropagation()
-                              deleteBoard(board.id)
+                              e.stopPropagation();
+                              deleteBoard(board.id);
                             }}
                             className="p-1 text-gray-500 hover:text-red-600"
                           >
@@ -317,8 +344,7 @@ export default function AdminBoardsPage() {
                       </p>
                     </div>
                     <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2">
-                      <Plus className="w-4 h-4" />
-                      새 게시물
+                      <Plus className="w-4 h-4" />새 게시물
                     </button>
                   </div>
                 </div>
@@ -357,12 +383,15 @@ export default function AdminBoardsPage() {
                     <tbody className="divide-y">
                       {posts.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                          <td
+                            colSpan={8}
+                            className="px-4 py-8 text-center text-gray-500"
+                          >
                             게시물이 없습니다
                           </td>
                         </tr>
                       ) : (
-                        posts.map(post => (
+                        posts.map((post) => (
                           <tr key={post.id} className="hover:bg-gray-50">
                             <td className="px-4 py-3">
                               <div className="text-sm font-medium text-gray-900">
@@ -375,15 +404,18 @@ export default function AdminBoardsPage() {
                             <td className="px-4 py-3 text-center">
                               <span
                                 className={`px-2 py-1 text-xs rounded ${
-                                  post.status === 'PUBLISHED'
-                                    ? 'bg-green-100 text-green-700'
-                                    : post.status === 'DRAFT'
-                                    ? 'bg-gray-100 text-gray-700'
-                                    : 'bg-red-100 text-red-700'
+                                  post.status === "PUBLISHED"
+                                    ? "bg-green-100 text-green-700"
+                                    : post.status === "DRAFT"
+                                      ? "bg-gray-100 text-gray-700"
+                                      : "bg-red-100 text-red-700"
                                 }`}
                               >
-                                {post.status === 'PUBLISHED' ? '게시' :
-                                 post.status === 'DRAFT' ? '임시' : '숨김'}
+                                {post.status === "PUBLISHED"
+                                  ? "게시"
+                                  : post.status === "DRAFT"
+                                    ? "임시"
+                                    : "숨김"}
                               </span>
                             </td>
                             <td className="px-4 py-3 text-center text-sm text-gray-600">
@@ -396,23 +428,25 @@ export default function AdminBoardsPage() {
                               {post.commentCount}
                             </td>
                             <td className="px-4 py-3 text-center text-sm text-gray-600">
-                              {new Date(post.createdAt).toLocaleDateString('ko-KR')}
+                              {new Date(post.createdAt).toLocaleDateString(
+                                "ko-KR",
+                              )}
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center justify-center gap-1">
                                 <button
-                                  onClick={() => togglePostStatus(post.id, post.status)}
+                                  onClick={() =>
+                                    togglePostStatus(post.id, post.status)
+                                  }
                                   className="p-1 text-gray-500 hover:text-indigo-600"
                                 >
-                                  {post.status === 'PUBLISHED' ? (
+                                  {post.status === "PUBLISHED" ? (
                                     <EyeOff className="w-4 h-4" />
                                   ) : (
                                     <Eye className="w-4 h-4" />
                                   )}
                                 </button>
-                                <button
-                                  className="p-1 text-gray-500 hover:text-indigo-600"
-                                >
+                                <button className="p-1 text-gray-500 hover:text-indigo-600">
                                   <Edit2 className="w-4 h-4" />
                                 </button>
                                 <button
@@ -434,9 +468,15 @@ export default function AdminBoardsPage() {
               <div className="bg-white rounded-lg shadow p-8">
                 <div className="text-center text-gray-500">
                   <Filter className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium mb-2">게시판을 선택하세요</p>
-                  <p className="text-sm">왼쪽 목록에서 관리할 게시판을 선택하면</p>
-                  <p className="text-sm">해당 게시판의 게시물을 관리할 수 있습니다</p>
+                  <p className="text-lg font-medium mb-2">
+                    게시판을 선택하세요
+                  </p>
+                  <p className="text-sm">
+                    왼쪽 목록에서 관리할 게시판을 선택하면
+                  </p>
+                  <p className="text-sm">
+                    해당 게시판의 게시물을 관리할 수 있습니다
+                  </p>
                 </div>
               </div>
             )}
@@ -446,5 +486,5 @@ export default function AdminBoardsPage() {
 
       {/* 게시판 생성/수정 모달은 필요시 추가 */}
     </div>
-  )
+  );
 }

@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 interface RecommendedSection {
   title: string;
   subtitle?: string;
   visible: boolean;
   count: number;
-  selectionMode: 'auto' | 'manual';
+  selectionMode: "auto" | "manual";
   autoFilter?: {
     category?: string;
     minBudget?: number;
@@ -20,14 +20,15 @@ interface RecommendedSection {
 
 export default function RecommendedSectionEditPage() {
   const router = useRouter();
-  const [recommendedSection, setRecommendedSection] = useState<RecommendedSection>({
-    title: '추천 캠페인',
-    subtitle: '지금 주목할만한 캠페인을 만나보세요',
-    visible: true,
-    count: 10,
-    selectionMode: 'auto',
-    autoFilter: {}
-  });
+  const [recommendedSection, setRecommendedSection] =
+    useState<RecommendedSection>({
+      title: "추천 캠페인",
+      subtitle: "지금 주목할만한 캠페인을 만나보세요",
+      visible: true,
+      count: 10,
+      selectionMode: "auto",
+      autoFilter: {},
+    });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -39,24 +40,25 @@ export default function RecommendedSectionEditPage() {
   const loadSection = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/ui-sections/recommended');
-      
+      const response = await fetch("/api/admin/ui-sections/recommended");
+
       if (response.ok) {
         const data = await response.json();
         if (data.section) {
           setRecommendedSection({
-            title: data.section.title || '추천 캠페인',
-            subtitle: data.section.subtitle || '지금 주목할만한 캠페인을 만나보세요',
+            title: data.section.title || "추천 캠페인",
+            subtitle:
+              data.section.subtitle || "지금 주목할만한 캠페인을 만나보세요",
             visible: data.section.visible,
             count: data.section.content?.count || 10,
-            selectionMode: data.section.content?.selectionMode || 'auto',
+            selectionMode: data.section.content?.selectionMode || "auto",
             autoFilter: data.section.content?.autoFilter || {},
-            manualCampaignIds: data.section.content?.manualCampaignIds || []
+            manualCampaignIds: data.section.content?.manualCampaignIds || [],
           });
         }
       }
     } catch (error) {
-      console.error('Error loading section:', error);
+      console.error("Error loading section:", error);
     } finally {
       setLoading(false);
     }
@@ -69,10 +71,10 @@ export default function RecommendedSectionEditPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch('/api/admin/ui-sections/recommended', {
-        method: 'PUT',
+      const response = await fetch("/api/admin/ui-sections/recommended", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           visible: recommendedSection.visible,
@@ -82,43 +84,43 @@ export default function RecommendedSectionEditPage() {
             count: recommendedSection.count,
             selectionMode: recommendedSection.selectionMode,
             autoFilter: recommendedSection.autoFilter,
-            manualCampaignIds: recommendedSection.manualCampaignIds
+            manualCampaignIds: recommendedSection.manualCampaignIds,
           },
-          autoTranslate: true
-        })
+          autoTranslate: true,
+        }),
       });
 
       if (response.ok) {
-        alert('저장되었습니다.');
-        router.push('/admin/ui-config?tab=sections');
+        alert("저장되었습니다.");
+        router.push("/admin/ui-config?tab=sections");
       } else {
-        throw new Error('Save failed');
+        throw new Error("Save failed");
       }
     } catch (error) {
-      console.error('Error saving section:', error);
-      alert('저장 중 오류가 발생했습니다.');
+      console.error("Error saving section:", error);
+      alert("저장 중 오류가 발생했습니다.");
     } finally {
       setSaving(false);
     }
   };
 
   const categories = [
-    { id: '', name: '전체' },
-    { id: 'beauty', name: '뷰티' },
-    { id: 'fashion', name: '패션' },
-    { id: 'food', name: '맛집' },
-    { id: 'travel', name: '여행' },
-    { id: 'tech', name: '테크' },
-    { id: 'fitness', name: '운동' },
-    { id: 'lifestyle', name: '라이프' },
+    { id: "", name: "전체" },
+    { id: "beauty", name: "뷰티" },
+    { id: "fashion", name: "패션" },
+    { id: "food", name: "맛집" },
+    { id: "travel", name: "여행" },
+    { id: "tech", name: "테크" },
+    { id: "fitness", name: "운동" },
+    { id: "lifestyle", name: "라이프" },
   ];
 
   const platforms = [
-    { id: '', name: '전체 플랫폼' },
-    { id: 'instagram', name: '인스타그램' },
-    { id: 'youtube', name: '유튜브' },
-    { id: 'tiktok', name: '틱톡' },
-    { id: 'blog', name: '블로그' },
+    { id: "", name: "전체 플랫폼" },
+    { id: "instagram", name: "인스타그램" },
+    { id: "youtube", name: "유튜브" },
+    { id: "tiktok", name: "틱톡" },
+    { id: "blog", name: "블로그" },
   ];
 
   return (
@@ -132,22 +134,30 @@ export default function RecommendedSectionEditPage() {
           뒤로 가기
         </button>
         <h1 className="text-2xl font-bold text-gray-900">추천 캠페인 관리</h1>
-        <p className="text-gray-600 mt-2">메인 페이지에 표시되는 추천 캠페인을 관리합니다.</p>
+        <p className="text-gray-600 mt-2">
+          메인 페이지에 표시되는 추천 캠페인을 관리합니다.
+        </p>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold">추천 캠페인 설정</h2>
           <button
-            onClick={() => handleUpdate({ visible: !recommendedSection.visible })}
+            onClick={() =>
+              handleUpdate({ visible: !recommendedSection.visible })
+            }
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg border ${
-              recommendedSection.visible 
-                ? 'bg-green-50 text-green-700 border-green-300' 
-                : 'bg-gray-50 text-gray-700 border-gray-300'
+              recommendedSection.visible
+                ? "bg-green-50 text-green-700 border-green-300"
+                : "bg-gray-50 text-gray-700 border-gray-300"
             }`}
           >
-            {recommendedSection.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-            <span>{recommendedSection.visible ? '표시중' : '숨김'}</span>
+            {recommendedSection.visible ? (
+              <Eye className="w-4 h-4" />
+            ) : (
+              <EyeOff className="w-4 h-4" />
+            )}
+            <span>{recommendedSection.visible ? "표시중" : "숨김"}</span>
           </button>
         </div>
 
@@ -172,7 +182,7 @@ export default function RecommendedSectionEditPage() {
               </label>
               <input
                 type="text"
-                value={recommendedSection.subtitle || ''}
+                value={recommendedSection.subtitle || ""}
                 onChange={(e) => handleUpdate({ subtitle: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 placeholder="예: 지금 주목할만한 캠페인을 만나보세요"
@@ -186,7 +196,9 @@ export default function RecommendedSectionEditPage() {
             </label>
             <select
               value={recommendedSection.count}
-              onChange={(e) => handleUpdate({ count: parseInt(e.target.value) })}
+              onChange={(e) =>
+                handleUpdate({ count: parseInt(e.target.value) })
+              }
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value={5}>5개</option>
@@ -202,64 +214,85 @@ export default function RecommendedSectionEditPage() {
               캠페인 선택 방식
             </label>
             <div className="space-y-2">
-              <label className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${
-                recommendedSection.selectionMode === 'auto'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}>
+              <label
+                className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${
+                  recommendedSection.selectionMode === "auto"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
                 <input
                   type="radio"
                   name="selectionMode"
                   value="auto"
-                  checked={recommendedSection.selectionMode === 'auto'}
-                  onChange={(e) => handleUpdate({ selectionMode: 'auto' as const })}
+                  checked={recommendedSection.selectionMode === "auto"}
+                  onChange={(e) =>
+                    handleUpdate({ selectionMode: "auto" as const })
+                  }
                   className="mt-0.5 mr-3"
                 />
                 <div>
                   <div className="font-medium text-gray-900">자동 선택</div>
-                  <div className="text-sm text-gray-600">설정한 조건에 맞는 캠페인을 자동으로 표시합니다</div>
+                  <div className="text-sm text-gray-600">
+                    설정한 조건에 맞는 캠페인을 자동으로 표시합니다
+                  </div>
                 </div>
               </label>
 
-              <label className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${
-                recommendedSection.selectionMode === 'manual'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}>
+              <label
+                className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${
+                  recommendedSection.selectionMode === "manual"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
                 <input
                   type="radio"
                   name="selectionMode"
                   value="manual"
-                  checked={recommendedSection.selectionMode === 'manual'}
-                  onChange={(e) => handleUpdate({ selectionMode: 'manual' as const })}
+                  checked={recommendedSection.selectionMode === "manual"}
+                  onChange={(e) =>
+                    handleUpdate({ selectionMode: "manual" as const })
+                  }
                   className="mt-0.5 mr-3"
                 />
                 <div>
                   <div className="font-medium text-gray-900">수동 선택</div>
-                  <div className="text-sm text-gray-600">특정 캠페인을 직접 선택하여 표시합니다</div>
+                  <div className="text-sm text-gray-600">
+                    특정 캠페인을 직접 선택하여 표시합니다
+                  </div>
                 </div>
               </label>
             </div>
           </div>
 
           {/* 자동 선택 필터 */}
-          {recommendedSection.selectionMode === 'auto' && (
+          {recommendedSection.selectionMode === "auto" && (
             <div className="border-t pt-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">자동 선택 필터</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-4">
+                자동 선택 필터
+              </h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     카테고리
                   </label>
                   <select
-                    value={recommendedSection.autoFilter?.category || ''}
-                    onChange={(e) => handleUpdate({ 
-                      autoFilter: { ...recommendedSection.autoFilter, category: e.target.value }
-                    })}
+                    value={recommendedSection.autoFilter?.category || ""}
+                    onChange={(e) =>
+                      handleUpdate({
+                        autoFilter: {
+                          ...recommendedSection.autoFilter,
+                          category: e.target.value,
+                        },
+                      })
+                    }
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -269,14 +302,21 @@ export default function RecommendedSectionEditPage() {
                     플랫폼
                   </label>
                   <select
-                    value={recommendedSection.autoFilter?.platform || ''}
-                    onChange={(e) => handleUpdate({ 
-                      autoFilter: { ...recommendedSection.autoFilter, platform: e.target.value }
-                    })}
+                    value={recommendedSection.autoFilter?.platform || ""}
+                    onChange={(e) =>
+                      handleUpdate({
+                        autoFilter: {
+                          ...recommendedSection.autoFilter,
+                          platform: e.target.value,
+                        },
+                      })
+                    }
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    {platforms.map(platform => (
-                      <option key={platform.id} value={platform.id}>{platform.name}</option>
+                    {platforms.map((platform) => (
+                      <option key={platform.id} value={platform.id}>
+                        {platform.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -287,13 +327,17 @@ export default function RecommendedSectionEditPage() {
                   </label>
                   <input
                     type="number"
-                    value={recommendedSection.autoFilter?.minBudget || ''}
-                    onChange={(e) => handleUpdate({ 
-                      autoFilter: { 
-                        ...recommendedSection.autoFilter, 
-                        minBudget: e.target.value ? parseInt(e.target.value) : undefined 
-                      }
-                    })}
+                    value={recommendedSection.autoFilter?.minBudget || ""}
+                    onChange={(e) =>
+                      handleUpdate({
+                        autoFilter: {
+                          ...recommendedSection.autoFilter,
+                          minBudget: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
+                        },
+                      })
+                    }
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                     placeholder="0"
                   />
@@ -303,9 +347,11 @@ export default function RecommendedSectionEditPage() {
           )}
 
           {/* 수동 선택 */}
-          {recommendedSection.selectionMode === 'manual' && (
+          {recommendedSection.selectionMode === "manual" && (
             <div className="border-t pt-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">캠페인 선택</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-4">
+                캠페인 선택
+              </h3>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-600 mb-4">
                   캠페인 ID를 입력하여 표시할 캠페인을 선택하세요.
@@ -314,9 +360,12 @@ export default function RecommendedSectionEditPage() {
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   rows={4}
                   placeholder="캠페인 ID를 쉼표로 구분하여 입력 (예: camp1, camp2, camp3)"
-                  value={recommendedSection.manualCampaignIds?.join(', ') || ''}
+                  value={recommendedSection.manualCampaignIds?.join(", ") || ""}
                   onChange={(e) => {
-                    const ids = e.target.value.split(',').map(id => id.trim()).filter(id => id);
+                    const ids = e.target.value
+                      .split(",")
+                      .map((id) => id.trim())
+                      .filter((id) => id);
                     handleUpdate({ manualCampaignIds: ids });
                   }}
                 />
@@ -326,33 +375,29 @@ export default function RecommendedSectionEditPage() {
 
           {/* 미리보기 */}
           <div className="border-t pt-6">
-            <h3 className="text-sm font-medium text-gray-900 mb-4">레이아웃 미리보기</h3>
+            <h3 className="text-sm font-medium text-gray-900 mb-4">
+              레이아웃 미리보기
+            </h3>
             <div className="border rounded-lg p-4 bg-gray-50">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-bold">{recommendedSection.title}</h3>
+                  <h3 className="text-lg font-bold">
+                    {recommendedSection.title}
+                  </h3>
                   {recommendedSection.subtitle && (
-                    <p className="text-sm text-gray-600 mt-0.5">{recommendedSection.subtitle}</p>
+                    <p className="text-sm text-gray-600 mt-0.5">
+                      {recommendedSection.subtitle}
+                    </p>
                   )}
                 </div>
-                <span className="text-sm text-blue-600 font-medium">전체보기 →</span>
+                <span className="text-sm text-blue-600 font-medium">
+                  전체보기 →
+                </span>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {[...Array(Math.min(5, recommendedSection.count))].map((_, index) => (
-                  <div key={index} className="bg-white border rounded-lg p-2">
-                    <div className="aspect-video bg-gray-200 rounded mb-2"></div>
-                    <div className="space-y-1">
-                      <div className="h-2 bg-gray-200 rounded"></div>
-                      <div className="h-2 bg-gray-200 rounded w-3/4"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {recommendedSection.count > 5 && (
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3">
-                  {[...Array(Math.min(5, recommendedSection.count - 5))].map((_, index) => (
+                {[...Array(Math.min(5, recommendedSection.count))].map(
+                  (_, index) => (
                     <div key={index} className="bg-white border rounded-lg p-2">
                       <div className="aspect-video bg-gray-200 rounded mb-2"></div>
                       <div className="space-y-1">
@@ -360,7 +405,26 @@ export default function RecommendedSectionEditPage() {
                         <div className="h-2 bg-gray-200 rounded w-3/4"></div>
                       </div>
                     </div>
-                  ))}
+                  ),
+                )}
+              </div>
+
+              {recommendedSection.count > 5 && (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3">
+                  {[...Array(Math.min(5, recommendedSection.count - 5))].map(
+                    (_, index) => (
+                      <div
+                        key={index}
+                        className="bg-white border rounded-lg p-2"
+                      >
+                        <div className="aspect-video bg-gray-200 rounded mb-2"></div>
+                        <div className="space-y-1">
+                          <div className="h-2 bg-gray-200 rounded"></div>
+                          <div className="h-2 bg-gray-200 rounded w-3/4"></div>
+                        </div>
+                      </div>
+                    ),
+                  )}
                 </div>
               )}
             </div>
@@ -380,12 +444,12 @@ export default function RecommendedSectionEditPage() {
           onClick={handleSave}
           disabled={saving}
           className={`px-6 py-2 rounded-lg ${
-            saving 
-              ? 'bg-gray-400 text-gray-200' 
-              : 'bg-blue-600 text-white hover:bg-blue-700'
+            saving
+              ? "bg-gray-400 text-gray-200"
+              : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
         >
-          {saving ? '저장 중...' : '저장'}
+          {saving ? "저장 중..." : "저장"}
         </button>
       </div>
     </div>

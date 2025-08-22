@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { fetchAuthMe } from '@/lib/utils/api-cache';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { fetchAuthMe } from "@/lib/utils/api-cache";
 
 interface User {
   id: string;
   email: string;
   name: string;
-  type: 'BUSINESS' | 'INFLUENCER' | 'ADMIN';
+  type: "BUSINESS" | "INFLUENCER" | "ADMIN";
 }
 
 interface AuthState {
@@ -24,7 +24,7 @@ interface RegisterData {
   email: string;
   password: string;
   name: string;
-  userType: 'BUSINESS' | 'INFLUENCER';
+  userType: "BUSINESS" | "INFLUENCER";
 }
 
 export function useAuth() {
@@ -37,32 +37,36 @@ export function useAuth() {
 
   // 토큰 관리
   const getAccessToken = useCallback(() => {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") return null;
     // Check both localStorage keys for compatibility
-    return localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
+    return (
+      localStorage.getItem("accessToken") || localStorage.getItem("auth-token")
+    );
   }, []);
 
   const setAccessToken = useCallback((token: string) => {
-    localStorage.setItem('accessToken', token);
+    localStorage.setItem("accessToken", token);
     // 쿠키에도 토큰 저장 (미들웨어 호환성을 위해)
     document.cookie = `accessToken=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=lax`;
     document.cookie = `auth-token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=lax`;
   }, []);
 
   const clearTokens = useCallback(() => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('auth-token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("auth-token");
+    localStorage.removeItem("user");
     // 쿠키도 제거
-    document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie =
+      "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie =
+      "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   }, []);
 
   // 현재 사용자 정보 가져오기 - 캐싱 적용
   const getCurrentUser = useCallback(async () => {
     const token = getAccessToken();
     if (!token) {
-      setAuthState(prev => ({ ...prev, isLoading: false }));
+      setAuthState((prev) => ({ ...prev, isLoading: false }));
       return;
     }
 
@@ -76,9 +80,9 @@ export function useAuth() {
         isLoading: false,
       });
       // Sync with localStorage
-      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem("user", JSON.stringify(userData));
     } catch (error) {
-      console.error('Auth error:', error);
+      console.error("Auth error:", error);
       // 토큰이 유효하지 않음
       clearTokens();
       setAuthState({
@@ -90,97 +94,107 @@ export function useAuth() {
   }, [getAccessToken, clearTokens]);
 
   // 로그인
-  const login = useCallback(async (data: LoginData) => {
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        // Handle both 'token' and 'accessToken' fields for compatibility
-        const token = result.accessToken || result.token;
-        if (token) {
-          setAccessToken(token);
-          // Also save to auth-token for compatibility
-          localStorage.setItem('auth-token', token);
-        }
-        // Save user to localStorage
-        if (result.user) {
-          localStorage.setItem('user', JSON.stringify(result.user));
-        }
-        setAuthState({
-          user: result.user,
-          isAuthenticated: true,
-          isLoading: false,
+  const login = useCallback(
+    async (data: LoginData) => {
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
         });
-        return { success: true };
-      } else {
-        const error = await response.json();
-        return { success: false, error: error.error || 'Login failed' };
+
+        if (response.ok) {
+          const result = await response.json();
+          // Handle both 'token' and 'accessToken' fields for compatibility
+          const token = result.accessToken || result.token;
+          if (token) {
+            setAccessToken(token);
+            // Also save to auth-token for compatibility
+            localStorage.setItem("auth-token", token);
+          }
+          // Save user to localStorage
+          if (result.user) {
+            localStorage.setItem("user", JSON.stringify(result.user));
+          }
+          setAuthState({
+            user: result.user,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          return { success: true };
+        } else {
+          const error = await response.json();
+          return { success: false, error: error.error || "Login failed" };
+        }
+      } catch (error) {
+        return { success: false, error: "Network error" };
       }
-    } catch (error) {
-      return { success: false, error: 'Network error' };
-    }
-  }, [setAccessToken]);
+    },
+    [setAccessToken],
+  );
 
   // 회원가입
-  const register = useCallback(async (data: RegisterData) => {
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        // Handle nested tokens structure from register endpoint
-        const token = result.tokens?.accessToken || result.accessToken || result.token;
-        if (token) {
-          setAccessToken(token);
-          // Also save to auth-token for compatibility
-          localStorage.setItem('auth-token', token);
-        }
-        // Save user to localStorage
-        if (result.user) {
-          localStorage.setItem('user', JSON.stringify(result.user));
-        }
-        setAuthState({
-          user: result.user,
-          isAuthenticated: true,
-          isLoading: false,
+  const register = useCallback(
+    async (data: RegisterData) => {
+      try {
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
         });
-        return { success: true };
-      } else {
-        const error = await response.json();
-        return { success: false, error: error.error || 'Registration failed' };
+
+        if (response.ok) {
+          const result = await response.json();
+          // Handle nested tokens structure from register endpoint
+          const token =
+            result.tokens?.accessToken || result.accessToken || result.token;
+          if (token) {
+            setAccessToken(token);
+            // Also save to auth-token for compatibility
+            localStorage.setItem("auth-token", token);
+          }
+          // Save user to localStorage
+          if (result.user) {
+            localStorage.setItem("user", JSON.stringify(result.user));
+          }
+          setAuthState({
+            user: result.user,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          return { success: true };
+        } else {
+          const error = await response.json();
+          return {
+            success: false,
+            error: error.error || "Registration failed",
+          };
+        }
+      } catch (error) {
+        return { success: false, error: "Network error" };
       }
-    } catch (error) {
-      return { success: false, error: 'Network error' };
-    }
-  }, [setAccessToken]);
+    },
+    [setAccessToken],
+  );
 
   // 로그아웃
   const logout = useCallback(async () => {
     const token = getAccessToken();
-    
+
     if (token) {
       try {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
+        await fetch("/api/auth/logout", {
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
       } catch (error) {
-        console.error('Logout error:', error);
+        console.error("Logout error:", error);
       }
     }
 
@@ -190,16 +204,18 @@ export function useAuth() {
       isAuthenticated: false,
       isLoading: false,
     });
-    router.push('/');
+    router.push("/");
   }, [getAccessToken, clearTokens, router]);
 
   // 초기화 - localStorage에서 사용자 정보 먼저 확인
   useEffect(() => {
     // localStorage에서 빠르게 사용자 정보 로드 (hydration 문제 방지)
-    if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('user');
-      const token = localStorage.getItem('accessToken') || localStorage.getItem('auth-token');
-      
+    if (typeof window !== "undefined") {
+      const savedUser = localStorage.getItem("user");
+      const token =
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("auth-token");
+
       if (savedUser && token) {
         try {
           const userData = JSON.parse(savedUser);
@@ -209,22 +225,25 @@ export function useAuth() {
             isLoading: false,
           });
         } catch (e) {
-          console.error('Failed to parse saved user:', e);
+          console.error("Failed to parse saved user:", e);
         }
       }
-      
+
       // 그 다음 서버에서 최신 정보 확인
       getCurrentUser();
     }
   }, []); // 의존성 배열을 비워서 처음 마운트 시에만 실행
 
-  return useMemo(() => ({
-    user: authState.user,
-    isAuthenticated: authState.isAuthenticated,
-    isLoading: authState.isLoading,
-    login,
-    register,
-    logout,
-    getCurrentUser,
-  }), [authState, login, register, logout, getCurrentUser]);
+  return useMemo(
+    () => ({
+      user: authState.user,
+      isAuthenticated: authState.isAuthenticated,
+      isLoading: authState.isLoading,
+      login,
+      register,
+      logout,
+      getCurrentUser,
+    }),
+    [authState, login, register, logout, getCurrentUser],
+  );
 }

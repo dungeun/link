@@ -1,48 +1,48 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { AlertTriangle, CheckCircle, XCircle, Clock, Info } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { AlertTriangle, CheckCircle, XCircle, Clock, Info } from "lucide-react";
 
 interface Penalty {
-  id: string
-  penaltyType: 'WARNING' | 'SUSPENSION' | 'BAN'
-  severity: 'LOW' | 'MEDIUM' | 'HIGH'
-  reason: string
-  startDate: string
-  endDate?: string
-  status: 'ACTIVE' | 'RESOLVED' | 'EXPIRED'
-  campaignId?: string
+  id: string;
+  penaltyType: "WARNING" | "SUSPENSION" | "BAN";
+  severity: "LOW" | "MEDIUM" | "HIGH";
+  reason: string;
+  startDate: string;
+  endDate?: string;
+  status: "ACTIVE" | "RESOLVED" | "EXPIRED";
+  campaignId?: string;
 }
 
 interface Rating {
-  overallScore: number
-  totalRatings: number
-  avgCommunication: number
-  avgQuality: number
-  avgTimeliness: number
-  avgProfessionalism: number
-  avgCreativity: number
+  overallScore: number;
+  totalRatings: number;
+  avgCommunication: number;
+  avgQuality: number;
+  avgTimeliness: number;
+  avgProfessionalism: number;
+  avgCreativity: number;
 }
 
 export default function PenaltyStatus({ userId }: { userId: string }) {
-  const [penalties, setPenalties] = useState<Penalty[]>([])
-  const [rating, setRating] = useState<Rating | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [penalties, setPenalties] = useState<Penalty[]>([]);
+  const [rating, setRating] = useState<Rating | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // TODO: API에서 페널티 및 평가 정보 로드
     // 임시 데이터
     setPenalties([
       {
-        id: '1',
-        penaltyType: 'WARNING',
-        severity: 'LOW',
-        reason: '캠페인 콘텐츠 제출 지연',
-        startDate: '2024-01-15',
-        status: 'RESOLVED'
-      }
-    ])
-    
+        id: "1",
+        penaltyType: "WARNING",
+        severity: "LOW",
+        reason: "캠페인 콘텐츠 제출 지연",
+        startDate: "2024-01-15",
+        status: "RESOLVED",
+      },
+    ]);
+
     setRating({
       overallScore: 4.3,
       totalRatings: 12,
@@ -50,60 +50,62 @@ export default function PenaltyStatus({ userId }: { userId: string }) {
       avgQuality: 4.2,
       avgTimeliness: 4.0,
       avgProfessionalism: 4.5,
-      avgCreativity: 4.3
-    })
-    
-    setLoading(false)
-  }, [userId])
+      avgCreativity: 4.3,
+    });
+
+    setLoading(false);
+  }, [userId]);
 
   const getPenaltyIcon = (type: string) => {
     switch (type) {
-      case 'WARNING':
-        return <AlertTriangle className="w-5 h-5 text-yellow-500" />
-      case 'SUSPENSION':
-        return <Clock className="w-5 h-5 text-orange-500" />
-      case 'BAN':
-        return <XCircle className="w-5 h-5 text-red-500" />
+      case "WARNING":
+        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+      case "SUSPENSION":
+        return <Clock className="w-5 h-5 text-orange-500" />;
+      case "BAN":
+        return <XCircle className="w-5 h-5 text-red-500" />;
       default:
-        return <Info className="w-5 h-5 text-gray-500" />
+        return <Info className="w-5 h-5 text-gray-500" />;
     }
-  }
+  };
 
   const getSeverityBadge = (severity: string) => {
     const colors = {
-      LOW: 'bg-yellow-100 text-yellow-800',
-      MEDIUM: 'bg-orange-100 text-orange-800',
-      HIGH: 'bg-red-100 text-red-800'
-    }
-    return colors[severity as keyof typeof colors] || 'bg-gray-100 text-gray-800'
-  }
+      LOW: "bg-yellow-100 text-yellow-800",
+      MEDIUM: "bg-orange-100 text-orange-800",
+      HIGH: "bg-red-100 text-red-800",
+    };
+    return (
+      colors[severity as keyof typeof colors] || "bg-gray-100 text-gray-800"
+    );
+  };
 
   const getStatusBadge = (status: string) => {
     const configs = {
-      ACTIVE: { color: 'bg-red-100 text-red-800', label: '진행중' },
-      RESOLVED: { color: 'bg-green-100 text-green-800', label: '해결됨' },
-      EXPIRED: { color: 'bg-gray-100 text-gray-800', label: '만료됨' }
-    }
-    return configs[status as keyof typeof configs] || configs.EXPIRED
-  }
+      ACTIVE: { color: "bg-red-100 text-red-800", label: "진행중" },
+      RESOLVED: { color: "bg-green-100 text-green-800", label: "해결됨" },
+      EXPIRED: { color: "bg-gray-100 text-gray-800", label: "만료됨" },
+    };
+    return configs[status as keyof typeof configs] || configs.EXPIRED;
+  };
 
   if (loading) {
     return (
       <div className="animate-pulse">
         <div className="h-48 bg-gray-200 rounded-lg"></div>
       </div>
-    )
+    );
   }
 
-  const activePenalties = penalties.filter(p => p.status === 'ACTIVE')
-  const hasActivePenalties = activePenalties.length > 0
+  const activePenalties = penalties.filter((p) => p.status === "ACTIVE");
+  const hasActivePenalties = activePenalties.length > 0;
 
   return (
     <div className="space-y-6">
       {/* 평가 요약 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">평가 현황</h3>
-        
+
         {rating ? (
           <div className="space-y-4">
             {/* 종합 평점 */}
@@ -180,25 +182,29 @@ export default function PenaltyStatus({ userId }: { userId: string }) {
         {penalties.length > 0 ? (
           <div className="space-y-3">
             {penalties.map((penalty) => {
-              const statusConfig = getStatusBadge(penalty.status)
-              
+              const statusConfig = getStatusBadge(penalty.status);
+
               return (
                 <div
                   key={penalty.id}
                   className={`p-4 rounded-lg border ${
-                    penalty.status === 'ACTIVE'
-                      ? 'border-red-200 bg-red-50'
-                      : 'border-gray-200 bg-gray-50'
+                    penalty.status === "ACTIVE"
+                      ? "border-red-200 bg-red-50"
+                      : "border-gray-200 bg-gray-50"
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     {getPenaltyIcon(penalty.penaltyType)}
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${getSeverityBadge(penalty.severity)}`}>
+                        <span
+                          className={`px-2 py-0.5 text-xs font-medium rounded ${getSeverityBadge(penalty.severity)}`}
+                        >
                           {penalty.severity}
                         </span>
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${statusConfig.color}`}>
+                        <span
+                          className={`px-2 py-0.5 text-xs font-medium rounded ${statusConfig.color}`}
+                        >
                           {statusConfig.label}
                         </span>
                       </div>
@@ -206,15 +212,24 @@ export default function PenaltyStatus({ userId }: { userId: string }) {
                         {penalty.reason}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        시작일: {new Date(penalty.startDate).toLocaleDateString('ko-KR')}
+                        시작일:{" "}
+                        {new Date(penalty.startDate).toLocaleDateString(
+                          "ko-KR",
+                        )}
                         {penalty.endDate && (
-                          <> • 종료일: {new Date(penalty.endDate).toLocaleDateString('ko-KR')}</>
+                          <>
+                            {" "}
+                            • 종료일:{" "}
+                            {new Date(penalty.endDate).toLocaleDateString(
+                              "ko-KR",
+                            )}
+                          </>
                         )}
                       </p>
                     </div>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         ) : (
@@ -236,13 +251,13 @@ export default function PenaltyStatus({ userId }: { userId: string }) {
             <div className="text-sm text-yellow-800">
               <p className="font-medium mb-1">활성 페널티가 있습니다</p>
               <p>
-                페널티가 활성화된 상태에서는 일부 캠페인 신청이 제한될 수 있습니다.
-                문제를 해결하고 관리자에게 문의해주세요.
+                페널티가 활성화된 상태에서는 일부 캠페인 신청이 제한될 수
+                있습니다. 문제를 해결하고 관리자에게 문의해주세요.
               </p>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

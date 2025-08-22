@@ -1,40 +1,59 @@
-'use client';
+"use client";
 
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { SortableMenuItemWithLanguagePack } from '@/components/admin/SortableMenuItemWithLanguagePack';
-import { useUIConfigStore } from '@/lib/stores/ui-config.store';
-import type { MenuItem } from '@/lib/stores/ui-config.store';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { SortableMenuItemWithLanguagePack } from "@/components/admin/SortableMenuItemWithLanguagePack";
+import { useUIConfigStore } from "@/lib/stores/ui-config.store";
+import type { MenuItem } from "@/lib/stores/ui-config.store";
 
 export function HeaderConfigTab() {
   const { config, updateHeaderMenus } = useUIConfigStore();
-  
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleHeaderDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = config.header.menus.findIndex((item) => item.id === String(active.id));
-      const newIndex = config.header.menus.findIndex((item) => item.id === String(over.id));
-      
-      const newMenus = arrayMove(config.header.menus, oldIndex, newIndex).map((item, index) => ({
-        ...item,
-        order: index + 1,
-      }));
-      
+      const oldIndex = config.header.menus.findIndex(
+        (item) => item.id === String(active.id),
+      );
+      const newIndex = config.header.menus.findIndex(
+        (item) => item.id === String(over.id),
+      );
+
+      const newMenus = arrayMove(config.header.menus, oldIndex, newIndex).map(
+        (item, index) => ({
+          ...item,
+          order: index + 1,
+        }),
+      );
+
       updateHeaderMenus(newMenus);
     }
   };
 
   const handleMenuUpdate = (id: string, updates: Partial<MenuItem>) => {
     const newMenus = config.header.menus.map((item) =>
-      item.id === id ? { ...item, ...updates } : item
+      item.id === id ? { ...item, ...updates } : item,
     );
     updateHeaderMenus(newMenus);
   };
@@ -42,8 +61,8 @@ export function HeaderConfigTab() {
   const handleAddMenu = () => {
     const newMenu: MenuItem = {
       id: `menu-${Date.now()}`,
-      label: '새 메뉴',
-      href: '#',
+      label: "새 메뉴",
+      href: "#",
       order: config.header.menus.length + 1,
       visible: true,
     };
@@ -67,9 +86,16 @@ export function HeaderConfigTab() {
             메뉴 추가
           </button>
         </div>
-        
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleHeaderDragEnd}>
-          <SortableContext items={config.header.menus} strategy={verticalListSortingStrategy}>
+
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleHeaderDragEnd}
+        >
+          <SortableContext
+            items={config.header.menus}
+            strategy={verticalListSortingStrategy}
+          >
             <div className="space-y-2">
               {config.header.menus.map((menu) => (
                 <SortableMenuItemWithLanguagePack
@@ -83,7 +109,6 @@ export function HeaderConfigTab() {
           </SortableContext>
         </DndContext>
       </div>
-
     </div>
   );
 }

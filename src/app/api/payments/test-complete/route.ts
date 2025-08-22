@@ -1,78 +1,72 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { prisma } from '@/lib/db/prisma'
+export const dynamic = "force-dynamic";
+import { prisma } from "@/lib/db/prisma";
 
 // Dynamic route configuration
-import { verifyJWT } from '@/lib/auth/jwt'
+import { verifyJWT } from "@/lib/auth/jwt";
 
 // POST /api/payments/test-complete - 테스트 결제 완료 처리 (현금 결제)
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization')
-    const token = authHeader?.replace('Bearer ', '') || ''
-    
-    if (!token || token === '') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const authHeader = request.headers.get("Authorization");
+    const token = authHeader?.replace("Bearer ", "") || "";
+
+    if (!token || token === "") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await verifyJWT(token)
+    const user = await verifyJWT(token);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json()
-    const { orderId, paymentKey, amount } = body
+    const body = await request.json();
+    const { orderId, paymentKey, amount } = body;
 
     // 결제 정보 조회
     const payment = await prisma.payment.findFirst({
-      where: { 
+      where: {
         orderId,
-        userId: user.id
+        userId: user.id,
       },
       include: {
-        campaign: true
-      }
-    })
+        campaign: true,
+      },
+    });
 
     if (!payment) {
-      return NextResponse.json(
-        { error: 'Payment not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
     // 결제 금액 검증
     if (payment.amount !== amount) {
-      return NextResponse.json(
-        { error: 'Amount mismatch' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Amount mismatch" }, { status: 400 });
     }
 
     // 이미 완료된 결제인지 확인
-    if (payment.status === 'COMPLETED') {
+    if (payment.status === "COMPLETED") {
       return NextResponse.json(
-        { error: 'Payment already completed' },
-        { status: 400 }
-      )
+        { error: "Payment already completed" },
+        { status: 400 },
+      );
     }
 
     // 결제 정보 업데이트
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
-        status: 'COMPLETED',
+        status: "COMPLETED",
         paymentKey,
         approvedAt: new Date(),
         metadata: JSON.stringify({
-          ...JSON.parse(payment.metadata || '{}'),
+          ...JSON.parse(payment.metadata || "{}"),
           testPayment: true,
-          testPaymentKey: paymentKey
-        })
-      }
-    })
+          testPaymentKey: paymentKey,
+        }),
+      },
+    });
 
     // 캠페인 상태 업데이트 (isPaid = true)
     if (payment.campaignId) {
@@ -80,21 +74,21 @@ export async function POST(request: NextRequest) {
         where: { id: payment.campaignId },
         data: {
           isPaid: true,
-          status: 'ACTIVE'
-        }
-      })
+          status: "ACTIVE",
+        },
+      });
     }
 
     return NextResponse.json({
       success: true,
       campaignId: payment.campaignId,
-      paymentId: payment.id
-    })
+      paymentId: payment.id,
+    });
   } catch (error) {
-    console.error('Test payment complete error:', error)
+    console.error("Test payment complete error:", error);
     return NextResponse.json(
-      { error: 'Failed to complete test payment' },
-      { status: 500 }
-    )
+      { error: "Failed to complete test payment" },
+      { status: 500 },
+    );
   }
 }

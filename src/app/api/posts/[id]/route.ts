@@ -1,37 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { prisma } from '@/lib/db/prisma'
+export const dynamic = "force-dynamic";
+import { prisma } from "@/lib/db/prisma";
 
 // Dynamic route configuration
-import { verifyJWT } from '@/lib/auth/jwt'
-
+import { verifyJWT } from "@/lib/auth/jwt";
 
 // GET /api/posts/[id] - 게시글 상세 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     // 사용자 인증 확인 (선택적)
-    let userId: string | null = null
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '')
+    let userId: string | null = null;
+    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
     if (token) {
       try {
-        const user = await verifyJWT(token)
+        const user = await verifyJWT(token);
         if (user) {
-          userId = user.userId || user.id
+          userId = user.userId || user.id;
         }
       } catch (error) {
         // 토큰이 잘못되어도 게시글은 볼 수 있음
-        console.log('Token validation error:', error)
+        console.log("Token validation error:", error);
       }
     }
     const post = await prisma.post.findUnique({
       where: {
         id: params.id,
-        status: 'PUBLISHED'
+        status: "PUBLISHED",
       },
       include: {
         author: {
@@ -40,15 +39,15 @@ export async function GET(
             name: true,
             profile: {
               select: {
-                profileImage: true
-              }
-            }
-          }
+                profileImage: true,
+              },
+            },
+          },
         },
         comments: {
           where: {
-            status: 'PUBLISHED',
-            parentId: null // 최상위 댓글만
+            status: "PUBLISHED",
+            parentId: null, // 최상위 댓글만
           },
           include: {
             author: {
@@ -57,13 +56,13 @@ export async function GET(
                 name: true,
                 profile: {
                   select: {
-                    profileImage: true
-                  }
-                }
-              }
+                    profileImage: true,
+                  },
+                },
+              },
             },
             replies: {
-              where: { status: 'PUBLISHED' },
+              where: { status: "PUBLISHED" },
               include: {
                 author: {
                   select: {
@@ -71,47 +70,47 @@ export async function GET(
                     name: true,
                     profile: {
                       select: {
-                        profileImage: true
-                      }
-                    }
-                  }
-                }
+                        profileImage: true,
+                      },
+                    },
+                  },
+                },
               },
-              orderBy: { createdAt: 'asc' }
-            }
+              orderBy: { createdAt: "asc" },
+            },
           },
-          orderBy: { createdAt: 'desc' }
+          orderBy: { createdAt: "desc" },
         },
         _count: {
           select: {
-            postLikes: true
-          }
-        }
-      }
-    })
+            postLikes: true,
+          },
+        },
+      },
+    });
 
     if (!post) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
     // 조회수 증가
     await prisma.post.update({
       where: { id: params.id },
-      data: { views: { increment: 1 } }
-    })
+      data: { views: { increment: 1 } },
+    });
 
     // 사용자가 로그인한 경우 좋아요 상태 확인
-    let isLiked = false
+    let isLiked = false;
     if (userId) {
       const userLike = await prisma.postLike.findUnique({
         where: {
           postId_userId: {
             postId: params.id,
-            userId: userId
-          }
-        }
-      })
-      isLiked = !!userLike
+            userId: userId,
+          },
+        },
+      });
+      isLiked = !!userLike;
     }
 
     return NextResponse.json({
@@ -128,75 +127,82 @@ export async function GET(
       author: {
         id: post.author.id,
         name: post.author.name,
-        avatar: post.author.profile?.profileImage
+        avatar: post.author.profile?.profileImage,
       },
-      comments: post.comments.map(comment => ({
+      comments: post.comments.map((comment) => ({
         id: comment.id,
         content: comment.content,
         createdAt: comment.createdAt,
         author: {
           id: comment.author.id,
           name: comment.author.name,
-          avatar: comment.author.profile?.profileImage
+          avatar: comment.author.profile?.profileImage,
         },
-        replies: comment.replies.map(reply => ({
+        replies: comment.replies.map((reply) => ({
           id: reply.id,
           content: reply.content,
           createdAt: reply.createdAt,
           author: {
             id: reply.author.id,
             name: reply.author.name,
-            avatar: reply.author.profile?.profileImage
-          }
-        }))
-      }))
-    })
+            avatar: reply.author.profile?.profileImage,
+          },
+        })),
+      })),
+    });
   } catch (error) {
-    console.error('Error fetching post:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error("Error fetching post:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 // PUT /api/posts/[id] - 게시글 수정
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '')
+    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let user
+    let user;
     try {
-      user = await verifyJWT(token)
+      user = await verifyJWT(token);
     } catch (error) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
-    }
-    
-    if (!user || !user.id) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const { title, content, category } = await request.json()
+    if (!user || !user.id) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    const { title, content, category } = await request.json();
 
     const existingPost = await prisma.post.findUnique({
-      where: { id: params.id }
-    })
+      where: { id: params.id },
+    });
 
     if (!existingPost) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
     // 작성자 또는 관리자만 수정 가능
-    if (existingPost.authorId !== user.id && user.type !== 'ADMIN' && user.type !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (
+      existingPost.authorId !== user.id &&
+      user.type !== "ADMIN" &&
+      user.type !== "admin"
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const validCategories = ['notice', 'tips', 'review', 'question', 'free']
+    const validCategories = ["notice", "tips", "review", "question", "free"];
     if (category && !validCategories.includes(category)) {
-      return NextResponse.json({ error: 'Invalid category' }, { status: 400 })
+      return NextResponse.json({ error: "Invalid category" }, { status: 400 });
     }
 
     const updatedPost = await prisma.post.update({
@@ -204,7 +210,7 @@ export async function PUT(
       data: {
         ...(title && { title }),
         ...(content && { content }),
-        ...(category && { category })
+        ...(category && { category }),
       },
       include: {
         author: {
@@ -213,21 +219,21 @@ export async function PUT(
             name: true,
             profile: {
               select: {
-                profileImage: true
-              }
-            }
-          }
+                profileImage: true,
+              },
+            },
+          },
         },
         _count: {
           select: {
             comments: {
-              where: { status: 'PUBLISHED' }
+              where: { status: "PUBLISHED" },
             },
-            postLikes: true
-          }
-        }
-      }
-    })
+            postLikes: true,
+          },
+        },
+      },
+    });
 
     return NextResponse.json({
       id: updatedPost.id,
@@ -243,58 +249,68 @@ export async function PUT(
       author: {
         id: updatedPost.author.id,
         name: updatedPost.author.name,
-        avatar: updatedPost.author.profile?.profileImage
-      }
-    })
+        avatar: updatedPost.author.profile?.profileImage,
+      },
+    });
   } catch (error) {
-    console.error('Error updating post:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error("Error updating post:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 // DELETE /api/posts/[id] - 게시글 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '')
+    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let user
+    let user;
     try {
-      user = await verifyJWT(token)
+      user = await verifyJWT(token);
     } catch (error) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
-    
+
     if (!user || !user.id) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     const existingPost = await prisma.post.findUnique({
-      where: { id: params.id }
-    })
+      where: { id: params.id },
+    });
 
     if (!existingPost) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
     // 작성자 또는 관리자만 삭제 가능
-    if (existingPost.authorId !== user.id && user.type !== 'ADMIN' && user.type !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (
+      existingPost.authorId !== user.id &&
+      user.type !== "ADMIN" &&
+      user.type !== "admin"
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await prisma.post.update({
       where: { id: params.id },
-      data: { status: 'DELETED' }
-    })
+      data: { status: "DELETED" },
+    });
 
-    return NextResponse.json({ message: 'Post deleted successfully' })
+    return NextResponse.json({ message: "Post deleted successfully" });
   } catch (error) {
-    console.error('Error deleting post:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error("Error deleting post:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

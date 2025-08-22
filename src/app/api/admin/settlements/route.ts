@@ -1,12 +1,12 @@
 // 관리자 정산 API
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
-import { requireAdminAuth } from '@/lib/admin-auth';
+export const dynamic = "force-dynamic";
+import { requireAdminAuth } from "@/lib/admin-auth";
 
 // Dynamic route configuration
-import { settlementService } from '@/lib/services/settlement.service';
+import { settlementService } from "@/lib/services/settlement.service";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,24 +16,24 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
     // 정산 통계 조회
     const stats = await settlementService.getSettlementStatistics(
       startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined
+      endDate ? new Date(endDate) : undefined,
     );
 
     return NextResponse.json({
       success: true,
-      data: stats
+      data: stats,
     });
   } catch (error) {
-    console.error('정산 통계 조회 오류:', error);
+    console.error("정산 통계 조회 오류:", error);
     return NextResponse.json(
-      { error: '정산 통계 조회 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { error: "정산 통계 조회 중 오류가 발생했습니다." },
+      { status: 500 },
     );
   }
 }
@@ -47,11 +47,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { type = 'all', influencerId } = body;
+    const { type = "all", influencerId } = body;
 
     let result;
-    
-    if (type === 'individual' && influencerId) {
+
+    if (type === "individual" && influencerId) {
       // 특정 인플루언서 정산
       result = await settlementService.createSettlement(influencerId);
     } else {
@@ -61,13 +61,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
-    console.error('수동 정산 실행 오류:', error);
+    console.error("수동 정산 실행 오류:", error);
     return NextResponse.json(
-      { error: '정산 실행 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { error: "정산 실행 중 오류가 발생했습니다." },
+      { status: 500 },
     );
   }
 }

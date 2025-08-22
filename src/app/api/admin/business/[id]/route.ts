@@ -1,39 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { verifyAdminAuth } from '@/lib/auth-utils'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import { verifyAdminAuth } from "@/lib/auth-utils";
 
 // PUT /api/admin/business/[id] - 업체 정보 수정
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     // 관리자 인증 확인
-    const authResult = await verifyAdminAuth(request)
+    const authResult = await verifyAdminAuth(request);
     if (!authResult.isAuthenticated) {
       return NextResponse.json(
-        { error: '관리자 권한이 필요합니다.' },
-        { status: 401 }
-      )
+        { error: "관리자 권한이 필요합니다." },
+        { status: 401 },
+      );
     }
 
-    const businessId = params.id
-    const body = await request.json()
+    const businessId = params.id;
+    const body = await request.json();
 
     // 업체(BUSINESS 타입 사용자) 존재 확인
     const existingBusiness = await prisma.user.findUnique({
-      where: { 
+      where: {
         id: businessId,
-        type: 'BUSINESS'
+        type: "BUSINESS",
       },
-      include: { businessProfile: true }
-    })
+      include: { businessProfile: true },
+    });
 
     if (!existingBusiness) {
       return NextResponse.json(
-        { error: '업체를 찾을 수 없습니다.' },
-        { status: 404 }
-      )
+        { error: "업체를 찾을 수 없습니다." },
+        { status: 404 },
+      );
     }
 
     // 업체 프로필 업데이트 또는 생성
@@ -48,9 +48,9 @@ export async function PUT(
             representativeName: body.businessProfile.representativeName,
             businessCategory: body.businessProfile.businessCategory,
             businessAddress: body.businessProfile.businessAddress,
-            updatedAt: new Date()
-          }
-        })
+            updatedAt: new Date(),
+          },
+        });
       } else {
         // 프로필이 없으면 생성
         await prisma.businessProfile.create({
@@ -60,9 +60,9 @@ export async function PUT(
             businessNumber: body.businessProfile.businessNumber,
             representativeName: body.businessProfile.representativeName,
             businessCategory: body.businessProfile.businessCategory,
-            businessAddress: body.businessProfile.businessAddress
-          }
-        })
+            businessAddress: body.businessProfile.businessAddress,
+          },
+        });
       }
     }
 
@@ -72,9 +72,9 @@ export async function PUT(
         where: { id: businessId },
         data: {
           name: body.name,
-          updatedAt: new Date()
-        }
-      })
+          updatedAt: new Date(),
+        },
+      });
     }
 
     // 업데이트된 업체 정보 반환
@@ -84,47 +84,47 @@ export async function PUT(
         businessProfile: true,
         _count: {
           select: {
-            campaigns: true
-          }
-        }
-      }
-    })
+            campaigns: true,
+          },
+        },
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      message: '업체 정보가 성공적으로 수정되었습니다.',
-      business: updatedBusiness
-    })
+      message: "업체 정보가 성공적으로 수정되었습니다.",
+      business: updatedBusiness,
+    });
   } catch (error) {
-    console.error('업체 정보 수정 오류:', error)
+    console.error("업체 정보 수정 오류:", error);
     return NextResponse.json(
-      { error: '업체 정보 수정에 실패했습니다.' },
-      { status: 500 }
-    )
+      { error: "업체 정보 수정에 실패했습니다." },
+      { status: 500 },
+    );
   }
 }
 
 // GET /api/admin/business/[id] - 업체 상세 정보 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     // 관리자 인증 확인
-    const authResult = await verifyAdminAuth(request)
+    const authResult = await verifyAdminAuth(request);
     if (!authResult.isAuthenticated) {
       return NextResponse.json(
-        { error: '관리자 권한이 필요합니다.' },
-        { status: 401 }
-      )
+        { error: "관리자 권한이 필요합니다." },
+        { status: 401 },
+      );
     }
 
-    const businessId = params.id
+    const businessId = params.id;
 
     const business = await prisma.user.findUnique({
-      where: { 
+      where: {
         id: businessId,
-        type: 'BUSINESS'
+        type: "BUSINESS",
       },
       include: {
         businessProfile: true,
@@ -138,38 +138,38 @@ export async function GET(
             budget: true,
             _count: {
               select: {
-                applications: true
-              }
-            }
+                applications: true,
+              },
+            },
           },
           orderBy: {
-            createdAt: 'desc'
-          }
+            createdAt: "desc",
+          },
         },
         _count: {
           select: {
-            campaigns: true
-          }
-        }
-      }
-    })
+            campaigns: true,
+          },
+        },
+      },
+    });
 
     if (!business) {
       return NextResponse.json(
-        { error: '업체를 찾을 수 없습니다.' },
-        { status: 404 }
-      )
+        { error: "업체를 찾을 수 없습니다." },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({
       success: true,
-      business
-    })
+      business,
+    });
   } catch (error) {
-    console.error('업체 정보 조회 오류:', error)
+    console.error("업체 정보 조회 오류:", error);
     return NextResponse.json(
-      { error: '업체 정보 조회에 실패했습니다.' },
-      { status: 500 }
-    )
+      { error: "업체 정보 조회에 실패했습니다." },
+      { status: 500 },
+    );
   }
 }

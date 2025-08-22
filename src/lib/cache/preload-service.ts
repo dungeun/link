@@ -3,18 +3,18 @@
  * 첫 페이지 접속 시 필요한 모든 데이터를 단일 쿼리로 미리 로드
  */
 
-import { prisma } from '@/lib/db/prisma';
-import { standardizeCampaign } from '@/lib/utils/api-standardizer';
-import { logger } from '@/lib/logger';
-import fs from 'fs/promises';
-import path from 'path';
-import { 
-  loadHomepageData, 
-  transformToUISection, 
-  preloadStaticTexts, 
-  StaticUITexts 
-} from '@/lib/cache/json-loader';
-import { LanguageCode } from '@/types/global';
+import { prisma } from "@/lib/db/prisma";
+import { standardizeCampaign } from "@/lib/utils/api-standardizer";
+import { logger } from "@/lib/logger";
+import fs from "fs/promises";
+import path from "path";
+import {
+  loadHomepageData,
+  transformToUISection,
+  preloadStaticTexts,
+  StaticUITexts,
+} from "@/lib/cache/json-loader";
+import { LanguageCode } from "@/types/global";
 
 export interface PreloadedData {
   campaigns: any[];
@@ -41,18 +41,18 @@ const CACHE_TTL = 5 * 60 * 1000; // 5분으로 단축 (메모리 절약)
  */
 export async function preloadHomePageData(): Promise<PreloadedData> {
   const startTime = Date.now();
-  
+
   // 캐시 확인
-  if (preloadedCache && (Date.now() - cacheTimestamp) < CACHE_TTL) {
-    logger.info('Returning cached preloaded data');
+  if (preloadedCache && Date.now() - cacheTimestamp < CACHE_TTL) {
+    logger.info("Returning cached preloaded data");
     return {
       ...preloadedCache,
       metadata: {
         ...preloadedCache.metadata,
         cached: true,
         loadTime: Date.now() - startTime,
-        source: 'cache'
-      }
+        source: "cache",
+      },
     };
   }
 
@@ -60,29 +60,31 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
     // 1. JSON 캐시 파일에서 캠페인 데이터 읽기 시도
     let campaignsData: any[] = [];
     let campaignsFromCache = false;
-    
+
     try {
-      const cacheFile = path.join(process.cwd(), 'public/cache/campaigns.json');
-      const cacheContent = await fs.readFile(cacheFile, 'utf-8');
+      const cacheFile = path.join(process.cwd(), "public/cache/campaigns.json");
+      const cacheContent = await fs.readFile(cacheFile, "utf-8");
       const cachedData = JSON.parse(cacheContent);
-      
+
       // 캐시 나이 확인 (1분 이내만 사용)
       const cacheAge = Date.now() - new Date(cachedData.generatedAt).getTime();
       if (cacheAge < 60000) {
         campaignsData = cachedData.featured || [];
         campaignsFromCache = true;
-        logger.info(`Using JSON cache for campaigns (age: ${Math.floor(cacheAge/1000)}s)`);
+        logger.info(
+          `Using JSON cache for campaigns (age: ${Math.floor(cacheAge / 1000)}s)`,
+        );
       }
     } catch (error) {
-      logger.info('JSON cache not available, falling back to database');
+      logger.info("JSON cache not available, falling back to database");
     }
-    
+
     // 캠페인 캐시가 없으면 DB에서 조회
     if (!campaignsFromCache) {
       campaignsData = await prisma.campaign.findMany({
         where: {
-          status: 'ACTIVE',
-          deletedAt: null
+          status: "ACTIVE",
+          deletedAt: null,
         },
         select: {
           id: true,
@@ -103,10 +105,10 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
                 select: {
                   id: true,
                   name: true,
-                  slug: true
-                }
-              }
-            }
+                  slug: true,
+                },
+              },
+            },
           },
           business: {
             select: {
@@ -114,45 +116,50 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
               name: true,
               businessProfile: {
                 select: {
-                  companyName: true
-                }
-              }
-            }
+                  companyName: true,
+                },
+              },
+            },
           },
           _count: {
             select: {
               applications: {
-                where: { deletedAt: null }
-              }
-            }
-          }
+                where: { deletedAt: null },
+              },
+            },
+          },
         },
         orderBy: [
-          { status: 'desc' },
-          { applications: { _count: 'desc' } },
-          { createdAt: 'desc' }
+          { status: "desc" },
+          { applications: { _count: "desc" } },
+          { createdAt: "desc" },
         ],
-        take: 20
+        take: 20,
       });
     }
-    
+
     // JSON 기반 데이터 로딩 및 기존 DB 조회 병렬 처리
-    const [homepageJsonData, staticTextsData, languagePacksData, languagePacksFullData, categoryStatsData] = await Promise.all([
-      
+    const [
+      homepageJsonData,
+      staticTextsData,
+      languagePacksData,
+      languagePacksFullData,
+      categoryStatsData,
+    ] = await Promise.all([
       // 2. JSON에서 섹션 데이터 로드
       loadHomepageData(),
-      
+
       // 3. 정적 UI 텍스트 프리로드
       preloadStaticTexts(),
-      
+
       // 4. 기존 언어팩 유지 (동적 컨텐츠용)
       prisma.languagePack.findMany({
         select: {
           key: true,
           ko: true,
           en: true,
-          jp: true
-        }
+          jp: true,
+        },
       }),
 
       // 3. 언어팩 데이터
@@ -163,17 +170,19 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
           ko: true,
           en: true,
           jp: true,
-          category: true
-        }
+          category: true,
+        },
       }),
 
       // 4. 카테고리 통계 - 원시 쿼리로 최적화
-      prisma.$queryRaw<Array<{
-        categoryId: string;
-        slug: string;
-        name: string;
-        campaignCount: bigint;
-      }>>`
+      prisma.$queryRaw<
+        Array<{
+          categoryId: string;
+          slug: string;
+          name: string;
+          campaignCount: bigint;
+        }>
+      >`
         SELECT 
           cc."categoryId",
           c.slug,
@@ -187,28 +196,31 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
         GROUP BY cc."categoryId", c.slug, c.name
         ORDER BY "campaignCount" DESC
         LIMIT 20
-      `
+      `,
     ]);
 
     // 데이터 변환 및 표준화
     let campaigns: any[];
-    
+
     if (campaignsFromCache) {
       // 캐시된 데이터는 이미 변환된 형태
-      campaigns = campaignsData.map(campaign => ({
+      campaigns = campaignsData.map((campaign) => ({
         ...campaign,
-        brand: campaign.business?.name || campaign.business?.companyName || '',
+        brand: campaign.business?.name || campaign.business?.companyName || "",
         applicants: campaign.stats?.applications || 0,
         maxApplicants: campaign.maxApplicants || 0,
         deadline: new Date(campaign.deadline || campaign.endDate).getTime(),
-        category: campaign.category?.name || '',
+        category: campaign.category?.name || "",
         platforms: campaign.platforms || [],
-        budget: typeof campaign.budget === 'string' ? campaign.budget : `${campaign.budget?.toLocaleString()}원`,
-        imageUrl: campaign.thumbnailUrl || campaign.thumbnailImageUrl
+        budget:
+          typeof campaign.budget === "string"
+            ? campaign.budget
+            : `${campaign.budget?.toLocaleString()}원`,
+        imageUrl: campaign.thumbnailUrl || campaign.thumbnailImageUrl,
       }));
     } else {
       // DB 데이터는 standardizeCampaign으로 변환
-      campaigns = campaignsData.map(campaign => {
+      campaigns = campaignsData.map((campaign) => {
         const standardized = standardizeCampaign(campaign);
         return {
           ...standardized,
@@ -217,26 +229,31 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
           maxApplicants: standardized.target.maxApplicants,
           deadline: new Date(standardized.schedule.campaign.endDate).getTime(),
           category: standardized.primaryCategory.name,
-          platforms: standardized.platforms.map(p => p.type),
+          platforms: standardized.platforms.map((p) => p.type),
           budget: `${standardized.budget.amount.toLocaleString()}원`,
-          imageUrl: standardized.media.thumbnail?.url
+          imageUrl: standardized.media.thumbnail?.url,
         };
       });
     }
-    
-    const languagePacks = languagePacksFullData.reduce((acc, pack) => {
-      acc[pack.key] = pack;
-      return acc;
-    }, {} as Record<string, any>);
+
+    const languagePacks = languagePacksFullData.reduce(
+      (acc, pack) => {
+        acc[pack.key] = pack;
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
 
     const categoryStats: Record<string, number> = {};
-    categoryStatsData.forEach(stat => {
+    categoryStatsData.forEach((stat) => {
       categoryStats[stat.slug] = Number(stat.campaignCount);
     });
 
     // JSON 데이터를 UI Section 형태로 변환
-    const sections = homepageJsonData ? transformToUISection(homepageJsonData) : [];
-    
+    const sections = homepageJsonData
+      ? transformToUISection(homepageJsonData)
+      : [];
+
     const result: PreloadedData = {
       campaigns,
       sections,
@@ -247,21 +264,22 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
         totalCampaigns: campaigns.length,
         loadTime: Date.now() - startTime,
         cached: false,
-        source: 'database'
-      }
+        source: "database",
+      },
     };
 
     // 캐시 저장
     preloadedCache = result;
     cacheTimestamp = Date.now();
 
-    logger.info(`Preloaded homepage data in ${result.metadata.loadTime}ms - campaigns: ${campaigns.length}, sections: ${sections.length}, languagePacks: ${Object.keys(languagePacks).length}, staticTexts: ${Object.keys(staticTextsData).length}, categories: ${Object.keys(categoryStats).length}`);
+    logger.info(
+      `Preloaded homepage data in ${result.metadata.loadTime}ms - campaigns: ${campaigns.length}, sections: ${sections.length}, languagePacks: ${Object.keys(languagePacks).length}, staticTexts: ${Object.keys(staticTextsData).length}, categories: ${Object.keys(categoryStats).length}`,
+    );
 
     return result;
-
   } catch (error) {
     logger.error(`Failed to preload homepage data: ${String(error)}`);
-    
+
     // 실패 시 최소한의 데이터 반환
     return {
       campaigns: [],
@@ -273,8 +291,8 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
         totalCampaigns: 0,
         loadTime: Date.now() - startTime,
         cached: false,
-        source: 'error'
-      }
+        source: "error",
+      },
     };
   }
 }
@@ -285,7 +303,7 @@ export async function preloadHomePageData(): Promise<PreloadedData> {
 export function invalidatePreloadCache(): void {
   preloadedCache = null;
   cacheTimestamp = 0;
-  logger.info('Preload cache invalidated');
+  logger.info("Preload cache invalidated");
 }
 
 /**
@@ -294,7 +312,7 @@ export function invalidatePreloadCache(): void {
 export async function refreshCacheInBackground(): Promise<void> {
   try {
     await preloadHomePageData();
-    logger.info('Background cache refresh completed');
+    logger.info("Background cache refresh completed");
   } catch (error) {
     logger.error(`Background cache refresh failed: ${String(error)}`);
   }

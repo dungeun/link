@@ -1,5 +1,5 @@
-import jwt from 'jsonwebtoken';
-import { getJWTSecret, getRefreshSecret } from '@/lib/auth/constants';
+import jwt from "jsonwebtoken";
+import { getJWTSecret, getRefreshSecret } from "@/lib/auth/constants";
 
 interface JWTPayload {
   id: string;
@@ -14,14 +14,15 @@ interface RefreshPayload {
 
 export async function signJWT(
   payload: JWTPayload | RefreshPayload,
-  options?: jwt.SignOptions
+  options?: jwt.SignOptions,
 ): Promise<string> {
-  const secret = 'expiresIn' in (options || {}) && options?.expiresIn === '7d'
-    ? getRefreshSecret()
-    : getJWTSecret();
+  const secret =
+    "expiresIn" in (options || {}) && options?.expiresIn === "7d"
+      ? getRefreshSecret()
+      : getJWTSecret();
 
   // Ensure userId is set for JWTPayload
-  if ('email' in payload && !('userId' in payload)) {
+  if ("email" in payload && !("userId" in payload)) {
     (payload as JWTPayload).userId = (payload as any).id;
   }
 
@@ -30,20 +31,18 @@ export async function signJWT(
 
 export async function verifyJWT(
   token: string,
-  isRefreshToken = false
+  isRefreshToken = false,
 ): Promise<JWTPayload> {
-  const secret = isRefreshToken
-    ? getRefreshSecret()
-    : getJWTSecret();
+  const secret = isRefreshToken ? getRefreshSecret() : getJWTSecret();
 
   return jwt.verify(token, secret) as JWTPayload;
 }
 
 export function getTokenFromHeader(authHeader?: string | null): string | null {
   if (!authHeader) return null;
-  
-  const parts = authHeader.split(' ');
-  if (parts.length !== 2 || parts[0] !== 'Bearer') return null;
-  
+
+  const parts = authHeader.split(" ");
+  if (parts.length !== 2 || parts[0] !== "Bearer") return null;
+
   return parts[1];
 }

@@ -1,17 +1,23 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/Input'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/Button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/Button";
 
 interface TemplateModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  templateName: string
-  setTemplateName: (name: string) => void
-  templateDescription: string
-  setTemplateDescription: (description: string) => void
-  onSave: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  templateName: string;
+  setTemplateName: (name: string) => void;
+  templateDescription: string;
+  setTemplateDescription: (description: string) => void;
+  onSave: () => void;
 }
 
 export default function TemplateModal({
@@ -21,7 +27,7 @@ export default function TemplateModal({
   setTemplateName,
   templateDescription,
   setTemplateDescription,
-  onSave
+  onSave,
 }: TemplateModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -53,17 +59,12 @@ export default function TemplateModal({
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             취소
           </Button>
-          <Button onClick={onSave}>
-            저장
-          </Button>
+          <Button onClick={onSave}>저장</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

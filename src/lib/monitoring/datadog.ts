@@ -3,9 +3,9 @@
  * Real-time metrics, distributed tracing, custom dashboards
  */
 
-import tracer from 'dd-trace';
-import { StatsD } from 'node-statsd';
-import { logger } from '@/lib/utils/logger';
+import tracer from "dd-trace";
+import { StatsD } from "node-statsd";
+import { logger } from "@/lib/utils/logger";
 
 // Type definitions for improved type safety
 interface TraceOptions {
@@ -37,33 +37,33 @@ type ExpressNext = () => void;
 
 // DataDog Tracer 초기화
 export function initializeDataDog() {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     tracer.init({
       // APM 설정
-      service: process.env.DD_SERVICE || 'revu-platform',
-      env: process.env.DD_ENV || 'production',
-      version: process.env.DD_VERSION || '1.0.0',
-      
+      service: process.env.DD_SERVICE || "revu-platform",
+      env: process.env.DD_ENV || "production",
+      version: process.env.DD_VERSION || "1.0.0",
+
       // 트레이싱 설정
       logInjection: true,
       runtimeMetrics: true,
       profiling: true,
-      
+
       // 샘플링 설정
-      sampleRate: parseFloat(process.env.DD_SAMPLE_RATE || '0.1'),
-      
+      sampleRate: parseFloat(process.env.DD_SAMPLE_RATE || "0.1"),
+
       // 태그 설정
       tags: {
-        team: 'platform',
-        region: process.env.AWS_REGION || 'ap-northeast-2',
-        deployment: process.env.DEPLOYMENT_TYPE || 'kubernetes'
+        team: "platform",
+        region: process.env.AWS_REGION || "ap-northeast-2",
+        deployment: process.env.DEPLOYMENT_TYPE || "kubernetes",
       },
-      
+
       // 플러그인 설정
-      plugins: false
+      plugins: false,
     });
 
-    logger.info('DataDog APM initialized');
+    logger.info("DataDog APM initialized");
   }
 }
 
@@ -75,26 +75,26 @@ class MetricsClient {
   private prefix: string;
 
   constructor() {
-    this.prefix = process.env.DD_METRICS_PREFIX || 'revu.platform';
-    
+    this.prefix = process.env.DD_METRICS_PREFIX || "revu.platform";
+
     this.statsd = new StatsD(
-      process.env.DD_AGENT_HOST || 'localhost',
-      parseInt(process.env.DD_DOGSTATSD_PORT || '8125'),
-      this.prefix + '.',
-      '',
+      process.env.DD_AGENT_HOST || "localhost",
+      parseInt(process.env.DD_DOGSTATSD_PORT || "8125"),
+      this.prefix + ".",
+      "",
       false,
       false,
       false,
       [
-        `env:${process.env.DD_ENV || 'production'}`,
-        `service:${process.env.DD_SERVICE || 'revu-platform'}`,
-        `version:${process.env.DD_VERSION || '1.0.0'}`
-      ]
+        `env:${process.env.DD_ENV || "production"}`,
+        `service:${process.env.DD_SERVICE || "revu-platform"}`,
+        `version:${process.env.DD_VERSION || "1.0.0"}`,
+      ],
     );
 
     // 에러 핸들링
-    this.statsd.socket.on('error', (error: Error) => {
-      logger.error({ error }, 'StatsD socket error');
+    this.statsd.socket.on("error", (error: Error) => {
+      logger.error({ error }, "StatsD socket error");
     });
   }
 
@@ -136,15 +136,21 @@ class MetricsClient {
   async measureTime<T>(
     metric: string,
     fn: () => Promise<T>,
-    tags?: string[]
+    tags?: string[],
   ): Promise<T> {
     const startTime = Date.now();
     try {
       const result = await fn();
-      this.timing(metric, Date.now() - startTime, [...(tags || []), 'status:success']);
+      this.timing(metric, Date.now() - startTime, [
+        ...(tags || []),
+        "status:success",
+      ]);
       return result;
     } catch (error) {
-      this.timing(metric, Date.now() - startTime, [...(tags || []), 'status:error']);
+      this.timing(metric, Date.now() - startTime, [
+        ...(tags || []),
+        "status:error",
+      ]);
       throw error;
     }
   }
@@ -156,14 +162,11 @@ export const metrics = new MetricsClient();
 /**
  * Custom Span Decorator
  */
-export function trace(
-  operationName: string,
-  options?: TraceOptions
-) {
+export function trace(operationName: string, options?: TraceOptions) {
   return function <T extends Record<string, unknown>>(
     target: T,
     propertyKey: string,
-    descriptor: PropertyDescriptor
+    descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value;
 
@@ -172,22 +175,22 @@ export function trace(
       const span = tracer.startSpan(operationName, {
         childOf: currentSpan || undefined,
         tags: {
-          'span.kind': 'server',
-          'service.name': options?.service || 'revu-platform',
-          'resource.name': options?.resource || propertyKey,
-          ...options?.tags
-        }
+          "span.kind": "server",
+          "service.name": options?.service || "revu-platform",
+          "resource.name": options?.resource || propertyKey,
+          ...options?.tags,
+        },
       });
 
       try {
         const result = await originalMethod.apply(this, args);
-        span.setTag('span.status', 'ok');
+        span.setTag("span.status", "ok");
         return result;
       } catch (error) {
-        span.setTag('error', true);
+        span.setTag("error", true);
         if (error instanceof Error) {
-          span.setTag('error.message', error.message);
-          span.setTag('error.stack', error.stack);
+          span.setTag("error.message", error.message);
+          span.setTag("error.stack", error.stack);
         }
         throw error;
       } finally {
@@ -205,86 +208,90 @@ export function trace(
 export class BusinessMetrics {
   // Campaign 메트릭
   static campaignCreated(businessId: string, category: string): void {
-    metrics.increment('campaign.created', 1, [
+    metrics.increment("campaign.created", 1, [
       `business_id:${businessId}`,
-      `category:${category}`
+      `category:${category}`,
     ]);
   }
 
   static campaignPublished(campaignId: string, budget: number): void {
-    metrics.increment('campaign.published', 1, [`campaign_id:${campaignId}`]);
-    metrics.histogram('campaign.budget', budget);
+    metrics.increment("campaign.published", 1, [`campaign_id:${campaignId}`]);
+    metrics.histogram("campaign.budget", budget);
   }
 
   static campaignCompleted(
     campaignId: string,
     duration: number,
-    applicants: number
+    applicants: number,
   ): void {
-    metrics.increment('campaign.completed');
-    metrics.histogram('campaign.duration', duration);
-    metrics.histogram('campaign.applicants', applicants);
+    metrics.increment("campaign.completed");
+    metrics.histogram("campaign.duration", duration);
+    metrics.histogram("campaign.applicants", applicants);
   }
 
   // Application 메트릭
   static applicationReceived(campaignId: string, influencerId: string): void {
-    metrics.increment('application.received', 1, [
+    metrics.increment("application.received", 1, [
       `campaign_id:${campaignId}`,
-      `influencer_id:${influencerId}`
+      `influencer_id:${influencerId}`,
     ]);
   }
 
   static applicationApproved(campaignId: string, responseTime: number): void {
-    metrics.increment('application.approved');
-    metrics.timing('application.response_time', responseTime);
+    metrics.increment("application.approved");
+    metrics.timing("application.response_time", responseTime);
   }
 
   // Payment 메트릭
   static paymentProcessed(amount: number, method: string): void {
-    metrics.increment('payment.processed');
-    metrics.histogram('payment.amount', amount, [`method:${method}`]);
+    metrics.increment("payment.processed");
+    metrics.histogram("payment.amount", amount, [`method:${method}`]);
   }
 
   static paymentFailed(reason: string): void {
-    metrics.increment('payment.failed', 1, [`reason:${reason}`]);
+    metrics.increment("payment.failed", 1, [`reason:${reason}`]);
   }
 
   // Performance 메트릭
   static apiLatency(endpoint: string, method: string, duration: number): void {
-    metrics.timing('api.latency', duration, [
+    metrics.timing("api.latency", duration, [
       `endpoint:${endpoint}`,
-      `method:${method}`
+      `method:${method}`,
     ]);
   }
 
-  static databaseQuery(operation: string, table: string, duration: number): void {
-    metrics.timing('database.query', duration, [
+  static databaseQuery(
+    operation: string,
+    table: string,
+    duration: number,
+  ): void {
+    metrics.timing("database.query", duration, [
       `operation:${operation}`,
-      `table:${table}`
+      `table:${table}`,
     ]);
   }
 
   static cacheHit(key: string): void {
-    metrics.increment('cache.hit', 1, [`key_prefix:${key.split(':')[0]}`]);
+    metrics.increment("cache.hit", 1, [`key_prefix:${key.split(":")[0]}`]);
   }
 
   static cacheMiss(key: string): void {
-    metrics.increment('cache.miss', 1, [`key_prefix:${key.split(':')[0]}`]);
+    metrics.increment("cache.miss", 1, [`key_prefix:${key.split(":")[0]}`]);
   }
 
   // System 메트릭
   static activeUsers(count: number): void {
-    metrics.gauge('users.active', count);
+    metrics.gauge("users.active", count);
   }
 
   static queueSize(queueName: string, size: number): void {
-    metrics.gauge('queue.size', size, [`queue:${queueName}`]);
+    metrics.gauge("queue.size", size, [`queue:${queueName}`]);
   }
 
   static errorRate(service: string, errorType: string): void {
-    metrics.increment('error.rate', 1, [
+    metrics.increment("error.rate", 1, [
       `service:${service}`,
-      `type:${errorType}`
+      `type:${errorType}`,
     ]);
   }
 }
@@ -293,46 +300,53 @@ export class BusinessMetrics {
  * Custom Logger with DataDog Integration
  */
 export class DataDogLogger {
-  static log(level: string, message: string, context?: Record<string, unknown>): void {
+  static log(
+    level: string,
+    message: string,
+    context?: Record<string, unknown>,
+  ): void {
     const span = tracer.scope().active();
-    
+
     if (span) {
       span.log({
         level,
         message,
-        ...context
+        ...context,
       });
     }
 
     // 메트릭 전송
     metrics.increment(`log.${level}`, 1);
-    
+
     // 원본 로거 호출
     const loggerMethod = logger[level as keyof typeof logger];
-    if (typeof loggerMethod === 'function') {
-      loggerMethod({ ...context, dd_trace_id: span?.context().toTraceId() }, message);
+    if (typeof loggerMethod === "function") {
+      loggerMethod(
+        { ...context, dd_trace_id: span?.context().toTraceId() },
+        message,
+      );
     }
   }
 
   static error(error: Error, context?: Record<string, unknown>): void {
     const span = tracer.scope().active();
-    
+
     if (span) {
-      span.setTag('error', true);
-      span.setTag('error.message', error.message);
-      span.setTag('error.stack', error.stack);
+      span.setTag("error", true);
+      span.setTag("error.message", error.message);
+      span.setTag("error.stack", error.stack);
     }
 
-    metrics.increment('error.occurred', 1, [
+    metrics.increment("error.occurred", 1, [
       `error_type:${error.name}`,
-      `error_message:${error.message.substring(0, 50)}`
+      `error_message:${error.message.substring(0, 50)}`,
     ]);
 
-    logger.error({ 
-      ...context, 
+    logger.error({
+      ...context,
       error: error.message,
       stack: error.stack,
-      dd_trace_id: span?.context().toTraceId() 
+      dd_trace_id: span?.context().toTraceId(),
     });
   }
 }
@@ -343,33 +357,33 @@ export class DataDogLogger {
 export function dataDogMiddleware() {
   return (req: ExpressRequest, res: ExpressResponse, next: ExpressNext) => {
     const startTime = Date.now();
-    
+
     // 요청 메트릭
-    metrics.increment('http.request', 1, [
+    metrics.increment("http.request", 1, [
       `method:${req.method}`,
-      `path:${req.path}`
+      `path:${req.path}`,
     ]);
 
     // 응답 후 메트릭
-    res.on('finish', () => {
+    res.on("finish", () => {
       const duration = Date.now() - startTime;
-      
-      metrics.timing('http.request.duration', duration, [
+
+      metrics.timing("http.request.duration", duration, [
         `method:${req.method}`,
         `path:${req.path}`,
-        `status:${res.statusCode}`
+        `status:${res.statusCode}`,
       ]);
 
-      metrics.increment('http.response', 1, [
+      metrics.increment("http.response", 1, [
         `status:${res.statusCode}`,
-        `status_family:${Math.floor(res.statusCode / 100)}xx`
+        `status_family:${Math.floor(res.statusCode / 100)}xx`,
       ]);
 
       // 느린 요청 추적
       if (duration > 1000) {
-        metrics.increment('http.request.slow', 1, [
+        metrics.increment("http.request.slow", 1, [
           `method:${req.method}`,
-          `path:${req.path}`
+          `path:${req.path}`,
         ]);
       }
     });
@@ -382,37 +396,39 @@ export function dataDogMiddleware() {
  * Health Check for DataDog
  */
 export async function checkDataDogHealth(): Promise<{
-  status: 'healthy' | 'unhealthy';
+  status: "healthy" | "unhealthy";
   details: HealthCheckDetails;
 }> {
   try {
     // Agent 연결 확인 (accessing private properties requires type assertion)
-    const agentStats = (tracer as unknown as { 
-      _tracer: { 
-        _processor: { 
-          _writer: { 
-            _client: { agentInfo: unknown } 
-          } 
-        } 
-      } 
-    })._tracer._processor._writer._client.agentInfo;
-    
+    const agentStats = (
+      tracer as unknown as {
+        _tracer: {
+          _processor: {
+            _writer: {
+              _client: { agentInfo: unknown };
+            };
+          };
+        };
+      }
+    )._tracer._processor._writer._client.agentInfo;
+
     return {
-      status: 'healthy',
+      status: "healthy",
       details: {
         agent: agentStats,
         metrics: {
-          prefix: metrics['prefix'],
-          connected: true
-        }
-      }
+          prefix: metrics["prefix"],
+          connected: true,
+        },
+      },
     };
   } catch (error) {
     return {
-      status: 'unhealthy',
-      details: { 
-        error: error instanceof Error ? error.message : String(error) 
-      }
+      status: "unhealthy",
+      details: {
+        error: error instanceof Error ? error.message : String(error),
+      },
     };
   }
 }

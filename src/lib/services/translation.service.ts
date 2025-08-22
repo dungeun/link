@@ -21,44 +21,47 @@ interface MultilingualContent {
 
 export class TranslationService {
   private apiKey: string;
-  private apiUrl = 'https://translation.googleapis.com/language/translate/v2';
+  private apiUrl = "https://translation.googleapis.com/language/translate/v2";
 
   constructor() {
-    this.apiKey = process.env.GOOGLE_TRANSLATE_API_KEY || '';
+    this.apiKey = process.env.GOOGLE_TRANSLATE_API_KEY || "";
     if (!this.apiKey) {
-      console.warn('Google Translate API key is not configured');
+      console.warn("Google Translate API key is not configured");
     }
   }
 
   /**
    * 단일 텍스트 번역
    */
-  async translateText(text: string, options: TranslationOptions): Promise<TranslatedContent> {
+  async translateText(
+    text: string,
+    options: TranslationOptions,
+  ): Promise<TranslatedContent> {
     if (!this.apiKey) {
-      throw new Error('Google Translate API key is not configured');
+      throw new Error("Google Translate API key is not configured");
     }
 
     if (!text || !text.trim()) {
       return {
         originalText: text,
         translatedText: text,
-        sourceLang: options.from || 'auto',
-        targetLang: options.to
+        sourceLang: options.from || "auto",
+        targetLang: options.to,
       };
     }
 
     try {
       const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           q: text,
           source: options.from,
           target: options.to,
-          format: 'text'
-        })
+          format: "text",
+        }),
       });
 
       if (!response.ok) {
@@ -71,11 +74,12 @@ export class TranslationService {
       return {
         originalText: text,
         translatedText: translation.translatedText,
-        sourceLang: translation.detectedSourceLanguage || options.from || 'auto',
-        targetLang: options.to
+        sourceLang:
+          translation.detectedSourceLanguage || options.from || "auto",
+        targetLang: options.to,
       };
     } catch (error) {
-      console.error('Translation error:', error);
+      console.error("Translation error:", error);
       throw error;
     }
   }
@@ -83,33 +87,36 @@ export class TranslationService {
   /**
    * 여러 텍스트 동시 번역
    */
-  async translateBatch(texts: string[], options: TranslationOptions): Promise<TranslatedContent[]> {
+  async translateBatch(
+    texts: string[],
+    options: TranslationOptions,
+  ): Promise<TranslatedContent[]> {
     if (!this.apiKey) {
-      throw new Error('Google Translate API key is not configured');
+      throw new Error("Google Translate API key is not configured");
     }
 
-    const validTexts = texts.filter(text => text && text.trim());
+    const validTexts = texts.filter((text) => text && text.trim());
     if (validTexts.length === 0) {
-      return texts.map(text => ({
+      return texts.map((text) => ({
         originalText: text,
         translatedText: text,
-        sourceLang: options.from || 'auto',
-        targetLang: options.to
+        sourceLang: options.from || "auto",
+        targetLang: options.to,
       }));
     }
 
     try {
       const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           q: validTexts,
           source: options.from,
           target: options.to,
-          format: 'text'
-        })
+          format: "text",
+        }),
       });
 
       if (!response.ok) {
@@ -122,11 +129,12 @@ export class TranslationService {
       return validTexts.map((text, index) => ({
         originalText: text,
         translatedText: translations[index].translatedText,
-        sourceLang: translations[index].detectedSourceLanguage || options.from || 'auto',
-        targetLang: options.to
+        sourceLang:
+          translations[index].detectedSourceLanguage || options.from || "auto",
+        targetLang: options.to,
       }));
     } catch (error) {
-      console.error('Batch translation error:', error);
+      console.error("Batch translation error:", error);
       throw error;
     }
   }
@@ -134,33 +142,35 @@ export class TranslationService {
   /**
    * 한국어 텍스트를 영어와 일본어로 번역
    */
-  async translateToMultiLanguages(koreanText: string): Promise<MultilingualContent> {
+  async translateToMultiLanguages(
+    koreanText: string,
+  ): Promise<MultilingualContent> {
     if (!koreanText || !koreanText.trim()) {
       return {
         ko: koreanText,
         en: koreanText,
-        jp: koreanText
+        jp: koreanText,
       };
     }
 
     try {
       const [englishResult, japaneseResult] = await Promise.all([
-        this.translateText(koreanText, { from: 'ko', to: 'en' }),
-        this.translateText(koreanText, { from: 'ko', to: 'jp' })
+        this.translateText(koreanText, { from: "ko", to: "en" }),
+        this.translateText(koreanText, { from: "ko", to: "jp" }),
       ]);
 
       return {
         ko: koreanText,
         en: englishResult.translatedText,
-        jp: japaneseResult.translatedText
+        jp: japaneseResult.translatedText,
       };
     } catch (error) {
-      console.error('Multi-language translation error:', error);
+      console.error("Multi-language translation error:", error);
       // 에러 발생 시 원본 텍스트 반환
       return {
         ko: koreanText,
         en: koreanText,
-        jp: koreanText
+        jp: koreanText,
       };
     }
   }
@@ -168,17 +178,22 @@ export class TranslationService {
   /**
    * 캠페인 데이터 번역
    */
-  async translateCampaignData(campaignData: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const fieldsToTranslate = ['title', 'description', 'requirements'];
+  async translateCampaignData(
+    campaignData: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    const fieldsToTranslate = ["title", "description", "requirements"];
     const translatedData: Record<string, unknown> = {};
 
     for (const field of fieldsToTranslate) {
       if (campaignData[field]) {
         try {
-          const multilingualContent = await this.translateToMultiLanguages(String(campaignData[field]));
+          const multilingualContent = await this.translateToMultiLanguages(
+            String(campaignData[field]),
+          );
           translatedData[`${field}_ko`] = multilingualContent.ko;
           translatedData[`${field}_en`] = multilingualContent.en;
-          translatedData[`${field}_ja`] = (multilingualContent as any).ja || multilingualContent.ko;
+          translatedData[`${field}_ja`] =
+            (multilingualContent as any).ja || multilingualContent.ko;
         } catch (error) {
           console.error(`Failed to translate ${field}:`, error);
           // 번역 실패 시 원본 텍스트 사용
@@ -191,19 +206,31 @@ export class TranslationService {
 
     // 해시태그 번역
     if (campaignData.hashtags) {
-      const hashtags = Array.isArray(campaignData.hashtags) 
-        ? campaignData.hashtags 
-        : String(campaignData.hashtags).split(',').map((tag: string) => tag.trim());
-      
+      const hashtags = Array.isArray(campaignData.hashtags)
+        ? campaignData.hashtags
+        : String(campaignData.hashtags)
+            .split(",")
+            .map((tag: string) => tag.trim());
+
       try {
-        const translatedHashtagsEn = await this.translateBatch(hashtags, { from: 'ko', to: 'en' });
-        const translatedHashtagsJa = await this.translateBatch(hashtags, { from: 'ko', to: 'jp' });
-        
+        const translatedHashtagsEn = await this.translateBatch(hashtags, {
+          from: "ko",
+          to: "en",
+        });
+        const translatedHashtagsJa = await this.translateBatch(hashtags, {
+          from: "ko",
+          to: "jp",
+        });
+
         translatedData.hashtags_ko = hashtags;
-        translatedData.hashtags_en = translatedHashtagsEn.map(t => t.translatedText);
-        translatedData.hashtags_ja = translatedHashtagsJa.map(t => t.translatedText);
+        translatedData.hashtags_en = translatedHashtagsEn.map(
+          (t) => t.translatedText,
+        );
+        translatedData.hashtags_ja = translatedHashtagsJa.map(
+          (t) => t.translatedText,
+        );
       } catch (error) {
-        console.error('Failed to translate hashtags:', error);
+        console.error("Failed to translate hashtags:", error);
         translatedData.hashtags_ko = hashtags;
         translatedData.hashtags_en = hashtags;
         translatedData.hashtags_ja = hashtags;
@@ -216,26 +243,29 @@ export class TranslationService {
   /**
    * 메뉴 아이템 번역
    */
-  async translateMenuItem(menuItem: { label?: string; [key: string]: unknown }, targetLang: string = 'en'): Promise<{ label?: string; [key: string]: unknown }> {
+  async translateMenuItem(
+    menuItem: { label?: string; [key: string]: unknown },
+    targetLang: string = "en",
+  ): Promise<{ label?: string; [key: string]: unknown }> {
     if (!menuItem.label) {
       return menuItem;
     }
 
     try {
-      const translatedLabel = await this.translateText(menuItem.label, { 
-        from: 'ko', 
-        to: targetLang 
+      const translatedLabel = await this.translateText(menuItem.label, {
+        from: "ko",
+        to: targetLang,
       });
 
       return {
         ...menuItem,
-        [`label_${targetLang}`]: translatedLabel.translatedText
+        [`label_${targetLang}`]: translatedLabel.translatedText,
       };
     } catch (error) {
-      console.error('Failed to translate menu item:', error);
+      console.error("Failed to translate menu item:", error);
       return {
         ...menuItem,
-        [`label_${targetLang}`]: menuItem.label
+        [`label_${targetLang}`]: menuItem.label,
       };
     }
   }
@@ -245,18 +275,18 @@ export class TranslationService {
    */
   async detectLanguage(text: string): Promise<string> {
     if (!this.apiKey) {
-      throw new Error('Google Translate API key is not configured');
+      throw new Error("Google Translate API key is not configured");
     }
 
     try {
       const response = await fetch(`${this.apiUrl}/detect?key=${this.apiKey}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          q: text
-        })
+          q: text,
+        }),
       });
 
       if (!response.ok) {
@@ -266,7 +296,7 @@ export class TranslationService {
       const data = await response.json();
       return data.data.detections[0][0].language;
     } catch (error) {
-      console.error('Language detection error:', error);
+      console.error("Language detection error:", error);
       throw error;
     }
   }
@@ -276,12 +306,20 @@ export class TranslationService {
 export const translationService = new TranslationService();
 
 // 편의를 위한 함수 export
-export async function translateText(text: string, targetLanguage: string): Promise<string> {
+export async function translateText(
+  text: string,
+  targetLanguage: string,
+): Promise<string> {
   try {
-    const result = await translationService.translateText(text, { to: targetLanguage });
+    const result = await translationService.translateText(text, {
+      to: targetLanguage,
+    });
     return result.translatedText;
   } catch (error) {
-    console.warn(`Translation failed for "${text}" to ${targetLanguage}:`, error);
+    console.warn(
+      `Translation failed for "${text}" to ${targetLanguage}:`,
+      error,
+    );
     // 번역 실패 시 원본 텍스트 반환
     return text;
   }

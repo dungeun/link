@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import Redis from "ioredis";
 
 /**
  * Cache configuration and utilities
@@ -11,7 +11,8 @@ export interface CacheOptions {
 
 export class CacheManager {
   private redis: Redis | null = null;
-  private memoryCache: Map<string, { value: unknown; expires: number }> = new Map();
+  private memoryCache: Map<string, { value: unknown; expires: number }> =
+    new Map();
 
   constructor() {
     // Initialize Redis if connection is available
@@ -20,8 +21,8 @@ export class CacheManager {
     } else if (process.env.REDIS_HOST) {
       this.redis = new Redis({
         host: process.env.REDIS_HOST,
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD
+        port: parseInt(process.env.REDIS_PORT || "6379"),
+        password: process.env.REDIS_PASSWORD,
       });
     }
   }
@@ -52,7 +53,7 @@ export class CacheManager {
 
       return null;
     } catch (error) {
-      console.error('Cache get error:', error);
+      console.error("Cache get error:", error);
       return null;
     }
   }
@@ -63,14 +64,14 @@ export class CacheManager {
   async set<T>(
     key: string,
     value: T,
-    options: CacheOptions = {}
+    options: CacheOptions = {},
   ): Promise<void> {
     const { ttl = 3600, tags = [] } = options; // Default 1 hour TTL
 
     try {
       // Store in Redis
       if (this.redis) {
-        await this.redis.set(key, JSON.stringify(value), 'EX', ttl);
+        await this.redis.set(key, JSON.stringify(value), "EX", ttl);
 
         // Store tags for invalidation
         if (tags.length > 0) {
@@ -84,10 +85,10 @@ export class CacheManager {
       // Store in memory cache as fallback
       this.memoryCache.set(key, {
         value,
-        expires: Date.now() + ttl * 1000
+        expires: Date.now() + ttl * 1000,
       });
     } catch (error) {
-      console.error('Cache set error:', error);
+      console.error("Cache set error:", error);
     }
   }
 
@@ -101,7 +102,7 @@ export class CacheManager {
       }
       this.memoryCache.delete(key);
     } catch (error) {
-      console.error('Cache delete error:', error);
+      console.error("Cache delete error:", error);
     }
   }
 
@@ -120,7 +121,7 @@ export class CacheManager {
         }
       }
     } catch (error) {
-      console.error('Cache invalidation error:', error);
+      console.error("Cache invalidation error:", error);
     }
   }
 
@@ -134,7 +135,7 @@ export class CacheManager {
       }
       this.memoryCache.clear();
     } catch (error) {
-      console.error('Cache clear error:', error);
+      console.error("Cache clear error:", error);
     }
   }
 
@@ -144,7 +145,7 @@ export class CacheManager {
   async getOrSet<T>(
     key: string,
     factory: () => Promise<T>,
-    options: CacheOptions = {}
+    options: CacheOptions = {},
   ): Promise<T> {
     // Try to get from cache
     const cached = await this.get<T>(key);
@@ -180,25 +181,26 @@ export const cache = new CacheManager();
 // Cache key generators
 export const cacheKeys = {
   campaign: (id: string) => `campaign:${id}`,
-  campaignList: (params: Record<string, unknown>) => `campaigns:${JSON.stringify(params)}`,
+  campaignList: (params: Record<string, unknown>) =>
+    `campaigns:${JSON.stringify(params)}`,
   user: (id: string) => `user:${id}`,
   userProfile: (id: string) => `profile:${id}`,
   revenue: (date: string) => `revenue:${date}`,
   stats: (type: string, date: string) => `stats:${type}:${date}`,
-  config: (key: string) => `config:${key}`
+  config: (key: string) => `config:${key}`,
 };
 
 // Cache tags
 export const cacheTags = {
-  campaigns: 'campaigns',
-  users: 'users',
-  revenue: 'revenue',
-  stats: 'stats',
-  config: 'config'
+  campaigns: "campaigns",
+  users: "users",
+  revenue: "revenue",
+  stats: "stats",
+  config: "config",
 };
 
 // Cleanup interval
-if (typeof window === 'undefined') {
+if (typeof window === "undefined") {
   setInterval(() => {
     cache.cleanupMemoryCache();
   }, 60000); // Clean up every minute

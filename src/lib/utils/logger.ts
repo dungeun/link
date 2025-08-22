@@ -2,7 +2,7 @@
  * 개발 환경에서만 로깅하는 안전한 로거
  */
 
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = process.env.NODE_ENV === "development";
 
 export const logger = {
   /**
@@ -10,7 +10,7 @@ export const logger = {
    */
   log: (...args: unknown[]) => {
     if (isDevelopment) {
-      console.log('[LOG]', ...args);
+      console.log("[LOG]", ...args);
     }
   },
 
@@ -19,7 +19,7 @@ export const logger = {
    */
   error: (...args: unknown[]) => {
     if (isDevelopment) {
-      console.error('[ERROR]', ...args);
+      console.error("[ERROR]", ...args);
     }
   },
 
@@ -28,7 +28,7 @@ export const logger = {
    */
   warn: (...args: unknown[]) => {
     if (isDevelopment) {
-      console.warn('[WARN]', ...args);
+      console.warn("[WARN]", ...args);
     }
   },
 
@@ -37,7 +37,7 @@ export const logger = {
    */
   debug: (...args: unknown[]) => {
     if (isDevelopment) {
-      console.debug('[DEBUG]', ...args);
+      console.debug("[DEBUG]", ...args);
     }
   },
 
@@ -45,23 +45,27 @@ export const logger = {
    * 항상 출력되는 중요한 에러 (프로덕션에서도 필요한 경우)
    */
   critical: (...args: unknown[]) => {
-    console.error('[CRITICAL]', ...args);
+    console.error("[CRITICAL]", ...args);
   },
 
   /**
    * 항상 출력되는 중요한 정보 (프로덕션에서도 필요한 경우)
    */
   info: (...args: unknown[]) => {
-    console.info('[INFO]', ...args);
-  }
+    console.info("[INFO]", ...args);
+  },
 };
 
 /**
  * API 요청 로깅 (개발 환경에서만)
  */
-export const logApiRequest = (method: string, path: string, userId?: string) => {
+export const logApiRequest = (
+  method: string,
+  path: string,
+  userId?: string,
+) => {
   if (isDevelopment) {
-    console.log(`[API] ${method} ${path}${userId ? ` (User: ${userId})` : ''}`);
+    console.log(`[API] ${method} ${path}${userId ? ` (User: ${userId})` : ""}`);
   }
 };
 
@@ -70,12 +74,12 @@ export const logApiRequest = (method: string, path: string, userId?: string) => 
  */
 export const logError = (error: Error | unknown, context?: string) => {
   if (isDevelopment) {
-    console.error(`[ERROR]${context ? ` ${context}:` : ''}`, error);
+    console.error(`[ERROR]${context ? ` ${context}:` : ""}`, error);
   }
-  
+
   // 프로덕션에서는 중요한 에러만 로깅 (스택 트레이스 제외)
   if (!isDevelopment && error instanceof Error) {
-    console.error('[PROD_ERROR]', error.message);
+    console.error("[PROD_ERROR]", error.message);
   }
 };
 
@@ -93,7 +97,7 @@ export const performance = {
         const duration = Date.now() - start;
         logger.debug(`Performance [${label}]: ${duration}ms`);
         return duration;
-      }
+      },
     };
   },
 
@@ -105,16 +109,16 @@ export const performance = {
     return {
       end: (success: boolean = true) => {
         const duration = Date.now() - start;
-        const status = success ? 'SUCCESS' : 'FAILED';
+        const status = success ? "SUCCESS" : "FAILED";
         logger.debug(`API [${endpoint}] ${status}: ${duration}ms`);
-        
+
         // 느린 API 호출 경고 (개발 환경에서만)
         if (isDevelopment && duration > 3000) {
           logger.warn(`Slow API detected: ${endpoint} took ${duration}ms`);
         }
-        
+
         return duration;
-      }
+      },
     };
-  }
+  },
 };

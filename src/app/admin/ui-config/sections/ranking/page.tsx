@@ -1,27 +1,27 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 interface RankingSection {
   title: string;
   subtitle?: string;
   visible: boolean;
   count: number;
-  criteria: 'popular' | 'deadline' | 'reward' | 'participants';
+  criteria: "popular" | "deadline" | "reward" | "participants";
   showBadge: boolean;
 }
 
 export default function RankingSectionEditPage() {
   const router = useRouter();
   const [rankingSection, setRankingSection] = useState<RankingSection>({
-    title: '실시간 랭킹',
-    subtitle: '지금 가장 인기있는 캠페인',
+    title: "실시간 랭킹",
+    subtitle: "지금 가장 인기있는 캠페인",
     visible: true,
     count: 4,
-    criteria: 'popular',
-    showBadge: true
+    criteria: "popular",
+    showBadge: true,
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -34,23 +34,23 @@ export default function RankingSectionEditPage() {
   const loadSection = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/ui-sections/ranking');
-      
+      const response = await fetch("/api/admin/ui-sections/ranking");
+
       if (response.ok) {
         const data = await response.json();
         if (data.section) {
           setRankingSection({
-            title: data.section.title || '실시간 랭킹',
-            subtitle: data.section.subtitle || '지금 가장 인기있는 캠페인',
+            title: data.section.title || "실시간 랭킹",
+            subtitle: data.section.subtitle || "지금 가장 인기있는 캠페인",
             visible: data.section.visible,
             count: data.section.content?.count || 4,
-            criteria: data.section.content?.criteria || 'popular',
-            showBadge: data.section.content?.showBadge ?? true
+            criteria: data.section.content?.criteria || "popular",
+            showBadge: data.section.content?.showBadge ?? true,
           });
         }
       }
     } catch (error) {
-      console.error('Error loading section:', error);
+      console.error("Error loading section:", error);
     } finally {
       setLoading(false);
     }
@@ -63,10 +63,10 @@ export default function RankingSectionEditPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch('/api/admin/ui-sections/ranking', {
-        method: 'PUT',
+      const response = await fetch("/api/admin/ui-sections/ranking", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           visible: rankingSection.visible,
@@ -75,31 +75,39 @@ export default function RankingSectionEditPage() {
           content: {
             count: rankingSection.count,
             criteria: rankingSection.criteria,
-            showBadge: rankingSection.showBadge
+            showBadge: rankingSection.showBadge,
           },
-          autoTranslate: true
-        })
+          autoTranslate: true,
+        }),
       });
 
       if (response.ok) {
-        alert('저장되었습니다.');
-        router.push('/admin/ui-config?tab=sections');
+        alert("저장되었습니다.");
+        router.push("/admin/ui-config?tab=sections");
       } else {
-        throw new Error('Save failed');
+        throw new Error("Save failed");
       }
     } catch (error) {
-      console.error('Error saving section:', error);
-      alert('저장 중 오류가 발생했습니다.');
+      console.error("Error saving section:", error);
+      alert("저장 중 오류가 발생했습니다.");
     } finally {
       setSaving(false);
     }
   };
 
   const criteriaOptions = [
-    { value: 'popular', label: '인기순', description: '참여자가 많은 순서' },
-    { value: 'deadline', label: '마감임박순', description: '마감일이 가까운 순서' },
-    { value: 'reward', label: '리워드순', description: '리워드가 높은 순서' },
-    { value: 'participants', label: '참여자순', description: '신청자가 많은 순서' },
+    { value: "popular", label: "인기순", description: "참여자가 많은 순서" },
+    {
+      value: "deadline",
+      label: "마감임박순",
+      description: "마감일이 가까운 순서",
+    },
+    { value: "reward", label: "리워드순", description: "리워드가 높은 순서" },
+    {
+      value: "participants",
+      label: "참여자순",
+      description: "신청자가 많은 순서",
+    },
   ];
 
   return (
@@ -113,7 +121,9 @@ export default function RankingSectionEditPage() {
           뒤로 가기
         </button>
         <h1 className="text-2xl font-bold text-gray-900">실시간 랭킹 관리</h1>
-        <p className="text-gray-600 mt-2">메인 페이지에 표시되는 캠페인 랭킹을 관리합니다.</p>
+        <p className="text-gray-600 mt-2">
+          메인 페이지에 표시되는 캠페인 랭킹을 관리합니다.
+        </p>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
@@ -122,13 +132,17 @@ export default function RankingSectionEditPage() {
           <button
             onClick={() => handleUpdate({ visible: !rankingSection.visible })}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg border ${
-              rankingSection.visible 
-                ? 'bg-green-50 text-green-700 border-green-300' 
-                : 'bg-gray-50 text-gray-700 border-gray-300'
+              rankingSection.visible
+                ? "bg-green-50 text-green-700 border-green-300"
+                : "bg-gray-50 text-gray-700 border-gray-300"
             }`}
           >
-            {rankingSection.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-            <span>{rankingSection.visible ? '표시중' : '숨김'}</span>
+            {rankingSection.visible ? (
+              <Eye className="w-4 h-4" />
+            ) : (
+              <EyeOff className="w-4 h-4" />
+            )}
+            <span>{rankingSection.visible ? "표시중" : "숨김"}</span>
           </button>
         </div>
 
@@ -152,7 +166,7 @@ export default function RankingSectionEditPage() {
               </label>
               <input
                 type="text"
-                value={rankingSection.subtitle || ''}
+                value={rankingSection.subtitle || ""}
                 onChange={(e) => handleUpdate({ subtitle: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 placeholder="예: 지금 가장 인기있는 캠페인"
@@ -165,7 +179,9 @@ export default function RankingSectionEditPage() {
               </label>
               <select
                 value={rankingSection.count}
-                onChange={(e) => handleUpdate({ count: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  handleUpdate({ count: parseInt(e.target.value) })
+                }
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value={4}>TOP 4</option>
@@ -183,8 +199,8 @@ export default function RankingSectionEditPage() {
                     key={option.value}
                     className={`flex items-start p-3 border rounded-lg cursor-pointer transition-colors ${
                       rankingSection.criteria === option.value
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     <input
@@ -192,12 +208,24 @@ export default function RankingSectionEditPage() {
                       name="criteria"
                       value={option.value}
                       checked={rankingSection.criteria === option.value}
-                      onChange={(e) => handleUpdate({ criteria: e.target.value as 'popular' | 'deadline' | 'reward' | 'participants' })}
+                      onChange={(e) =>
+                        handleUpdate({
+                          criteria: e.target.value as
+                            | "popular"
+                            | "deadline"
+                            | "reward"
+                            | "participants",
+                        })
+                      }
                       className="mt-0.5 mr-3"
                     />
                     <div>
-                      <div className="font-medium text-gray-900">{option.label}</div>
-                      <div className="text-sm text-gray-600">{option.description}</div>
+                      <div className="font-medium text-gray-900">
+                        {option.label}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {option.description}
+                      </div>
                     </div>
                   </label>
                 ))}
@@ -209,10 +237,14 @@ export default function RankingSectionEditPage() {
                 <input
                   type="checkbox"
                   checked={rankingSection.showBadge}
-                  onChange={(e) => handleUpdate({ showBadge: e.target.checked })}
+                  onChange={(e) =>
+                    handleUpdate({ showBadge: e.target.checked })
+                  }
                   className="mr-2 h-4 w-4 text-blue-600 rounded"
                 />
-                <span className="text-sm font-medium text-gray-700">순위 배지 표시 (1, 2, 3위)</span>
+                <span className="text-sm font-medium text-gray-700">
+                  순위 배지 표시 (1, 2, 3위)
+                </span>
               </label>
             </div>
           </div>
@@ -227,50 +259,74 @@ export default function RankingSectionEditPage() {
                 <div>
                   <h3 className="text-lg font-bold">{rankingSection.title}</h3>
                   {rankingSection.subtitle && (
-                    <p className="text-sm text-gray-600 mt-0.5">{rankingSection.subtitle}</p>
+                    <p className="text-sm text-gray-600 mt-0.5">
+                      {rankingSection.subtitle}
+                    </p>
                   )}
                 </div>
-                <span className="text-sm text-blue-600 font-medium">전체보기 →</span>
+                <span className="text-sm text-blue-600 font-medium">
+                  전체보기 →
+                </span>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
-                {[...Array(Math.min(3, rankingSection.count))].map((_, index) => (
-                  <div key={index} className="bg-white border rounded-lg p-3 relative">
-                    {rankingSection.showBadge && index < 3 && (
-                      <div className={`absolute -top-2 -left-2 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                        index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
-                        index === 1 ? 'bg-gradient-to-br from-gray-400 to-gray-600' :
-                        'bg-gradient-to-br from-orange-400 to-orange-600'
-                      }`}>
-                        {index + 1}
-                      </div>
-                    )}
-                    <div className="aspect-video bg-gray-200 rounded mb-2"></div>
-                    <div className="space-y-1">
-                      <div className="h-2 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-2 bg-gray-200 rounded w-full"></div>
-                      <div className="flex justify-between items-center mt-2">
-                        <div className="h-2 bg-gray-200 rounded w-16"></div>
-                        <div className="h-2 bg-blue-200 rounded w-20"></div>
+                {[...Array(Math.min(3, rankingSection.count))].map(
+                  (_, index) => (
+                    <div
+                      key={index}
+                      className="bg-white border rounded-lg p-3 relative"
+                    >
+                      {rankingSection.showBadge && index < 3 && (
+                        <div
+                          className={`absolute -top-2 -left-2 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                            index === 0
+                              ? "bg-gradient-to-br from-yellow-400 to-yellow-600"
+                              : index === 1
+                                ? "bg-gradient-to-br from-gray-400 to-gray-600"
+                                : "bg-gradient-to-br from-orange-400 to-orange-600"
+                          }`}
+                        >
+                          {index + 1}
+                        </div>
+                      )}
+                      <div className="aspect-video bg-gray-200 rounded mb-2"></div>
+                      <div className="space-y-1">
+                        <div className="h-2 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-2 bg-gray-200 rounded w-full"></div>
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="h-2 bg-gray-200 rounded w-16"></div>
+                          <div className="h-2 bg-blue-200 rounded w-20"></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
 
               <div className="mt-3 text-center">
                 <p className="text-xs text-gray-500">
-                  {rankingSection.count > 3 && `... 외 ${rankingSection.count - 3}개 더 표시`}
+                  {rankingSection.count > 3 &&
+                    `... 외 ${rankingSection.count - 3}개 더 표시`}
                 </p>
               </div>
             </div>
 
             {/* 정렬 기준 설명 */}
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">현재 정렬 기준</h4>
+              <h4 className="text-sm font-medium text-blue-900 mb-2">
+                현재 정렬 기준
+              </h4>
               <p className="text-sm text-blue-800">
-                {criteriaOptions.find(o => o.value === rankingSection.criteria)?.label} - 
-                {' ' + criteriaOptions.find(o => o.value === rankingSection.criteria)?.description}
+                {
+                  criteriaOptions.find(
+                    (o) => o.value === rankingSection.criteria,
+                  )?.label
+                }{" "}
+                -
+                {" " +
+                  criteriaOptions.find(
+                    (o) => o.value === rankingSection.criteria,
+                  )?.description}
               </p>
             </div>
           </div>
@@ -289,12 +345,12 @@ export default function RankingSectionEditPage() {
           onClick={handleSave}
           disabled={saving}
           className={`px-6 py-2 rounded-lg ${
-            saving 
-              ? 'bg-gray-400 text-gray-200' 
-              : 'bg-blue-600 text-white hover:bg-blue-700'
+            saving
+              ? "bg-gray-400 text-gray-200"
+              : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
         >
-          {saving ? '저장 중...' : '저장'}
+          {saving ? "저장 중..." : "저장"}
         </button>
       </div>
     </div>

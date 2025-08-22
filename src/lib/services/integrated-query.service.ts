@@ -3,11 +3,15 @@
  * CampaignQueryService, UnifiedCache, 정규화된 데이터, 표준 응답을 통합한 서비스
  */
 
-import { CampaignQueryService } from './campaign-query.service';
-import { CampaignNormalizedService } from './campaign-normalized.service';
-import { UnifiedCache } from '../cache/unified-cache.service';
-import { ApiResponseService, StandardCampaignResponse, StandardUserResponse } from './api-response.service';
-import { prisma } from '@/lib/prisma';
+import { CampaignQueryService } from "./campaign-query.service";
+import { CampaignNormalizedService } from "./campaign-normalized.service";
+import { UnifiedCache } from "../cache/unified-cache.service";
+import {
+  ApiResponseService,
+  StandardCampaignResponse,
+  StandardUserResponse,
+} from "./api-response.service";
+import { prisma } from "@/lib/prisma";
 
 export interface CampaignListParams {
   page?: number;
@@ -16,8 +20,8 @@ export interface CampaignListParams {
   platform?: string;
   businessId?: string;
   category?: string;
-  sortBy?: 'created' | 'budget' | 'endDate' | 'applications';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "created" | "budget" | "endDate" | "applications";
+  sortOrder?: "asc" | "desc";
   search?: string;
   hashtags?: string[];
   minBudget?: number;
@@ -27,11 +31,11 @@ export interface CampaignListParams {
 export interface UserListParams {
   page?: number;
   limit?: number;
-  type?: 'ADMIN' | 'BUSINESS' | 'INFLUENCER';
+  type?: "ADMIN" | "BUSINESS" | "INFLUENCER";
   status?: string;
   verified?: boolean;
-  sortBy?: 'created' | 'lastLogin' | 'name';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "created" | "lastLogin" | "name";
+  sortOrder?: "asc" | "desc";
   search?: string;
 }
 
@@ -47,29 +51,43 @@ export class IntegratedQueryService {
       platform,
       businessId,
       category,
-      sortBy = 'created',
-      sortOrder = 'desc',
+      sortBy = "created",
+      sortOrder = "desc",
       search,
       hashtags,
       minBudget,
-      maxBudget
+      maxBudget,
     } = params;
 
     // 캐시 키 생성 (파라미터를 문자열로 변환)
-    const cacheIdentifier = `list:${JSON.stringify({ 
-      page, limit, status, platform, businessId, category, 
-      sortBy, sortOrder, search, hashtags, minBudget, maxBudget 
+    const cacheIdentifier = `list:${JSON.stringify({
+      page,
+      limit,
+      status,
+      platform,
+      businessId,
+      category,
+      sortBy,
+      sortOrder,
+      search,
+      hashtags,
+      minBudget,
+      maxBudget,
     })}`;
 
     // 캐시에서 조회
-    const cached = await UnifiedCache.campaigns.get<{ data: any; generatedAt: string; meta?: any }>(cacheIdentifier);
+    const cached = await UnifiedCache.campaigns.get<{
+      data: any;
+      generatedAt: string;
+      meta?: any;
+    }>(cacheIdentifier);
     if (cached) {
       return ApiResponseService.cached(
         cached.data,
         cacheIdentifier,
         300,
         cached.generatedAt,
-        cached.meta
+        cached.meta,
       );
     }
 
@@ -82,18 +100,18 @@ export class IntegratedQueryService {
       prisma.campaign.findMany({
         where: whereClause,
         include: {
-          business: true
+          business: true,
         },
         orderBy: orderByClause,
         skip: (page - 1) * limit,
-        take: limit
+        take: limit,
       }),
-      prisma.campaign.count({ where: whereClause })
+      prisma.campaign.count({ where: whereClause }),
     ]);
 
     // 표준 형식으로 변환
-    const transformedCampaigns = campaigns.map(campaign => 
-      ApiResponseService.transformCampaign(campaign)
+    const transformedCampaigns = campaigns.map((campaign) =>
+      ApiResponseService.transformCampaign(campaign),
     );
 
     const response = ApiResponseService.paginated(
@@ -101,15 +119,24 @@ export class IntegratedQueryService {
       page,
       limit,
       total,
-      { status, platform, businessId, category, search, hashtags, minBudget, maxBudget },
-      { field: sortBy, order: sortOrder }
+      {
+        status,
+        platform,
+        businessId,
+        category,
+        search,
+        hashtags,
+        minBudget,
+        maxBudget,
+      },
+      { field: sortBy, order: sortOrder },
     );
 
     // 캐시에 저장
     await UnifiedCache.campaigns.set(cacheIdentifier, {
       data: response.data,
       meta: response.meta,
-      generatedAt: response.timestamp
+      generatedAt: response.timestamp,
     });
 
     return response;
@@ -121,14 +148,18 @@ export class IntegratedQueryService {
   static async getCampaignDetail(campaignId: string) {
     // 캐시에서 조회
     const cacheIdentifier = `detail:${campaignId}`;
-    const cached = await UnifiedCache.campaigns.get<{ data: any; generatedAt: string; meta?: any }>(cacheIdentifier);
-    
+    const cached = await UnifiedCache.campaigns.get<{
+      data: any;
+      generatedAt: string;
+      meta?: any;
+    }>(cacheIdentifier);
+
     if (cached) {
       return ApiResponseService.cached(
         cached.data,
         cacheIdentifier,
         600,
-        cached.generatedAt
+        cached.generatedAt,
       );
     }
 
@@ -138,32 +169,36 @@ export class IntegratedQueryService {
     `;
 
     if (!Array.isArray(campaign) || campaign.length === 0) {
-      return ApiResponseService.notFound('Campaign');
+      return ApiResponseService.notFound("Campaign");
     }
 
     // 정규화된 데이터 추가 조회
-    const normalizedData = await CampaignNormalizedService.getCampaignWithNormalizedData(campaignId);
+    const normalizedData =
+      await CampaignNormalizedService.getCampaignWithNormalizedData(campaignId);
 
     // 데이터 병합
     const campaignData = {
       ...campaign[0],
-      ...normalizedData
+      ...normalizedData,
     };
 
-    const transformedCampaign = ApiResponseService.transformCampaign(campaignData);
+    const transformedCampaign =
+      ApiResponseService.transformCampaign(campaignData);
     const response = ApiResponseService.success(transformedCampaign);
 
     // 캐시에 저장 (10분)
     await UnifiedCache.campaigns.set(cacheIdentifier, {
       data: response.data,
-      generatedAt: response.timestamp
+      generatedAt: response.timestamp,
     });
 
     // 조회수 증가 (비동기)
-    prisma.campaign.update({
-      where: { id: campaignId },
-      data: { viewCount: { increment: 1 } }
-    }).catch(console.error);
+    prisma.campaign
+      .update({
+        where: { id: campaignId },
+        data: { viewCount: { increment: 1 } },
+      })
+      .catch(console.error);
 
     return response;
   }
@@ -178,25 +213,36 @@ export class IntegratedQueryService {
       type,
       status,
       verified,
-      sortBy = 'created',
-      sortOrder = 'desc',
-      search
+      sortBy = "created",
+      sortOrder = "desc",
+      search,
     } = params;
 
     // 캐시 키 생성
-    const cacheIdentifier = `list:${JSON.stringify({ 
-      page, limit, type, status, verified, sortBy, sortOrder, search 
+    const cacheIdentifier = `list:${JSON.stringify({
+      page,
+      limit,
+      type,
+      status,
+      verified,
+      sortBy,
+      sortOrder,
+      search,
     })}`;
 
     // 캐시에서 조회
-    const cached = await UnifiedCache.users.get<{ data: any; generatedAt: string; meta?: any }>(cacheIdentifier);
+    const cached = await UnifiedCache.users.get<{
+      data: any;
+      generatedAt: string;
+      meta?: any;
+    }>(cacheIdentifier);
     if (cached) {
       return ApiResponseService.cached(
         cached.data,
         cacheIdentifier,
         600,
         cached.generatedAt,
-        cached.meta
+        cached.meta,
       );
     }
 
@@ -209,18 +255,18 @@ export class IntegratedQueryService {
         where: whereClause,
         include: {
           profile: true,
-          businessProfile: true
+          businessProfile: true,
         },
         orderBy: orderByClause,
         skip: (page - 1) * limit,
-        take: limit
+        take: limit,
       }),
-      prisma.user.count({ where: whereClause })
+      prisma.user.count({ where: whereClause }),
     ]);
 
     // 표준 형식으로 변환
-    const transformedUsers = users.map(user => 
-      ApiResponseService.transformUser(user)
+    const transformedUsers = users.map((user) =>
+      ApiResponseService.transformUser(user),
     );
 
     const response = ApiResponseService.paginated(
@@ -229,14 +275,14 @@ export class IntegratedQueryService {
       limit,
       total,
       { type, status, verified, search },
-      { field: sortBy, order: sortOrder }
+      { field: sortBy, order: sortOrder },
     );
 
     // 캐시에 저장
     await UnifiedCache.users.set(cacheIdentifier, {
       data: response.data,
       meta: response.meta,
-      generatedAt: response.timestamp
+      generatedAt: response.timestamp,
     });
 
     return response;
@@ -247,22 +293,32 @@ export class IntegratedQueryService {
    */
   static async searchCampaignsByHashtags(hashtags: string[], limit = 10) {
     const cacheIdentifier = `hashtag_search:${JSON.stringify({ hashtags, limit })}`;
-    const cached = await UnifiedCache.campaigns.get<{ data: any; generatedAt: string; meta?: any }>(cacheIdentifier);
-    
+    const cached = await UnifiedCache.campaigns.get<{
+      data: any;
+      generatedAt: string;
+      meta?: any;
+    }>(cacheIdentifier);
+
     if (cached) {
-      return ApiResponseService.cached(cached.data, cacheIdentifier, 300, cached.generatedAt);
+      return ApiResponseService.cached(
+        cached.data,
+        cacheIdentifier,
+        300,
+        cached.generatedAt,
+      );
     }
 
-    const campaigns = await CampaignNormalizedService.searchByHashtags(hashtags);
-    const transformedCampaigns = campaigns.map(campaign => 
-      ApiResponseService.transformCampaign(campaign)
+    const campaigns =
+      await CampaignNormalizedService.searchByHashtags(hashtags);
+    const transformedCampaigns = campaigns.map((campaign) =>
+      ApiResponseService.transformCampaign(campaign),
     );
 
     const response = ApiResponseService.success(transformedCampaigns);
 
     await UnifiedCache.campaigns.set(cacheIdentifier, {
       data: response.data,
-      generatedAt: response.timestamp
+      generatedAt: response.timestamp,
     });
 
     return response;
@@ -272,21 +328,32 @@ export class IntegratedQueryService {
    * 관리자 대시보드 통계 (View 사용)
    */
   static async getAdminDashboardStats() {
-    const cacheIdentifier = 'dashboard_stats';
-    const cached = await UnifiedCache.admin.get<{ data: any; generatedAt: string; meta?: any }>(cacheIdentifier);
-    
+    const cacheIdentifier = "dashboard_stats";
+    const cached = await UnifiedCache.admin.get<{
+      data: any;
+      generatedAt: string;
+      meta?: any;
+    }>(cacheIdentifier);
+
     if (cached) {
-      return ApiResponseService.cached(cached.data, cacheIdentifier, 60, cached.generatedAt);
+      return ApiResponseService.cached(
+        cached.data,
+        cacheIdentifier,
+        60,
+        cached.generatedAt,
+      );
     }
 
     // admin_dashboard_stats view 사용
     const stats = await prisma.$queryRaw`SELECT * FROM admin_dashboard_stats`;
-    const response = ApiResponseService.success(Array.isArray(stats) ? stats[0] : stats);
+    const response = ApiResponseService.success(
+      Array.isArray(stats) ? stats[0] : stats,
+    );
 
     // 1분 캐시
     await UnifiedCache.admin.set(cacheIdentifier, {
       data: response.data,
-      generatedAt: response.timestamp
+      generatedAt: response.timestamp,
     });
 
     return response;
@@ -297,7 +364,7 @@ export class IntegratedQueryService {
    */
   private static buildCampaignWhereClause(params: CampaignListParams) {
     const where: any = {
-      deletedAt: null
+      deletedAt: null,
     };
 
     if (params.status) {
@@ -307,8 +374,8 @@ export class IntegratedQueryService {
     if (params.platform) {
       where.campaignPlatforms = {
         some: {
-          platform: params.platform
-        }
+          platform: params.platform,
+        },
       };
     }
 
@@ -320,16 +387,16 @@ export class IntegratedQueryService {
       where.categories = {
         some: {
           category: {
-            slug: params.category
-          }
-        }
+            slug: params.category,
+          },
+        },
       };
     }
 
     if (params.search) {
       where.OR = [
-        { title: { contains: params.search, mode: 'insensitive' } },
-        { description: { contains: params.search, mode: 'insensitive' } }
+        { title: { contains: params.search, mode: "insensitive" } },
+        { description: { contains: params.search, mode: "insensitive" } },
       ];
     }
 
@@ -337,9 +404,9 @@ export class IntegratedQueryService {
       where.campaignHashtags = {
         some: {
           hashtag: {
-            in: params.hashtags
-          }
-        }
+            in: params.hashtags,
+          },
+        },
       };
     }
 
@@ -348,15 +415,15 @@ export class IntegratedQueryService {
         {
           budget: {
             ...(params.minBudget && { gte: params.minBudget }),
-            ...(params.maxBudget && { lte: params.maxBudget })
-          }
+            ...(params.maxBudget && { lte: params.maxBudget }),
+          },
         },
         {
           rewardAmount: {
             ...(params.minBudget && { gte: params.minBudget }),
-            ...(params.maxBudget && { lte: params.maxBudget })
-          }
-        }
+            ...(params.maxBudget && { lte: params.maxBudget }),
+          },
+        },
       ];
     }
 
@@ -368,7 +435,7 @@ export class IntegratedQueryService {
    */
   private static buildUserWhereClause(params: UserListParams) {
     const where: any = {
-      deletedAt: null
+      deletedAt: null,
     };
 
     if (params.type) {
@@ -384,25 +451,25 @@ export class IntegratedQueryService {
         where.OR = [
           { profile: { isVerified: true } },
           { businessProfile: { isVerified: true } },
-          { type: 'ADMIN' }
+          { type: "ADMIN" },
         ];
       } else {
         where.AND = [
-          { type: { not: 'ADMIN' } },
+          { type: { not: "ADMIN" } },
           {
             OR: [
               { profile: { isVerified: false } },
-              { businessProfile: { isVerified: false } }
-            ]
-          }
+              { businessProfile: { isVerified: false } },
+            ],
+          },
         ];
       }
     }
 
     if (params.search) {
       where.OR = [
-        { name: { contains: params.search, mode: 'insensitive' } },
-        { email: { contains: params.search, mode: 'insensitive' } }
+        { name: { contains: params.search, mode: "insensitive" } },
+        { email: { contains: params.search, mode: "insensitive" } },
       ];
     }
 
@@ -412,13 +479,13 @@ export class IntegratedQueryService {
   /**
    * 사용자 ORDER BY 절 빌더
    */
-  private static buildUserOrderBy(sortBy: string, sortOrder: 'asc' | 'desc') {
+  private static buildUserOrderBy(sortBy: string, sortOrder: "asc" | "desc") {
     switch (sortBy) {
-      case 'lastLogin':
+      case "lastLogin":
         return { lastLogin: sortOrder };
-      case 'name':
+      case "name":
         return { name: sortOrder };
-      case 'created':
+      case "created":
       default:
         return { createdAt: sortOrder };
     }
@@ -427,14 +494,20 @@ export class IntegratedQueryService {
   /**
    * 캐시 무효화 (변경 시 호출)
    */
-  static async invalidateCache(entityType: 'campaign' | 'user', entityId?: string, metadata?: Record<string, any>) {
-    const { CacheInvalidationService } = await import('./cache-invalidation.service');
-    
+  static async invalidateCache(
+    entityType: "campaign" | "user",
+    entityId?: string,
+    metadata?: Record<string, any>,
+  ) {
+    const { CacheInvalidationService } = await import(
+      "./cache-invalidation.service"
+    );
+
     await CacheInvalidationService.invalidate({
-      type: 'update',
+      type: "update",
       entity: entityType,
-      entityId: entityId || 'unknown',
-      metadata
+      entityId: entityId || "unknown",
+      metadata,
     });
   }
 
@@ -442,19 +515,19 @@ export class IntegratedQueryService {
    * 정렬 조건 빌더
    */
   private static buildOrderBy(sortBy: string, sortOrder: string) {
-    const order = sortOrder === 'asc' ? 'asc' as const : 'desc' as const;
-    
+    const order = sortOrder === "asc" ? ("asc" as const) : ("desc" as const);
+
     switch (sortBy) {
-      case 'created':
+      case "created":
         return { createdAt: order };
-      case 'budget':
+      case "budget":
         return { budget: order };
-      case 'endDate':
+      case "endDate":
         return { endDate: order };
-      case 'applications':
-        return { createdAt: 'desc' as const }; // Fallback since relation doesn't exist
+      case "applications":
+        return { createdAt: "desc" as const }; // Fallback since relation doesn't exist
       default:
-        return { createdAt: 'desc' as const };
+        return { createdAt: "desc" as const };
     }
   }
 }

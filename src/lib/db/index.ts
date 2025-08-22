@@ -1,38 +1,47 @@
 // Database connection and utilities
-import { PrismaClient } from '@prisma/client'
-import { redis } from './redis'
+import { PrismaClient } from "@prisma/client";
+import { redis } from "./redis";
 
 // Global is used here to maintain a cached connection across hot reloads
 // in development. This prevents connections growing exponentially
 // during API Route usage.
-let prisma: PrismaClient
+let prisma: PrismaClient;
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient()
+if (process.env.NODE_ENV === "production") {
+  prisma = new PrismaClient();
 } else {
-  const globalWithPrisma = global as typeof globalThis & { prisma?: PrismaClient }
+  const globalWithPrisma = global as typeof globalThis & {
+    prisma?: PrismaClient;
+  };
   if (!globalWithPrisma.prisma) {
-    globalWithPrisma.prisma = new PrismaClient()
+    globalWithPrisma.prisma = new PrismaClient();
   }
-  prisma = globalWithPrisma.prisma
+  prisma = globalWithPrisma.prisma;
 }
 
 export function getRedis() {
-  return redis
+  return redis;
 }
 
-export async function withTransaction<T>(fn: (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) => Promise<T>): Promise<T> {
-  return await prisma.$transaction(fn)
+export async function withTransaction<T>(
+  fn: (
+    tx: Omit<
+      PrismaClient,
+      "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+    >,
+  ) => Promise<T>,
+): Promise<T> {
+  return await prisma.$transaction(fn);
 }
 
-export { prisma }
+export { prisma };
 
 // Mock database for development if no database is configured
 export const mockDb = {
   users: [],
   campaigns: [],
   applications: [],
-  payments: []
-}
+  payments: [],
+};
 
-export default prisma
+export default prisma;

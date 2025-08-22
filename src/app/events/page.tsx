@@ -6,7 +6,7 @@ export default function EventsPage() {
         <p className="text-gray-600 mb-8">
           준비 중인 페이지입니다. 곧 다양한 이벤트로 찾아뵙겠습니다.
         </p>
-        <a 
+        <a
           href="/"
           className="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >

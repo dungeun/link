@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
@@ -26,63 +26,72 @@ declare global {
 
 interface DaumPostcodeProps {
   onComplete: (data: {
-    address: string
-    addressType: string
-    bname: string
-    buildingName: string
-  }) => void
-  onClose?: () => void
+    address: string;
+    addressType: string;
+    bname: string;
+    buildingName: string;
+  }) => void;
+  onClose?: () => void;
 }
 
-export default function DaumPostcode({ onComplete, onClose }: DaumPostcodeProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
+export default function DaumPostcode({
+  onComplete,
+  onClose,
+}: DaumPostcodeProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // 스크립트가 이미 로드되어 있는지 확인
-    const existingScript = document.querySelector('script[src*="daumcdn.net/mapjsapi/bundle/postcode"]')
-    
+    const existingScript = document.querySelector(
+      'script[src*="daumcdn.net/mapjsapi/bundle/postcode"]',
+    );
+
     if (existingScript && window.daum?.Postcode) {
       // 스크립트가 이미 로드되어 있으면 바로 실행
-      initPostcode()
+      initPostcode();
     } else {
       // 스크립트 로드
-      const script = document.createElement('script')
-      script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
-      script.async = true
-      document.body.appendChild(script)
+      const script = document.createElement("script");
+      script.src =
+        "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+      script.async = true;
+      document.body.appendChild(script);
 
       script.onload = () => {
-        initPostcode()
-      }
+        initPostcode();
+      };
 
       return () => {
         if (!existingScript) {
-          document.body.removeChild(script)
+          document.body.removeChild(script);
         }
-      }
+      };
     }
-  }, [])
+  }, []);
 
   const initPostcode = () => {
     if (window.daum && window.daum.Postcode && containerRef.current) {
       new window.daum.Postcode({
-        oncomplete: function(data: {
+        oncomplete: function (data: {
           address: string;
           addressType: string;
           bname: string;
           buildingName: string;
         }) {
-          let fullAddress = data.address
-          let extraAddress = ''
+          let fullAddress = data.address;
+          let extraAddress = "";
 
-          if (data.addressType === 'R') {
-            if (data.bname !== '') {
-              extraAddress += data.bname
+          if (data.addressType === "R") {
+            if (data.bname !== "") {
+              extraAddress += data.bname;
             }
-            if (data.buildingName !== '') {
-              extraAddress += extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName
+            if (data.buildingName !== "") {
+              extraAddress +=
+                extraAddress !== ""
+                  ? `, ${data.buildingName}`
+                  : data.buildingName;
             }
-            fullAddress += extraAddress !== '' ? ` (${extraAddress})` : ''
+            fullAddress += extraAddress !== "" ? ` (${extraAddress})` : "";
           }
 
           onComplete({
@@ -90,24 +99,24 @@ export default function DaumPostcode({ onComplete, onClose }: DaumPostcodeProps)
             addressType: data.addressType,
             bname: data.bname,
             buildingName: data.buildingName,
-          })
+          });
         },
         onclose: onClose,
-        width: '100%',
-        height: '100%',
+        width: "100%",
+        height: "100%",
         animation: true,
-        autoMapping: true
-      }).embed(containerRef.current)
+        autoMapping: true,
+      }).embed(containerRef.current);
     }
-  }
+  };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
       data-modal="true"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          onClose?.()
+          onClose?.();
         }
       }}
     >
@@ -119,13 +128,23 @@ export default function DaumPostcode({ onComplete, onClose }: DaumPostcodeProps)
             className="text-gray-400 hover:text-gray-600 transition-colors"
             type="button"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
         <div ref={containerRef} className="w-full h-[450px] bg-white"></div>
       </div>
     </div>
-  )
+  );
 }

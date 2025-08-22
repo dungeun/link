@@ -1,25 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { withAuth } from '@/lib/auth/middleware'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import { withAuth } from "@/lib/auth/middleware";
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 // GET /api/influencer/penalties - 페널티 조회
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await withAuth(request)
-    if ('error' in authResult) {
-      return authResult.error
+    const authResult = await withAuth(request);
+    if ("error" in authResult) {
+      return authResult.error;
     }
-    
-    const { user } = authResult
-    const { searchParams } = new URL(request.url)
-    const influencerId = searchParams.get('influencerId') || user.id
-    const activeOnly = searchParams.get('activeOnly') === 'true'
+
+    const { user } = authResult;
+    const { searchParams } = new URL(request.url);
+    const influencerId = searchParams.get("influencerId") || user.id;
+    const activeOnly = searchParams.get("activeOnly") === "true";
 
     // 페널티 조회 쿼리 - 파라미터화된 쿼리 사용
-    const penalties = activeOnly 
+    const penalties = activeOnly
       ? await prisma.$queryRaw`
           SELECT 
             ip.*,
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
           LEFT JOIN campaigns c ON ip.campaign_id = c.id
           WHERE influencer_id = ${influencerId}
           ORDER BY ip.created_at DESC
-        `
+        `;
 
     // 활성 페널티 수 계산 - 파라미터화된 쿼리 사용
     const activePenalties = await prisma.$queryRaw`
@@ -52,49 +52,46 @@ export async function GET(request: NextRequest) {
       WHERE influencer_id = ${influencerId}
         AND status = 'ACTIVE'
         AND (end_date IS NULL OR end_date > NOW())
-    `
+    `;
 
     return NextResponse.json({
       success: true,
       penalties,
-      activePenaltyCount: parseInt((activePenalties as any)[0]?.count || 0)
-    })
+      activePenaltyCount: parseInt((activePenalties as any)[0]?.count || 0),
+    });
   } catch (error) {
-    console.error('Failed to get penalties:', error)
+    console.error("Failed to get penalties:", error);
     return NextResponse.json(
-      { success: false, error: '페널티 정보를 불러오는 중 오류가 발생했습니다' },
-      { status: 500 }
-    )
+      {
+        success: false,
+        error: "페널티 정보를 불러오는 중 오류가 발생했습니다",
+      },
+      { status: 500 },
+    );
   }
 }
 
 // POST /api/influencer/penalties - 페널티 부과 (관리자 전용)
 export async function POST(request: NextRequest) {
   try {
-    const authResult = await withAuth(request)
-    if ('error' in authResult) {
-      return authResult.error
-    }
-    
-    const { user } = authResult
-    
-    // 관리자만 페널티 부과 가능
-    if (user.type !== 'ADMIN') {
-      return NextResponse.json(
-        { success: false, error: '관리자만 페널티를 부과할 수 있습니다' },
-        { status: 403 }
-      )
+    const authResult = await withAuth(request);
+    if ("error" in authResult) {
+      return authResult.error;
     }
 
-    const body = await request.json()
-    const {
-      influencerId,
-      penaltyType,
-      severity,
-      reason,
-      endDate,
-      campaignId
-    } = body
+    const { user } = authResult;
+
+    // 관리자만 페널티 부과 가능
+    if (user.type !== "ADMIN") {
+      return NextResponse.json(
+        { success: false, error: "관리자만 페널티를 부과할 수 있습니다" },
+        { status: 403 },
+      );
+    }
+
+    const body = await request.json();
+    const { influencerId, penaltyType, severity, reason, endDate, campaignId } =
+      body;
 
     // 페널티 생성
     await prisma.$executeRaw`
@@ -123,60 +120,60 @@ export async function POST(request: NextRequest) {
         NOW(),
         NOW()
       )
-    `
+    `;
 
     // 알림 생성
     await prisma.notification.create({
       data: {
         userId: influencerId,
-        type: 'PENALTY_ISSUED',
-        title: '페널티가 부과되었습니다',
+        type: "PENALTY_ISSUED",
+        title: "페널티가 부과되었습니다",
         message: `사유: ${reason}`,
-        metadata: JSON.stringify({ campaignId })
-      }
-    })
+        metadata: JSON.stringify({ campaignId }),
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      message: '페널티가 성공적으로 부과되었습니다'
-    })
+      message: "페널티가 성공적으로 부과되었습니다",
+    });
   } catch (error) {
-    console.error('Failed to create penalty:', error)
+    console.error("Failed to create penalty:", error);
     return NextResponse.json(
-      { success: false, error: '페널티 부과 중 오류가 발생했습니다' },
-      { status: 500 }
-    )
+      { success: false, error: "페널티 부과 중 오류가 발생했습니다" },
+      { status: 500 },
+    );
   }
 }
 
 // PATCH /api/influencer/penalties/:id - 페널티 상태 업데이트 (관리자 전용)
 export async function PATCH(request: NextRequest) {
   try {
-    const authResult = await withAuth(request)
-    if ('error' in authResult) {
-      return authResult.error
-    }
-    
-    const { user } = authResult
-    
-    // 관리자만 페널티 수정 가능
-    if (user.type !== 'ADMIN') {
-      return NextResponse.json(
-        { success: false, error: '관리자만 페널티를 수정할 수 있습니다' },
-        { status: 403 }
-      )
+    const authResult = await withAuth(request);
+    if ("error" in authResult) {
+      return authResult.error;
     }
 
-    const { pathname } = new URL(request.url)
-    const penaltyId = pathname.split('/').pop()
-    const body = await request.json()
-    const { status, resolutionNotes } = body
+    const { user } = authResult;
+
+    // 관리자만 페널티 수정 가능
+    if (user.type !== "ADMIN") {
+      return NextResponse.json(
+        { success: false, error: "관리자만 페널티를 수정할 수 있습니다" },
+        { status: 403 },
+      );
+    }
+
+    const { pathname } = new URL(request.url);
+    const penaltyId = pathname.split("/").pop();
+    const body = await request.json();
+    const { status, resolutionNotes } = body;
 
     if (!penaltyId) {
       return NextResponse.json(
-        { success: false, error: '페널티 ID가 필요합니다' },
-        { status: 400 }
-      )
+        { success: false, error: "페널티 ID가 필요합니다" },
+        { status: 400 },
+      );
     }
 
     // 페널티 상태 업데이트
@@ -184,22 +181,22 @@ export async function PATCH(request: NextRequest) {
       UPDATE influencer_penalties
       SET 
         status = ${status},
-        resolved_at = ${status === 'RESOLVED' ? new Date() : null},
-        resolved_by = ${status === 'RESOLVED' ? user.id : null},
+        resolved_at = ${status === "RESOLVED" ? new Date() : null},
+        resolved_by = ${status === "RESOLVED" ? user.id : null},
         resolution_notes = ${resolutionNotes || null},
         updated_at = NOW()
       WHERE id = ${penaltyId}
-    `
+    `;
 
     return NextResponse.json({
       success: true,
-      message: '페널티 상태가 업데이트되었습니다'
-    })
+      message: "페널티 상태가 업데이트되었습니다",
+    });
   } catch (error) {
-    console.error('Failed to update penalty:', error)
+    console.error("Failed to update penalty:", error);
     return NextResponse.json(
-      { success: false, error: '페널티 업데이트 중 오류가 발생했습니다' },
-      { status: 500 }
-    )
+      { success: false, error: "페널티 업데이트 중 오류가 발생했습니다" },
+      { status: 500 },
+    );
   }
 }

@@ -1,267 +1,308 @@
-'use client'
+"use client";
 
-import React, { useState, useRef, useCallback } from 'react'
-import Image from 'next/image'
-import { useDropzone } from 'react-dropzone'
-import { Button } from './Button'
-import { Upload, X, ImageIcon, FileImage, AlertCircle } from 'lucide-react'
-import imageCompression from 'browser-image-compression'
+import React, { useState, useRef, useCallback } from "react";
+import Image from "next/image";
+import { useDropzone } from "react-dropzone";
+import { Button } from "./Button";
+import { Upload, X, ImageIcon, FileImage, AlertCircle } from "lucide-react";
+import imageCompression from "browser-image-compression";
 
 interface ImageUploadProps {
-  value?: string | string[]
-  onChange: (value: string | string[]) => void
-  multiple?: boolean
-  category?: 'campaigns' | 'users' | 'profiles' | 'temp' | 'seo'
-  maxFiles?: number
-  acceptedTypes?: string[]
-  maxSize?: number // MB
-  className?: string
-  disabled?: boolean
-  enableDragDrop?: boolean
-  previewClassName?: string
+  value?: string | string[];
+  onChange: (value: string | string[]) => void;
+  multiple?: boolean;
+  category?: "campaigns" | "users" | "profiles" | "temp" | "seo";
+  maxFiles?: number;
+  acceptedTypes?: string[];
+  maxSize?: number; // MB
+  className?: string;
+  disabled?: boolean;
+  enableDragDrop?: boolean;
+  previewClassName?: string;
 }
 
 interface UploadResponse {
-  success: boolean
-  imageUrl?: string
-  error?: string
+  success: boolean;
+  imageUrl?: string;
+  error?: string;
 }
 
 export function ImageUpload({
   value,
   onChange,
   multiple = false,
-  category = 'temp',
+  category = "temp",
   maxFiles = 5,
-  acceptedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+  acceptedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"],
   maxSize = 20, // 20MB로 증가
-  className = '',
+  className = "",
   disabled = false,
   enableDragDrop = true,
-  previewClassName = ''
+  previewClassName = "",
 }: ImageUploadProps) {
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [dragError, setDragError] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [dragError, setDragError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const currentImages = Array.isArray(value) ? value : value ? [value] : []
+  const currentImages = Array.isArray(value) ? value : value ? [value] : [];
 
   const handleFileSelect = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const processFiles = async (files: File[]) => {
-    setDragError(null)
-    console.log('Processing files:', files.length, 'files')
-    
+    setDragError(null);
+    console.log("Processing files:", files.length, "files");
+
     // 파일 개수 검증
     if (multiple && currentImages.length + files.length > maxFiles) {
-      setDragError(`최대 ${maxFiles}개의 이미지만 업로드할 수 있습니다.`)
-      return
+      setDragError(`최대 ${maxFiles}개의 이미지만 업로드할 수 있습니다.`);
+      return;
     }
 
     if (!multiple && files.length > 1) {
-      setDragError('하나의 이미지만 업로드할 수 있습니다.')
-      return
+      setDragError("하나의 이미지만 업로드할 수 있습니다.");
+      return;
     }
 
     // 파일 타입 및 크기 검증
     for (const file of files) {
       if (!acceptedTypes.includes(file.type)) {
-        setDragError(`지원하지 않는 파일 형식입니다: ${file.name}`)
-        return
+        setDragError(`지원하지 않는 파일 형식입니다: ${file.name}`);
+        return;
       }
 
       if (file.size > maxSize * 1024 * 1024) {
-        setDragError(`파일 크기가 너무 큽니다: ${file.name} (최대 ${maxSize}MB)`)
-        return
+        setDragError(
+          `파일 크기가 너무 큽니다: ${file.name} (최대 ${maxSize}MB)`,
+        );
+        return;
       }
     }
 
-    setIsUploading(true)
-    setUploadProgress(0)
-    console.log('Starting upload process...')
+    setIsUploading(true);
+    setUploadProgress(0);
+    console.log("Starting upload process...");
 
     try {
-      const uploadedUrls: string[] = []
+      const uploadedUrls: string[] = [];
 
       for (let i = 0; i < files.length; i++) {
-        let file = files[i]
-        
+        let file = files[i];
+
         // 이미지 처리를 더 안전하게 수행
-        if (file.type !== 'image/gif') {
-          console.log(`Processing image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB) - Upload ${i + 1}/${files.length}`)
-          
+        if (file.type !== "image/gif") {
+          console.log(
+            `Processing image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB) - Upload ${i + 1}/${files.length}`,
+          );
+
           // 각 파일마다 고유한 처리 시간 간격 추가 (특히 세 번째 파일)
           if (i >= 2) {
-            console.log('Adding delay for third+ image to prevent processing conflicts...')
-            await new Promise(resolve => setTimeout(resolve, 500 * (i - 1)))
+            console.log(
+              "Adding delay for third+ image to prevent processing conflicts...",
+            );
+            await new Promise((resolve) => setTimeout(resolve, 500 * (i - 1)));
           }
-          
+
           // 이미지 크기에 따라 다른 압축 옵션 적용
-          const isLargeFile = file.size > 5 * 1024 * 1024
+          const isLargeFile = file.size > 5 * 1024 * 1024;
           const options = {
             maxSizeMB: isLargeFile ? 3.5 : 8, // 더 안전한 압축 비율
             maxWidthOrHeight: 1600, // 더 작은 최대 크기
             useWebWorker: false, // WebWorker 비활성화로 메모리 이슈 방지
-            fileType: 'image/jpeg', // JPEG 사용 (WebP보다 안정적)
-            initialQuality: isLargeFile ? 0.75 : 0.85 // 품질 조정
-          }
-          
+            fileType: "image/jpeg", // JPEG 사용 (WebP보다 안정적)
+            initialQuality: isLargeFile ? 0.75 : 0.85, // 품질 조정
+          };
+
           try {
-            console.log(`Starting compression for file ${i + 1}...`)
-            const compressedFile = await imageCompression(file, options)
-            
+            console.log(`Starting compression for file ${i + 1}...`);
+            const compressedFile = await imageCompression(file, options);
+
             // 압축된 파일을 JPEG로 변환
             const processedFile = new File(
-              [compressedFile], 
-              file.name.replace(/\.[^/.]+$/, '.jpg'),
-              { type: 'image/jpeg' }
-            )
-            console.log(`Compression complete: ${file.name} → ${processedFile.name} (${(processedFile.size / 1024 / 1024).toFixed(2)}MB)`)
-            
+              [compressedFile],
+              file.name.replace(/\.[^/.]+$/, ".jpg"),
+              { type: "image/jpeg" },
+            );
+            console.log(
+              `Compression complete: ${file.name} → ${processedFile.name} (${(processedFile.size / 1024 / 1024).toFixed(2)}MB)`,
+            );
+
             // 메모리 정리를 위한 약간의 지연
             if (i > 0) {
-              await new Promise(resolve => setTimeout(resolve, 200))
+              await new Promise((resolve) => setTimeout(resolve, 200));
             }
-            
-            file = processedFile
+
+            file = processedFile;
           } catch (compressionError) {
-            console.error(`Image compression failed for file ${i + 1}:`, compressionError)
+            console.error(
+              `Image compression failed for file ${i + 1}:`,
+              compressionError,
+            );
             // 압축 실패 시 원본 파일을 더 작은 크기로 제한
             if (file.size > 10 * 1024 * 1024) {
-              setDragError(`이미지 처리에 실패했습니다: ${file.name}. 더 작은 파일을 선택해주세요.`)
-              return
+              setDragError(
+                `이미지 처리에 실패했습니다: ${file.name}. 더 작은 파일을 선택해주세요.`,
+              );
+              return;
             }
-            console.log('Using original file format due to compression failure')
+            console.log(
+              "Using original file format due to compression failure",
+            );
           }
         } else {
-          console.log(`Skipping compression for GIF: ${file.name}`)
+          console.log(`Skipping compression for GIF: ${file.name}`);
         }
-        
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('type', category)
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("type", category);
 
         // 토큰 가져오기 (여러 가능성 확인)
-        const token = localStorage.getItem('accessToken') || 
-                     localStorage.getItem('auth-token') || 
-                     localStorage.getItem('token') || ''
+        const token =
+          localStorage.getItem("accessToken") ||
+          localStorage.getItem("auth-token") ||
+          localStorage.getItem("token") ||
+          "";
 
-        const headers: Record<string, string> = {}
+        const headers: Record<string, string> = {};
         if (token) {
-          headers['Authorization'] = `Bearer ${token}`
+          headers["Authorization"] = `Bearer ${token}`;
         }
 
-        const response = await fetch('/api/upload', {
-          method: 'POST',
+        const response = await fetch("/api/upload", {
+          method: "POST",
           headers,
-          body: formData
-        })
+          body: formData,
+        });
 
         if (!response.ok) {
-          const errorText = await response.text()
-          console.error('Upload API error:', { status: response.status, errorText })
-          throw new Error(`업로드 실패 (${response.status}): ${errorText}`)
+          const errorText = await response.text();
+          console.error("Upload API error:", {
+            status: response.status,
+            errorText,
+          });
+          throw new Error(`업로드 실패 (${response.status}): ${errorText}`);
         }
 
-        const result = await response.json()
-        console.log('Upload API response:', result)
+        const result = await response.json();
+        console.log("Upload API response:", result);
 
         // 다양한 응답 형식 처리
-        let imageUrl: string | null = null
-        
+        let imageUrl: string | null = null;
+
         if (result.success && result.data && result.data.url) {
           // 새로운 API 형식
-          imageUrl = result.data.url
+          imageUrl = result.data.url;
         } else if (result.url) {
           // 기존 API 형식
-          imageUrl = result.url
+          imageUrl = result.url;
         } else if (result.imageUrl) {
           // 또 다른 가능한 형식
-          imageUrl = result.imageUrl
+          imageUrl = result.imageUrl;
         }
 
         if (imageUrl) {
-          uploadedUrls.push(imageUrl)
+          uploadedUrls.push(imageUrl);
         } else {
-          console.error('Invalid upload response:', result)
-          throw new Error(result.error || result.message || '업로드 응답 형식이 올바르지 않습니다.')
+          console.error("Invalid upload response:", result);
+          throw new Error(
+            result.error ||
+              result.message ||
+              "업로드 응답 형식이 올바르지 않습니다.",
+          );
         }
 
-        setUploadProgress(((i + 1) / files.length) * 100)
+        setUploadProgress(((i + 1) / files.length) * 100);
       }
 
       // 결과 업데이트
       if (multiple) {
-        const newImages = [...currentImages, ...uploadedUrls]
-        onChange(newImages)
+        const newImages = [...currentImages, ...uploadedUrls];
+        onChange(newImages);
       } else {
-        onChange(uploadedUrls[0])
+        onChange(uploadedUrls[0]);
       }
-
     } catch (error) {
-      console.error('Upload error:', error)
-      setDragError(error instanceof Error ? error.message : '업로드 중 오류가 발생했습니다.')
+      console.error("Upload error:", error);
+      setDragError(
+        error instanceof Error
+          ? error.message
+          : "업로드 중 오류가 발생했습니다.",
+      );
     } finally {
-      setIsUploading(false)
-      setUploadProgress(0)
+      setIsUploading(false);
+      setUploadProgress(0);
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+        fileInputRef.current.value = "";
       }
     }
-  }
+  };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || [])
-    if (files.length === 0) return
-    await processFiles(files)
-  }
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+    await processFiles(files);
+  };
 
   // Drag and drop functionality
-  const onDrop = useCallback(async (acceptedFiles: File[], fileRejections: any[]) => {
-    if (fileRejections.length > 0) {
-      const rejection = fileRejections[0]
-      if (rejection.errors[0]?.code === 'file-too-large') {
-        setDragError(`파일 크기는 ${maxSize}MB 이하여야 합니다.`)
-      } else if (rejection.errors[0]?.code === 'file-invalid-type') {
-        setDragError('지원하지 않는 파일 형식입니다.')
-      } else {
-        setDragError('파일을 업로드할 수 없습니다.')
+  const onDrop = useCallback(
+    async (acceptedFiles: File[], fileRejections: any[]) => {
+      if (fileRejections.length > 0) {
+        const rejection = fileRejections[0];
+        if (rejection.errors[0]?.code === "file-too-large") {
+          setDragError(`파일 크기는 ${maxSize}MB 이하여야 합니다.`);
+        } else if (rejection.errors[0]?.code === "file-invalid-type") {
+          setDragError("지원하지 않는 파일 형식입니다.");
+        } else {
+          setDragError("파일을 업로드할 수 없습니다.");
+        }
+        return;
       }
-      return
-    }
 
-    await processFiles(acceptedFiles)
-  }, [acceptedTypes, maxSize, processFiles])
+      await processFiles(acceptedFiles);
+    },
+    [acceptedTypes, maxSize, processFiles],
+  );
 
-  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
-    onDrop,
-    accept: acceptedTypes.reduce((acc, type) => {
-      acc[type] = []
-      return acc
-    }, {} as Record<string, string[]>),
-    maxFiles: multiple ? maxFiles - currentImages.length : 1,
-    maxSize: maxSize * 1024 * 1024,
-    disabled: disabled || isUploading || (multiple && currentImages.length >= maxFiles),
-    onDragEnter: () => setDragError(null),
-    noClick: !enableDragDrop
-  })
+  const { getRootProps, getInputProps, isDragActive, isDragReject } =
+    useDropzone({
+      onDrop,
+      accept: acceptedTypes.reduce(
+        (acc, type) => {
+          acc[type] = [];
+          return acc;
+        },
+        {} as Record<string, string[]>,
+      ),
+      maxFiles: multiple ? maxFiles - currentImages.length : 1,
+      maxSize: maxSize * 1024 * 1024,
+      disabled:
+        disabled ||
+        isUploading ||
+        (multiple && currentImages.length >= maxFiles),
+      onDragEnter: () => setDragError(null),
+      noClick: !enableDragDrop,
+    });
 
   const handleRemoveImage = (indexOrUrl: number | string) => {
     if (multiple) {
-      const newImages = currentImages.filter((_, index) => 
-        typeof indexOrUrl === 'number' ? index !== indexOrUrl : _ !== indexOrUrl
-      )
-      onChange(newImages)
+      const newImages = currentImages.filter((_, index) =>
+        typeof indexOrUrl === "number"
+          ? index !== indexOrUrl
+          : _ !== indexOrUrl,
+      );
+      onChange(newImages);
     } else {
-      onChange('')
+      onChange("");
     }
-  }
+  };
 
-  const dropzoneProps = enableDragDrop ? getRootProps() : {}
-  
+  const dropzoneProps = enableDragDrop ? getRootProps() : {};
+
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Drag & Drop Area (기본 상태일 때만 표시) */}
@@ -270,9 +311,9 @@ export function ImageUpload({
           {...dropzoneProps}
           className={`
             relative border-2 border-dashed rounded-lg p-6 transition-all cursor-pointer
-            ${isDragActive && !isDragReject ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
-            ${isDragReject ? 'border-red-500 bg-red-50' : ''}
-            ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+            ${isDragActive && !isDragReject ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-gray-400"}
+            ${isDragReject ? "border-red-500 bg-red-50" : ""}
+            ${disabled || isUploading ? "opacity-50 cursor-not-allowed" : ""}
           `}
         >
           <input {...getInputProps()} />
@@ -280,9 +321,11 @@ export function ImageUpload({
             {isUploading ? (
               <>
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                <p className="text-sm text-gray-600">업로드 중... {Math.round(uploadProgress)}%</p>
+                <p className="text-sm text-gray-600">
+                  업로드 중... {Math.round(uploadProgress)}%
+                </p>
                 <div className="w-full max-w-xs bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   />
@@ -295,19 +338,26 @@ export function ImageUpload({
                 ) : (
                   <ImageIcon className="w-12 h-12 text-gray-400" />
                 )}
-                
+
                 <div className="space-y-1">
                   <p className="text-base font-medium text-gray-700">
-                    {isDragActive ? "파일을 놓아주세요" : "이미지를 드래그하거나 클릭하세요"}
+                    {isDragActive
+                      ? "파일을 놓아주세요"
+                      : "이미지를 드래그하거나 클릭하세요"}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {acceptedTypes.map(type => type.split('/')[1].toUpperCase()).join(', ')} 파일 (최대 {maxSize}MB)
+                    {acceptedTypes
+                      .map((type) => type.split("/")[1].toUpperCase())
+                      .join(", ")}{" "}
+                    파일 (최대 {maxSize}MB)
                   </p>
                   {multiple && (
-                    <p className="text-sm text-gray-500">최대 {maxFiles}개까지 선택 가능</p>
+                    <p className="text-sm text-gray-500">
+                      최대 {maxFiles}개까지 선택 가능
+                    </p>
                   )}
                 </div>
-                
+
                 <div className="flex items-center space-x-1 text-sm text-gray-500">
                   <Upload className="w-4 h-4" />
                   <span>클릭하여 파일 선택</span>
@@ -325,11 +375,13 @@ export function ImageUpload({
             type="button"
             variant="outline"
             onClick={handleFileSelect}
-            disabled={disabled || (multiple && currentImages.length >= maxFiles)}
+            disabled={
+              disabled || (multiple && currentImages.length >= maxFiles)
+            }
             className="flex items-center gap-2"
           >
             <Upload className="w-4 h-4" />
-            {multiple ? '이미지 추가' : '이미지 선택'}
+            {multiple ? "이미지 추가" : "이미지 선택"}
           </Button>
         </div>
       )}
@@ -339,12 +391,14 @@ export function ImageUpload({
         <div className="flex items-center gap-4">
           <div className="flex-1 max-w-xs">
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-sm text-gray-500 mt-1">업로드 중... {Math.round(uploadProgress)}%</p>
+            <p className="text-sm text-gray-500 mt-1">
+              업로드 중... {Math.round(uploadProgress)}%
+            </p>
           </div>
         </div>
       )}
@@ -353,7 +407,7 @@ export function ImageUpload({
       <input
         ref={fileInputRef}
         type="file"
-        accept={acceptedTypes.join(',')}
+        accept={acceptedTypes.join(",")}
         multiple={multiple}
         onChange={handleFileChange}
         className="hidden"
@@ -361,12 +415,16 @@ export function ImageUpload({
 
       {/* 이미지 미리보기 */}
       {currentImages.length > 0 && (
-        <div className={`${multiple && !previewClassName ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4' : 'space-y-4'}`}>
+        <div
+          className={`${multiple && !previewClassName ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "space-y-4"}`}
+        >
           {currentImages.map((imageUrl, index) => (
             <div key={`${imageUrl}-${index}`} className="relative group">
-              <div className={`relative ${previewClassName || 'aspect-square'} rounded-lg overflow-hidden border-2 border-gray-200`}>
+              <div
+                className={`relative ${previewClassName || "aspect-square"} rounded-lg overflow-hidden border-2 border-gray-200`}
+              >
                 {imageUrl ? (
-                  previewClassName?.includes('aspect-auto') ? (
+                  previewClassName?.includes("aspect-auto") ? (
                     <img
                       src={imageUrl}
                       alt={`업로드된 이미지 ${index + 1}`}
@@ -386,13 +444,13 @@ export function ImageUpload({
                     <ImageIcon className="w-8 h-8 text-gray-400" />
                   </div>
                 )}
-                
+
                 {/* 삭제 버튼 */}
                 {!disabled && (
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(index)}
-                    className={`absolute ${previewClassName?.includes('aspect-auto') ? 'top-4 right-4' : 'top-2 right-2'} p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600 shadow-lg`}
+                    className={`absolute ${previewClassName?.includes("aspect-auto") ? "top-4 right-4" : "top-2 right-2"} p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600 shadow-lg`}
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -415,14 +473,14 @@ export function ImageUpload({
       {!enableDragDrop || currentImages.length > 0 ? (
         <div className="text-sm text-gray-500">
           <p>
-            {acceptedTypes.map(type => type.split('/')[1].toUpperCase()).join(', ')} 파일만 지원 
-            (최대 {maxSize}MB)
+            {acceptedTypes
+              .map((type) => type.split("/")[1].toUpperCase())
+              .join(", ")}{" "}
+            파일만 지원 (최대 {maxSize}MB)
           </p>
-          {multiple && (
-            <p>최대 {maxFiles}개까지 업로드 가능</p>
-          )}
+          {multiple && <p>최대 {maxFiles}개까지 업로드 가능</p>}
         </div>
       ) : null}
     </div>
-  )
+  );
 }

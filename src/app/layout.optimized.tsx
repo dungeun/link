@@ -1,24 +1,24 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import dynamic from 'next/dynamic'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import dynamic from "next/dynamic";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 // 동적 임포트로 초기 번들 크기 감소
-const Providers = dynamic(() => import('@/contexts/Providers'), {
+const Providers = dynamic(() => import("@/contexts/Providers"), {
   ssr: false,
-})
+});
 
 export const metadata: Metadata = {
-  title: 'LinkPick Platform',
-  description: '인플루언서 마케팅 플랫폼',
-}
+  title: "LinkPick Platform",
+  description: "인플루언서 마케팅 플랫폼",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="ko">
@@ -26,5 +26,5 @@ export default function RootLayout({
         <Providers>{children}</Providers>
       </body>
     </html>
-  )
+  );
 }

@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 
 /**
  * 디바운싱 훅 - 빠른 클릭/입력을 방지하여 성능 향상
  */
 export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedValue(value)
-    }, delay)
+      setDebouncedValue(value);
+    }, delay);
 
     return () => {
-      clearTimeout(handler)
-    }
-  }, [value, delay])
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
 
-  return debouncedValue
+  return debouncedValue;
 }
 
 /**
@@ -24,29 +24,29 @@ export function useDebounce<T>(value: T, delay: number): T {
  */
 export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
-  delay: number
+  delay: number,
 ): T {
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   const debouncedCallback = ((...args: Parameters<T>) => {
     if (timeoutId) {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
     }
 
     const newTimeoutId = setTimeout(() => {
-      callback(...args)
-    }, delay)
+      callback(...args);
+    }, delay);
 
-    setTimeoutId(newTimeoutId)
-  }) as T
+    setTimeoutId(newTimeoutId);
+  }) as T;
 
   useEffect(() => {
     return () => {
       if (timeoutId) {
-        clearTimeout(timeoutId)
+        clearTimeout(timeoutId);
       }
-    }
-  }, [timeoutId])
+    };
+  }, [timeoutId]);
 
-  return debouncedCallback
+  return debouncedCallback;
 }

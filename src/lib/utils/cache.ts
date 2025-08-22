@@ -2,7 +2,7 @@
  * 캐싱 유틸리티
  */
 
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 // 메모리 기반 간단한 캐시 (개발용)
 class SimpleCache {
@@ -82,24 +82,28 @@ export class CacheKeyBuilder {
   }
 
   user(userId: string): CacheKeyBuilder {
-    return this.add('user', userId);
+    return this.add("user", userId);
   }
 
   campaign(campaignId?: string): CacheKeyBuilder {
-    return campaignId ? this.add('campaign', campaignId) : this.add('campaigns');
+    return campaignId
+      ? this.add("campaign", campaignId)
+      : this.add("campaigns");
   }
 
   page(page: number, limit: number): CacheKeyBuilder {
-    return this.add('page', page).add('limit', limit);
+    return this.add("page", page).add("limit", limit);
   }
 
   filter(filters: Record<string, unknown>): CacheKeyBuilder {
     const filterString = Object.entries(filters)
-      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .filter(
+        ([_, value]) => value !== undefined && value !== null && value !== "",
+      )
       .map(([key, value]) => `${key}:${value}`)
       .sort()
-      .join(',');
-    
+      .join(",");
+
     if (filterString) {
       this.parts.push(`filters:${filterString}`);
     }
@@ -107,7 +111,7 @@ export class CacheKeyBuilder {
   }
 
   build(): string {
-    return this.parts.join('|');
+    return this.parts.join("|");
   }
 }
 
@@ -121,7 +125,7 @@ export class ResponseCache {
   static async getOrSet<T>(
     key: string,
     fetcher: () => Promise<T>,
-    ttlSeconds: number = 300
+    ttlSeconds: number = 300,
   ): Promise<T> {
     // 캐시된 데이터 확인
     const cached = cache.get(key);
@@ -141,11 +145,11 @@ export class ResponseCache {
   static addCacheHeaders(
     response: NextResponse,
     maxAge: number = 60,
-    staleWhileRevalidate: number = 300
+    staleWhileRevalidate: number = 300,
   ): NextResponse {
     response.headers.set(
-      'Cache-Control',
-      `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`
+      "Cache-Control",
+      `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`,
     );
     return response;
   }
@@ -177,7 +181,7 @@ export class ResponseCache {
     if (campaignId) {
       this.invalidate(`campaign:${campaignId}`);
     }
-    this.invalidate('campaigns');
+    this.invalidate("campaigns");
   }
 }
 
@@ -185,17 +189,21 @@ export class ResponseCache {
  * 데이터베이스 쿼리 캐싱 데코레이터
  */
 export function cached(ttlSeconds: number = 300) {
-  return function (target: unknown, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: unknown,
+    propertyName: string,
+    descriptor: PropertyDescriptor,
+  ) {
     const method = descriptor.value;
 
     descriptor.value = async function (...args: unknown[]) {
       // 캐시 키 생성 (함수명 + 인자들)
       const cacheKey = `${propertyName}:${JSON.stringify(args)}`;
-      
+
       return ResponseCache.getOrSet(
         cacheKey,
         () => method.apply(this, args),
-        ttlSeconds
+        ttlSeconds,
       );
     };
 
@@ -209,27 +217,27 @@ export function cached(ttlSeconds: number = 300) {
 export const CachePresets = {
   // 짧은 캐시 (1분)
   SHORT: { ttl: 60, swr: 120 },
-  
+
   // 중간 캐시 (5분)
   MEDIUM: { ttl: 300, swr: 600 },
-  
+
   // 긴 캐시 (30분)
   LONG: { ttl: 1800, swr: 3600 },
-  
+
   // 정적 데이터 캐시 (24시간)
   STATIC: { ttl: 86400, swr: 172800 },
 
   // 사용자 데이터 (짧은 캐시)
   USER_DATA: { ttl: 60, swr: 300 },
-  
+
   // 캠페인 목록 (중간 캐시)
   CAMPAIGN_LIST: { ttl: 300, swr: 600 },
-  
+
   // 캠페인 상세 (짧은 캐시)
   CAMPAIGN_DETAIL: { ttl: 180, swr: 360 },
-  
+
   // 통계 데이터 (긴 캐시)
-  STATISTICS: { ttl: 900, swr: 1800 }
+  STATISTICS: { ttl: 900, swr: 1800 },
 };
 
 /**
@@ -258,7 +266,7 @@ export class CacheStats {
       hits: this.hits,
       misses: this.misses,
       hitRate: total > 0 ? this.hits / total : 0,
-      size: cache.size()
+      size: cache.size(),
     };
   }
 
@@ -270,7 +278,7 @@ export class CacheStats {
 
 // 캐시 히트/미스 추적을 위한 프록시
 const originalGet = cache.get.bind(cache);
-cache.get = function(key: string) {
+cache.get = function (key: string) {
   const result = originalGet(key);
   if (result !== null) {
     CacheStats.hit();

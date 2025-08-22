@@ -1,12 +1,25 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, ArrowRight, Save, AlertCircle, Plus, X, 
-  Calendar, DollarSign, Users, MapPin, Camera, 
-  Instagram, Youtube, Twitter, CheckCircle, Info
-} from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Save,
+  AlertCircle,
+  Plus,
+  X,
+  Calendar,
+  DollarSign,
+  Users,
+  MapPin,
+  Camera,
+  Instagram,
+  Youtube,
+  Twitter,
+  CheckCircle,
+  Info,
+} from "lucide-react";
 
 interface CampaignFormData {
   // 기본 정보
@@ -14,30 +27,30 @@ interface CampaignFormData {
   description: string;
   category: string;
   objectives: string[];
-  
+
   // 타겟 설정
   platforms: string[];
-  targetGender: 'all' | 'male' | 'female';
+  targetGender: "all" | "male" | "female";
   targetAgeMin: number;
   targetAgeMax: number;
   targetRegions: string[];
   minFollowers: number;
-  
+
   // 캠페인 상세
   requirements: string[];
   hashtags: string[];
   mentionAccounts: string[];
   doList: string[];
   dontList: string[];
-  
+
   // 예산 및 일정
   budget: number;
-  paymentType: 'fixed' | 'performance';
+  paymentType: "fixed" | "performance";
   applicationDeadline: string;
   contentDeadline: string;
   campaignStartDate: string;
   campaignEndDate: string;
-  
+
   // 미디어
   images: File[];
   referenceUrls: string[];
@@ -48,72 +61,86 @@ export default function CreateCampaignPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const [formData, setFormData] = useState<CampaignFormData>({
-    title: '',
-    description: '',
-    category: '',
+    title: "",
+    description: "",
+    category: "",
     objectives: [],
     platforms: [],
-    targetGender: 'all',
+    targetGender: "all",
     targetAgeMin: 18,
     targetAgeMax: 65,
     targetRegions: [],
     minFollowers: 1000,
-    requirements: [''],
+    requirements: [""],
     hashtags: [],
     mentionAccounts: [],
-    doList: [''],
-    dontList: [''],
+    doList: [""],
+    dontList: [""],
     budget: 0,
-    paymentType: 'fixed',
-    applicationDeadline: '',
-    contentDeadline: '',
-    campaignStartDate: '',
-    campaignEndDate: '',
+    paymentType: "fixed",
+    applicationDeadline: "",
+    contentDeadline: "",
+    campaignStartDate: "",
+    campaignEndDate: "",
     images: [],
-    referenceUrls: ['']
+    referenceUrls: [""],
   });
 
   const steps = [
-    { number: 1, title: '기본 정보', icon: Info },
-    { number: 2, title: '타겟 설정', icon: Users },
-    { number: 3, title: '캠페인 상세', icon: Camera },
-    { number: 4, title: '예산 및 일정', icon: Calendar }
+    { number: 1, title: "기본 정보", icon: Info },
+    { number: 2, title: "타겟 설정", icon: Users },
+    { number: 3, title: "캠페인 상세", icon: Camera },
+    { number: 4, title: "예산 및 일정", icon: Calendar },
   ];
 
   const categories = [
-    { value: 'beauty', label: '뷰티' },
-    { value: 'fashion', label: '패션' },
-    { value: 'food', label: '음식' },
-    { value: 'travel', label: '여행' },
-    { value: 'tech', label: '테크' },
-    { value: 'lifestyle', label: '라이프스타일' },
-    { value: 'sports', label: '스포츠' },
-    { value: 'entertainment', label: '엔터테인먼트' }
+    { value: "beauty", label: "뷰티" },
+    { value: "fashion", label: "패션" },
+    { value: "food", label: "음식" },
+    { value: "travel", label: "여행" },
+    { value: "tech", label: "테크" },
+    { value: "lifestyle", label: "라이프스타일" },
+    { value: "sports", label: "스포츠" },
+    { value: "entertainment", label: "엔터테인먼트" },
   ];
 
   const objectives = [
-    { value: 'brand_awareness', label: '브랜드 인지도 향상' },
-    { value: 'product_launch', label: '신제품 출시' },
-    { value: 'sales_increase', label: '매출 증대' },
-    { value: 'content_creation', label: '콘텐츠 제작' },
-    { value: 'event_promotion', label: '이벤트 홍보' },
-    { value: 'user_engagement', label: '사용자 참여 증대' }
+    { value: "brand_awareness", label: "브랜드 인지도 향상" },
+    { value: "product_launch", label: "신제품 출시" },
+    { value: "sales_increase", label: "매출 증대" },
+    { value: "content_creation", label: "콘텐츠 제작" },
+    { value: "event_promotion", label: "이벤트 홍보" },
+    { value: "user_engagement", label: "사용자 참여 증대" },
   ];
 
   const platforms = [
-    { value: 'instagram', label: '인스타그램', icon: Instagram },
-    { value: 'youtube', label: '유튜브', icon: Youtube },
-    { value: 'tiktok', label: '틱톡', icon: null },
-    { value: 'blog', label: '블로그', icon: null },
-    { value: 'twitter', label: '트위터', icon: Twitter }
+    { value: "instagram", label: "인스타그램", icon: Instagram },
+    { value: "youtube", label: "유튜브", icon: Youtube },
+    { value: "tiktok", label: "틱톡", icon: null },
+    { value: "blog", label: "블로그", icon: null },
+    { value: "twitter", label: "트위터", icon: Twitter },
   ];
 
   const regions = [
-    '서울', '경기', '인천', '대전', '대구', '부산', 
-    '광주', '울산', '세종', '강원', '충북', '충남', 
-    '전북', '전남', '경북', '경남', '제주'
+    "서울",
+    "경기",
+    "인천",
+    "대전",
+    "대구",
+    "부산",
+    "광주",
+    "울산",
+    "세종",
+    "강원",
+    "충북",
+    "충남",
+    "전북",
+    "전남",
+    "경북",
+    "경남",
+    "제주",
   ];
 
   const validateStep = (step: number) => {
@@ -121,26 +148,35 @@ export default function CreateCampaignPage() {
 
     switch (step) {
       case 1:
-        if (!formData.title) newErrors.title = '캠페인 제목을 입력해주세요';
-        if (!formData.description) newErrors.description = '캠페인 설명을 입력해주세요';
-        if (!formData.category) newErrors.category = '카테고리를 선택해주세요';
-        if (formData.objectives.length === 0) newErrors.objectives = '최소 1개 이상의 목표를 선택해주세요';
+        if (!formData.title) newErrors.title = "캠페인 제목을 입력해주세요";
+        if (!formData.description)
+          newErrors.description = "캠페인 설명을 입력해주세요";
+        if (!formData.category) newErrors.category = "카테고리를 선택해주세요";
+        if (formData.objectives.length === 0)
+          newErrors.objectives = "최소 1개 이상의 목표를 선택해주세요";
         break;
       case 2:
-        if (formData.platforms.length === 0) newErrors.platforms = '최소 1개 이상의 플랫폼을 선택해주세요';
-        if (formData.targetRegions.length === 0) newErrors.targetRegions = '최소 1개 이상의 지역을 선택해주세요';
+        if (formData.platforms.length === 0)
+          newErrors.platforms = "최소 1개 이상의 플랫폼을 선택해주세요";
+        if (formData.targetRegions.length === 0)
+          newErrors.targetRegions = "최소 1개 이상의 지역을 선택해주세요";
         break;
       case 3:
-        if (formData.requirements.filter(r => r.trim()).length === 0) {
-          newErrors.requirements = '최소 1개 이상의 요구사항을 입력해주세요';
+        if (formData.requirements.filter((r) => r.trim()).length === 0) {
+          newErrors.requirements = "최소 1개 이상의 요구사항을 입력해주세요";
         }
         break;
       case 4:
-        if (!formData.budget || formData.budget <= 0) newErrors.budget = '예산을 입력해주세요';
-        if (!formData.applicationDeadline) newErrors.applicationDeadline = '지원 마감일을 선택해주세요';
-        if (!formData.contentDeadline) newErrors.contentDeadline = '콘텐츠 제출 마감일을 선택해주세요';
-        if (!formData.campaignStartDate) newErrors.campaignStartDate = '캠페인 시작일을 선택해주세요';
-        if (!formData.campaignEndDate) newErrors.campaignEndDate = '캠페인 종료일을 선택해주세요';
+        if (!formData.budget || formData.budget <= 0)
+          newErrors.budget = "예산을 입력해주세요";
+        if (!formData.applicationDeadline)
+          newErrors.applicationDeadline = "지원 마감일을 선택해주세요";
+        if (!formData.contentDeadline)
+          newErrors.contentDeadline = "콘텐츠 제출 마감일을 선택해주세요";
+        if (!formData.campaignStartDate)
+          newErrors.campaignStartDate = "캠페인 시작일을 선택해주세요";
+        if (!formData.campaignEndDate)
+          newErrors.campaignEndDate = "캠페인 종료일을 선택해주세요";
         break;
     }
 
@@ -150,12 +186,12 @@ export default function CreateCampaignPage() {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 4));
+      setCurrentStep((prev) => Math.min(prev + 1, 4));
     }
   };
 
   const handlePrevious = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
   const handleSubmit = async () => {
@@ -164,35 +200,41 @@ export default function CreateCampaignPage() {
     setSaving(true);
     try {
       // API 호출 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // 성공 시 캠페인 목록으로 이동
-      router.push('/dashboard/campaigns?created=true');
+      router.push("/dashboard/campaigns?created=true");
     } catch (error) {
-      console.error('캠페인 생성 실패:', error);
+      console.error("캠페인 생성 실패:", error);
     } finally {
       setSaving(false);
     }
   };
 
-  const addArrayItem = (field: keyof CampaignFormData, value: string = '') => {
-    setFormData(prev => ({
+  const addArrayItem = (field: keyof CampaignFormData, value: string = "") => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: [...(prev[field] as string[]), value]
+      [field]: [...(prev[field] as string[]), value],
     }));
   };
 
   const removeArrayItem = (field: keyof CampaignFormData, index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: (prev[field] as string[]).filter((_, i) => i !== index)
+      [field]: (prev[field] as string[]).filter((_, i) => i !== index),
     }));
   };
 
-  const updateArrayItem = (field: keyof CampaignFormData, index: number, value: string) => {
-    setFormData(prev => ({
+  const updateArrayItem = (
+    field: keyof CampaignFormData,
+    index: number,
+    value: string,
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: (prev[field] as string[]).map((item, i) => i === index ? value : item)
+      [field]: (prev[field] as string[]).map((item, i) =>
+        i === index ? value : item,
+      ),
     }));
   };
 
@@ -209,9 +251,11 @@ export default function CreateCampaignPage() {
               <input
                 type="text"
                 value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, title: e.target.value }))
+                }
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.title ? 'border-red-500' : 'border-gray-300'
+                  errors.title ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="예: 여름 신제품 뷰티 리뷰 캠페인"
               />
@@ -227,15 +271,22 @@ export default function CreateCampaignPage() {
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
                 rows={4}
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.description ? 'border-red-500' : 'border-gray-300'
+                  errors.description ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="캠페인에 대한 상세한 설명을 입력해주세요"
               />
               {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.description}
+                </p>
               )}
             </div>
 
@@ -246,14 +297,18 @@ export default function CreateCampaignPage() {
               </label>
               <select
                 value={formData.category}
-                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, category: e.target.value }))
+                }
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.category ? 'border-red-500' : 'border-gray-300'
+                  errors.category ? "border-red-500" : "border-gray-300"
                 }`}
               >
                 <option value="">카테고리 선택</option>
-                {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                {categories.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
                 ))}
               </select>
               {errors.category && (
@@ -264,21 +319,30 @@ export default function CreateCampaignPage() {
             {/* 캠페인 목표 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                캠페인 목표 <span className="text-red-500">*</span> (복수 선택 가능)
+                캠페인 목표 <span className="text-red-500">*</span> (복수 선택
+                가능)
               </label>
               <div className="grid grid-cols-2 gap-3">
-                {objectives.map(obj => (
-                  <label key={obj.value} className="flex items-center gap-2 cursor-pointer">
+                {objectives.map((obj) => (
+                  <label
+                    key={obj.value}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <input
                       type="checkbox"
                       checked={formData.objectives.includes(obj.value)}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setFormData(prev => ({ ...prev, objectives: [...prev.objectives, obj.value] }));
+                          setFormData((prev) => ({
+                            ...prev,
+                            objectives: [...prev.objectives, obj.value],
+                          }));
                         } else {
-                          setFormData(prev => ({ 
-                            ...prev, 
-                            objectives: prev.objectives.filter(o => o !== obj.value) 
+                          setFormData((prev) => ({
+                            ...prev,
+                            objectives: prev.objectives.filter(
+                              (o) => o !== obj.value,
+                            ),
                           }));
                         }
                       }}
@@ -304,27 +368,29 @@ export default function CreateCampaignPage() {
                 플랫폼 <span className="text-red-500">*</span>
               </label>
               <div className="flex flex-wrap gap-3">
-                {platforms.map(platform => (
+                {platforms.map((platform) => (
                   <button
                     key={platform.value}
                     type="button"
                     onClick={() => {
                       if (formData.platforms.includes(platform.value)) {
-                        setFormData(prev => ({
+                        setFormData((prev) => ({
                           ...prev,
-                          platforms: prev.platforms.filter(p => p !== platform.value)
+                          platforms: prev.platforms.filter(
+                            (p) => p !== platform.value,
+                          ),
                         }));
                       } else {
-                        setFormData(prev => ({
+                        setFormData((prev) => ({
                           ...prev,
-                          platforms: [...prev.platforms, platform.value]
+                          platforms: [...prev.platforms, platform.value],
                         }));
                       }
                     }}
                     className={`px-4 py-2 rounded-lg border flex items-center gap-2 transition-colors ${
                       formData.platforms.includes(platform.value)
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                     }`}
                   >
                     {platform.icon && <platform.icon className="h-4 w-4" />}
@@ -339,15 +405,19 @@ export default function CreateCampaignPage() {
 
             {/* 타겟 성별 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">타겟 성별</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                타겟 성별
+              </label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
                     name="gender"
                     value="all"
-                    checked={formData.targetGender === 'all'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, targetGender: 'all' }))}
+                    checked={formData.targetGender === "all"}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, targetGender: "all" }))
+                    }
                     className="w-4 h-4 text-blue-600"
                   />
                   <span className="text-sm text-gray-700">전체</span>
@@ -357,8 +427,10 @@ export default function CreateCampaignPage() {
                     type="radio"
                     name="gender"
                     value="male"
-                    checked={formData.targetGender === 'male'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, targetGender: 'male' }))}
+                    checked={formData.targetGender === "male"}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, targetGender: "male" }))
+                    }
                     className="w-4 h-4 text-blue-600"
                   />
                   <span className="text-sm text-gray-700">남성</span>
@@ -368,8 +440,13 @@ export default function CreateCampaignPage() {
                     type="radio"
                     name="gender"
                     value="female"
-                    checked={formData.targetGender === 'female'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, targetGender: 'female' }))}
+                    checked={formData.targetGender === "female"}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        targetGender: "female",
+                      }))
+                    }
                     className="w-4 h-4 text-blue-600"
                   />
                   <span className="text-sm text-gray-700">여성</span>
@@ -379,12 +456,19 @@ export default function CreateCampaignPage() {
 
             {/* 타겟 연령 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">타겟 연령대</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                타겟 연령대
+              </label>
               <div className="flex items-center gap-4">
                 <input
                   type="number"
                   value={formData.targetAgeMin}
-                  onChange={(e) => setFormData(prev => ({ ...prev, targetAgeMin: parseInt(e.target.value) }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      targetAgeMin: parseInt(e.target.value),
+                    }))
+                  }
                   min="13"
                   max="65"
                   className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -393,7 +477,12 @@ export default function CreateCampaignPage() {
                 <input
                   type="number"
                   value={formData.targetAgeMax}
-                  onChange={(e) => setFormData(prev => ({ ...prev, targetAgeMax: parseInt(e.target.value) }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      targetAgeMax: parseInt(e.target.value),
+                    }))
+                  }
                   min="13"
                   max="65"
                   className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -408,18 +497,26 @@ export default function CreateCampaignPage() {
                 타겟 지역 <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-4 gap-2">
-                {regions.map(region => (
-                  <label key={region} className="flex items-center gap-2 cursor-pointer">
+                {regions.map((region) => (
+                  <label
+                    key={region}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <input
                       type="checkbox"
                       checked={formData.targetRegions.includes(region)}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setFormData(prev => ({ ...prev, targetRegions: [...prev.targetRegions, region] }));
+                          setFormData((prev) => ({
+                            ...prev,
+                            targetRegions: [...prev.targetRegions, region],
+                          }));
                         } else {
-                          setFormData(prev => ({ 
-                            ...prev, 
-                            targetRegions: prev.targetRegions.filter(r => r !== region) 
+                          setFormData((prev) => ({
+                            ...prev,
+                            targetRegions: prev.targetRegions.filter(
+                              (r) => r !== region,
+                            ),
                           }));
                         }
                       }}
@@ -430,25 +527,36 @@ export default function CreateCampaignPage() {
                 ))}
               </div>
               {errors.targetRegions && (
-                <p className="mt-1 text-sm text-red-600">{errors.targetRegions}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.targetRegions}
+                </p>
               )}
             </div>
 
             {/* 최소 팔로워 수 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">최소 팔로워 수</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                최소 팔로워 수
+              </label>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
                   value={formData.minFollowers}
-                  onChange={(e) => setFormData(prev => ({ ...prev, minFollowers: parseInt(e.target.value) }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      minFollowers: parseInt(e.target.value),
+                    }))
+                  }
                   min="0"
                   step="1000"
                   className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-600">명 이상</span>
               </div>
-              <p className="mt-1 text-xs text-gray-500">0으로 설정하면 팔로워 수 제한이 없습니다</p>
+              <p className="mt-1 text-xs text-gray-500">
+                0으로 설정하면 팔로워 수 제한이 없습니다
+              </p>
             </div>
           </div>
         );
@@ -467,14 +575,16 @@ export default function CreateCampaignPage() {
                     <input
                       type="text"
                       value={req}
-                      onChange={(e) => updateArrayItem('requirements', index, e.target.value)}
+                      onChange={(e) =>
+                        updateArrayItem("requirements", index, e.target.value)
+                      }
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="예: 인스타그램 피드 3개 이상 포스팅"
                     />
                     {formData.requirements.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => removeArrayItem('requirements', index)}
+                        onClick={() => removeArrayItem("requirements", index)}
                         className="p-2 text-red-600 hover:text-red-700"
                       >
                         <X className="h-4 w-4" />
@@ -485,31 +595,38 @@ export default function CreateCampaignPage() {
               </div>
               <button
                 type="button"
-                onClick={() => addArrayItem('requirements')}
+                onClick={() => addArrayItem("requirements")}
                 className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
               >
                 <Plus className="h-4 w-4" />
                 요구사항 추가
               </button>
               {errors.requirements && (
-                <p className="mt-1 text-sm text-red-600">{errors.requirements}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.requirements}
+                </p>
               )}
             </div>
 
             {/* 필수 해시태그 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">필수 해시태그</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                필수 해시태그
+              </label>
               <input
                 type="text"
                 placeholder="해시태그를 입력하고 Enter를 누르세요"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                  if (e.key === "Enter" && e.currentTarget.value.trim()) {
                     e.preventDefault();
-                    const tag = e.currentTarget.value.trim().replace(/^#/, '');
+                    const tag = e.currentTarget.value.trim().replace(/^#/, "");
                     if (!formData.hashtags.includes(tag)) {
-                      setFormData(prev => ({ ...prev, hashtags: [...prev.hashtags, tag] }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        hashtags: [...prev.hashtags, tag],
+                      }));
                     }
-                    e.currentTarget.value = '';
+                    e.currentTarget.value = "";
                   }
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -523,7 +640,7 @@ export default function CreateCampaignPage() {
                     #{tag}
                     <button
                       type="button"
-                      onClick={() => removeArrayItem('hashtags', index)}
+                      onClick={() => removeArrayItem("hashtags", index)}
                       className="hover:text-blue-900"
                     >
                       <X className="h-3 w-3" />
@@ -535,18 +652,25 @@ export default function CreateCampaignPage() {
 
             {/* 필수 멘션 계정 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">필수 멘션 계정</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                필수 멘션 계정
+              </label>
               <input
                 type="text"
                 placeholder="@계정명을 입력하고 Enter를 누르세요"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                  if (e.key === "Enter" && e.currentTarget.value.trim()) {
                     e.preventDefault();
-                    const account = e.currentTarget.value.trim().replace(/^@/, '');
+                    const account = e.currentTarget.value
+                      .trim()
+                      .replace(/^@/, "");
                     if (!formData.mentionAccounts.includes(account)) {
-                      setFormData(prev => ({ ...prev, mentionAccounts: [...prev.mentionAccounts, account] }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        mentionAccounts: [...prev.mentionAccounts, account],
+                      }));
                     }
-                    e.currentTarget.value = '';
+                    e.currentTarget.value = "";
                   }
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -560,7 +684,7 @@ export default function CreateCampaignPage() {
                     @{account}
                     <button
                       type="button"
-                      onClick={() => removeArrayItem('mentionAccounts', index)}
+                      onClick={() => removeArrayItem("mentionAccounts", index)}
                       className="hover:text-gray-900"
                     >
                       <X className="h-3 w-3" />
@@ -582,14 +706,16 @@ export default function CreateCampaignPage() {
                     <input
                       type="text"
                       value={item}
-                      onChange={(e) => updateArrayItem('doList', index, e.target.value)}
+                      onChange={(e) =>
+                        updateArrayItem("doList", index, e.target.value)
+                      }
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="예: 자연스러운 일상 속 착용샷"
                     />
                     {formData.doList.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => removeArrayItem('doList', index)}
+                        onClick={() => removeArrayItem("doList", index)}
                         className="p-2 text-red-600 hover:text-red-700"
                       >
                         <X className="h-4 w-4" />
@@ -600,7 +726,7 @@ export default function CreateCampaignPage() {
               </div>
               <button
                 type="button"
-                onClick={() => addArrayItem('doList')}
+                onClick={() => addArrayItem("doList")}
                 className="mt-2 text-sm text-green-600 hover:text-green-700 font-medium flex items-center gap-1"
               >
                 <Plus className="h-4 w-4" />
@@ -620,14 +746,16 @@ export default function CreateCampaignPage() {
                     <input
                       type="text"
                       value={item}
-                      onChange={(e) => updateArrayItem('dontList', index, e.target.value)}
+                      onChange={(e) =>
+                        updateArrayItem("dontList", index, e.target.value)
+                      }
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="예: 경쟁사 제품 노출"
                     />
                     {formData.dontList.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => removeArrayItem('dontList', index)}
+                        onClick={() => removeArrayItem("dontList", index)}
                         className="p-2 text-red-600 hover:text-red-700"
                       >
                         <X className="h-4 w-4" />
@@ -638,7 +766,7 @@ export default function CreateCampaignPage() {
               </div>
               <button
                 type="button"
-                onClick={() => addArrayItem('dontList')}
+                onClick={() => addArrayItem("dontList")}
                 className="mt-2 text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
               >
                 <Plus className="h-4 w-4" />
@@ -662,11 +790,16 @@ export default function CreateCampaignPage() {
                   <input
                     type="number"
                     value={formData.budget}
-                    onChange={(e) => setFormData(prev => ({ ...prev, budget: parseInt(e.target.value) || 0 }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        budget: parseInt(e.target.value) || 0,
+                      }))
+                    }
                     min="0"
                     step="10000"
                     className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                      errors.budget ? 'border-red-500' : 'border-gray-300'
+                      errors.budget ? "border-red-500" : "border-gray-300"
                     }`}
                     placeholder="500000"
                   />
@@ -680,15 +813,19 @@ export default function CreateCampaignPage() {
 
             {/* 지급 방식 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">지급 방식</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                지급 방식
+              </label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
                     name="paymentType"
                     value="fixed"
-                    checked={formData.paymentType === 'fixed'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, paymentType: 'fixed' }))}
+                    checked={formData.paymentType === "fixed"}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, paymentType: "fixed" }))
+                    }
                     className="w-4 h-4 text-blue-600"
                   />
                   <span className="text-sm text-gray-700">고정 금액</span>
@@ -698,8 +835,13 @@ export default function CreateCampaignPage() {
                     type="radio"
                     name="paymentType"
                     value="performance"
-                    checked={formData.paymentType === 'performance'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, paymentType: 'performance' }))}
+                    checked={formData.paymentType === "performance"}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        paymentType: "performance",
+                      }))
+                    }
                     className="w-4 h-4 text-blue-600"
                   />
                   <span className="text-sm text-gray-700">성과 기반</span>
@@ -716,13 +858,22 @@ export default function CreateCampaignPage() {
                 <input
                   type="date"
                   value={formData.applicationDeadline}
-                  onChange={(e) => setFormData(prev => ({ ...prev, applicationDeadline: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      applicationDeadline: e.target.value,
+                    }))
+                  }
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                    errors.applicationDeadline ? 'border-red-500' : 'border-gray-300'
+                    errors.applicationDeadline
+                      ? "border-red-500"
+                      : "border-gray-300"
                   }`}
                 />
                 {errors.applicationDeadline && (
-                  <p className="mt-1 text-sm text-red-600">{errors.applicationDeadline}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.applicationDeadline}
+                  </p>
                 )}
               </div>
 
@@ -733,13 +884,22 @@ export default function CreateCampaignPage() {
                 <input
                   type="date"
                   value={formData.contentDeadline}
-                  onChange={(e) => setFormData(prev => ({ ...prev, contentDeadline: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      contentDeadline: e.target.value,
+                    }))
+                  }
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                    errors.contentDeadline ? 'border-red-500' : 'border-gray-300'
+                    errors.contentDeadline
+                      ? "border-red-500"
+                      : "border-gray-300"
                   }`}
                 />
                 {errors.contentDeadline && (
-                  <p className="mt-1 text-sm text-red-600">{errors.contentDeadline}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.contentDeadline}
+                  </p>
                 )}
               </div>
 
@@ -750,13 +910,22 @@ export default function CreateCampaignPage() {
                 <input
                   type="date"
                   value={formData.campaignStartDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, campaignStartDate: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      campaignStartDate: e.target.value,
+                    }))
+                  }
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                    errors.campaignStartDate ? 'border-red-500' : 'border-gray-300'
+                    errors.campaignStartDate
+                      ? "border-red-500"
+                      : "border-gray-300"
                   }`}
                 />
                 {errors.campaignStartDate && (
-                  <p className="mt-1 text-sm text-red-600">{errors.campaignStartDate}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.campaignStartDate}
+                  </p>
                 )}
               </div>
 
@@ -767,34 +936,47 @@ export default function CreateCampaignPage() {
                 <input
                   type="date"
                   value={formData.campaignEndDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, campaignEndDate: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      campaignEndDate: e.target.value,
+                    }))
+                  }
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                    errors.campaignEndDate ? 'border-red-500' : 'border-gray-300'
+                    errors.campaignEndDate
+                      ? "border-red-500"
+                      : "border-gray-300"
                   }`}
                 />
                 {errors.campaignEndDate && (
-                  <p className="mt-1 text-sm text-red-600">{errors.campaignEndDate}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.campaignEndDate}
+                  </p>
                 )}
               </div>
             </div>
 
             {/* 참고 URL */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">참고 URL</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                참고 URL
+              </label>
               <div className="space-y-2">
                 {formData.referenceUrls.map((url, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <input
                       type="url"
                       value={url}
-                      onChange={(e) => updateArrayItem('referenceUrls', index, e.target.value)}
+                      onChange={(e) =>
+                        updateArrayItem("referenceUrls", index, e.target.value)
+                      }
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="https://example.com"
                     />
                     {formData.referenceUrls.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => removeArrayItem('referenceUrls', index)}
+                        onClick={() => removeArrayItem("referenceUrls", index)}
                         className="p-2 text-red-600 hover:text-red-700"
                       >
                         <X className="h-4 w-4" />
@@ -805,7 +987,7 @@ export default function CreateCampaignPage() {
               </div>
               <button
                 type="button"
-                onClick={() => addArrayItem('referenceUrls')}
+                onClick={() => addArrayItem("referenceUrls")}
                 className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
               >
                 <Plus className="h-4 w-4" />
@@ -833,12 +1015,14 @@ export default function CreateCampaignPage() {
               >
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
-              <h1 className="text-xl font-semibold text-gray-900">캠페인 만들기</h1>
+              <h1 className="text-xl font-semibold text-gray-900">
+                캠페인 만들기
+              </h1>
             </div>
             <button
               type="button"
               className="text-sm text-gray-600 hover:text-gray-800"
-              onClick={() => router.push('/dashboard/campaigns')}
+              onClick={() => router.push("/dashboard/campaigns")}
             >
               취소
             </button>
@@ -856,8 +1040,8 @@ export default function CreateCampaignPage() {
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-medium ${
                       currentStep >= step.number
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-500'
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-500"
                     }`}
                   >
                     {currentStep > step.number ? (
@@ -868,7 +1052,9 @@ export default function CreateCampaignPage() {
                   </div>
                   <span
                     className={`ml-3 font-medium ${
-                      currentStep >= step.number ? 'text-gray-900' : 'text-gray-500'
+                      currentStep >= step.number
+                        ? "text-gray-900"
+                        : "text-gray-500"
                     }`}
                   >
                     {step.title}
@@ -877,7 +1063,7 @@ export default function CreateCampaignPage() {
                 {index < steps.length - 1 && (
                   <div
                     className={`w-24 h-1 mx-4 ${
-                      currentStep > step.number ? 'bg-blue-600' : 'bg-gray-200'
+                      currentStep > step.number ? "bg-blue-600" : "bg-gray-200"
                     }`}
                   />
                 )}
@@ -902,8 +1088,8 @@ export default function CreateCampaignPage() {
               disabled={currentStep === 1}
               className={`px-6 py-2 font-medium rounded-lg flex items-center gap-2 ${
                 currentStep === 1
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
             >
               <ArrowLeft className="h-5 w-5" />
@@ -927,7 +1113,7 @@ export default function CreateCampaignPage() {
                 className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="h-5 w-5" />
-                {saving ? '저장 중...' : '캠페인 생성'}
+                {saving ? "저장 중..." : "캠페인 생성"}
               </button>
             )}
           </div>

@@ -1,26 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
     // Get category counts for active campaigns
     const categoryStats = await prisma.campaign.groupBy({
-      by: ['id'],
+      by: ["id"],
       where: {
-        status: 'ACTIVE',
-        deletedAt: null
+        status: "ACTIVE",
+        deletedAt: null,
       },
       _count: {
-        id: true
-      }
+        id: true,
+      },
     });
 
     // Get category breakdown using raw query for better performance
 
     // Alternative query using direct DB query for better performance
-    const rawCategoryStats = await prisma.$queryRaw`
+    const rawCategoryStats = (await prisma.$queryRaw`
       SELECT 
         c.name,
         c.slug,
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         AND camp."deletedAt" IS NULL
       GROUP BY c.id, c.name, c.slug
       ORDER BY c.name
-    ` as { name: string; slug: string; count: bigint }[];
+    `) as { name: string; slug: string; count: bigint }[];
 
     // Convert results to a more usable format
     const stats: { [key: string]: number } = {};
@@ -47,26 +47,26 @@ export async function GET(request: NextRequest) {
     // Get total active campaigns count
     const totalCampaigns = await prisma.campaign.count({
       where: {
-        status: 'ACTIVE',
-        deletedAt: null
-      }
+        status: "ACTIVE",
+        deletedAt: null,
+      },
     });
 
     return NextResponse.json({
       success: true,
       categoryStats: stats,
-      totalCount: totalCampaigns
+      totalCount: totalCampaigns,
     });
   } catch (error) {
-    console.error('Error fetching campaign statistics:', error);
+    console.error("Error fetching campaign statistics:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to fetch campaign statistics',
+      {
+        success: false,
+        error: "Failed to fetch campaign statistics",
         categoryStats: {},
-        totalCount: 0
+        totalCount: 0,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

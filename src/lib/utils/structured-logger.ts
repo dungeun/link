@@ -3,7 +3,7 @@
  * 개발/프로덕션 환경별 로그 제어
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogContext {
   module?: string;
@@ -13,35 +13,40 @@ interface LogContext {
 }
 
 class StructuredLogger {
-  private isDevelopment = process.env.NODE_ENV === 'development';
-  private logLevel: LogLevel = (process.env.NEXT_PUBLIC_LOG_LEVEL as LogLevel) || 'info';
-  
+  private isDevelopment = process.env.NODE_ENV === "development";
+  private logLevel: LogLevel =
+    (process.env.NEXT_PUBLIC_LOG_LEVEL as LogLevel) || "info";
+
   private levels: Record<LogLevel, number> = {
     debug: 0,
     info: 1,
     warn: 2,
-    error: 3
+    error: 3,
   };
 
   private shouldLog(level: LogLevel): boolean {
-    if (!this.isDevelopment && level === 'debug') {
+    if (!this.isDevelopment && level === "debug") {
       return false;
     }
     return this.levels[level] >= this.levels[this.logLevel];
   }
 
-  private format(level: LogLevel, message: string, context?: LogContext): string {
+  private format(
+    level: LogLevel,
+    message: string,
+    context?: LogContext,
+  ): string {
     const timestamp = new Date().toISOString();
     const logData = {
       timestamp,
       level,
       message,
-      ...context
+      ...context,
     };
-    
+
     if (this.isDevelopment) {
       // 개발 환경: 읽기 쉬운 포맷
-      const prefix = context?.module ? `[${context.module}]` : '';
+      const prefix = context?.module ? `[${context.module}]` : "";
       return `${prefix} ${message}`;
     } else {
       // 프로덕션: JSON 포맷
@@ -50,58 +55,58 @@ class StructuredLogger {
   }
 
   debug(message: string, context?: LogContext): void {
-    if (this.shouldLog('debug')) {
-      console.log(this.format('debug', message, context));
+    if (this.shouldLog("debug")) {
+      console.log(this.format("debug", message, context));
     }
   }
 
   info(message: string, context?: LogContext): void {
-    if (this.shouldLog('info')) {
-      console.log(this.format('info', message, context));
+    if (this.shouldLog("info")) {
+      console.log(this.format("info", message, context));
     }
   }
 
   warn(message: string, context?: LogContext): void {
-    if (this.shouldLog('warn')) {
-      console.warn(this.format('warn', message, context));
+    if (this.shouldLog("warn")) {
+      console.warn(this.format("warn", message, context));
     }
   }
 
   error(message: string, error?: Error, context?: LogContext): void {
-    if (this.shouldLog('error')) {
+    if (this.shouldLog("error")) {
       const errorContext = {
         ...context,
         metadata: {
           ...context?.metadata,
           errorMessage: error?.message,
-          errorStack: this.isDevelopment ? error?.stack : undefined
-        }
+          errorStack: this.isDevelopment ? error?.stack : undefined,
+        },
       };
-      console.error(this.format('error', message, errorContext));
+      console.error(this.format("error", message, errorContext));
     }
   }
 
   // API 호출 로깅
   api(method: string, url: string, status?: number, duration?: number): void {
-    if (this.shouldLog('info')) {
+    if (this.shouldLog("info")) {
       this.info(`API ${method} ${url}`, {
-        module: 'api',
-        metadata: { status, duration }
+        module: "api",
+        metadata: { status, duration },
       });
     }
   }
 
   // 성능 측정
   performance(action: string, duration: number): void {
-    if (duration > 1000 && this.shouldLog('warn')) {
+    if (duration > 1000 && this.shouldLog("warn")) {
       this.warn(`Slow operation: ${action}`, {
-        module: 'performance',
-        metadata: { duration }
+        module: "performance",
+        metadata: { duration },
       });
-    } else if (this.shouldLog('debug')) {
+    } else if (this.shouldLog("debug")) {
       this.debug(`Performance: ${action}`, {
-        module: 'performance',
-        metadata: { duration }
+        module: "performance",
+        metadata: { duration },
       });
     }
   }

@@ -7,75 +7,75 @@ export const UI_TEXTS_TO_TRANSLATE = [
   {
     key: "badge.hot",
     ko: "HOT",
-    en: "HOT",  // TODO: 번역 필요
-    jp: "HOT",  // TODO: 번역 필요
-    category: "badge"
+    en: "HOT", // TODO: 번역 필요
+    jp: "HOT", // TODO: 번역 필요
+    category: "badge",
   },
   {
     key: "badge.new",
     ko: "NEW",
-    en: "NEW",  // TODO: 번역 필요
-    jp: "NEW",  // TODO: 번역 필요
-    category: "badge"
+    en: "NEW", // TODO: 번역 필요
+    jp: "NEW", // TODO: 번역 필요
+    category: "badge",
   },
   {
     key: "campaigns.card.days_left",
     ko: "D-{days}",
-    en: "D-{days}",  // TODO: 번역 필요
-    jp: "残り{days}日",  // TODO: 번역 필요
-    category: "campaigns"
+    en: "D-{days}", // TODO: 번역 필요
+    jp: "残り{days}日", // TODO: 번역 필요
+    category: "campaigns",
   },
   {
     key: "common.arrow_right",
     ko: "→",
-    en: "→",  // TODO: 번역 필요
-    jp: "→",  // TODO: 번역 필요
-    category: "common"
+    en: "→", // TODO: 번역 필요
+    jp: "→", // TODO: 번역 필요
+    category: "common",
   },
   {
     key: "common.pagination.of",
     ko: "/",
-    en: "of",  // TODO: 번역 필요
-    jp: "/",  // TODO: 번역 필요
-    category: "common"
+    en: "of", // TODO: 번역 필요
+    jp: "/", // TODO: 번역 필요
+    category: "common",
   },
   {
     key: "footer.copyright",
     ko: "© 2024 LinkPick. All rights reserved.",
-    en: "© 2024 LinkPick. All rights reserved.",  // TODO: 번역 필요
-    jp: "© 2024 LinkPick. All rights reserved.",  // TODO: 번역 필요
-    category: "footer"
+    en: "© 2024 LinkPick. All rights reserved.", // TODO: 번역 필요
+    jp: "© 2024 LinkPick. All rights reserved.", // TODO: 번역 필요
+    category: "footer",
   },
   {
     key: "home.ranking.days_left",
     ko: "D-{days}",
-    en: "D-{days}",  // TODO: 번역 필요
-    jp: "残り{days}日",  // TODO: 번역 필요
-    category: "homepage"
+    en: "D-{days}", // TODO: 번역 필요
+    jp: "残り{days}日", // TODO: 번역 필요
+    category: "homepage",
   },
   {
     key: "home.ranking.badge_hot",
     ko: "HOT",
-    en: "HOT",  // TODO: 번역 필요
-    jp: "HOT",  // TODO: 번역 필요
-    category: "ui_ranking"
-  }
+    en: "HOT", // TODO: 번역 필요
+    jp: "HOT", // TODO: 번역 필요
+    category: "ui_ranking",
+  },
 ];
 
 // 번역 완료 후 DB 업데이트 스크립트
 export async function updateUITextTranslations() {
   // 이 함수는 번역 완료 후 실행하세요
-  const { PrismaClient } = require('@prisma/client');
+  const { PrismaClient } = require("@prisma/client");
   const prisma = new PrismaClient();
-  
+
   for (const item of UI_TEXTS_TO_TRANSLATE) {
     if (item.en && item.jp) {
       await prisma.languagePack.update({
         where: { key: item.key },
         data: {
           en: item.en,
-          jp: item.jp
-        }
+          jp: item.jp,
+        },
       });
       console.log(`Updated: ${item.key}`);
     }

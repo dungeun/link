@@ -1,201 +1,226 @@
-import { useState, useEffect } from 'react'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/Input'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/Button'
-import { cn } from '@/lib/utils'
-import { ChevronRight } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
 
 interface Category {
-  id: string
-  name: string
-  slug: string
-  level: number
-  parentId?: string
-  isActive: boolean
-  icon?: string
-  children?: Category[]
+  id: string;
+  name: string;
+  slug: string;
+  level: number;
+  parentId?: string;
+  isActive: boolean;
+  icon?: string;
+  children?: Category[];
 }
 
 interface StepBasicInfoProps {
   formData: {
-    title: string
-    description: string
-    platform: string
-    budgetType?: string
-    budget?: number
-    reviewPrice?: number
-    categoryId?: string
-    minFollowers?: number
-    maxApplicants?: string | number
-  }
+    title: string;
+    description: string;
+    platform: string;
+    budgetType?: string;
+    budget?: number;
+    reviewPrice?: number;
+    categoryId?: string;
+    minFollowers?: number;
+    maxApplicants?: string | number;
+  };
   setFormData: (data: {
-    title: string
-    description: string
-    platform: string
-    budgetType?: string
-    budget?: number
-    reviewPrice?: number
-    categoryId?: string
-    minFollowers?: number
-    maxApplicants?: string | number
-    [key: string]: unknown
-  }) => void
+    title: string;
+    description: string;
+    platform: string;
+    budgetType?: string;
+    budget?: number;
+    reviewPrice?: number;
+    categoryId?: string;
+    minFollowers?: number;
+    maxApplicants?: string | number;
+    [key: string]: unknown;
+  }) => void;
   platformIcons: {
-    INSTAGRAM: React.ReactNode
-    YOUTUBE: React.ReactNode
-    TIKTOK: React.ReactNode
-    FACEBOOK: React.ReactNode
-    X: React.ReactNode
-    NAVERBLOG: React.ReactNode
-  }
+    INSTAGRAM: React.ReactNode;
+    YOUTUBE: React.ReactNode;
+    TIKTOK: React.ReactNode;
+    FACEBOOK: React.ReactNode;
+    X: React.ReactNode;
+    NAVERBLOG: React.ReactNode;
+  };
 }
 
-export default function StepBasicInfo({ formData, setFormData, platformIcons }: StepBasicInfoProps) {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showCategoryModal, setShowCategoryModal] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+export default function StepBasicInfo({
+  formData,
+  setFormData,
+  platformIcons,
+}: StepBasicInfoProps) {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
 
   useEffect(() => {
-    fetchCategories()
-  }, [])
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     // 선택된 카테고리 ID가 있으면 해당 카테고리 찾기
     if (formData.categoryId && categories.length > 0) {
       const findCategory = (cats: Category[]): Category | null => {
         for (const cat of cats) {
-          if (cat.id === formData.categoryId) return cat
+          if (cat.id === formData.categoryId) return cat;
           if (cat.children) {
-            const found = findCategory(cat.children)
-            if (found) return found
+            const found = findCategory(cat.children);
+            if (found) return found;
           }
         }
-        return null
-      }
-      setSelectedCategory(findCategory(categories))
+        return null;
+      };
+      setSelectedCategory(findCategory(categories));
     }
-  }, [formData.categoryId, categories])
+  }, [formData.categoryId, categories]);
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/admin/categories')
-      const data = await response.json()
+      const response = await fetch("/api/admin/categories");
+      const data = await response.json();
       if (data.success) {
         // 계층 구조로 정리
         const organizeHierarchy = (cats: Category[]) => {
-          const categoryMap = new Map<string, Category>()
-          const rootCategories: Category[] = []
+          const categoryMap = new Map<string, Category>();
+          const rootCategories: Category[] = [];
 
-          cats.forEach(cat => {
-            categoryMap.set(cat.id, { ...cat, children: [] })
-          })
+          cats.forEach((cat) => {
+            categoryMap.set(cat.id, { ...cat, children: [] });
+          });
 
-          cats.forEach(cat => {
-            const category = categoryMap.get(cat.id)!
+          cats.forEach((cat) => {
+            const category = categoryMap.get(cat.id)!;
             if (cat.parentId && categoryMap.has(cat.parentId)) {
-              const parent = categoryMap.get(cat.parentId)!
-              if (!parent.children) parent.children = []
-              parent.children.push(category)
+              const parent = categoryMap.get(cat.parentId)!;
+              if (!parent.children) parent.children = [];
+              parent.children.push(category);
             } else {
-              rootCategories.push(category)
+              rootCategories.push(category);
             }
-          })
+          });
 
-          return rootCategories
-        }
+          return rootCategories;
+        };
 
-        setCategories(organizeHierarchy(data.categories))
+        setCategories(organizeHierarchy(data.categories));
       }
     } catch (error) {
-      console.error('카테고리 로드 실패:', error)
+      console.error("카테고리 로드 실패:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const getCategoryPath = (category: Category | null): string => {
-    if (!category) return '카테고리를 선택하세요'
-    
-    const path: string[] = [category.name]
-    let current = category
-    
+    if (!category) return "카테고리를 선택하세요";
+
+    const path: string[] = [category.name];
+    let current = category;
+
     // 부모 카테고리 찾기
     while (current.parentId) {
-      const parent = findCategoryById(categories, current.parentId)
+      const parent = findCategoryById(categories, current.parentId);
       if (parent) {
-        path.unshift(parent.name)
-        current = parent
+        path.unshift(parent.name);
+        current = parent;
       } else {
-        break
+        break;
       }
     }
-    
-    return path.join(' > ')
-  }
+
+    return path.join(" > ");
+  };
 
   const findCategoryById = (cats: Category[], id: string): Category | null => {
     for (const cat of cats) {
-      if (cat.id === id) return cat
+      if (cat.id === id) return cat;
       if (cat.children) {
-        const found = findCategoryById(cat.children, id)
-        if (found) return found
+        const found = findCategoryById(cat.children, id);
+        if (found) return found;
       }
     }
-    return null
-  }
+    return null;
+  };
 
   const renderCategoryOptions = (cats: Category[], level = 0) => {
-    return cats.map(category => (
+    return cats.map((category) => (
       <div key={category.id}>
         <button
           type="button"
           className={cn(
             "w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-center justify-between",
-            formData.categoryId === category.id && "bg-blue-50 text-blue-600 font-medium"
+            formData.categoryId === category.id &&
+              "bg-blue-50 text-blue-600 font-medium",
           )}
           style={{ paddingLeft: `${level * 20 + 16}px` }}
           onClick={() => {
-            setFormData({ ...formData, categoryId: category.id })
-            setSelectedCategory(category)
-            setShowCategoryModal(false)
+            setFormData({ ...formData, categoryId: category.id });
+            setSelectedCategory(category);
+            setShowCategoryModal(false);
           }}
         >
           <div className="flex items-center gap-2">
             {category.icon && <span className="text-lg">{category.icon}</span>}
             <span>{category.name}</span>
             <span className="text-xs text-gray-500">
-              ({category.level === 1 ? '대분류' : category.level === 2 ? '중분류' : '소분류'})
+              (
+              {category.level === 1
+                ? "대분류"
+                : category.level === 2
+                  ? "중분류"
+                  : "소분류"}
+              )
             </span>
           </div>
           {formData.categoryId === category.id && (
             <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-3 h-3 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
           )}
         </button>
         {category.children && category.children.length > 0 && (
-          <div>
-            {renderCategoryOptions(category.children, level + 1)}
-          </div>
+          <div>{renderCategoryOptions(category.children, level + 1)}</div>
         )}
       </div>
-    ))
-  }
+    ));
+  };
 
   return (
     <>
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">캠페인 기본 정보</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        캠페인 기본 정보
+      </h2>
       <div className="space-y-6">
         <div>
           <Label htmlFor="title">캠페인 제목</Label>
           <Input
             id="title"
             value={formData.title}
-            onChange={(e) => setFormData({...formData, title: e.target.value})}
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
             placeholder="예: 신제품 출시 SNS 리뷰 캠페인"
             className="mt-1"
             required
@@ -207,7 +232,9 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
           <Textarea
             id="description"
             value={formData.description}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
             placeholder="캠페인의 목적과 내용을 상세히 설명해주세요."
             className="mt-1 h-32"
             required
@@ -222,10 +249,12 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
             onClick={() => setShowCategoryModal(true)}
             className={cn(
               "w-full mt-1 px-4 py-2 text-left border rounded-lg hover:border-gray-400 transition-colors flex items-center justify-between",
-              selectedCategory ? "border-gray-300" : "border-gray-200"
+              selectedCategory ? "border-gray-300" : "border-gray-200",
             )}
           >
-            <span className={selectedCategory ? "text-gray-900" : "text-gray-500"}>
+            <span
+              className={selectedCategory ? "text-gray-900" : "text-gray-500"}
+            >
               {getCategoryPath(selectedCategory)}
             </span>
             <ChevronRight className="w-4 h-4 text-gray-400" />
@@ -242,80 +271,104 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
           <div className="flex justify-center gap-3 mt-2">
             <Button
               type="button"
-              variant={formData.platform === 'INSTAGRAM' ? 'default' : 'outline'}
+              variant={
+                formData.platform === "INSTAGRAM" ? "default" : "outline"
+              }
               size="sm"
               className={cn(
                 "flex items-center justify-center gap-2 px-4 py-2",
-                formData.platform === 'INSTAGRAM' && "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                formData.platform === "INSTAGRAM" &&
+                  "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700",
               )}
-              onClick={() => setFormData({...formData, platform: 'INSTAGRAM'})}
+              onClick={() =>
+                setFormData({ ...formData, platform: "INSTAGRAM" })
+              }
             >
-              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.INSTAGRAM}</span>
+              <span className="w-4 h-4 flex items-center justify-center">
+                {platformIcons.INSTAGRAM}
+              </span>
               <span className="text-xs">인스타그램</span>
             </Button>
             <Button
               type="button"
-              variant={formData.platform === 'YOUTUBE' ? 'default' : 'outline'}
+              variant={formData.platform === "YOUTUBE" ? "default" : "outline"}
               size="sm"
               className={cn(
                 "flex items-center justify-center gap-2 px-4 py-2",
-                formData.platform === 'YOUTUBE' && "bg-red-600 hover:bg-red-700"
+                formData.platform === "YOUTUBE" &&
+                  "bg-red-600 hover:bg-red-700",
               )}
-              onClick={() => setFormData({...formData, platform: 'YOUTUBE'})}
+              onClick={() => setFormData({ ...formData, platform: "YOUTUBE" })}
             >
-              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.YOUTUBE}</span>
+              <span className="w-4 h-4 flex items-center justify-center">
+                {platformIcons.YOUTUBE}
+              </span>
               <span className="text-xs">유튜브</span>
             </Button>
             <Button
               type="button"
-              variant={formData.platform === 'TIKTOK' ? 'default' : 'outline'}
+              variant={formData.platform === "TIKTOK" ? "default" : "outline"}
               size="sm"
               className={cn(
                 "flex items-center justify-center gap-2 px-4 py-2",
-                formData.platform === 'TIKTOK' && "bg-black hover:bg-gray-900"
+                formData.platform === "TIKTOK" && "bg-black hover:bg-gray-900",
               )}
-              onClick={() => setFormData({...formData, platform: 'TIKTOK'})}
+              onClick={() => setFormData({ ...formData, platform: "TIKTOK" })}
             >
-              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.TIKTOK}</span>
+              <span className="w-4 h-4 flex items-center justify-center">
+                {platformIcons.TIKTOK}
+              </span>
               <span className="text-xs">틱톡</span>
             </Button>
             <Button
               type="button"
-              variant={formData.platform === 'FACEBOOK' ? 'default' : 'outline'}
+              variant={formData.platform === "FACEBOOK" ? "default" : "outline"}
               size="sm"
               className={cn(
                 "flex items-center justify-center gap-2 px-4 py-2",
-                formData.platform === 'FACEBOOK' && "bg-blue-600 hover:bg-blue-700"
+                formData.platform === "FACEBOOK" &&
+                  "bg-blue-600 hover:bg-blue-700",
               )}
-              onClick={() => setFormData({...formData, platform: 'FACEBOOK'})}
+              onClick={() => setFormData({ ...formData, platform: "FACEBOOK" })}
             >
-              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.FACEBOOK}</span>
+              <span className="w-4 h-4 flex items-center justify-center">
+                {platformIcons.FACEBOOK}
+              </span>
               <span className="text-xs">페이스북</span>
             </Button>
             <Button
               type="button"
-              variant={formData.platform === 'X' ? 'default' : 'outline'}
+              variant={formData.platform === "X" ? "default" : "outline"}
               size="sm"
               className={cn(
                 "flex items-center justify-center gap-2 px-4 py-2",
-                formData.platform === 'X' && "bg-black hover:bg-gray-900"
+                formData.platform === "X" && "bg-black hover:bg-gray-900",
               )}
-              onClick={() => setFormData({...formData, platform: 'X'})}
+              onClick={() => setFormData({ ...formData, platform: "X" })}
             >
-              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.X}</span>
+              <span className="w-4 h-4 flex items-center justify-center">
+                {platformIcons.X}
+              </span>
               <span className="text-xs">X</span>
             </Button>
             <Button
               type="button"
-              variant={formData.platform === 'NAVERBLOG' ? 'default' : 'outline'}
+              variant={
+                formData.platform === "NAVERBLOG" ? "default" : "outline"
+              }
               size="sm"
               className={cn(
                 "flex items-center justify-center gap-2 px-4 py-2",
-                formData.platform === 'NAVERBLOG' && "bg-green-600 hover:bg-green-700"
+                formData.platform === "NAVERBLOG" &&
+                  "bg-green-600 hover:bg-green-700",
               )}
-              onClick={() => setFormData({...formData, platform: 'NAVERBLOG'})}
+              onClick={() =>
+                setFormData({ ...formData, platform: "NAVERBLOG" })
+              }
             >
-              <span className="w-4 h-4 flex items-center justify-center">{platformIcons.NAVERBLOG}</span>
+              <span className="w-4 h-4 flex items-center justify-center">
+                {platformIcons.NAVERBLOG}
+              </span>
               <span className="text-xs">네이버</span>
             </Button>
           </div>
@@ -328,23 +381,33 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
               type="button"
               className={cn(
                 "relative h-auto py-4 px-4 rounded-lg border-2 transition-all",
-                formData.budgetType === 'FREE' 
-                  ? "border-indigo-600 bg-indigo-50 text-indigo-900" 
-                  : "border-gray-200 hover:border-gray-300 text-gray-700"
+                formData.budgetType === "FREE"
+                  ? "border-indigo-600 bg-indigo-50 text-indigo-900"
+                  : "border-gray-200 hover:border-gray-300 text-gray-700",
               )}
-              onClick={() => setFormData({...formData, budgetType: 'FREE', budget: 0})}
+              onClick={() =>
+                setFormData({ ...formData, budgetType: "FREE", budget: 0 })
+              }
             >
               <div className="text-center">
-                <div className={cn(
-                  "font-semibold mb-1",
-                  formData.budgetType === 'FREE' ? "text-indigo-900" : "text-gray-900"
-                )}>
+                <div
+                  className={cn(
+                    "font-semibold mb-1",
+                    formData.budgetType === "FREE"
+                      ? "text-indigo-900"
+                      : "text-gray-900",
+                  )}
+                >
                   무료 캠페인
                 </div>
-                <div className={cn(
-                  "text-sm",
-                  formData.budgetType === 'FREE' ? "text-indigo-700" : "text-gray-600"
-                )}>
+                <div
+                  className={cn(
+                    "text-sm",
+                    formData.budgetType === "FREE"
+                      ? "text-indigo-700"
+                      : "text-gray-600",
+                  )}
+                >
                   제품/서비스만 제공
                 </div>
               </div>
@@ -353,23 +416,31 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
               type="button"
               className={cn(
                 "relative h-auto py-4 px-4 rounded-lg border-2 transition-all",
-                formData.budgetType === 'PAID' 
-                  ? "border-indigo-600 bg-indigo-50 text-indigo-900" 
-                  : "border-gray-200 hover:border-gray-300 text-gray-700"
+                formData.budgetType === "PAID"
+                  ? "border-indigo-600 bg-indigo-50 text-indigo-900"
+                  : "border-gray-200 hover:border-gray-300 text-gray-700",
               )}
-              onClick={() => setFormData({...formData, budgetType: 'PAID'})}
+              onClick={() => setFormData({ ...formData, budgetType: "PAID" })}
             >
               <div className="text-center">
-                <div className={cn(
-                  "font-semibold mb-1",
-                  formData.budgetType === 'PAID' ? "text-indigo-900" : "text-gray-900"
-                )}>
+                <div
+                  className={cn(
+                    "font-semibold mb-1",
+                    formData.budgetType === "PAID"
+                      ? "text-indigo-900"
+                      : "text-gray-900",
+                  )}
+                >
                   유료 캠페인
                 </div>
-                <div className={cn(
-                  "text-sm",
-                  formData.budgetType === 'PAID' ? "text-indigo-700" : "text-gray-600"
-                )}>
+                <div
+                  className={cn(
+                    "text-sm",
+                    formData.budgetType === "PAID"
+                      ? "text-indigo-700"
+                      : "text-gray-600",
+                  )}
+                >
                   제품+현금 보상
                 </div>
               </div>
@@ -378,23 +449,31 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
               type="button"
               className={cn(
                 "relative h-auto py-4 px-4 rounded-lg border-2 transition-all",
-                formData.budgetType === 'REVIEW' 
-                  ? "border-orange-600 bg-orange-50 text-orange-900" 
-                  : "border-gray-200 hover:border-gray-300 text-gray-700"
+                formData.budgetType === "REVIEW"
+                  ? "border-orange-600 bg-orange-50 text-orange-900"
+                  : "border-gray-200 hover:border-gray-300 text-gray-700",
               )}
-              onClick={() => setFormData({...formData, budgetType: 'REVIEW'})}
+              onClick={() => setFormData({ ...formData, budgetType: "REVIEW" })}
             >
               <div className="text-center">
-                <div className={cn(
-                  "font-semibold mb-1",
-                  formData.budgetType === 'REVIEW' ? "text-orange-900" : "text-gray-900"
-                )}>
+                <div
+                  className={cn(
+                    "font-semibold mb-1",
+                    formData.budgetType === "REVIEW"
+                      ? "text-orange-900"
+                      : "text-gray-900",
+                  )}
+                >
                   구매평 캠페인
                 </div>
-                <div className={cn(
-                  "text-sm",
-                  formData.budgetType === 'REVIEW' ? "text-orange-700" : "text-gray-600"
-                )}>
+                <div
+                  className={cn(
+                    "text-sm",
+                    formData.budgetType === "REVIEW"
+                      ? "text-orange-700"
+                      : "text-gray-600",
+                  )}
+                >
                   구매평 작성 대가
                 </div>
               </div>
@@ -402,14 +481,19 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
           </div>
         </div>
 
-        {formData.budgetType === 'PAID' && (
+        {formData.budgetType === "PAID" && (
           <div>
             <Label htmlFor="budget">캠페인 예산 (인플루언서 보상금)</Label>
             <Input
               id="budget"
               type="number"
-              value={formData.budget || ''}
-              onChange={(e) => setFormData({...formData, budget: Number(e.target.value) || 0})}
+              value={formData.budget || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  budget: Number(e.target.value) || 0,
+                })
+              }
               placeholder="예: 100000"
               className="mt-1"
               min="0"
@@ -421,14 +505,19 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
           </div>
         )}
 
-        {formData.budgetType === 'REVIEW' && (
+        {formData.budgetType === "REVIEW" && (
           <div>
             <Label htmlFor="reviewPrice">구매평 단가 (개당)</Label>
             <Input
               id="reviewPrice"
               type="number"
-              value={formData.reviewPrice || ''}
-              onChange={(e) => setFormData({...formData, reviewPrice: Number(e.target.value) || 0})}
+              value={formData.reviewPrice || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  reviewPrice: Number(e.target.value) || 0,
+                })
+              }
               placeholder="예: 10000"
               className="mt-1"
               min="0"
@@ -442,15 +531,22 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
 
         {/* 인플루언서 조건 설정 */}
         <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-900 border-b pb-2">인플루언서 조건</h3>
+          <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
+            인플루언서 조건
+          </h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="minFollowers">최소 팔로워 수</Label>
               <Input
                 id="minFollowers"
                 type="number"
-                value={formData.minFollowers || ''}
-                onChange={(e) => setFormData({...formData, minFollowers: Number(e.target.value) || 0})}
+                value={formData.minFollowers || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    minFollowers: Number(e.target.value) || 0,
+                  })
+                }
                 placeholder="예: 1000"
                 className="mt-1"
                 min="0"
@@ -465,8 +561,10 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
               <Input
                 id="maxApplicants"
                 type="number"
-                value={formData.maxApplicants || ''}
-                onChange={(e) => setFormData({...formData, maxApplicants: e.target.value})}
+                value={formData.maxApplicants || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, maxApplicants: e.target.value })
+                }
                 placeholder="예: 50"
                 className="mt-1"
                 min="1"
@@ -490,8 +588,18 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
                 onClick={() => setShowCategoryModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -504,7 +612,9 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
                 renderCategoryOptions(categories)
               ) : (
                 <div className="p-8 text-center">
-                  <div className="text-gray-500">등록된 카테고리가 없습니다.</div>
+                  <div className="text-gray-500">
+                    등록된 카테고리가 없습니다.
+                  </div>
                 </div>
               )}
             </div>
@@ -520,5 +630,5 @@ export default function StepBasicInfo({ formData, setFormData, platformIcons }: 
         </div>
       )}
     </>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
+import React from "react";
+import { cn } from "@/lib/utils";
 
 // 기본 스켈레톤 컴포넌트
 export function Skeleton({
@@ -11,7 +11,7 @@ export function Skeleton({
       className={cn("animate-pulse rounded-md bg-gray-200", className)}
       {...props}
     />
-  )
+  );
 }
 
 // 캠페인 카드 스켈레톤
@@ -20,30 +20,30 @@ export function CampaignCardSkeleton() {
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       {/* 이미지 영역 */}
       <Skeleton className="h-48 w-full" />
-      
+
       {/* 컨텐츠 영역 */}
       <div className="p-4 space-y-3">
         {/* 제목 */}
         <Skeleton className="h-6 w-3/4" />
-        
+
         {/* 비즈니스 정보 */}
         <div className="flex items-center gap-2">
           <Skeleton className="h-8 w-8 rounded-full" />
           <Skeleton className="h-4 w-24" />
         </div>
-        
+
         {/* 플랫폼 뱃지 */}
         <div className="flex gap-2">
           <Skeleton className="h-6 w-16 rounded-full" />
           <Skeleton className="h-6 w-16 rounded-full" />
         </div>
-        
+
         {/* 정보 라인들 */}
         <div className="space-y-2">
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-2/3" />
         </div>
-        
+
         {/* 하단 정보 */}
         <div className="flex justify-between items-center pt-2">
           <Skeleton className="h-4 w-20" />
@@ -51,7 +51,7 @@ export function CampaignCardSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // 캠페인 상세 페이지 스켈레톤
@@ -61,12 +61,12 @@ export function CampaignDetailSkeleton() {
       {/* 헤더 이미지 */}
       <div className="relative h-96 bg-gray-900">
         <Skeleton className="absolute inset-0" />
-        
+
         {/* 뒤로가기 버튼 */}
         <div className="absolute top-6 left-6 z-10">
           <Skeleton className="h-10 w-24 rounded-md" />
         </div>
-        
+
         {/* 공유 & 좋아요 버튼 */}
         <div className="absolute top-6 right-6 z-10 flex items-center gap-2">
           <Skeleton className="h-10 w-10 rounded-md" />
@@ -126,7 +126,7 @@ export function CampaignDetailSkeleton() {
             {/* 캠페인 정보 카드 */}
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-6">
               <Skeleton className="h-6 w-32 mb-4" />
-              
+
               <div className="space-y-4">
                 {/* 정보 항목들 */}
                 {[...Array(8)].map((_, i) => (
@@ -160,7 +160,7 @@ export function CampaignDetailSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // 캠페인 리스트 스켈레톤
@@ -171,7 +171,7 @@ export function CampaignListSkeleton({ count = 6 }: { count?: number }) {
         <CampaignCardSkeleton key={i} />
       ))}
     </div>
-  )
+  );
 }
 
 // 테이블 로우 스켈레톤
@@ -200,7 +200,7 @@ export function CampaignTableRowSkeleton() {
         <Skeleton className="h-8 w-20 rounded-md" />
       </td>
     </tr>
-  )
+  );
 }
 
 // 통계 카드 스켈레톤
@@ -214,7 +214,7 @@ export function StatCardSkeleton() {
       <Skeleton className="h-8 w-32 mb-1" />
       <Skeleton className="h-3 w-20" />
     </div>
-  )
+  );
 }
 
 // 프로필 섹션 스켈레톤
@@ -234,5 +234,5 @@ export function ProfileSectionSkeleton() {
         <Skeleton className="h-4 w-5/6" />
       </div>
     </div>
-  )
+  );
 }
