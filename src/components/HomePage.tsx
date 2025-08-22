@@ -136,8 +136,8 @@ function HomePage({
   // JSON 기반 정적 UI 텍스트 번역 함수
   const getStaticTexts = (lang: LanguageCode) => {
     if (!staticUITexts) return null
-    const adjustedLang = lang
-    return staticUITexts[adjustedLang] || staticUITexts['ko'] || null
+    // StaticUITexts is already structured by category, not by language
+    return staticUITexts
   }
   
   // 통합 번역 함수 - JSON 정적 텍스트 우선, 동적 컨텐츠는 contextT 사용

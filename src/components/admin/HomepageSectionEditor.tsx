@@ -172,7 +172,7 @@ export function HomepageSectionEditor({
   const mergeTranslationData = (originalData: any, translatedData: any, targetLang: 'en' | 'jp') => {
     const merged = JSON.parse(JSON.stringify(originalData))
     
-    const mergeObject = (original: any, translated: any) => {
+    const mergeObject = (original: any, translated: any): any => {
       if (!original || !translated) return original
       
       if (Array.isArray(original)) {
@@ -186,14 +186,13 @@ export function HomepageSectionEditor({
           if (key in original) {
             if (typeof original[key] === 'string' && typeof translated[key] === 'string') {
               // 다국어 객체로 변환
-              if (typeof original[key] === 'string') {
-                original[key] = {
-                  ko: original[key],
-                  [targetLang]: translated[key]
-                }
-              } else if (original[key].ko) {
-                original[key][targetLang] = translated[key]
+              original[key] = {
+                ko: original[key],
+                [targetLang]: translated[key]
               }
+            } else if (typeof original[key] === 'object' && original[key]?.ko && typeof translated[key] === 'string') {
+              // 이미 다국어 객체인 경우
+              original[key][targetLang] = translated[key]
             } else {
               original[key] = mergeObject(original[key], translated[key])
             }

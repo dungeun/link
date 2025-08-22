@@ -63,6 +63,8 @@ interface RankingSectionProps {
 
 export default function RankingSection({ data }: RankingSectionProps) {
   const { currentLanguage: language } = useLanguage()
+  // Map 'ja' to 'jp' for data indexing
+  const dataLanguage = language === 'ja' ? 'jp' : language as 'ko' | 'en' | 'jp'
   const [dbCampaigns, setDbCampaigns] = useState<DbRankingCampaign[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -157,7 +159,7 @@ export default function RankingSection({ data }: RankingSectionProps) {
       {data.sectionName && (
         <div className="max-w-none mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 text-left">
-            {data.sectionName[language]}
+            {data.sectionName[dataLanguage]}
           </h2>
         </div>
       )}
@@ -167,12 +169,12 @@ export default function RankingSection({ data }: RankingSectionProps) {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
             <h2 className="text-3xl font-bold text-gray-900">
-              {data.title[language]}
+              {data.title[dataLanguage]}
             </h2>
             <Zap className="w-6 h-6 text-blue-600" />
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-4">
-            {data.subtitle[language]}
+            {data.subtitle[dataLanguage]}
           </p>
           <div className="flex items-center justify-center gap-2 text-sm text-blue-600 font-medium">
             <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
@@ -316,7 +318,7 @@ export default function RankingSection({ data }: RankingSectionProps) {
                       {campaign.image ? (
                         <Image
                           src={campaign.image}
-                          alt={campaign.title[language]}
+                          alt={campaign.title[dataLanguage]}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
                           sizes="80px"
@@ -345,7 +347,7 @@ export default function RankingSection({ data }: RankingSectionProps) {
                         
                         {/* 제목 */}
                         <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                          {campaign.title[language]}
+                          {campaign.title[dataLanguage]}
                         </h3>
 
                         {/* 통계 정보 */}

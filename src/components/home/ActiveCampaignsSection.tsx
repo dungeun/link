@@ -82,7 +82,9 @@ interface ActiveCampaignsSectionProps {
 }
 
 export default function ActiveCampaignsSection({ data }: ActiveCampaignsSectionProps) {
-  const { language } = useLanguage()
+  const { currentLanguage } = useLanguage()
+  // Map 'ja' to 'jp' for data indexing
+  const dataLanguage = currentLanguage === 'ja' ? 'jp' : currentLanguage as 'ko' | 'en' | 'jp'
   const [dbCampaigns, setDbCampaigns] = useState<DbCampaign[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -128,17 +130,17 @@ export default function ActiveCampaignsSection({ data }: ActiveCampaignsSectionP
   }
 
   const getDifficultyText = (difficulty: string) => {
-    const difficultyTexts = {
+    const difficultyTexts: Record<string, Record<string, string>> = {
       easy: { ko: '쉬움', en: 'Easy', jp: '簡単' },
       medium: { ko: '보통', en: 'Medium', jp: '普通' },
       hard: { ko: '어려움', en: 'Hard', jp: '難しい' }
     }
-    return difficultyTexts[difficulty]?.[language] || difficulty
+    return difficultyTexts[difficulty]?.[currentLanguage] || difficulty
   }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString(language === 'ko' ? 'ko-KR' : language === 'jp' ? 'ja-JP' : 'en-US')
+    return date.toLocaleDateString(currentLanguage === 'ko' ? 'ko-KR' : (currentLanguage as string) === 'jp' ? 'ja-JP' : 'en-US')
   }
 
   return (
@@ -147,7 +149,7 @@ export default function ActiveCampaignsSection({ data }: ActiveCampaignsSectionP
       {data.sectionName && (
         <div className="max-w-none mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 text-left">
-            {data.sectionName[language]}
+            {data.sectionName[dataLanguage]}
           </h2>
         </div>
       )}
@@ -156,10 +158,10 @@ export default function ActiveCampaignsSection({ data }: ActiveCampaignsSectionP
         {/* 헤더 */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            {data.title[language]}
+            {data.title[dataLanguage]}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {data.subtitle[language]}
+            {data.subtitle[dataLanguage]}
           </p>
         </div>
 
@@ -287,7 +289,7 @@ export default function ActiveCampaignsSection({ data }: ActiveCampaignsSectionP
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <Image
                     src={campaign.thumbnail}
-                    alt={campaign.title[language]}
+                    alt={campaign.title[dataLanguage]}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
@@ -329,12 +331,12 @@ export default function ActiveCampaignsSection({ data }: ActiveCampaignsSectionP
 
                     {/* 제목 */}
                     <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors leading-tight">
-                      {campaign.title[language]}
+                      {campaign.title[dataLanguage]}
                     </h3>
 
                     {/* 설명 */}
                     <p className="text-sm text-gray-600 line-clamp-2 mb-4 leading-relaxed">
-                      {campaign.description[language]}
+                      {campaign.description[dataLanguage]}
                     </p>
                   </div>
 
@@ -343,8 +345,8 @@ export default function ActiveCampaignsSection({ data }: ActiveCampaignsSectionP
                     <div className="flex items-center gap-2 mb-4">
                       <Star className="w-5 h-5 text-yellow-500" />
                       <span className="text-base font-bold text-gray-900">
-                        {language === 'ko' ? campaign.reward.value : 
-                         language === 'en' ? campaign.reward.valueEn : 
+                        {dataLanguage === 'ko' ? campaign.reward.value : 
+                         dataLanguage === 'en' ? campaign.reward.valueEn : 
                          campaign.reward.valueJp}
                       </span>
                     </div>
@@ -393,7 +395,7 @@ export default function ActiveCampaignsSection({ data }: ActiveCampaignsSectionP
               href="/campaigns"
               className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
             >
-              {data.viewMore[language]}
+              {data.viewMore[dataLanguage]}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

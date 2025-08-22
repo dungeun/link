@@ -26,6 +26,7 @@ export interface PreloadedData {
     totalCampaigns: number;
     loadTime: number;
     cached: boolean;
+    source?: string;
   };
 }
 

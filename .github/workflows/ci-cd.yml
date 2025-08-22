@@ -1,0 +1,519 @@
+name: CI/CD Pipeline - World Class
+
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main, develop]
+  release:
+    types: [published]
+
+env:
+  NODE_VERSION: '18.x'
+  PNPM_VERSION: '8'
+
+jobs:
+  # =================== Code Quality Check ===================
+  code-quality:
+    name: Code Quality & Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm run lint
+
+      - name: Run TypeScript Check
+        run: pnpm run type-check
+
+      - name: Run Prettier Check
+        run: pnpm run format:check
+
+      - name: Run Security Audit
+        run: pnpm audit --audit-level=moderate
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  # =================== Unit & Integration Tests ===================
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Database
+        run: |
+          pnpm run db:generate
+          pnpm run db:push
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+
+      - name: Run Unit Tests (Shard ${{ matrix.shard }}/4)
+        run: pnpm run test:unit --shard=${{ matrix.shard }}/4
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret
+
+      - name: Run Integration Tests
+        run: pnpm run test:integration --shard=${{ matrix.shard }}/4
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+
+  # =================== E2E Tests ===================
+  e2e-test:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: code-quality
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1, 2]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Build Application
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+      - name: Run E2E Tests
+        run: pnpm run test:e2e --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/2
+        env:
+          CI: true
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report-${{ matrix.browser }}-${{ matrix.shard }}
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload Test Videos
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-videos-${{ matrix.browser }}-${{ matrix.shard }}
+          path: test-results/
+          retention-days: 3
+
+  # =================== Performance Tests ===================
+  performance-test:
+    name: Performance & Load Tests
+    runs-on: ubuntu-latest
+    needs: [test, e2e-test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Application
+        run: pnpm run build
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:3000
+            http://localhost:3000/campaigns
+            http://localhost:3000/influencers
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Run K6 Load Tests
+        uses: grafana/k6-action@v0.3.0
+        with:
+          filename: tests/load/k6-script.js
+          cloud: true
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+
+      - name: Check Bundle Size
+        run: |
+          pnpm run build:analyze
+          npx bundlesize --config bundlesize.config.json
+        env:
+          BUNDLESIZE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # =================== Build & Push Docker Images ===================
+  build-images:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: [test, e2e-test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/develop'
+    strategy:
+      matrix:
+        service: [
+          web,
+          user-service,
+          campaign-service,
+          payment-service,
+          notification-service,
+          analytics-service,
+          search-service
+        ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ secrets.DOCKER_USERNAME }}/revu-${{ matrix.service }}
+            ghcr.io/${{ github.repository_owner }}/revu-${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.service == 'web' && '.' || format('services/{0}', matrix.service) }}
+          file: ${{ matrix.service == 'web' && 'Dockerfile' || format('services/{0}/Dockerfile', matrix.service) }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_VERSION=${{ env.NODE_VERSION }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ steps.meta.outputs.version }}
+
+  # =================== Deploy to Staging ===================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-images
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.revu-platform.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name revu-staging-cluster --region ap-northeast-2
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/staging/
+          kubectl set image deployment/web-deployment web=ghcr.io/${{ github.repository_owner }}/revu-web:develop-${{ github.sha }} -n staging
+          kubectl rollout status deployment/web-deployment -n staging
+
+      - name: Run Smoke Tests
+        run: |
+          pnpm run test:smoke --url=https://staging.revu-platform.com
+        env:
+          STAGING_URL: https://staging.revu-platform.com
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Staging deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          channel: '#deployments'
+          username: 'GitHub Actions'
+
+  # =================== Deploy to Production ===================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-images, performance-test]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://revu-platform.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name revu-production-cluster --region ap-northeast-2
+
+      - name: Create deployment backup
+        run: |
+          kubectl get deployment -n production -o yaml > backup-${{ github.sha }}.yaml
+          aws s3 cp backup-${{ github.sha }}.yaml s3://revu-backups/deployments/
+
+      - name: Blue-Green Deployment
+        run: |
+          # Deploy to green environment
+          kubectl apply -f k8s/production/green/
+          kubectl set image deployment/web-deployment-green web=ghcr.io/${{ github.repository_owner }}/revu-web:main-${{ github.sha }} -n production
+          kubectl rollout status deployment/web-deployment-green -n production
+          
+          # Run health checks
+          ./scripts/health-check.sh green
+          
+          # Switch traffic to green
+          kubectl patch service web-service -n production -p '{"spec":{"selector":{"version":"green"}}}'
+          
+          # Wait and monitor
+          sleep 60
+          ./scripts/monitor-deployment.sh
+          
+          # Scale down blue
+          kubectl scale deployment web-deployment-blue --replicas=0 -n production
+
+      - name: Run Production Tests
+        run: |
+          pnpm run test:production --url=https://revu-platform.com
+        env:
+          PRODUCTION_URL: https://revu-platform.com
+
+      - name: Create Release Notes
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify Team
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Production deployment ${{ job.status }}
+            Version: ${{ github.sha }}
+            Deployed by: ${{ github.actor }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          channel: '#deployments'
+          username: 'GitHub Actions'
+
+      - name: Update Status Page
+        run: |
+          curl -X POST https://api.statuspage.io/v1/pages/${{ secrets.STATUSPAGE_ID }}/incidents \
+            -H "Authorization: OAuth ${{ secrets.STATUSPAGE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "incident": {
+                "name": "Deployment completed",
+                "status": "resolved",
+                "impact": "none",
+                "body": "Successfully deployed version ${{ github.sha }}"
+              }
+            }'
+
+  # =================== Rollback (Manual Trigger) ===================
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Rollback to previous version
+        run: |
+          # Get previous deployment
+          PREVIOUS_SHA=$(aws s3 ls s3://revu-backups/deployments/ | tail -2 | head -1 | awk '{print $4}' | sed 's/backup-//' | sed 's/.yaml//')
+          
+          # Download and apply previous deployment
+          aws s3 cp s3://revu-backups/deployments/backup-${PREVIOUS_SHA}.yaml ./
+          kubectl apply -f backup-${PREVIOUS_SHA}.yaml
+          
+          # Monitor rollback
+          kubectl rollout status deployment/web-deployment -n production
+
+      - name: Notify Team
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'warning'
+          text: |
+            ⚠️ Production rollback executed
+            Rolled back from: ${{ github.sha }}
+            Initiated by: ${{ github.actor }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          channel: '#deployments'
+          username: 'GitHub Actions'
